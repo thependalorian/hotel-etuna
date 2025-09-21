@@ -1,0 +1,7 @@
+{
+  "/experience/page": "app/experience/page.js",
+  "/page": "app/page.js",
+  "/certificates/page": "app/certificates/page.js",
+  "/buffr/page": "app/buffr/page.js",
+  "/projects/page": "app/projects/page.js"
+}

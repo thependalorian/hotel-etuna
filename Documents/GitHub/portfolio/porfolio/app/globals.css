@@ -1,0 +1,698 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgb(var(--background-end-rgb))
+  )
+  rgb(var(--background-start-rgb));
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 346.8 77.2% 49.8%;
+    --primary-foreground: 355.7 100% 97.3%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 346.8 77.2% 49.8%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 20 14.3% 4.1%;
+    --foreground: 0 0% 95%;
+    --card: 24 9.8% 10%;
+    --card-foreground: 0 0% 95%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 346.8 77.2% 49.8%;
+    --primary-foreground: 355.7 100% 97.3%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 12 6.5% 15.1%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 85.7% 97.3%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 346.8 77.2% 49.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-base-300;
+  }
+  body {
+    @apply bg-base-100 text-base-content;
+  }
+}
+
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-base-200;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary/50 rounded-full hover:bg-primary/70 transition-colors;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Selection color */
+::selection {
+  @apply bg-primary/30 text-base-content;
+}
+
+/* Focus outline */
+:focus-visible {
+  @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-base-100;
+}
+
+/* Loading spinner */
+.loading {
+  @apply inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite];
+}
+
+/* Glass card effect */
+.glass-card {
+  @apply backdrop-blur-lg bg-white/10 border border-white/20 shadow-xl;
+}
+
+/* BuffrLend fintech-specific styles */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+    
+    /* BuffrLend fintech-specific colors using chart system */
+    --loan-approved: hsl(var(--chart-2));
+    --loan-pending: hsl(var(--chart-4));
+    --loan-rejected: hsl(var(--destructive));
+    --payment-success: hsl(var(--chart-2));
+    --credit-excellent: hsl(var(--chart-2));
+    --credit-warning: hsl(var(--chart-4));
+  }
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer components {
+  /* BuffrLend fintech specific component styles */
+  .loan-button {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+  
+  .loan-approved-badge {
+    @apply bg-green-50 text-green-700 border-green-200;
+  }
+  
+  .loan-pending-badge {
+    @apply bg-yellow-50 text-yellow-700 border-yellow-200;
+  }
+  
+  .loan-rejected-badge {
+    @apply bg-red-50 text-red-700 border-red-200;
+  }
+  
+  .fintech-card {
+    @apply bg-card text-card-foreground border rounded-lg shadow-sm;
+  }
+  
+  .glass-fintech {
+    @apply backdrop-blur-sm bg-white/80 border-white/20;
+  }
+  
+  /* Focus ring utility */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  }
+  
+  /* Financial data display */
+  .currency-large {
+    @apply text-2xl font-bold;
+  }
+  
+  .currency-medium {
+    @apply text-lg font-semibold;
+  }
+  
+  .currency-small {
+    @apply text-base font-medium;
+  }
+}
+
+/* Custom blue-turquoise theme overrides for BuffrLend */
+[data-theme="buffrlend"] {
+  --p: 217 91% 60%; /* Blue */
+  --s: 187 85% 53%; /* Cyan */
+  --a: 174 77% 40%; /* Teal */
+  --n: 215 25% 27%; /* Slate */
+  --b1: 222 84% 5%; /* Dark slate */
+  --in: 199 89% 48%; /* Sky blue */
+  --su: 160 84% 39%; /* Emerald */
+  --wa: 199 89% 48%; /* Sky blue instead of amber */
+  --er: 0 84% 60%; /* Red */
+}
+
+/* Custom gradient text for the hero section */
+.gradient-text {
+  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 50%, #14b8a6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Enhanced button hover effects */
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #0891b2 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #06b6d4 0%, #14b8a6 100%);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: linear-gradient(135deg, #0891b2 0%, #0d9488 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(6, 182, 212, 0.3);
+}
+
+/* Buffr Host hospitality-specific styles */
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+  body {
+    @apply bg-base-100 text-base-content font-sans antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-semibold tracking-tight;
+    text-wrap: balance;
+  }
+  h1 {
+    @apply text-5xl md:text-7xl font-extrabold;
+  }
+  h2 {
+    @apply text-4xl md:text-5xl font-bold;
+  }
+  h3 {
+     @apply text-2xl md:text-3xl font-bold;
+  }
+}
+
+/* Custom sand theme for Buffr Host */
+[data-theme="buffrhost"] {
+  --p: 137 35% 40%; /* sand-600 */
+  --pf: 137 35% 35%; /* sand-700 */
+  --pc: 0 0% 100%; /* white */
+  
+  --s: 137 35% 70%; /* sand-300 */
+  --sf: 137 35% 65%; /* sand-400 */
+  --sc: 137 35% 20%; /* sand-900 */
+  
+  --a: 137 35% 50%; /* sand-500 */
+  --af: 137 35% 45%; /* sand-600 */
+  --ac: 0 0% 100%; /* white */
+  
+  --n: 137 35% 15%; /* sand-950 */
+  --nf: 137 35% 10%; /* darker */
+  --nc: 137 35% 90%; /* sand-100 */
+  
+  --b1: 0 0% 100%; /* white */
+  --b2: 137 35% 95%; /* sand-50 */
+  --b3: 137 35% 90%; /* sand-100 */
+  --bc: 137 35% 20%; /* sand-900 */
+  
+  --in: 199 89% 48%; /* sky blue */
+  --inc: 0 0% 100%; /* white */
+  
+  --su: 160 84% 39%; /* emerald */
+  --suc: 0 0% 100%; /* white */
+  
+  --wa: 43 96% 56%; /* amber */
+  --wac: 0 0% 100%; /* white */
+  
+  --er: 0 84% 60%; /* red */
+  --erc: 0 0% 100%; /* white */
+}
+
+/* Sand color palette */
+.sand-50 { color: #fdfaf6; }
+.sand-100 { color: #f9f2e9; }
+.sand-200 { color: #f2e4d3; }
+.sand-300 { color: #e8d1b9; }
+.sand-400 { color: #d9b895; }
+.sand-500 { color: #c99e73; }
+.sand-600 { color: #b88556; }
+.sand-700 { color: #9d6a43; }
+.sand-800 { color: #845636; }
+.sand-900 { color: #6f482f; }
+.sand-950 { color: #402518; }
+
+.bg-sand-50 { background-color: #fdfaf6; }
+.bg-sand-100 { background-color: #f9f2e9; }
+.bg-sand-200 { background-color: #f2e4d3; }
+.bg-sand-300 { background-color: #e8d1b9; }
+.bg-sand-400 { background-color: #d9b895; }
+.bg-sand-500 { background-color: #c99e73; }
+.bg-sand-600 { background-color: #b88556; }
+.bg-sand-700 { background-color: #9d6a43; }
+.bg-sand-800 { background-color: #845636; }
+.bg-sand-900 { background-color: #6f482f; }
+.bg-sand-950 { background-color: #402518; }
+
+.text-sand-50 { color: #fdfaf6; }
+.text-sand-100 { color: #f9f2e9; }
+.text-sand-200 { color: #f2e4d3; }
+.text-sand-300 { color: #e8d1b9; }
+.text-sand-400 { color: #d9b895; }
+.text-sand-500 { color: #c99e73; }
+.text-sand-600 { color: #b88556; }
+.text-sand-700 { color: #9d6a43; }
+.text-sand-800 { color: #845636; }
+.text-sand-900 { color: #6f482f; }
+.text-sand-950 { color: #402518; }
+
+.border-sand-50 { border-color: #fdfaf6; }
+.border-sand-100 { border-color: #f9f2e9; }
+.border-sand-200 { border-color: #f2e4d3; }
+.border-sand-300 { border-color: #e8d1b9; }
+.border-sand-400 { border-color: #d9b895; }
+.border-sand-500 { border-color: #c99e73; }
+.border-sand-600 { border-color: #b88556; }
+.border-sand-700 { border-color: #9d6a43; }
+.border-sand-800 { border-color: #845636; }
+.border-sand-900 { border-color: #6f482f; }
+.border-sand-950 { border-color: #402518; }
+
+/* Dark mode sand colors */
+.dark .bg-sand-50 { background-color: #402518; }
+.dark .bg-sand-100 { background-color: #6f482f; }
+.dark .bg-sand-200 { background-color: #845636; }
+.dark .bg-sand-300 { background-color: #9d6a43; }
+.dark .bg-sand-400 { background-color: #b88556; }
+.dark .bg-sand-500 { background-color: #c99e73; }
+.dark .bg-sand-600 { background-color: #d9b895; }
+.dark .bg-sand-700 { background-color: #e8d1b9; }
+.dark .bg-sand-800 { background-color: #f2e4d3; }
+.dark .bg-sand-900 { background-color: #f9f2e9; }
+.dark .bg-sand-950 { background-color: #fdfaf6; }
+
+.dark .text-sand-50 { color: #402518; }
+.dark .text-sand-100 { color: #6f482f; }
+.dark .text-sand-200 { color: #845636; }
+.dark .text-sand-300 { color: #9d6a43; }
+.dark .text-sand-400 { color: #b88556; }
+.dark .text-sand-500 { color: #c99e73; }
+.dark .text-sand-600 { color: #d9b895; }
+.dark .text-sand-700 { color: #e8d1b9; }
+.dark .text-sand-800 { color: #f2e4d3; }
+.dark .text-sand-900 { color: #f9f2e9; }
+.dark .text-sand-950 { color: #fdfaf6; }
+
+.dark .border-sand-50 { border-color: #402518; }
+.dark .border-sand-100 { border-color: #6f482f; }
+.dark .border-sand-200 { border-color: #845636; }
+.dark .border-sand-300 { border-color: #9d6a43; }
+.dark .border-sand-400 { border-color: #b88556; }
+.dark .border-sand-500 { border-color: #c99e73; }
+.dark .border-sand-600 { border-color: #d9b895; }
+.dark .border-sand-700 { border-color: #e8d1b9; }
+.dark .border-sand-800 { border-color: #f2e4d3; }
+.dark .border-sand-900 { border-color: #f9f2e9; }
+.dark .border-sand-950 { border-color: #fdfaf6; }
+
+/* BuffrSign-specific styles */
+@layer base {
+  :root {
+    /* Core Brand Colors */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    
+    /* Primary Brand Color - BuffrSign Blue */
+    --primary: 220 70% 50%;        /* #3b82f6 - Main brand color */
+    --primary-foreground: 0 0% 98%; /* #fafafa - Text on primary */
+    
+    /* Secondary & Accent Colors */
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    
+    /* UI State Colors */
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 38.1%;  /* Improved contrast for better readability */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 220 70% 50%;           /* Use primary for ring focus */
+    
+    /* Chart Color System - Feature-Specific Colors */
+    --chart-1: 220 70% 50%;        /* #3b82f6 - Digital Signatures (Primary) */
+    --chart-2: 160 60% 45%;        /* #10b981 - Compliance & Success */
+    --chart-3: 30 80% 55%;         /* #f59e0b - Warnings & Notifications */
+    --chart-4: 280 65% 60%;        /* #8b5cf6 - AI Features & Intelligence */
+    --chart-5: 340 75% 55%;        /* #ef4444 - Security & Alerts */
+    
+    /* Utility Colors */
+    --radius: 0.5rem;
+    
+    /* BuffrSign Specific Semantic Colors */
+    --signature-primary: hsl(var(--chart-1));      /* Digital signature actions */
+    --signature-success: hsl(var(--chart-2));      /* Compliance verification */
+    --signature-warning: hsl(var(--chart-3));      /* Document warnings */
+    --signature-info: hsl(var(--chart-4));         /* AI analysis results */
+    --compliance-green: hsl(var(--chart-2));       /* ETA 2019 compliance */
+    --legal-blue: hsl(var(--chart-1));             /* Legal document features */
+    --ai-purple: hsl(var(--chart-4));              /* AI-powered features */
+    --security-red: hsl(var(--chart-5));           /* Security features */
+  }
+  
+  .dark {
+    /* Dark Theme - Maintain brand consistency */
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    
+    /* Primary in dark mode - Brighter blue for better contrast */
+    --primary: 220 70% 60%;
+    --primary-foreground: 0 0% 98%;
+    
+    /* Secondary & Accent in dark mode */
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    
+    /* UI State Colors in dark mode */
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 70.9%;  /* Improved contrast for dark mode readability */
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    
+    /* Chart colors adjusted for dark mode - maintain brand recognition */
+    --chart-1: 220 70% 60%;        /* Brighter blue for dark backgrounds */
+    --chart-2: 160 60% 55%;        /* Brighter green for dark backgrounds */
+    --chart-3: 30 80% 65%;         /* Brighter orange for dark backgrounds */
+    --chart-4: 280 65% 70%;        /* Brighter purple for dark backgrounds */
+    --chart-5: 340 75% 65%;        /* Brighter red for dark backgrounds */
+    
+    /* BuffrSign semantic colors in dark mode */
+    --signature-primary: hsl(var(--chart-1));
+    --signature-success: hsl(var(--chart-2));
+    --signature-warning: hsl(var(--chart-3));
+    --signature-info: hsl(var(--chart-4));
+    --compliance-green: hsl(var(--chart-2));
+    --legal-blue: hsl(var(--chart-1));
+    --ai-purple: hsl(var(--chart-4));
+    --security-red: hsl(var(--chart-5));
+  }
+  
+  /* High Contrast Mode for Accessibility */
+  @media (prefers-contrast: high) {
+    :root {
+      --foreground: 0 0% 0%;
+      --background: 0 0% 100%;
+      --primary: 220 100% 50%;
+      --primary-foreground: 0 0% 100%;
+      --muted-foreground: 0 0% 20%;
+      --border: 0 0% 0%;
+    }
+    
+    .dark {
+      --foreground: 0 0% 100%;
+      --background: 0 0% 0%;
+      --primary: 220 100% 70%;
+      --primary-foreground: 0 0% 0%;
+      --muted-foreground: 0 0% 80%;
+      --border: 0 0% 100%;
+    }
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+  }
+  
+  /* Ensure smooth color transitions */
+  * {
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+}
+
+@layer components {
+  /* BuffrSign Component Styles - Using our color palette */
+  
+  /* Signature-specific buttons */
+  .signature-button {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200;
+  }
+  
+  .signature-button-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all duration-200;
+  }
+  
+  /* Compliance and status badges */
+  .compliance-badge {
+    @apply bg-chart-2/10 text-chart-2 border-chart-2/20 px-3 py-1 rounded-full text-sm font-semibold;
+  }
+  
+  .warning-badge {
+    @apply bg-chart-3/10 text-chart-3 border-chart-3/20 px-3 py-1 rounded-full text-sm font-semibold;
+  }
+  
+  .ai-badge {
+    @apply bg-chart-4/10 text-chart-4 border-chart-4/20 px-3 py-1 rounded-full text-sm font-semibold;
+  }
+  
+  .security-badge {
+    @apply bg-chart-5/10 text-chart-5 border-chart-5/20 px-3 py-1 rounded-full text-sm font-semibold;
+  }
+  
+  /* Document and card styles */
+  .document-card {
+    @apply bg-card text-card-foreground border border-border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200;
+  }
+  
+  .feature-card {
+    @apply bg-card text-card-foreground border-2 border-border hover:border-primary/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-2;
+  }
+  
+  /* Glass and backdrop effects */
+  .glass-effect {
+    @apply backdrop-blur-md bg-background/80 border border-border/20;
+  }
+  
+  .glass-effect-light {
+    @apply backdrop-blur-sm bg-white/90 border-white/20;
+  }
+  
+  /* Gradient text effects */
+  .gradient-text-primary {
+    @apply bg-gradient-to-r from-primary to-chart-4 bg-clip-text text-transparent;
+  }
+  
+  .gradient-text-brand {
+    @apply bg-gradient-to-r from-chart-1 to-chart-4 bg-clip-text text-transparent;
+  }
+  
+  /* Interactive elements */
+  .interactive-card {
+    @apply cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg;
+  }
+  
+  /* Form elements */
+  .form-input {
+    @apply bg-background border border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20;
+  }
+  
+  .form-button {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-2 focus:ring-primary/20 transition-all duration-200;
+  }
+}
+
+@layer utilities {
+  /* Custom utility classes for BuffrSign */
+  
+  /* Text colors using our palette */
+  .text-signature { @apply text-chart-1; }
+  .text-compliance { @apply text-chart-2; }
+  .text-warning { @apply text-chart-3; }
+  .text-ai { @apply text-chart-4; }
+  .text-security { @apply text-chart-5; }
+  
+  /* Background colors using our palette */
+  .bg-signature { @apply bg-chart-1; }
+  .bg-compliance { @apply bg-chart-2; }
+  .bg-warning { @apply bg-chart-3; }
+  .bg-ai { @apply bg-chart-4; }
+  .bg-security { @apply bg-chart-5; }
+  
+  /* Border colors using our palette */
+  .border-signature { @apply border-chart-1; }
+  .border-compliance { @apply border-chart-2; }
+  .border-warning { @apply border-chart-3; }
+  .border-ai { @apply border-chart-4; }
+  .border-security { @apply border-chart-5; }
+  
+  /* Hover states */
+  .hover-bg-signature { @apply hover:bg-chart-1/90; }
+  .hover-bg-compliance { @apply hover:bg-chart-2/90; }
+  .hover-bg-warning { @apply hover:bg-chart-3/90; }
+  .hover-bg-ai { @apply hover:bg-chart-4/90; }
+  .hover-bg-security { @apply hover:bg-chart-5/90; }
+}
+
+/* Custom BuffrSign theme for DaisyUI */
+[data-theme="buffrsign"] {
+  --p: 220 70% 50%; /* #3b82f6 - BuffrSign Blue */
+  --pf: 220 70% 45%; /* Darker blue for focus */
+  --pc: 0 0% 98%; /* White text on primary */
+  
+  --s: 280 65% 60%; /* #8b5cf6 - AI Purple */
+  --sf: 280 65% 55%; /* Darker purple for focus */
+  --sc: 0 0% 98%; /* White text on secondary */
+  
+  --a: 160 60% 45%; /* #10b981 - Compliance Green */
+  --af: 160 60% 40%; /* Darker green for focus */
+  --ac: 0 0% 98%; /* White text on accent */
+  
+  --n: 0 0% 14.9%; /* Neutral dark */
+  --nf: 0 0% 9%; /* Neutral darker */
+  --nc: 0 0% 98%; /* White text on neutral */
+  
+  --b1: 0 0% 100%; /* White background */
+  --b2: 0 0% 96.1%; /* Light gray */
+  --b3: 0 0% 89.8%; /* Border color */
+  --bc: 0 0% 3.9%; /* Dark text */
+  
+  --in: 220 70% 50%; /* Info blue */
+  --inc: 0 0% 98%; /* White text on info */
+  
+  --su: 160 60% 45%; /* Success green */
+  --suc: 0 0% 98%; /* White text on success */
+  
+  --wa: 30 80% 55%; /* Warning orange */
+  --wac: 0 0% 98%; /* White text on warning */
+  
+  --er: 340 75% 55%; /* Error red */
+  --erc: 0 0% 98%; /* White text on error */
+} 
