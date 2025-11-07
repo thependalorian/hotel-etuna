@@ -289,6 +289,8 @@ Acceptance Criteria:
 - Prompt versioning and A/B testing capabilities
 - Context-aware prompt selection
 - Performance monitoring and optimization
+- Product document search tools integrated into agent capabilities
+- Keyword-based document matching for products without direct mappings
 ```
 
 ```
@@ -340,6 +342,9 @@ Acceptance Criteria:
 - Educational content (videos, infographics, FAQs)
 - AI-powered recommendations based on selected profile
 - Calculator tools for premiums and savings
+- Product document search with intelligent keyword matching
+- Policies & Forms Library with view/download capabilities
+- Direct product-to-document mappings with fallback search
 ```
 
 ```

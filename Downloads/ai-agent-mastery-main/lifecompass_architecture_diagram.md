@@ -109,6 +109,7 @@
 │  │ • Chunking      │  │ • Similarity    │  │ • Ranking        │         │
 │  │ • OCR           │  │ • Indexing      │  │ • Filtering      │         │
 │  │ • Metadata      │  │ • Caching       │  │ • Context        │         │
+│  │ • Product Maps  │  │                 │  │ • Keyword Match  │         │
 │  └─────────────────┘  └─────────────────┘  └─────────────────┘         │
 ├─────────────────────────────────────────────────────────────────────────┤
 │  Data Sources: 2,977 Old Mutual web pages + policy documents           │
@@ -158,7 +159,8 @@
 │  │ • Policy Data   │  │ • Twilio        │  │ • Authorization  │         │
 │  │ • AI Services   │  │ • SendGrid      │  │ • Rate Limiting  │         │
 │  │ • Search        │  │ • DocuSign      │  │ • Encryption     │         │
-│  │ • Analytics     │  │ • Calendar APIs │  │ • Audit Trails   │         │
+│  │ • Document APIs │  │ • Calendar APIs │  │ • Audit Trails   │         │
+│  │ • Analytics     │  │                 │  │                 │         │
 │  └─────────────────┘  └─────────────────┘  └─────────────────┘         │
 ├─────────────────────────────────────────────────────────────────────────┤
 │  Technology: FastAPI + OpenAPI 3.0 + OAuth 2.0 + JWT                   │
@@ -221,6 +223,18 @@ User Query → Search Interface → Vector Processing → Hybrid Ranking → Res
   Text Input    API Request      Embedding Search   Score Calculation  UI Rendering
       ↓              ↓                    ↓                ↓              ↓
   Validation    Rate Limiting    Database Query    Filtering Rules   Pagination
+```
+
+### **Product Document Search Flow**
+
+```
+Product Query → Product Mapping → Direct Match → Document Retrieval → Display
+      ↓                ↓                ↓                ↓              ↓
+  Product Name    Check Mapping    Found? Yes      Fetch Document   View/Download
+      ↓                ↓                ↓                ↓              ↓
+  No Match?      Keyword Search    Multi-Keyword   Rank Results    Library View
+      ↓                ↓                ↓                ↓              ↓
+  Fallback       Title/Desc/Cat    Score & Filter  Top 10 Results   Pagination
 ```
 
 ---
