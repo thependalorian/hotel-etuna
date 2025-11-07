@@ -83,22 +83,25 @@ Transforms 4-hour average escalation response time to instant visibility, enabli
 ### **4. How scalable is your vector search implementation?**
 
 **Primary Answer:**
-Our hybrid search combines vector similarity with traditional text search, scaling from 2,977 documents today to millions through PostgreSQL's IVFFlat indexing and Neo4j graph relationships.
+Our hybrid search combines vector similarity with traditional text search, scaling from 2,977 documents today to millions through PostgreSQL's IVFFlat indexing and Neo4j graph relationships. We've also added intelligent product-based document search with keyword matching for products without direct mappings.
 
 **Technical Deep Dive:**
 - **Vector Storage**: PostgreSQL pgvector extension with 768-dimension embeddings
 - **Indexing Strategy**: IVFFlat for approximate nearest neighbors (ANN)
 - **Hybrid Scoring**: 70% vector similarity + 30% text ranking (ts_rank_cd)
+- **Product Search**: Direct product-to-document mapping with keyword fallback
+- **Keyword Matching**: Multi-keyword search across title, description, and category
 - **Caching Layer**: Redis for frequent queries, reducing database load by 80%
 - **Performance**: <1 second response time, 95%+ accuracy on semantic searches
 
 **Business Impact:**
-Enables instant access to comprehensive knowledge base, reducing advisor research time from 30 minutes to 5 seconds.
+Enables instant access to comprehensive knowledge base, reducing advisor research time from 30 minutes to 5 seconds. Product document search ensures customers can always find relevant guides and forms, even for products without direct document mappings.
 
 **Backup Materials:**
 - Search performance metrics (technical appendix)
 - Knowledge base statistics (2,977 documents processed)
 - Vector search demonstration (live demo)
+- Product document search demonstration (products page)
 
 ---
 
