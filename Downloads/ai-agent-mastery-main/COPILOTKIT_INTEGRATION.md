@@ -1,5 +1,5 @@
-# **CopilotKit Integration Plan for LifeCompass**
-## **Comprehensive Integration Guide**
+# **CopilotKit Integration Plan for LifeCompass (Next.js Only)**
+## **Comprehensive Next.js Integration Guide**
 
 ---
 
@@ -20,41 +20,41 @@
 
 ## **Executive Summary**
 
-This document outlines the integration of **CopilotKit** into LifeCompass, replacing the current custom chat widget with a production-ready, feature-rich AI copilot framework. CopilotKit will enhance LifeCompass by providing:
+This document outlines the integration of **CopilotKit** into LifeCompass Next.js application, replacing the current custom chat widget with a production-ready, feature-rich AI copilot framework. This is a **Next.js-only implementation** that integrates with the existing `LifeCompassAgent` class.
 
-- **Agentic Generative UI**: Dynamic UI components rendered by AI agents
-- **Shared State Management**: Bidirectional state synchronization between UI and agents
-- **Human-in-the-Loop (HITL)**: User intervention and approval workflows
-- **Frontend & Backend Actions**: Seamless integration with existing LifeCompass tools
-- **LangGraph Integration**: Native support for our existing Python agent system
-- **Enhanced UX**: Professional chat interface with advanced features
+CopilotKit will enhance LifeCompass by providing:
 
-**Integration Timeline**: 2-3 weeks  
-**Complexity**: Medium  
+- **Professional Chat UI**: Pre-built, customizable chat components
+- **Frontend Actions**: Seamless navigation and UI interactions
+- **App State Integration**: Automatic context sharing with `useCopilotReadable`
+- **Message Persistence**: Built-in conversation history management
+- **Chat Suggestions**: Auto-generated suggestions based on app state
+- **Enhanced UX**: Streaming, animations, and professional interface
+
+**Integration Timeline**: 1-2 weeks  
+**Complexity**: Low-Medium  
 **Impact**: High - Significantly improves AI interaction capabilities
 
 ---
 
 ## **What is CopilotKit?**
 
-CopilotKit is an open-source framework for building AI copilots and agents directly into React applications. Key features include:
+CopilotKit is an open-source framework for building AI copilots directly into React/Next.js applications. Key features include:
 
 ### **Core Capabilities**
 
-1. **React Components**: Pre-built, customizable chat interfaces (`CopilotChat`, `CopilotSidebar`, `CopilotPopup`)
-2. **Agent Infrastructure**: Support for LangGraph, CrewAI, and custom agent frameworks
-3. **State Management**: `useCopilotReadable` and `useCopilotAction` hooks for app integration
-4. **Generative UI**: Render custom UI components based on agent state
-5. **Backend Integration**: Python SDK for connecting FastAPI agents
-6. **Human-in-the-Loop**: Interrupt flows for user approval
-7. **Message Persistence**: Built-in support for conversation history
+1. **React Components**: Pre-built chat interfaces (`CopilotChat`, `CopilotSidebar`, `CopilotPopup`)
+2. **State Management**: `useCopilotReadable` and `useCopilotAction` hooks
+3. **Next.js Runtime**: Built-in support for Next.js API routes
+4. **LLM Adapters**: Support for OpenAI, Anthropic, Google, and custom providers
+5. **Message Persistence**: Built-in localStorage and database support
+6. **Chat Suggestions**: Auto-generated suggestions based on app state
 
-### **Key Components**
+### **Key Packages for Next.js**
 
 - **`@copilotkit/react-core`**: Core React hooks and providers
 - **`@copilotkit/react-ui`**: Pre-built UI components
-- **`@copilotkit/runtime`**: Backend runtime for Next.js
-- **`@copilotkit/sdk/python`**: Python SDK for FastAPI integration
+- **`@copilotkit/runtime`**: Next.js runtime for API routes
 
 ---
 
@@ -64,18 +64,18 @@ CopilotKit is an open-source framework for building AI copilots and agents direc
 
 1. **Custom Chat Widget**: Basic implementation, limited features
 2. **Manual State Management**: No automatic context sharing
-3. **No Agent Integration**: Direct API calls, no agent framework support
+3. **No Suggestions**: Users don't get helpful prompts
 4. **Limited UX**: Basic chat interface without advanced features
-5. **No Generative UI**: Static responses only
+5. **Manual Message History**: Custom localStorage implementation
 
 ### **CopilotKit Benefits**
 
-1. **Production-Ready**: Battle-tested framework used by many applications
-2. **Agent-Native**: Built for agent frameworks (LangGraph, CrewAI)
-3. **Rich Features**: Suggestions, message history, streaming, tool calls
-4. **Better UX**: Professional chat interface with animations
-5. **Developer Experience**: Easy integration, comprehensive documentation
-6. **Scalability**: Handles complex agent workflows efficiently
+1. **Production-Ready**: Battle-tested framework
+2. **Rich Features**: Suggestions, history, streaming, animations
+3. **Better UX**: Professional chat interface
+4. **Developer Experience**: Easy integration, comprehensive documentation
+5. **Automatic State Sync**: App state automatically shared with AI
+6. **Frontend Actions**: AI can trigger navigation and UI changes
 
 ---
 
@@ -88,71 +88,67 @@ ChatWidget.tsx (Custom Component)
     ↓
 /api/chat (Next.js API Route)
     ↓
-Python FastAPI Agent (/chat endpoint)
-    ↓
-Pydantic AI Agent (rag_agent)
+LifeCompassAgent (lib/agent/index.ts)
     ↓
 Tools (vector_search, graph_search, CRM tools)
+    ↓
+Database (Neon PostgreSQL)
 ```
 
 ### **Current Implementation**
 
-- **ChatWidget**: Custom React component with basic chat UI
+- **ChatWidget**: Custom React component (`components/ChatWidget.tsx`)
 - **API Route**: `/api/chat` handles POST requests
-- **Backend**: Python FastAPI with Pydantic AI agent
+- **Agent**: `LifeCompassAgent` class with DeepSeek provider
 - **Tools**: 20+ tools for search, CRM, documents, calculations
+- **Database**: Neon PostgreSQL for sessions and messages
 
 ### **Key Features to Preserve**
 
 - Persona-based context (customer/advisor)
 - Session management
 - Tool calling (vector search, CRM operations)
-- Streaming responses
+- Streaming responses (if implemented)
 - Message history
 
 ---
 
 ## **Integration Architecture**
 
-### **New Architecture with CopilotKit**
+### **New Architecture with CopilotKit (Next.js Only)**
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Frontend (Next.js)                        │
 ├─────────────────────────────────────────────────────────────┤
-│  CopilotKit Provider                                        │
-│    ├─ CopilotChat Component                                 │
+│  CopilotKit Provider                                         │
+│    ├─ CopilotSidebar Component                              │
 │    ├─ useCopilotReadable (App State)                        │
 │    ├─ useCopilotAction (Frontend Actions)                   │
 │    └─ useCopilotChatSuggestions                             │
 └─────────────────────────────────────────────────────────────┘
                         ↓
 ┌─────────────────────────────────────────────────────────────┐
-│              Next.js API Route                              │
+│              Next.js API Route                               │
 ├─────────────────────────────────────────────────────────────┤
-│  /api/copilotkit (CopilotRuntime Handler)                  │
-│    ├─ LangGraphAgent Integration                            │
-│    ├─ Remote Endpoints (Python Backend)                    │
+│  /api/copilotkit (CopilotRuntime Handler)                   │
+│    ├─ OpenAIAdapter (or DeepSeekAdapter)                   │
+│    ├─ Backend Actions (Tool Integration)                     │
 │    └─ Message Streaming                                     │
 └─────────────────────────────────────────────────────────────┘
                         ↓
 ┌─────────────────────────────────────────────────────────────┐
-│           Python FastAPI Backend                            │
+│           Existing LifeCompassAgent                          │
 ├─────────────────────────────────────────────────────────────┤
-│  LangGraphAgent (CopilotKit SDK)                           │
-│    ├─ Wraps existing Pydantic AI Agent                      │
-│    ├─ Exposes Tools as CopilotKit Actions                   │
-│    └─ Handles State Management                              │
-└─────────────────────────────────────────────────────────────┘
-                        ↓
-┌─────────────────────────────────────────────────────────────┐
-│              Existing Agent System                           │
-├─────────────────────────────────────────────────────────────┤
-│  Pydantic AI Agent (rag_agent)                              │
+│  LifeCompassAgent (lib/agent/index.ts)                      │
 │    ├─ Vector Search Tools                                   │
 │    ├─ Graph Search Tools                                    │
 │    ├─ CRM Tools                                             │
 │    └─ Document Search Tools                                 │
+└─────────────────────────────────────────────────────────────┘
+                        ↓
+┌─────────────────────────────────────────────────────────────┐
+│              Database (Neon PostgreSQL)                      │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -160,7 +156,7 @@ Tools (vector_search, graph_search, CRM tools)
 
 ## **Step-by-Step Integration Plan**
 
-### **Phase 1: Frontend Setup (Week 1, Days 1-3)**
+### **Phase 1: Installation & Setup (Day 1)**
 
 #### **Step 1.1: Install Dependencies**
 
@@ -169,7 +165,23 @@ cd lifecompass-next
 npm install @copilotkit/react-core @copilotkit/react-ui @copilotkit/runtime
 ```
 
-#### **Step 1.2: Create CopilotKit Provider**
+#### **Step 1.2: Update package.json**
+
+The packages will be added automatically. Verify:
+
+```json
+{
+  "dependencies": {
+    "@copilotkit/react-core": "^1.x.x",
+    "@copilotkit/react-ui": "^1.x.x",
+    "@copilotkit/runtime": "^1.x.x"
+  }
+}
+```
+
+### **Phase 2: Frontend Integration (Days 2-3)**
+
+#### **Step 2.1: Create CopilotKit Provider**
 
 Create `app/providers/CopilotKitProvider.tsx`:
 
@@ -180,7 +192,11 @@ import { CopilotKit } from "@copilotkit/react-core";
 import { CopilotSidebar } from "@copilotkit/react-ui";
 import "@copilotkit/react-ui/styles.css";
 
-export function CopilotKitProvider({ children }: { children: React.ReactNode }) {
+interface CopilotKitProviderProps {
+  children: React.ReactNode;
+}
+
+export function CopilotKitProvider({ children }: CopilotKitProviderProps) {
   return (
     <CopilotKit
       runtimeUrl="/api/copilotkit"
@@ -193,13 +209,14 @@ export function CopilotKitProvider({ children }: { children: React.ReactNode }) 
           initial: "Hello! I'm your LifeCompass AI assistant. How can I help you navigate your financial future today?",
         }}
         defaultOpen={false}
+        clickableOutside={true}
       />
     </CopilotKit>
   );
 }
 ```
 
-#### **Step 1.3: Wrap Application**
+#### **Step 2.2: Wrap Application**
 
 Update `app/layout.tsx`:
 
@@ -219,7 +236,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-#### **Step 1.4: Add App State Context**
+#### **Step 2.3: Add App State Context**
 
 Create `app/providers/AppStateProvider.tsx`:
 
@@ -232,38 +249,74 @@ import { useEffect, useState } from "react";
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [selectedCustomerPersona, setSelectedCustomerPersona] = useState<string | null>(null);
   const [selectedAdvisorPersona, setSelectedAdvisorPersona] = useState<string | null>(null);
+  const [userType, setUserType] = useState<"customer" | "advisor">("customer");
 
   useEffect(() => {
     // Load personas from sessionStorage
     if (typeof window !== "undefined") {
       const customerPersona = sessionStorage.getItem("selectedCustomerPersona");
       const advisorPersona = sessionStorage.getItem("selectedAdvisorPersona");
+      
       setSelectedCustomerPersona(customerPersona);
       setSelectedAdvisorPersona(advisorPersona);
+      setUserType(advisorPersona ? "advisor" : "customer");
+
+      // Listen for storage changes
+      const handleStorageChange = () => {
+        const updatedCustomer = sessionStorage.getItem("selectedCustomerPersona");
+        const updatedAdvisor = sessionStorage.getItem("selectedAdvisorPersona");
+        setSelectedCustomerPersona(updatedCustomer);
+        setSelectedAdvisorPersona(updatedAdvisor);
+        setUserType(updatedAdvisor ? "advisor" : "customer");
+      };
+
+      window.addEventListener("storage", handleStorageChange);
+      return () => window.removeEventListener("storage", handleStorageChange);
     }
   }, []);
 
   // Expose app state to CopilotKit
   useCopilotReadable({
-    description: "Selected customer persona for context-aware responses",
+    description: "Selected customer persona for context-aware responses. Contains customer number, name, and profile data.",
     value: selectedCustomerPersona ? JSON.parse(selectedCustomerPersona) : null,
   });
 
   useCopilotReadable({
-    description: "Selected advisor persona for advisor-specific features",
+    description: "Selected advisor persona for advisor-specific features. Contains advisor number, name, and profile data.",
     value: selectedAdvisorPersona ? JSON.parse(selectedAdvisorPersona) : null,
   });
 
   useCopilotReadable({
     description: "User type (customer or advisor) based on selected persona",
-    value: selectedAdvisorPersona ? "advisor" : "customer",
+    value: userType,
   });
 
   return <>{children}</>;
 }
 ```
 
-#### **Step 1.5: Create Frontend Actions**
+Update `app/layout.tsx` to include AppStateProvider:
+
+```typescript
+import { CopilotKitProvider } from "@/app/providers/CopilotKitProvider";
+import { AppStateProvider } from "@/app/providers/AppStateProvider";
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <CopilotKitProvider>
+          <AppStateProvider>
+            {children}
+          </AppStateProvider>
+        </CopilotKitProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+#### **Step 2.4: Create Frontend Actions**
 
 Create `app/actions/copilotActions.tsx`:
 
@@ -279,7 +332,7 @@ export function useLifeCompassActions() {
   // Navigate to products page
   useCopilotAction({
     name: "navigateToProducts",
-    description: "Navigate to the products page to browse Old Mutual products",
+    description: "Navigate to the products page to browse Old Mutual products and services",
     parameters: [],
     handler: () => {
       router.push("/products");
@@ -289,7 +342,7 @@ export function useLifeCompassActions() {
   // Navigate to policies
   useCopilotAction({
     name: "navigateToPolicies",
-    description: "Navigate to the policies page to view customer policies",
+    description: "Navigate to the policies page to view customer policies and coverage details",
     parameters: [],
     handler: () => {
       router.push("/policies");
@@ -299,7 +352,7 @@ export function useLifeCompassActions() {
   // Navigate to claims
   useCopilotAction({
     name: "navigateToClaims",
-    description: "Navigate to the claims page to file or view claims",
+    description: "Navigate to the claims page to file a new claim or view existing claims",
     parameters: [],
     handler: () => {
       router.push("/claims");
@@ -309,318 +362,78 @@ export function useLifeCompassActions() {
   // Navigate to advisors
   useCopilotAction({
     name: "navigateToAdvisors",
-    description: "Navigate to the advisors page to find a financial advisor",
+    description: "Navigate to the advisors page to find and connect with financial advisors",
     parameters: [],
     handler: () => {
       router.push("/advisors");
     },
   });
 
+  // Navigate to tools
+  useCopilotAction({
+    name: "navigateToTools",
+    description: "Navigate to the tools page for financial calculators and planning tools",
+    parameters: [],
+    handler: () => {
+      router.push("/tools");
+    },
+  });
+
   // Get quote for a product
   useCopilotAction({
     name: "getProductQuote",
-    description: "Navigate to advisor booking with product context to get a quote",
+    description: "Navigate to advisor booking with product context to get a personalized quote",
     parameters: [
       {
         name: "productName",
         type: "string",
-        description: "Name of the product (e.g., 'OMP Severe Illness Cover')",
+        description: "Name of the product (e.g., 'OMP Severe Illness Cover', 'Retirement Solutions')",
         required: true,
       },
     ],
-    handler: ({ productName }) => {
+    handler: ({ productName }: { productName: string }) => {
       router.push(`/advisors?product=${encodeURIComponent(productName)}`);
+    },
+  });
+
+  // View customer profile
+  useCopilotAction({
+    name: "viewCustomerProfile",
+    description: "Navigate to the customer profile page to view detailed customer information",
+    parameters: [
+      {
+        name: "customerId",
+        type: "string",
+        description: "Customer ID or customer number",
+        required: true,
+      },
+    ],
+    handler: ({ customerId }: { customerId: string }) => {
+      router.push(`/customer/profile/${customerId}`);
     },
   });
 }
 ```
 
-### **Phase 2: Backend Integration (Week 1, Days 4-5)**
+Create a component to initialize actions:
 
-#### **Step 2.1: Create CopilotKit API Route**
-
-Create `app/api/copilotkit/route.ts`:
-
-```typescript
-import { copilotRuntimeNextJSAppRouterEndpoint } from "@copilotkit/runtime";
-import { NextRequest } from "next/server";
-import { CopilotRuntime, LangChainAdapter } from "@copilotkit/runtime";
-import { LangChainAdapter } from "@copilotkit/runtime";
-
-// Import your existing agent (we'll wrap it)
-import { createLangGraphAgent } from "@/lib/agents/langgraph-agent";
-
-const runtime = new CopilotRuntime();
-
-export async function POST(req: NextRequest) {
-  const { handleRequest } = copilotRuntimeNextJSAppRouterEndpoint({
-    runtime,
-    serviceAdapter: await createLangGraphAgent(),
-    endpoint: "/api/copilotkit",
-  });
-
-  return handleRequest(req);
-}
-```
-
-#### **Step 2.2: Create LangGraph Agent Wrapper**
-
-Create `lib/agents/langgraph-agent.ts`:
-
-```typescript
-import { LangGraphAgent } from "@copilotkit/sdk/python";
-import { RemoteEndpoints } from "@copilotkit/runtime";
-
-// This will connect to our Python backend
-export async function createLangGraphAgent() {
-  // Connect to Python FastAPI backend
-  const remoteEndpoints = new RemoteEndpoints({
-    url: process.env.AGENT_API_URL || "http://localhost:8000",
-  });
-
-  return new LangGraphAgent({
-    name: "lifecompass-agent",
-    remoteEndpoints,
-  });
-}
-```
-
-### **Phase 3: Python Backend Integration (Week 2, Days 1-3)**
-
-#### **Step 3.1: Install Python SDK**
-
-```bash
-cd LifeCompass/agent
-pip install copilotkit
-```
-
-#### **Step 3.2: Create LangGraph Agent Wrapper**
-
-Create `LifeCompass/agent/copilotkit_integration.py`:
-
-```python
-"""
-CopilotKit integration for LifeCompass agent.
-Wraps existing Pydantic AI agent with CopilotKit LangGraphAgent.
-"""
-
-from copilotkit import LangGraphAgent, RemoteEndpoints
-from copilotkit.integrations.langgraph import create_langgraph_agent
-from langgraph.graph import StateGraph, END
-from typing import Dict, Any, List
-import asyncio
-
-from .agent import rag_agent, AgentDependencies
-from .tools import (
-    vector_search_tool,
-    graph_search_tool,
-    hybrid_search_tool,
-    get_customer_profile_tool,
-    get_customer_policies_tool,
-    search_product_documents_tool,
-    # ... other tools
-)
-
-
-def create_lifecompass_agent() -> LangGraphAgent:
-    """
-    Create a LangGraph agent that wraps our existing Pydantic AI agent.
-    """
-    
-    # Define agent state
-    class AgentState:
-        messages: List[Dict[str, Any]]
-        session_id: str
-        user_id: str | None
-        metadata: Dict[str, Any]
-    
-    # Create LangGraph workflow
-    def agent_node(state: AgentState):
-        """Main agent node that calls our existing agent."""
-        # Extract last message
-        last_message = state.messages[-1]["content"]
-        
-        # Create dependencies
-        deps = AgentDependencies(
-            session_id=state.session_id,
-            user_id=state.user_id,
-            voice_mode=False
-        )
-        
-        # Run existing agent
-        result = asyncio.run(rag_agent.run(last_message, deps=deps))
-        
-        # Add response to messages
-        state.messages.append({
-            "role": "assistant",
-            "content": result.data
-        })
-        
-        return state
-    
-    # Build graph
-    workflow = StateGraph(AgentState)
-    workflow.add_node("agent", agent_node)
-    workflow.set_entry_point("agent")
-    workflow.add_edge("agent", END)
-    
-    graph = workflow.compile()
-    
-    # Create LangGraphAgent
-    agent = create_langgraph_agent(
-        graph=graph,
-        name="lifecompass-agent",
-        description="LifeCompass AI assistant for financial services",
-    )
-    
-    return agent
-
-
-# Expose agent for FastAPI
-lifecompass_agent = create_lifecompass_agent()
-```
-
-#### **Step 3.3: Update FastAPI to Expose CopilotKit Endpoint**
-
-Update `LifeCompass/agent/api.py`:
-
-```python
-from copilotkit.integrations.fastapi import add_copilotkit_endpoints
-from .copilotkit_integration import lifecompass_agent
-
-# Add CopilotKit endpoints
-add_copilotkit_endpoints(
-    app=app,
-    agent=lifecompass_agent,
-    path="/copilotkit",
-)
-```
-
-### **Phase 4: Advanced Features (Week 2, Days 4-5)**
-
-#### **Step 4.1: Add Generative UI**
-
-Create `app/components/GenerativeUI.tsx`:
+Create `app/components/LifeCompassActions.tsx`:
 
 ```typescript
 "use client";
 
-import { useCoAgentStateRender } from "@copilotkit/react-core";
-
-export function GenerativeUI() {
-  const { state, render } = useCoAgentStateRender();
-
-  // Render custom UI based on agent state
-  if (state?.type === "product_search") {
-    return (
-      <div className="product-results">
-        {state.results.map((product: any) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
-    );
-  }
-
-  return null;
-}
-```
-
-#### **Step 4.2: Add Chat Suggestions**
-
-Create `app/hooks/useChatSuggestions.ts`:
-
-```typescript
-"use client";
-
-import { useCopilotChatSuggestions } from "@copilotkit/react-core";
-import { useCopilotReadable } from "@copilotkit/react-core";
-
-export function useLifeCompassSuggestions() {
-  const [selectedPersona] = useState(() => {
-    if (typeof window !== "undefined") {
-      return sessionStorage.getItem("selectedCustomerPersona");
-    }
-    return null;
-  });
-
-  useCopilotReadable({
-    description: "Current user persona for personalized suggestions",
-    value: selectedPersona,
-  });
-
-  const suggestions = useCopilotChatSuggestions({
-    minSuggestions: 3,
-    maxSuggestions: 5,
-  });
-
-  return suggestions;
-}
-```
-
-#### **Step 4.3: Add Message Persistence**
-
-Update `app/providers/CopilotKitProvider.tsx`:
-
-```typescript
-import { useCopilotChat } from "@copilotkit/react-core";
-import { useEffect } from "react";
-
-export function MessagePersistence() {
-  const { messages, setMessages } = useCopilotChat();
-
-  // Load messages from localStorage
-  useEffect(() => {
-    const savedMessages = localStorage.getItem("copilotkit-messages");
-    if (savedMessages) {
-      setMessages(JSON.parse(savedMessages));
-    }
-  }, []);
-
-  // Save messages to localStorage
-  useEffect(() => {
-    if (messages.length > 0) {
-      localStorage.setItem("copilotkit-messages", JSON.stringify(messages));
-    }
-  }, [messages]);
-
-  return null;
-}
-```
-
-### **Phase 5: Migration & Testing (Week 3)**
-
-#### **Step 5.1: Gradual Migration**
-
-1. **Keep existing ChatWidget** as fallback
-2. **Add CopilotKit** alongside existing implementation
-3. **Feature flag** to switch between implementations
-4. **A/B testing** with select users
-5. **Full migration** after validation
-
-#### **Step 5.2: Testing Checklist**
-
-- [ ] Chat interface renders correctly
-- [ ] Messages send and receive
-- [ ] Tool calls work (vector search, CRM tools)
-- [ ] Persona context is preserved
-- [ ] Frontend actions trigger navigation
-- [ ] Message history persists
-- [ ] Streaming responses work
-- [ ] Error handling works
-- [ ] Mobile responsiveness
-- [ ] Performance (<3s response time)
-
----
-
-## **Code Implementation**
-
-### **Complete Frontend Integration**
-
-```typescript
-// app/layout.tsx
-import { CopilotKitProvider } from "@/app/providers/CopilotKitProvider";
-import { AppStateProvider } from "@/app/providers/AppStateProvider";
 import { useLifeCompassActions } from "@/app/actions/copilotActions";
+
+export function LifeCompassActions() {
+  useLifeCompassActions();
+  return null; // This component just registers actions
+}
+```
+
+Add to `app/layout.tsx`:
+
+```typescript
+import { LifeCompassActions } from "@/app/components/LifeCompassActions";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -636,72 +449,487 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+```
 
-function LifeCompassActions() {
-  useLifeCompassActions();
+### **Phase 3: Backend Integration (Days 4-5)**
+
+#### **Step 3.1: Create CopilotKit API Route**
+
+Create `app/api/copilotkit/route.ts`:
+
+```typescript
+import { copilotRuntimeNextJSAppRouterEndpoint } from "@copilotkit/runtime";
+import { NextRequest } from "next/server";
+import { CopilotRuntime, OpenAIAdapter } from "@copilotkit/runtime";
+import OpenAI from "openai";
+import { createAgent } from "@/lib/agent";
+import { rateLimit, getClientIdentifier } from "@/lib/rateLimit";
+
+// Initialize OpenAI client (or use your existing DeepSeek provider)
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || process.env.DEEPSEEK_API_KEY,
+  baseURL: process.env.DEEPSEEK_API_URL || "https://api.openai.com/v1",
+});
+
+const serviceAdapter = new OpenAIAdapter({
+  openai,
+  model: process.env.LLM_MODEL || "gpt-4",
+});
+
+const runtime = new CopilotRuntime();
+
+// Register backend actions (tools) with CopilotKit
+runtime.registerAction({
+  name: "vectorSearch",
+  description: "Search the knowledge base using semantic similarity",
+  parameters: [
+    {
+      name: "query",
+      type: "string",
+      description: "Search query",
+      required: true,
+    },
+    {
+      name: "limit",
+      type: "number",
+      description: "Maximum number of results (default: 10)",
+      required: false,
+    },
+  ],
+  handler: async ({ query, limit = 10 }) => {
+    // Call your existing vector search tool
+    const agent = createAgent({
+      sessionId: "",
+      userId: null,
+      searchPreferences: {
+        useVector: true,
+        useGraph: false,
+        defaultLimit: limit,
+      },
+    });
+
+    // This would need to be adapted to work with your agent
+    // For now, return a placeholder
+    return {
+      results: [],
+      query,
+      message: "Vector search executed",
+    };
+  },
+});
+
+runtime.registerAction({
+  name: "getCustomerProfile",
+  description: "Get customer profile information including policies and claims",
+  parameters: [
+    {
+      name: "customerNumber",
+      type: "string",
+      description: "Customer number (e.g., CUST-001)",
+      required: true,
+    },
+  ],
+  handler: async ({ customerNumber }) => {
+    // Import your existing function
+    const { getCustomerByNumber, getCustomerPolicies, getCustomerClaims } = await import("@/lib/db/neon");
+    
+    const customer = await getCustomerByNumber(customerNumber);
+    if (!customer) {
+      return { error: "Customer not found" };
+    }
+
+    const policies = await getCustomerPolicies(customer.id);
+    const claims = await getCustomerClaims(customer.id);
+
+    return {
+      customer,
+      policies,
+      claims,
+      policyCount: policies.length,
+      claimCount: claims.length,
+    };
+  },
+});
+
+runtime.registerAction({
+  name: "searchProductDocuments",
+  description: "Search for product-related documents and guides",
+  parameters: [
+    {
+      name: "productName",
+      type: "string",
+      description: "Product name (e.g., 'Retirement Solutions', 'OMP Severe Illness Cover')",
+      required: true,
+    },
+  ],
+  handler: async ({ productName }) => {
+    // Import your existing function
+    const { searchDocumentsByProduct } = await import("@/lib/db/neon");
+    
+    const documents = await searchDocumentsByProduct(productName);
+    
+    return {
+      productName,
+      documents: documents.map(doc => ({
+        documentNumber: doc.document_number,
+        title: doc.title,
+        category: doc.category,
+        documentType: doc.document_type,
+        description: doc.description,
+        viewUrl: `/api/documents/${doc.document_number}/view`,
+        downloadUrl: `/api/documents/${doc.document_number}/download`,
+      })),
+      count: documents.length,
+    };
+  },
+});
+
+export async function POST(req: NextRequest) {
+  try {
+    // Rate limiting
+    const clientId = getClientIdentifier(req);
+    const rateLimitResult = rateLimit(clientId);
+
+    if (!rateLimitResult.allowed) {
+      return new Response(
+        JSON.stringify({
+          error: "Rate limit exceeded",
+          message: "Too many requests. Please try again later.",
+        }),
+        {
+          status: 429,
+          headers: {
+            "Content-Type": "application/json",
+            "X-RateLimit-Limit": "30",
+            "X-RateLimit-Remaining": String(rateLimitResult.remaining),
+            "Retry-After": String(
+              Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000)
+            ),
+          },
+        }
+      );
+    }
+
+    const { handleRequest } = copilotRuntimeNextJSAppRouterEndpoint({
+      runtime,
+      serviceAdapter,
+      endpoint: "/api/copilotkit",
+    });
+
+    return handleRequest(req);
+  } catch (error) {
+    console.error("CopilotKit API error:", error);
+    return new Response(
+      JSON.stringify({
+        error: "Failed to process request",
+        message: error instanceof Error ? error.message : "Unknown error",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+}
+```
+
+#### **Step 3.2: Create Custom DeepSeek Adapter (Optional)**
+
+If you want to use DeepSeek instead of OpenAI, create `lib/copilotkit/DeepSeekAdapter.ts`:
+
+```typescript
+import { LLMAdapter } from "@copilotkit/runtime";
+import OpenAI from "openai";
+
+export class DeepSeekAdapter implements LLMAdapter {
+  private client: OpenAI;
+
+  constructor(apiKey: string) {
+    this.client = new OpenAI({
+      apiKey,
+      baseURL: "https://api.deepseek.com/v1",
+    });
+  }
+
+  async streamChat(messages: any[], options: any) {
+    const stream = await this.client.chat.completions.create({
+      model: "deepseek-chat",
+      messages,
+      stream: true,
+      ...options,
+    });
+
+    return stream;
+  }
+
+  async chat(messages: any[], options: any) {
+    const response = await this.client.chat.completions.create({
+      model: "deepseek-chat",
+      messages,
+      ...options,
+    });
+
+    return response;
+  }
+}
+```
+
+Then update `app/api/copilotkit/route.ts`:
+
+```typescript
+import { DeepSeekAdapter } from "@/lib/copilotkit/DeepSeekAdapter";
+
+const serviceAdapter = new DeepSeekAdapter(
+  process.env.DEEPSEEK_API_KEY || ""
+);
+```
+
+### **Phase 4: Advanced Features (Days 6-7)**
+
+#### **Step 4.1: Add Chat Suggestions**
+
+Create `app/hooks/useChatSuggestions.ts`:
+
+```typescript
+"use client";
+
+import { useCopilotChatSuggestions } from "@copilotkit/react-core";
+import { useCopilotReadable } from "@copilotkit/react-core";
+import { useEffect, useState } from "react";
+
+export function useLifeCompassSuggestions() {
+  const [selectedPersona, setSelectedPersona] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const customerPersona = sessionStorage.getItem("selectedCustomerPersona");
+      const advisorPersona = sessionStorage.getItem("selectedAdvisorPersona");
+      setSelectedPersona(advisorPersona || customerPersona);
+    }
+  }, []);
+
+  useCopilotReadable({
+    description: "Current user persona for personalized suggestions",
+    value: selectedPersona ? JSON.parse(selectedPersona) : null,
+  });
+
+  const suggestions = useCopilotChatSuggestions({
+    minSuggestions: 3,
+    maxSuggestions: 5,
+  });
+
+  return suggestions;
+}
+```
+
+#### **Step 4.2: Add Message Persistence**
+
+Update `app/providers/CopilotKitProvider.tsx`:
+
+```typescript
+"use client";
+
+import { CopilotKit } from "@copilotkit/react-core";
+import { CopilotSidebar } from "@copilotkit/react-ui";
+import { useCopilotChat } from "@copilotkit/react-core";
+import { useEffect } from "react";
+import "@copilotkit/react-ui/styles.css";
+
+export function CopilotKitProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <CopilotKit
+      runtimeUrl="/api/copilotkit"
+      publicApiKey={process.env.NEXT_PUBLIC_COPILOTKIT_API_KEY}
+    >
+      {children}
+      <CopilotSidebar
+        labels={{
+          title: "LifeCompass Assistant",
+          initial: "Hello! I'm your LifeCompass AI assistant. How can I help you navigate your financial future today?",
+        }}
+        defaultOpen={false}
+        clickableOutside={true}
+      />
+      <MessagePersistence />
+    </CopilotKit>
+  );
+}
+
+function MessagePersistence() {
+  const { messages, setMessages } = useCopilotChat();
+
+  // Load messages from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedMessages = localStorage.getItem("copilotkit-messages");
+      if (savedMessages) {
+        try {
+          setMessages(JSON.parse(savedMessages));
+        } catch (e) {
+          console.error("Failed to load messages:", e);
+        }
+      }
+    }
+  }, []);
+
+  // Save messages to localStorage
+  useEffect(() => {
+    if (messages.length > 0 && typeof window !== "undefined") {
+      localStorage.setItem("copilotkit-messages", JSON.stringify(messages));
+    }
+  }, [messages]);
+
   return null;
 }
 ```
 
-### **Complete Backend Integration**
+#### **Step 4.3: Customize Chat Appearance**
 
-```python
-# LifeCompass/agent/copilotkit_integration.py
-from copilotkit import LangGraphAgent
-from langgraph.graph import StateGraph, END
-from typing import TypedDict, List, Dict, Any
-import asyncio
+Update `app/providers/CopilotKitProvider.tsx` to match LifeCompass branding:
 
-from .agent import rag_agent, AgentDependencies
+```typescript
+import { CopilotSidebar } from "@copilotkit/react-ui";
 
-class AgentState(TypedDict):
-    messages: List[Dict[str, Any]]
-    session_id: str
-    user_id: str | None
-    metadata: Dict[str, Any]
+<CopilotSidebar
+  labels={{
+    title: "LifeCompass Assistant",
+    initial: "Hello! I'm your LifeCompass AI assistant. How can I help you navigate your financial future today?",
+  }}
+  defaultOpen={false}
+  clickableOutside={true}
+  className="copilot-sidebar-custom"
+/>
+```
 
-def create_lifecompass_agent():
-    """Create LangGraph agent wrapping Pydantic AI agent."""
-    
-    def agent_node(state: AgentState):
-        """Process message through existing agent."""
-        last_message = state.messages[-1]["content"]
-        
-        deps = AgentDependencies(
-            session_id=state.session_id,
-            user_id=state.user_id,
-            voice_mode=False
-        )
-        
-        # Run existing agent
-        result = asyncio.run(rag_agent.run(last_message, deps=deps))
-        
-        # Add response
-        state["messages"].append({
-            "role": "assistant",
-            "content": result.data
-        })
-        
-        return state
-    
-    # Build graph
-    workflow = StateGraph(AgentState)
-    workflow.add_node("agent", agent_node)
-    workflow.set_entry_point("agent")
-    workflow.add_edge("agent", END)
-    
-    graph = workflow.compile()
-    
-    # Create CopilotKit agent
-    from copilotkit.integrations.langgraph import create_langgraph_agent
-    
-    agent = create_langgraph_agent(
-        graph=graph,
-        name="lifecompass-agent",
-        description="LifeCompass AI assistant for Old Mutual financial services",
-    )
-    
-    return agent
+Add custom styles to `app/globals.css`:
+
+```css
+/* CopilotKit Custom Styles */
+.copilot-sidebar-custom {
+  --copilot-primary-color: #00A651; /* OM Green */
+  --copilot-secondary-color: #003B5C; /* OM Navy */
+  --copilot-accent-color: #F7B500; /* OM Gold */
+}
+
+.copilot-sidebar-custom .copilot-chat-header {
+  background: linear-gradient(135deg, #00A651 0%, #003B5C 100%);
+}
+```
+
+### **Phase 5: Integration with Existing Agent (Days 8-10)**
+
+#### **Step 5.1: Create Agent Wrapper**
+
+Create `lib/copilotkit/agentWrapper.ts`:
+
+```typescript
+import { createAgent } from "@/lib/agent";
+import { ChatRequest } from "@/lib/agent/models";
+
+/**
+ * Wraps LifeCompassAgent to work with CopilotKit
+ */
+export async function executeLifeCompassAgent(
+  message: string,
+  sessionId: string,
+  metadata?: any
+): Promise<string> {
+  const agent = createAgent({
+    sessionId,
+    userId: metadata?.userId,
+    searchPreferences: {
+      useVector: true,
+      useGraph: true,
+      defaultLimit: 10,
+    },
+    metadata,
+  });
+
+  const response = await agent.executeAgent({
+    message,
+    sessionId,
+    userId: metadata?.userId,
+    metadata,
+  });
+
+  return response.message;
+}
+```
+
+#### **Step 5.2: Update CopilotKit Route to Use Existing Agent**
+
+Update `app/api/copilotkit/route.ts`:
+
+```typescript
+import { executeLifeCompassAgent } from "@/lib/copilotkit/agentWrapper";
+
+// Custom message handler that uses your existing agent
+runtime.setMessageHandler(async (message, context) => {
+  const sessionId = context.sessionId || "";
+  const metadata = {
+    selectedCustomerPersona: context.metadata?.selectedCustomerPersona,
+    selectedAdvisorPersona: context.metadata?.selectedAdvisorPersona,
+    userType: context.metadata?.userType || "customer",
+  };
+
+  // Use your existing agent
+  const response = await executeLifeCompassAgent(
+    message.content,
+    sessionId,
+    metadata
+  );
+
+  return response;
+});
+```
+
+---
+
+## **Code Implementation**
+
+### **Complete File Structure**
+
+```
+lifecompass-next/
+├── app/
+│   ├── providers/
+│   │   ├── CopilotKitProvider.tsx
+│   │   └── AppStateProvider.tsx
+│   ├── actions/
+│   │   └── copilotActions.tsx
+│   ├── components/
+│   │   └── LifeCompassActions.tsx
+│   ├── api/
+│   │   └── copilotkit/
+│   │       └── route.ts
+│   └── layout.tsx
+├── lib/
+│   ├── copilotkit/
+│   │   ├── agentWrapper.ts
+│   │   └── DeepSeekAdapter.ts (optional)
+│   └── agent/
+│       └── (existing files)
+└── package.json
+```
+
+### **Environment Variables**
+
+Add to `.env.local`:
+
+```bash
+# CopilotKit (optional - only if using CopilotKit Cloud)
+NEXT_PUBLIC_COPILOTKIT_API_KEY=your_api_key_here
+
+# LLM Provider
+OPENAI_API_KEY=your_key_here
+# OR
+DEEPSEEK_API_KEY=your_key_here
+DEEPSEEK_API_URL=https://api.deepseek.com/v1
+
+# Model
+LLM_MODEL=gpt-4
+# OR
+LLM_MODEL=deepseek-chat
 ```
 
 ---
@@ -710,30 +938,32 @@ def create_lifecompass_agent():
 
 ### **Option 1: Gradual Migration (Recommended)**
 
-1. **Week 1**: Install CopilotKit, keep existing chat
-2. **Week 2**: Implement CopilotKit alongside existing
-3. **Week 3**: Feature flag to switch between implementations
-4. **Week 4**: A/B test with 10% of users
-5. **Week 5**: Full migration if successful
+1. **Week 1, Days 1-3**: Install and set up CopilotKit
+2. **Week 1, Days 4-5**: Implement alongside existing chat
+3. **Week 2, Days 1-2**: Feature flag to switch between implementations
+4. **Week 2, Days 3-4**: A/B test with 10% of users
+5. **Week 2, Day 5**: Full migration if successful
 
 ### **Option 2: Direct Replacement**
 
 1. **Week 1**: Implement CopilotKit
-2. **Week 2**: Testing and bug fixes
-3. **Week 3**: Deploy to production
+2. **Week 2, Days 1-2**: Testing and bug fixes
+3. **Week 2, Day 3**: Deploy to production
 
 ### **Migration Checklist**
 
 - [ ] Install CopilotKit packages
 - [ ] Create provider and wrap app
 - [ ] Create API route
-- [ ] Integrate Python backend
-- [ ] Migrate frontend actions
+- [ ] Integrate with existing agent
+- [ ] Add frontend actions
+- [ ] Add app state context
 - [ ] Test all features
 - [ ] Update documentation
 - [ ] Deploy to staging
 - [ ] User acceptance testing
 - [ ] Deploy to production
+- [ ] Remove old ChatWidget (after validation)
 
 ---
 
@@ -742,29 +972,29 @@ def create_lifecompass_agent():
 ### **Benefits**
 
 1. **Production-Ready**: Battle-tested framework
-2. **Rich Features**: Suggestions, history, streaming, tool calls
+2. **Rich Features**: Suggestions, history, streaming, animations
 3. **Better UX**: Professional chat interface
-4. **Agent-Native**: Built for agent frameworks
-5. **Developer Experience**: Easy to use, well-documented
-6. **Scalability**: Handles complex workflows
-7. **Community**: Active development and support
+4. **Developer Experience**: Easy to use, well-documented
+5. **Automatic State Sync**: App state automatically shared
+6. **Frontend Actions**: AI can trigger navigation
+7. **Next.js Native**: Built for Next.js, no Python backend needed
 
 ### **Considerations**
 
 1. **Learning Curve**: Team needs to learn CopilotKit APIs
-2. **Bundle Size**: Additional dependencies (~200KB)
-3. **Migration Effort**: 2-3 weeks of development
+2. **Bundle Size**: Additional dependencies (~200KB gzipped)
+3. **Migration Effort**: 1-2 weeks of development
 4. **Customization**: May need custom styling for brand alignment
 5. **Dependencies**: Additional npm packages to maintain
 
 ### **Cost-Benefit Analysis**
 
-**Investment**: 2-3 weeks development time  
+**Investment**: 1-2 weeks development time  
 **Benefits**: 
 - Improved UX (estimated 20% increase in engagement)
 - Reduced maintenance (framework handles edge cases)
 - Faster feature development (pre-built components)
-- Better scalability (handles complex agent workflows)
+- Better scalability (handles complex workflows)
 
 **ROI**: Positive - Reduced long-term maintenance costs and improved user experience
 
@@ -775,7 +1005,7 @@ def create_lifecompass_agent():
 ### **Testing Strategy**
 
 1. **Unit Tests**: Test individual components
-2. **Integration Tests**: Test API routes and backend
+2. **Integration Tests**: Test API routes
 3. **E2E Tests**: Test complete user flows
 4. **Performance Tests**: Ensure <3s response time
 5. **Accessibility Tests**: WCAG 2.1 AA compliance
@@ -792,8 +1022,8 @@ def create_lifecompass_agent():
 
 - Keep existing ChatWidget as fallback
 - Feature flag to switch implementations
-- Database migration scripts ready for rollback
 - Monitor error rates and user feedback
+- Quick rollback if issues detected
 
 ---
 
@@ -813,14 +1043,14 @@ def create_lifecompass_agent():
 
 - [CopilotKit Documentation](https://docs.copilotkit.ai/)
 - [CopilotKit GitHub](https://github.com/CopilotKit/CopilotKit)
-- [LangGraph Integration Guide](https://docs.copilotkit.ai/coagents/quickstart/langgraph)
+- [Next.js Quickstart](https://docs.copilotkit.ai/quickstart?component=CopilotChat)
 - [React Components Reference](https://docs.copilotkit.ai/reference/components/CopilotChat)
-- [Python SDK Documentation](https://docs.copilotkit.ai/reference/sdk/python/LangGraph)
+- [Frontend Actions Guide](https://docs.copilotkit.ai/guides/frontend-actions)
+- [Backend Actions Guide](https://docs.copilotkit.ai/guides/backend-actions)
 
 ---
 
-**Document Version**: 1.0  
+**Document Version**: 2.0 (Next.js Only)  
 **Last Updated**: January 2025  
 **Author**: LifeCompass Development Team  
-**Status**: Draft - Pending Review
-
+**Status**: Ready for Implementation
