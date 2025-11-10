@@ -375,6 +375,7 @@ Modular architecture allows component salvage: AI chat system can be deployed st
 - **Demo Data**: 10 customers + 5 advisors + 3,000+ records + 99 PDF documents
 - **Performance Targets**: <2s page loads, <3s AI responses
 - **ROI**: N$12M Year 1 revenue uplift, 2x return on investment
+- **Deployment**: Production-ready on Vercel with CDN-optimized document access
 
 ### **Demo Flow (15 minutes exactly)**
 1. **Opening** (2 min): Problem + Solution + Innovation
