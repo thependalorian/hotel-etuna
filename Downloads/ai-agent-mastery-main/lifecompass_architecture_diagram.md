@@ -82,16 +82,30 @@
 │  │ • Customer      │  │ • OpenAI        │  │ • Session State  │         │
 │  │ • Advisor       │  │ • Anthropic     │  │ • User History   │         │
 │  │ • Claims        │  │ • Google        │  │ • Preferences    │         │
-│  │ • Investment    │  │ • Fallback      │  │ • Relationships  │         │
-│  │ • Compliance    │  │ • Rate Limiting │  │                 │         │
-│  │ • Escalation    │  │                 │  │                 │         │
+│  │ • Investment    │  │ • DeepSeek      │  │ • Relationships  │         │
+│  │ • Compliance    │  │ • Fallback      │  │                 │         │
+│  │ • Escalation    │  │ • Rate Limiting │  │                 │         │
 │  │ • Knowledge     │  └─────────────────┘  └─────────────────┘         │
 │  │ • Monitoring    │                                                   │
 │  └─────────────────┘                                                   │
+│  ┌───────────────────────────────────────────────────────────────────┐ │
+│  │              Unified Tool Layer (lib/agent/tools.ts) ✅           │ │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │ │
+│  │  │ Search Tools │  │  CRM Tools   │  │ Utility Tools │          │ │
+│  │  │             │  │              │  │              │          │ │
+│  │  │ • Vector     │  │ • Customer   │  │ • Calculator │          │ │
+│  │  │ • Hybrid     │  │ • Advisor    │  │ • Extract    │          │ │
+│  │  │ • Graph      │  │ • Policies   │  │   Calculation│          │ │
+│  │  │ • Documents  │  │ • Claims     │  │              │          │ │
+│  │  │ • Entities   │  │ • Tasks      │  │              │          │ │
+│  │  └──────────────┘  └──────────────┘  └──────────────┘          │ │
+│  │  Shared by: LifeCompassAgent + CopilotKit Runtime                 │ │
+│  └───────────────────────────────────────────────────────────────────┘ │
 ├─────────────────────────────────────────────────────────────────────────┤
-│  Technology: Python + FastAPI + LangChain + Custom Prompts             │
+│  Technology: TypeScript (Next.js) + Python (FastAPI) + Custom Prompts  │
 │  Compliance: POPIA/FICA regulatory requirements                         │
 │  Performance: <3s response time, 99.9% availability                     │
+│  Status: ✅ Production-ready, all tools implemented and tested           │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -112,8 +126,9 @@
 │  │ • Product Maps  │  │                 │  │ • Keyword Match  │         │
 │  └─────────────────┘  └─────────────────┘  └─────────────────┘         │
 ├─────────────────────────────────────────────────────────────────────────┤
-│  Data Sources: 2,977 Old Mutual web pages + policy documents           │
+│  Data Sources: 2,977 Old Mutual web pages + 99 PDF documents          │
 │  Technology: PostgreSQL Vector + Neo4j Graph + Redis Cache             │
+│  Storage: PDFs in public/documents/ for Vercel serverless deployment  │
 │  Performance: <1s search results, 95%+ accuracy                        │
 └─────────────────────────────────────────────────────────────────────────┘
 ```

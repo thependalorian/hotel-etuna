@@ -231,12 +231,14 @@ Customer Question → AI Assistant → Personalized Guidance → Smart Escalatio
 
 ### **What We've Built**
 - **Production-ready platform** with comprehensive CRM
-- **100 Namibian customer profiles** with realistic demographics
-- **20 specialized advisors** with regional expertise
+- **10 Namibian customer profiles** with realistic demographics
+- **5 specialized advisors** with regional expertise
 - **2,977 documents** processed into searchable knowledge base
+- **99 PDF documents** available for viewing/downloading (Vercel-deployed)
 - **8 AI prompt specializations** for regulatory compliance
 - **Product document search** with intelligent keyword matching
 - **Policies & Forms Library** with view/download capabilities
+- **Vercel Production Deployment**: Live and accessible with full document library
 
 ### **Next Steps**
 1. **Pilot validation** with Old Mutual stakeholders
