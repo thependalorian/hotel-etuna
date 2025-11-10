@@ -1026,7 +1026,7 @@ CREATE TRIGGER create_payment_task
 - **LifeCompass Hero Section**: "Navigate your financial future" with interactive compass animation
 - **Value Proposition Cards**: Self-service benefits, AI assistance, advisor access
 - **Quick Actions**: "Chat with LifeCompass", "Browse Products", "Find an Advisor"
-- **Demo Customer Selector**: Dropdown to select from 100 sample customer profiles
+- **Demo Customer Selector**: Grid view to select from 10 sample customer profiles
 
 **2. AI Chat Interface (`/chat`)**
 
