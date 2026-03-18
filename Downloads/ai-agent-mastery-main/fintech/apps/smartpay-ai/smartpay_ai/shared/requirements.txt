@@ -1,0 +1,13 @@
+# Shared JWT Validator Dependencies
+# Required for smartpay_ai.shared.jwt_validator
+
+# Database driver for PostgreSQL (async support)
+asyncpg>=0.29.0
+
+# Optional dependencies for monitoring and scheduling
+prometheus-client>=0.19.0  # For metrics collection
+APScheduler>=3.10.4        # For token cleanup scheduling
+
+# Testing dependencies
+pytest>=7.4.0
+pytest-asyncio>=0.21.0

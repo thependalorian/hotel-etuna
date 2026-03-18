@@ -1,0 +1,87 @@
+{
+  "expo": {
+    "name": "Smartpay",
+    "slug": "smartpay",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/ketchup-logo.png",
+    "scheme": "smartpay",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/images/ketchup-logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#E6F4FE"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.thependalorian.smartpay",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "SmartPay needs your location to find nearby agents, ATMs, and NamPost offices for cash-out and other services.",
+        "NSLocationAlwaysUsageDescription": "SmartPay needs your location to find nearby agents, ATMs, and NamPost offices for cash-out and other services.",
+        "NSCameraUsageDescription": "SmartPay needs camera access to scan QR codes for payments and transactions.",
+        "NSFaceIDUsageDescription": "SmartPay uses Face ID to securely authenticate transactions and protect your account.",
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
+      },
+      "entitlements": {
+        "aps-environment": "production"
+      },
+      "associatedDomains": [
+        "applinks:smartpay.com.na"
+      ]
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/images/ketchup-logo.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.thependalorian.smartpay",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "CAMERA",
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT",
+        "POST_NOTIFICATIONS"
+      ],
+      "googleServicesFile": "./google-services.json",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "smartpay.com.na",
+              "pathPrefix": "/oauth-callback"
+            },
+            {
+              "scheme": "smartpay",
+              "host": "oauth-callback"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/ketchup-logo.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-secure-store",
+      "expo-web-browser"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

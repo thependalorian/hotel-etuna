@@ -1,0 +1,143 @@
+{
+  "model_type": "fraud_detection_ensemble",
+  "trained_at": "2026-03-17T11:48:37.550616",
+  "n_estimators": 3,
+  "estimator_names": [
+    "rf",
+    "lr",
+    "xgb"
+  ],
+  "training_samples": 3500,
+  "test_samples": 1000,
+  "fraud_rate": 0.05,
+  "cv_roc_auc_mean": 1.0,
+  "cv_roc_auc_std": 0.0,
+  "test_roc_auc": 1.0,
+  "test_pr_auc": 1.0,
+  "confusion_matrix": [
+    [
+      950,
+      0
+    ],
+    [
+      0,
+      50
+    ]
+  ],
+  "classification_report": {
+    "0": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 950.0
+    },
+    "1": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 50.0
+    },
+    "accuracy": 1.0,
+    "macro avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 1000.0
+    },
+    "weighted avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 1000.0
+    }
+  },
+  "feature_importance": [
+    {
+      "feature": "merchant_frequency",
+      "importance": 0.485615463074341
+    },
+    {
+      "feature": "amount_sum_24h",
+      "importance": 0.14343230829018136
+    },
+    {
+      "feature": "amount_sum_1h",
+      "importance": 0.08016487179741504
+    },
+    {
+      "feature": "amount",
+      "importance": 0.07493213069882122
+    },
+    {
+      "feature": "amount_log",
+      "importance": 0.07296628297185719
+    },
+    {
+      "feature": "amount_deviation",
+      "importance": 0.05719049930697287
+    },
+    {
+      "feature": "category_encoded",
+      "importance": 0.036556438009621876
+    },
+    {
+      "feature": "user_avg_amount",
+      "importance": 0.00991578916313026
+    },
+    {
+      "feature": "tx_count_24h",
+      "importance": 0.008733643530885076
+    },
+    {
+      "feature": "user_std_amount",
+      "importance": 0.008173020200722943
+    },
+    {
+      "feature": "day_of_week",
+      "importance": 0.006967230964298724
+    },
+    {
+      "feature": "user_tx_count",
+      "importance": 0.006775009768290314
+    },
+    {
+      "feature": "hour",
+      "importance": 0.00524638572842764
+    },
+    {
+      "feature": "is_weekend",
+      "importance": 0.0026766480534920777
+    },
+    {
+      "feature": "is_night",
+      "importance": 0.0005004465714923388
+    },
+    {
+      "feature": "tx_count_1h",
+      "importance": 0.000153831870050054
+    },
+    {
+      "feature": "status_encoded",
+      "importance": 0.0
+    }
+  ],
+  "feature_columns": [
+    "amount",
+    "amount_log",
+    "hour",
+    "day_of_week",
+    "is_weekend",
+    "is_night",
+    "tx_count_1h",
+    "tx_count_24h",
+    "amount_sum_1h",
+    "amount_sum_24h",
+    "user_avg_amount",
+    "user_std_amount",
+    "user_tx_count",
+    "amount_deviation",
+    "merchant_frequency",
+    "category_encoded",
+    "status_encoded"
+  ]
+}

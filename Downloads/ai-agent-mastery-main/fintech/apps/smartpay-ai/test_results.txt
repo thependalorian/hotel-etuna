@@ -1,0 +1,15 @@
+/Users/georgenekwaya/.pyenv/versions/3.11.0/lib/python3.11/site-packages/pydantic/plugin/_loader.py:50: UserWarning: ImportError while loading the `logfire-plugin` Pydantic plugin, this plugin will not be installed.
+
+ImportError("cannot import name 'ReadableLogRecord' from 'opentelemetry.sdk._logs' (/Users/georgenekwaya/.pyenv/versions/3.11.0/lib/python3.11/site-packages/opentelemetry/sdk/_logs/__init__.py)")
+  warnings.warn(
+============================= test session starts ==============================
+platform darwin -- Python 3.11.0, pytest-8.4.1, pluggy-1.6.0 -- /Users/georgenekwaya/.pyenv/versions/3.11.0/bin/python3.11
+cachedir: .pytest_cache
+rootdir: /Users/georgenekwaya/Downloads/ai-agent-mastery-main/fintech/smartpay/backend_python
+plugins: opik-1.7.29, anyio-4.9.0, langsmith-0.6.2, Faker-20.1.0, cov-4.1.0, mock-3.14.0, asyncio-1.0.0
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 26 items
+
+tests/test_copilot_scenarios.py::test_low_risk_check_balance PASSED      [  3%]
+tests/test_copilot_scenarios.py::test_low_risk_view_transactions PASSED  [  7%]
+tests/test_copilot_scenarios.py::test_low_risk_savings_tips 

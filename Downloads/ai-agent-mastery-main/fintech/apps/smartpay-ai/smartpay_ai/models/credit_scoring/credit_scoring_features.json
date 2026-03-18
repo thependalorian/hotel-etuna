@@ -1,0 +1,16 @@
+[
+  "total_spending",
+  "avg_transaction",
+  "std_transaction",
+  "transaction_count",
+  "account_age_days",
+  "transactions_per_day",
+  "category_diversity",
+  "merchant_diversity",
+  "payment_regularity",
+  "total_borrowed",
+  "loan_count",
+  "loans_repaid",
+  "loans_defaulted",
+  "repayment_rate"
+]

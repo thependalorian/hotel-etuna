@@ -1,0 +1,61 @@
+# ═══════════════════════════════════════════════════════════════
+# TypeScript Backend .gitignore for Smartpay
+# ═══════════════════════════════════════════════════════════════
+
+# ─── Build Outputs ───
+dist/
+build/
+*.js.map
+*.d.ts.map
+*.tsbuildinfo
+
+# ─── Dependencies ───
+node_modules/
+
+# ─── Environment Variables (SENSITIVE!) ───
+.env
+.env.local
+.env.*.local
+.env.production
+.env.test
+
+# ─── Logs ───
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ─── Testing Coverage ───
+coverage/
+.nyc_output/
+test-results/
+
+# ─── OS Files ───
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# ─── IDE ───
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# ─── Temporary Files ───
+*.tmp
+*.temp
+.cache/
+
+# ─── Database Files (Local Development) ───
+*.sqlite
+*.sqlite3
+*.db
+
+# ─── Secrets & Keys ───
+*.pem
+*.key
+*.cert
+*.p12

@@ -1,0 +1,94 @@
+# ═══════════════════════════════════════════════════════════════
+# Python Backend .gitignore for Smartpay AI Copilot
+# ═══════════════════════════════════════════════════════════════
+
+# ─── Python ───
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ─── Virtual Environments ───
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# ─── Environment Variables (SENSITIVE!) ───
+.env
+.env.local
+.env.production
+
+# ─── IDEs ───
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ─── Logs ───
+*.log
+logs/
+
+# ─── Testing ───
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# ─── ML Models (Large Files) ───
+# Store trained models in external storage (S3, etc.) and download on deployment
+smartpay_ai/models/**/*.pkl
+smartpay_ai/models/**/*.pt
+smartpay_ai/models/**/*.h5
+smartpay_ai/models/**/*.joblib
+
+# Keep model directories but not the actual model files
+!smartpay_ai/models/**/.gitkeep
+
+# ─── Training Data (Sensitive) ───
+smartpay_ai/data/training/**/*.csv
+smartpay_ai/data/training/**/*.json
+smartpay_ai/data/training/**/*.parquet
+
+# Keep training directories but not the data
+!smartpay_ai/data/training/.gitkeep
+
+# ─── Jupyter Notebooks ───
+.ipynb_checkpoints/
+*.ipynb
+
+# ─── Type Checking ───
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# ─── Documentation Build ───
+site/
+docs/_build/
+
+# ─── Temporary Files ───
+*.tmp
+*.temp
+.cache/

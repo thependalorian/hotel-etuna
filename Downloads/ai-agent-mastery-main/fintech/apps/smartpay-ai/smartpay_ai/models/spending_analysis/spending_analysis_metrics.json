@@ -1,0 +1,98 @@
+{
+  "model_type": "spending_analysis_clustering",
+  "trained_at": "2026-03-17T11:48:43.000994",
+  "n_clusters": 4,
+  "n_users": 300,
+  "n_transactions": 25660,
+  "silhouette_score": 0.7065716820383071,
+  "davies_bouldin_index": 0.5096792120070287,
+  "cluster_profiles": [
+    {
+      "cluster_id": 0,
+      "size": 137,
+      "percentage": 45.666666666666664,
+      "avg_monthly_spending": 299.9913591327508,
+      "avg_transaction": 84.6484309642642,
+      "avg_transaction_count": 2.886894492368945,
+      "spending_volatility": 54.012662035138085,
+      "label": "Low Spender"
+    },
+    {
+      "cluster_id": 1,
+      "size": 35,
+      "percentage": 11.666666666666666,
+      "avg_monthly_spending": 18859.12823451058,
+      "avg_transaction": 1593.075137340524,
+      "avg_transaction_count": 11.904761904761903,
+      "spending_volatility": 2322.971110145681,
+      "label": "Premium Spender"
+    },
+    {
+      "cluster_id": 2,
+      "size": 69,
+      "percentage": 23.0,
+      "avg_monthly_spending": 3692.5239376298323,
+      "avg_transaction": 404.9113189779096,
+      "avg_transaction_count": 9.1256038647343,
+      "spending_volatility": 415.8924398041909,
+      "label": "High Spender"
+    },
+    {
+      "cluster_id": 3,
+      "size": 59,
+      "percentage": 19.666666666666664,
+      "avg_monthly_spending": 14612.009623241955,
+      "avg_transaction": 1228.0353882999636,
+      "avg_transaction_count": 11.909604519774009,
+      "spending_volatility": 1451.3112938697966,
+      "label": "Premium Spender"
+    }
+  ],
+  "feature_importance": [
+    {
+      "feature": "std_transaction",
+      "importance": 0.3071419407592104
+    },
+    {
+      "feature": "avg_transaction",
+      "importance": 0.29168770949347045
+    },
+    {
+      "feature": "monthly_spending",
+      "importance": 0.2203032911009624
+    },
+    {
+      "feature": "transaction_count",
+      "importance": 0.1808670586463567
+    }
+  ],
+  "feature_columns": [
+    "monthly_spending",
+    "avg_transaction",
+    "std_transaction",
+    "transaction_count"
+  ],
+  "elbow_analysis": {
+    "k_values": [
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "inertias": [
+      87.88377841310489,
+      45.7854000634555,
+      30.216258898581696,
+      19.696989934057164,
+      16.492330570167713
+    ],
+    "silhouette_scores": [
+      0.7523260975923101,
+      0.7065716820383071,
+      0.7488669428309026,
+      0.7280953676783053,
+      0.7011080153885596
+    ]
+  }
+}

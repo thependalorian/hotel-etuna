@@ -1,0 +1,129 @@
+{
+  "model_type": "credit_scoring_ensemble",
+  "trained_at": "2026-03-17T11:48:41.776060",
+  "n_estimators": 4,
+  "estimator_names": [
+    "rf",
+    "gb",
+    "lr",
+    "xgb"
+  ],
+  "training_samples": 308,
+  "test_samples": 89,
+  "good_credit_rate": 0.27601809954751133,
+  "cv_roc_auc_mean": 1.0,
+  "cv_roc_auc_std": 0.0,
+  "test_roc_auc": 1.0,
+  "test_pr_auc": 1.0,
+  "confusion_matrix": [
+    [
+      62,
+      2
+    ],
+    [
+      0,
+      25
+    ]
+  ],
+  "classification_report": {
+    "0": {
+      "precision": 1.0,
+      "recall": 0.96875,
+      "f1-score": 0.9841269841269841,
+      "support": 64.0
+    },
+    "1": {
+      "precision": 0.9259259259259259,
+      "recall": 1.0,
+      "f1-score": 0.9615384615384616,
+      "support": 25.0
+    },
+    "accuracy": 0.9775280898876404,
+    "macro avg": {
+      "precision": 0.962962962962963,
+      "recall": 0.984375,
+      "f1-score": 0.9728327228327228,
+      "support": 89.0
+    },
+    "weighted avg": {
+      "precision": 0.9791926758218894,
+      "recall": 0.9775280898876404,
+      "f1-score": 0.9777818935122305,
+      "support": 89.0
+    }
+  },
+  "feature_importance": [
+    {
+      "feature": "repayment_rate",
+      "importance": 0.5133604361746092
+    },
+    {
+      "feature": "loans_defaulted",
+      "importance": 0.24253961106592853
+    },
+    {
+      "feature": "loans_repaid",
+      "importance": 0.11828801518287768
+    },
+    {
+      "feature": "total_borrowed",
+      "importance": 0.03418985825128707
+    },
+    {
+      "feature": "loan_count",
+      "importance": 0.03027236608871715
+    },
+    {
+      "feature": "avg_transaction",
+      "importance": 0.011733023298080637
+    },
+    {
+      "feature": "total_spending",
+      "importance": 0.009940814595976103
+    },
+    {
+      "feature": "merchant_diversity",
+      "importance": 0.00989765073634253
+    },
+    {
+      "feature": "std_transaction",
+      "importance": 0.0083759215305778
+    },
+    {
+      "feature": "payment_regularity",
+      "importance": 0.008203687358475206
+    },
+    {
+      "feature": "transactions_per_day",
+      "importance": 0.00660624969646271
+    },
+    {
+      "feature": "transaction_count",
+      "importance": 0.006592366020665416
+    },
+    {
+      "feature": "account_age_days",
+      "importance": 0.0
+    },
+    {
+      "feature": "category_diversity",
+      "importance": 0.0
+    }
+  ],
+  "feature_columns": [
+    "total_spending",
+    "avg_transaction",
+    "std_transaction",
+    "transaction_count",
+    "account_age_days",
+    "transactions_per_day",
+    "category_diversity",
+    "merchant_diversity",
+    "payment_regularity",
+    "total_borrowed",
+    "loan_count",
+    "loans_repaid",
+    "loans_defaulted",
+    "repayment_rate"
+  ]
+}

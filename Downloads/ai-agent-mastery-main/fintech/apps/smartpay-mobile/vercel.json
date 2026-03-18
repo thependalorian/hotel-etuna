@@ -1,0 +1,75 @@
+{
+  "version": 2,
+  "name": "smartpay-mobile",
+  "buildCommand": "npm install && npm run build",
+  "devCommand": "npm run start",
+  "installCommand": "npm install",
+  "framework": null,
+  "public": false,
+  "regions": ["cdg1"],
+  "env": {
+    "EXPO_PUBLIC_API_BASE_URL": {
+      "description": "Backend API base URL (e.g., https://smartpay-backend.railway.app)",
+      "value": "@api_base_url"
+    },
+    "EXPO_PUBLIC_COPILOT_API_URL": {
+      "description": "PydanticAI copilot agent endpoint URL",
+      "value": "@copilot_api_url"
+    },
+    "NODE_ENV": {
+      "value": "production"
+    }
+  },
+  "build": {
+    "env": {
+      "EXPO_PUBLIC_API_BASE_URL": "@api_base_url",
+      "EXPO_PUBLIC_COPILOT_API_URL": "@copilot_api_url"
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "geolocation=(self), camera=(self), microphone=()"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/obs/callback",
+      "destination": "/api/obs/callback",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://smartpay-backend.railway.app/api/:path*"
+    }
+  ],
+  "github": {
+    "enabled": true,
+    "autoAlias": true,
+    "autoJobCancelation": true,
+    "silent": false
+  }
+}

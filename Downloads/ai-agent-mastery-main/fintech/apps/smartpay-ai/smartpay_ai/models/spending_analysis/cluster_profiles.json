@@ -1,0 +1,42 @@
+[
+  {
+    "cluster_id": 0,
+    "size": 137,
+    "percentage": 45.666666666666664,
+    "avg_monthly_spending": 299.9913591327508,
+    "avg_transaction": 84.6484309642642,
+    "avg_transaction_count": 2.886894492368945,
+    "spending_volatility": 54.012662035138085,
+    "label": "Low Spender"
+  },
+  {
+    "cluster_id": 1,
+    "size": 35,
+    "percentage": 11.666666666666666,
+    "avg_monthly_spending": 18859.12823451058,
+    "avg_transaction": 1593.075137340524,
+    "avg_transaction_count": 11.904761904761903,
+    "spending_volatility": 2322.971110145681,
+    "label": "Premium Spender"
+  },
+  {
+    "cluster_id": 2,
+    "size": 69,
+    "percentage": 23.0,
+    "avg_monthly_spending": 3692.5239376298323,
+    "avg_transaction": 404.9113189779096,
+    "avg_transaction_count": 9.1256038647343,
+    "spending_volatility": 415.8924398041909,
+    "label": "High Spender"
+  },
+  {
+    "cluster_id": 3,
+    "size": 59,
+    "percentage": 19.666666666666664,
+    "avg_monthly_spending": 14612.009623241955,
+    "avg_transaction": 1228.0353882999636,
+    "avg_transaction_count": 11.909604519774009,
+    "spending_volatility": 1451.3112938697966,
+    "label": "Premium Spender"
+  }
+]

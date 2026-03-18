@@ -1,0 +1,19 @@
+[
+  "amount",
+  "amount_log",
+  "hour",
+  "day_of_week",
+  "is_weekend",
+  "is_night",
+  "tx_count_1h",
+  "tx_count_24h",
+  "amount_sum_1h",
+  "amount_sum_24h",
+  "user_avg_amount",
+  "user_std_amount",
+  "user_tx_count",
+  "amount_deviation",
+  "merchant_frequency",
+  "category_encoded",
+  "status_encoded"
+]
