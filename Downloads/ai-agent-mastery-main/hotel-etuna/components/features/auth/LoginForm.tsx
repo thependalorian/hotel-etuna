@@ -17,7 +17,14 @@ const formSchema = z.object({
   password: z.string().min(1, { message: 'Password is required.' }),
 });
 
-export function LoginForm() {
+function sanitizeRedirectPath(value?: string): string {
+  if (!value || !value.startsWith('/')) return '/dashboard';
+  if (value.startsWith('//')) return '/dashboard';
+  if (value.startsWith('/api')) return '/dashboard';
+  return value;
+}
+
+export function LoginForm({ redirectTo }: { redirectTo?: string }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -44,8 +51,7 @@ export function LoginForm() {
       if (result?.error) {
         setError('Invalid email or password. Please try again.');
       } else if (result?.ok) {
-        // Successful login, redirect to dashboard
-        router.push('/dashboard');
+        router.push(sanitizeRedirectPath(redirectTo));
       }
     } catch (e) {
       setError('An unexpected error occurred. Please try again later.');

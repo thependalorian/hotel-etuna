@@ -3,6 +3,8 @@
 import { FormEvent, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Calendar } from 'lucide-react';
+import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 
 type AvailabilityRoom = {
   id: string;
@@ -19,6 +21,8 @@ type AvailabilityRoom = {
  * Location: /components/sections/landing/LandingBookingWidget.tsx
  */
 export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
+  const { status } = useSession();
+  const isAuthenticated = status === 'authenticated';
   const [checkInDate, setCheckInDate] = useState('');
   const [checkOutDate, setCheckOutDate] = useState('');
   const [guests, setGuests] = useState('1');
@@ -117,6 +121,16 @@ export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
               {room.roomType} ({room.roomNumber}) · Max {room.maxOccupancy} guests · NAD {room.baseRate ?? 'N/A'}
             </div>
           ))}
+          {!isAuthenticated ? (
+            <div className="rounded-lg border border-khaki-600/30 bg-khaki-50 p-4 text-center">
+              <p className="mb-3 text-sm text-terracotta-900">
+                Rooms found. Sign in or create an account to complete your booking.
+              </p>
+              <Button asChild size="sm">
+                <Link href="/login?redirect=/#booking">Sign In to Complete Booking</Link>
+              </Button>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>

@@ -3,6 +3,7 @@ import { Dancing_Script, Inter, JetBrains_Mono, Playfair_Display } from "next/fo
 import "./globals.css";
 import { StackProviderWrapper } from "@/components/providers/StackProviderWrapper";
 import { SessionProviderWrapper } from "@/components/providers/SessionProviderWrapper";
+import { AuthGateProvider } from "@/components/providers/AuthGateProvider";
 import { RootErrorBoundary } from "@/components/RootErrorBoundary";
 import { PostHogProvider } from "@/components/providers/PostHogProvider";
 import { Toaster } from "@/components/ui";
@@ -94,7 +95,9 @@ export default function RootLayout({
           <PostHogProvider>
             <StackProviderWrapper>
               <SessionProviderWrapper>
-                <RootErrorBoundary>{children}</RootErrorBoundary>
+                <AuthGateProvider>
+                  <RootErrorBoundary>{children}</RootErrorBoundary>
+                </AuthGateProvider>
               </SessionProviderWrapper>
             </StackProviderWrapper>
           </PostHogProvider>

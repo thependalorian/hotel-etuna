@@ -7,9 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 const LoginPage = ({
   searchParams,
 }: {
-  searchParams?: { reason?: string };
+  searchParams?: { reason?: string; redirect?: string };
 }) => {
   const reason = searchParams?.reason;
+  const redirect = searchParams?.redirect;
   const sessionMessage =
     reason === 'inactivity'
       ? 'You were signed out due to inactivity. Please sign in again.'
@@ -45,14 +46,17 @@ const LoginPage = ({
             ) : null}
           </CardHeader>
           <CardContent>
-            <LoginForm />
+            <LoginForm redirectTo={redirect} />
           </CardContent>
         </Card>
 
         <div className="mt-6 text-center text-sm text-nude-600">
           <p>
             Don&apos;t have an account?{' '}
-            <Link href="/register" className="font-semibold text-nude-700 hover:underline">
+            <Link
+              href={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : '/register'}
+              className="font-semibold text-nude-700 hover:underline"
+            >
               Create one for free
             </Link>
           </p>

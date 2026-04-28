@@ -33,10 +33,28 @@ const publicChatSchema = z.object({
 const sofiaService = new SofiaConciergeService();
 const propertyService = new PropertyService();
 
+const SENSITIVE_PRICING_PATTERN =
+  /\b(price|pricing|rate|rates|cost|costs|nad|availability|available|book|booking)\b/i;
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const validatedData = publicChatSchema.parse(body);
+
+    if (SENSITIVE_PRICING_PATTERN.test(validatedData.message)) {
+      return NextResponse.json(
+        {
+          response:
+            'For pricing and availability, please sign up - it only takes a minute!',
+          confidence: 1,
+          intent: 'auth_required_for_pricing',
+          entities: {},
+          suggestions: ['Sign up to view room rates', 'Sign in to check availability'],
+          actions: [],
+        },
+        { status: 200 }
+      );
+    }
 
     // Get property by slug (public access)
     const property = await propertyService.getPropertyBySlug(validatedData.slug);
