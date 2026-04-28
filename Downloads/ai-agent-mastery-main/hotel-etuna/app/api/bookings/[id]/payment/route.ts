@@ -19,7 +19,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
-import { bookings } from '@/lib/db/schema';
+import { auditTrail, bookings } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -35,7 +35,7 @@ const markAsPaidSchema = z.object({
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<any> }
 ) {
   try {
     const { id } = await params;
@@ -64,7 +64,7 @@ export async function PATCH(
     
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Validation failed', details: validation.error.errors },
+        { error: 'Validation failed', details: validation.error.issues },
         { status: 400 }
       );
     }
@@ -135,7 +135,7 @@ export async function PATCH(
     }
 
     // 8. Generate unique receipt number
-    const receiptNumber = generateReceiptNumber(booking.propertyId, booking.bookingReference);
+    const receiptNumber = generateReceiptNumber(booking.propertyId ?? 'XX', booking.bookingReference);
 
     // 9. Update booking
     await db
@@ -157,18 +157,30 @@ export async function PATCH(
       .where(eq(bookings.id, id))
       .limit(1);
 
-    // 11. Log audit trail (TODO: Add to audit log table)
-    console.log('[CASH PAYMENT RECEIVED]', {
-      bookingId: id,
-      bookingReference: booking.bookingReference,
-      totalAmount,
-      amountTendered,
-      changeGiven,
-      receiptNumber,
-      staffId: session.user.id,
-      staffEmail: session.user.email,
-      timestamp: new Date().toISOString(),
-      notes,
+    // 11. Persist audit trail for payment update
+    await db.insert(auditTrail).values({
+      tenantId: booking.tenantId,
+      userId: session.user.id,
+      action: 'cash_payment_marked_paid',
+      resourceType: 'booking',
+      resourceId: booking.id,
+      oldValues: {
+        paymentStatus: booking.paymentStatus,
+        paymentMethod: booking.paymentMethod,
+        amountTendered: booking.amountTendered,
+        changeGiven: booking.changeGiven,
+        receiptNumber: booking.receiptNumber,
+      },
+      newValues: {
+        paymentStatus: 'paid',
+        paymentMethod: booking.paymentMethod,
+        amountTendered,
+        changeGiven,
+        receiptNumber,
+        notes: notes ?? null,
+      },
+      ipAddress: request.headers.get('x-forwarded-for') ?? null,
+      userAgent: request.headers.get('user-agent') ?? null,
     });
 
     return NextResponse.json({
@@ -202,7 +214,7 @@ export async function PATCH(
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<any> }
 ) {
   try {
     const { id } = await params;

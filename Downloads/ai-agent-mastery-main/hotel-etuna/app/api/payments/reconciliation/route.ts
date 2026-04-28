@@ -18,8 +18,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
-import { bookings, cashReconciliations, properties } from '@/lib/db/schema';
-import { eq, and, gte, lte, sql } from 'drizzle-orm';
+import { auditTrail, bookings, cashReconciliations } from '@/lib/db/schema';
+import { eq, and, gte, lte } from 'drizzle-orm';
 import { z } from 'zod';
 
 const reconciliationSchema = z.object({
@@ -231,7 +231,7 @@ export async function POST(request: NextRequest) {
     
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Validation failed', details: validation.error.errors },
+        { error: 'Validation failed', details: validation.error.issues },
         { status: 400 }
       );
     }
@@ -318,18 +318,31 @@ export async function POST(request: NextRequest) {
         .returning();
     }
 
-    // 8. Log audit trail
-    console.log('[CASH RECONCILIATION SAVED]', {
-      reconciliationId: reconciliation.id,
-      date: reconciliationDate,
-      propertyId,
-      shift,
-      expectedAmount,
-      actualAmount,
-      discrepancy,
-      staffId: session.user.id,
-      staffEmail: session.user.email,
-      timestamp: new Date().toISOString(),
+    // 8. Persist audit trail for reconciliation
+    await db.insert(auditTrail).values({
+      tenantId: session.user.tenantId || null,
+      userId: session.user.id,
+      action: existing.length > 0 ? 'cash_reconciliation_updated' : 'cash_reconciliation_created',
+      resourceType: 'cash_reconciliation',
+      resourceId: reconciliation.id,
+      oldValues: existing[0]
+        ? {
+            expectedAmount: existing[0].expectedAmount,
+            actualAmount: existing[0].actualAmount,
+            discrepancy: existing[0].discrepancy,
+            notes: existing[0].notes,
+          }
+        : null,
+      newValues: {
+        expectedAmount,
+        actualAmount,
+        discrepancy,
+        notes: notes ?? null,
+        reconciliationDate,
+        shift: shift || 'full_day',
+      },
+      ipAddress: request.headers.get('x-forwarded-for') ?? null,
+      userAgent: request.headers.get('user-agent') ?? null,
     });
 
     return NextResponse.json({
