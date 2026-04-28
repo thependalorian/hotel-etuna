@@ -1,0 +1,332 @@
+/**
+ * NAMQRService - NamQR code generation and room_qr_codes management using Drizzle
+ * Purpose: Generate hospitality QR codes and manage room_qr_codes table
+ * Location: lib/services/qr/NAMQRService.ts
+ */
+
+import { db } from '@/lib/db';
+import { properties, rooms, roomQrCodes } from '@/lib/db/schema';
+import { and, eq } from 'drizzle-orm';
+import { v4 as uuidv4 } from 'uuid';
+import { buildNamQrTlv } from '@/lib/services/qr/namqr-core';
+
+interface NamQrPayload {
+  version: string;
+  merchantName: string;
+  merchantCity: string;
+  merchantCategoryCode: string;
+  transactionCurrency: string;
+  transactionAmount?: number;
+  countryCode: string;
+  referenceId: string;
+  terminalId?: string;
+}
+
+export class NamQrService {
+  async generateHospitalityQr(data: {
+    propertyId: string;
+    amount?: number;
+    reference: string;
+    type: 'ROOM_SERVICE' | 'RESTAURANT' | 'CHECKOUT';
+    tableNumber?: string;
+    roomNumber?: string;
+  }) {
+    const [property] = await db
+      .select()
+      .from(properties)
+      .where(eq(properties.id, data.propertyId))
+      .limit(1);
+
+    if (!property) throw new Error('Property not found');
+
+    const payload: NamQrPayload = {
+      version: '5.0',
+      merchantName: property.name,
+      merchantCity: property.city ?? 'Windhoek',
+      merchantCategoryCode: property.type?.toLowerCase() === 'hotel' ? '7011' : '5812',
+      transactionCurrency: 'NAD',
+      transactionAmount: data.amount,
+      countryCode: 'NA',
+      referenceId: data.reference,
+      terminalId: data.tableNumber ?? data.roomNumber ?? 'FRONT_DESK',
+    };
+
+    const qrString = this.encodeNamQr(payload);
+    const qrCodeUrl = `https://buffr.host/qr/${uuidv4()}`;
+
+    if (!data.roomNumber) {
+      throw new Error('roomNumber is required to create QR code');
+    }
+
+    const [room] = await db
+      .select({ id: rooms.id })
+      .from(rooms)
+      .where(
+        and(
+          eq(rooms.propertyId, data.propertyId),
+          eq(rooms.roomNumber, data.roomNumber)
+        )
+      )
+      .limit(1);
+
+    if (!room) {
+      throw new Error(`Room not found: ${data.roomNumber} for property ${data.propertyId}`);
+    }
+
+    const [qrRecord] = await db
+      .insert(roomQrCodes)
+      .values({
+        propertyId: data.propertyId,
+        roomId: room.id,
+        qrCode: qrString,
+        qrCodeUrl,
+        isActive: true,
+      })
+      .returning();
+
+    if (!qrRecord) throw new Error('Failed to create QR code record');
+
+    return {
+      qrCode: qrString,
+      url: qrRecord.qrCodeUrl,
+      payload,
+    };
+  }
+
+  /**
+   * Deep links and image URL for restaurant table QR (stored on restaurant_tables).
+   * Encodes `qr` so dashboard /guest flows can resolve via TableService.getTableByQrCode.
+   */
+  buildRestaurantTableQrUrls(qrLookupCode: string): { qrCodeUrl: string; qrCodeImageUrl: string } {
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://host.buffr.ai').replace(
+      /\/$/,
+      ''
+    );
+    const qrCodeUrl = `${appUrl}/restaurant/tables?qr=${encodeURIComponent(qrLookupCode)}`;
+    const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrCodeUrl)}`;
+    return { qrCodeUrl, qrCodeImageUrl };
+  }
+
+  private encodeNamQr(payload: NamQrPayload): string {
+    const additionalData = buildNamQrTlv('01', payload.referenceId);
+    const parts = [
+      buildNamQrTlv('00', payload.version),
+      buildNamQrTlv('52', payload.merchantCategoryCode),
+      buildNamQrTlv('53', '516'),
+      payload.transactionAmount
+        ? buildNamQrTlv('54', payload.transactionAmount.toString())
+        : '',
+      buildNamQrTlv('58', payload.countryCode),
+      buildNamQrTlv('59', payload.merchantName),
+      buildNamQrTlv('60', payload.merchantCity),
+      buildNamQrTlv('62', additionalData),
+    ];
+    return parts.join('');
+  }
+
+  private async getRoomId(propertyId: string, roomNumber: string): Promise<string | undefined> {
+    const [room] = await db
+      .select({ id: rooms.id })
+      .from(rooms)
+      .where(and(eq(rooms.propertyId, propertyId), eq(rooms.roomNumber, roomNumber)))
+      .limit(1);
+    return room?.id;
+  }
+
+  async generateQRCode(data: {
+    tenantId: string;
+    propertyId: string;
+    entityType: 'room' | 'table';
+    entityId: string;
+    qrType?: string;
+  }) {
+    return this.generateHospitalityQr({
+      propertyId: data.propertyId,
+      reference: `QR-${Date.now()}`,
+      type:
+        data.qrType === 'ROOM_SERVICE'
+          ? 'ROOM_SERVICE'
+          : data.qrType === 'CHECKOUT'
+            ? 'CHECKOUT'
+            : 'RESTAURANT',
+      roomNumber: data.entityType === 'room' ? data.entityId : undefined,
+      tableNumber: data.entityType === 'table' ? data.entityId : undefined,
+    });
+  }
+
+  async generateBulkQRCodes(
+    tenantId: string,
+    propertyId: string,
+    entityType: 'room' | 'table',
+    entityIds: string[],
+    qrType?: string
+  ) {
+    const results: Array<{ entityId: string; qrCode?: string; url?: string; payload?: NamQrPayload; error?: string }> = [];
+    for (const entityId of entityIds) {
+      try {
+        const qr = await this.generateQRCode({
+          tenantId,
+          propertyId,
+          entityType,
+          entityId,
+          qrType,
+        });
+        results.push({ entityId, ...qr });
+      } catch (error) {
+        results.push({ entityId, error: (error as Error).message });
+      }
+    }
+    return results;
+  }
+
+  async getQRCodesByProperty(
+    propertyId: string,
+    tenantId: string,
+    filters?: { entityType?: 'room' | 'table'; qrType?: string; isActive?: boolean }
+  ) {
+    const conditions = [
+      eq(roomQrCodes.propertyId, propertyId),
+      eq(properties.tenantId, tenantId),
+    ];
+    if (filters?.isActive !== undefined) {
+      conditions.push(eq(roomQrCodes.isActive, filters.isActive));
+    }
+    const rows = await db
+      .select({
+        rqc: roomQrCodes,
+        roomId: rooms.id,
+        roomNumber: rooms.roomNumber,
+        roomType: rooms.roomType,
+        propertyId: properties.id,
+        propertyName: properties.name,
+      })
+      .from(roomQrCodes)
+      .leftJoin(rooms, eq(roomQrCodes.roomId, rooms.id))
+      .innerJoin(properties, eq(roomQrCodes.propertyId, properties.id))
+      .where(and(...conditions));
+
+    return rows.map((r) => ({
+      ...r.rqc,
+      room_id: r.roomId,
+      room_number: r.roomNumber,
+      room_type: r.roomType,
+      property_id: r.propertyId,
+      property_name: r.propertyName,
+    }));
+  }
+
+  async getQRCodeById(id: string, tenantId: string) {
+    const [row] = await db
+      .select({
+        rqc: roomQrCodes,
+        roomId: rooms.id,
+        roomNumber: rooms.roomNumber,
+        roomType: rooms.roomType,
+        propertyId: properties.id,
+        propertyName: properties.name,
+      })
+      .from(roomQrCodes)
+      .leftJoin(rooms, eq(roomQrCodes.roomId, rooms.id))
+      .innerJoin(properties, eq(roomQrCodes.propertyId, properties.id))
+      .where(and(eq(roomQrCodes.id, id), eq(properties.tenantId, tenantId)))
+      .limit(1);
+
+    if (!row) return null;
+    return {
+      ...row.rqc,
+      room_id: row.roomId,
+      room_number: row.roomNumber,
+      room_type: row.roomType,
+      property_id: row.propertyId,
+      property_name: row.propertyName,
+    };
+  }
+
+  async updateQRCode(
+    id: string,
+    tenantId: string,
+    data: { is_active?: boolean; qr_code?: string }
+  ) {
+    const [exists] = await db
+      .select({ id: roomQrCodes.id })
+      .from(roomQrCodes)
+      .innerJoin(properties, eq(roomQrCodes.propertyId, properties.id))
+      .where(and(eq(roomQrCodes.id, id), eq(properties.tenantId, tenantId)))
+      .limit(1);
+
+    if (!exists) return null;
+
+    const [updated] = await db
+      .update(roomQrCodes)
+      .set({
+        ...(data.is_active !== undefined && { isActive: data.is_active }),
+        ...(data.qr_code != null && { qrCode: data.qr_code }),
+        updatedAt: new Date(),
+      })
+      .where(eq(roomQrCodes.id, id))
+      .returning();
+
+    return updated ?? null;
+  }
+
+  async deleteQRCode(id: string, tenantId: string) {
+    const [exists] = await db
+      .select({ id: roomQrCodes.id })
+      .from(roomQrCodes)
+      .innerJoin(properties, eq(roomQrCodes.propertyId, properties.id))
+      .where(and(eq(roomQrCodes.id, id), eq(properties.tenantId, tenantId)))
+      .limit(1);
+
+    if (!exists) return { success: false, message: 'QR code not found' };
+
+    await db.delete(roomQrCodes).where(eq(roomQrCodes.id, id));
+    return { success: true, message: 'QR code deleted' };
+  }
+
+  async getQRStats(tenantId: string) {
+    const rows = await db
+      .select({
+        total: roomQrCodes.id,
+        isActive: roomQrCodes.isActive,
+      })
+      .from(roomQrCodes)
+      .innerJoin(properties, eq(roomQrCodes.propertyId, properties.id))
+      .where(eq(properties.tenantId, tenantId));
+
+    const total = rows.length;
+    const active = rows.filter((r) => r.isActive).length;
+    return { total, active, inactive: total - active };
+  }
+
+  async scanQRCode(
+    qrCodeId: string,
+    scanData: { scannedAt?: Date; scannedBy?: string; deviceInfo?: string }
+  ) {
+    const [row] = await db
+      .select({
+        rqc: roomQrCodes,
+        roomId: rooms.id,
+        roomNumber: rooms.roomNumber,
+        roomType: rooms.roomType,
+        propertyId: properties.id,
+        propertyName: properties.name,
+      })
+      .from(roomQrCodes)
+      .leftJoin(rooms, eq(roomQrCodes.roomId, rooms.id))
+      .innerJoin(properties, eq(roomQrCodes.propertyId, properties.id))
+      .where(eq(roomQrCodes.id, qrCodeId))
+      .limit(1);
+
+    if (!row) throw new Error('QR code not found');
+    if (!row.rqc.isActive) throw new Error('QR code is not active');
+
+    return {
+      qrCode: row.rqc,
+      scannedAt: scanData.scannedAt ?? new Date(),
+      property: { id: row.propertyId, name: row.propertyName },
+      room: row.roomId
+        ? { id: row.roomId, room_number: row.roomNumber, room_type: row.roomType }
+        : null,
+    };
+  }
+}

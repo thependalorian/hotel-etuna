@@ -1,0 +1,38 @@
+name: Verify Cron Jobs
+
+on:
+  schedule:
+    # Run daily at 8 AM UTC (before production cron at 9 AM)
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+
+jobs:
+  verify-cron:
+    name: Verify Email Inbox Monitor Cron
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify Cron Configuration
+        run: |
+          echo "📋 Checking Vercel cron configuration..."
+          if [ -f vercel.json ]; then
+            cat vercel.json | grep -A 3 "crons" || echo "⚠️ No crons found in vercel.json"
+          else
+            echo "❌ vercel.json not found"
+            exit 1
+          fi
+          echo "✅ Cron configuration verified"
+
+      - name: Check Cron Endpoint
+        run: |
+          echo "🔍 Verifying cron endpoint exists..."
+          if [ -f "app/api/cron/email-inbox-monitor/route.ts" ]; then
+            echo "✅ Email inbox monitor endpoint found"
+          else
+            echo "❌ Email inbox monitor endpoint not found"
+            exit 1
+          fi

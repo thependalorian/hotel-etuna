@@ -1,0 +1,296 @@
+@import "tailwindcss";
+@config "../tailwind.config.ts";
+
+/**
+ * Buffr Host — global styles (Design System v1.0.0)
+ * Design tokens: ../tailwind.config.ts (single source of truth).
+ */
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --radius-card: 1rem;
+  }
+
+  * {
+    @apply border-nude-200;
+  }
+
+  /* Prevent horizontal overflow on mobile */
+  body {
+    @apply overflow-x-hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display text-nude-900 tracking-tight;
+  }
+
+  ::selection {
+    @apply bg-nude-200 text-nude-900;
+  }
+
+  :focus-visible {
+    @apply outline outline-2 outline-offset-2 outline-nude-500;
+  }
+}
+
+@layer components {
+  /* WCAG 2.1 AA Touch Target (44x44px minimum on mobile) */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* For inline links, ensure padding provides 44px hit area */
+  .touch-target-link {
+    @apply inline-flex items-center justify-center min-h-[44px] py-2 px-3;
+  }
+
+  .dashboard-surface {
+    @apply rounded-2xl border border-nude-200 bg-surface-elevated/95 shadow-nude-medium;
+  }
+
+  .dashboard-card {
+    @apply rounded-2xl border border-nude-200 bg-surface-card shadow-nude-medium transition-all duration-normal;
+  }
+
+  .dashboard-card-hover {
+    @apply transition-all duration-normal;
+  }
+
+  .dashboard-card-hover:hover {
+    @apply -translate-y-0.5 border-nude-300 shadow-card-hover;
+  }
+
+  .btn {
+    @apply min-h-touch-mobile lg:min-h-touch-desktop rounded-full font-bold tracking-tight transition-all duration-normal;
+  }
+
+  .btn:hover:not(:disabled) {
+    @apply -translate-y-px;
+  }
+
+  .btn:active:not(:disabled) {
+    @apply translate-y-0 scale-[0.99];
+  }
+
+  .btn:focus-visible,
+  .input:focus,
+  .select:focus,
+  .textarea:focus {
+    @apply ring-2 ring-nude-500 ring-offset-2 ring-offset-surface-background;
+  }
+
+  .gentle-lift {
+    @apply transition-all duration-normal;
+  }
+
+  .gentle-lift:hover {
+    @apply -translate-y-px;
+  }
+
+  .card-hover,
+  .card-interactive {
+    @apply transition-all duration-normal;
+  }
+
+  .card-hover:hover,
+  .card-interactive:hover {
+    @apply -translate-y-0.5 shadow-card-hover;
+  }
+
+  .ops-pill {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-nude-200 bg-surface-elevated/80 px-2.5 py-1.5 text-xs font-bold text-nude-700;
+  }
+
+  @keyframes buffr-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .buffr-dashboard-main {
+    flex: 1 1 0%;
+    overflow-y: auto;
+    padding: 1.25rem 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .buffr-dashboard-main {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .buffr-dashboard-main {
+      padding: 2rem;
+    }
+  }
+
+  .buffr-dashboard-inner {
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    max-width: 80rem;
+    animation: buffr-fade-in 200ms ease-out;
+  }
+
+  .buffr-page-stack {
+    @apply flex flex-col gap-6 md:gap-8;
+  }
+
+  .buffr-page-title {
+    @apply font-display text-3xl font-bold leading-tight tracking-tight text-nude-900 md:text-4xl;
+  }
+
+  .buffr-page-title.buffr-page-title--emphasis {
+    @apply font-black;
+  }
+
+  .buffr-page-title--hero {
+    @apply font-display text-4xl font-bold leading-tight tracking-tight text-nude-900 md:text-5xl;
+  }
+
+  .buffr-page-title.buffr-page-title--fluid {
+    @apply text-2xl sm:text-3xl md:text-4xl;
+  }
+
+  .buffr-page-title--compact {
+    @apply font-display text-xl font-bold leading-tight tracking-tight text-nude-900 md:text-2xl;
+  }
+
+  .buffr-heading-display {
+    @apply font-display text-2xl font-bold leading-tight tracking-tight text-nude-900 md:text-3xl;
+  }
+
+  .buffr-page-desc {
+    @apply max-w-2xl text-base leading-relaxed text-nude-700;
+  }
+
+  .buffr-eyebrow {
+    @apply text-xs font-bold uppercase tracking-widest text-nude-500;
+  }
+
+  .buffr-link {
+    @apply font-semibold text-nude-700 underline-offset-4 transition-colors duration-fast hover:text-nude-900 hover:underline;
+  }
+
+  .buffr-panel {
+    @apply rounded-2xl border border-nude-200 bg-nude-50 shadow-nude-medium;
+  }
+
+  .buffr-panel-hover {
+    @apply transition-all duration-normal;
+  }
+
+  .buffr-panel-hover:hover {
+    @apply -translate-y-px border-nude-300 shadow-card-hover;
+  }
+
+  .buffr-legal-content {
+    @apply max-w-none text-nude-800;
+  }
+
+  .buffr-legal-content h1 {
+    @apply mb-8 font-display text-4xl font-bold tracking-tight text-nude-900;
+  }
+
+  .buffr-legal-content h2 {
+    @apply mb-4 mt-10 text-2xl font-semibold text-nude-900;
+  }
+
+  .buffr-legal-content h3 {
+    @apply mb-3 mt-6 text-lg font-semibold text-nude-900;
+  }
+
+  .buffr-legal-content p {
+    @apply mb-4 leading-relaxed;
+  }
+
+  .buffr-legal-content ul {
+    @apply mb-4 ml-6 list-disc;
+  }
+
+  .buffr-legal-content ul > li + li {
+    @apply mt-2;
+  }
+
+  .buffr-legal-content ol {
+    @apply mb-4 ml-6 list-decimal;
+  }
+
+  .buffr-legal-content ol > li + li {
+    @apply mt-2;
+  }
+
+  .buffr-legal-content li {
+    @apply leading-relaxed;
+  }
+
+  .buffr-legal-content a {
+    @apply font-semibold text-nude-700 underline-offset-2 hover:text-nude-900 hover:underline;
+  }
+
+  .buffr-legal-content img {
+    @apply my-4 h-auto max-w-full rounded-xl;
+  }
+
+  .buffr-legal-meta {
+    @apply mb-8 text-sm text-nude-600;
+  }
+
+  .buffr-section-y {
+    @apply py-12 md:py-16 lg:py-20;
+  }
+
+  .buffr-container-marketing {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .buffr-hero-band {
+    @apply relative overflow-hidden rounded-2xl border border-nude-200 bg-gradient-to-br from-surface-elevated via-nude-50 to-nude-100 shadow-nude-soft;
+  }
+
+  .buffr-card-nude {
+    @apply rounded-2xl border border-nude-200 bg-surface-elevated/95 p-6 shadow-nude-soft md:p-8;
+  }
+
+  @keyframes buffr-shine {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .buffr-shine-edge {
+    background: linear-gradient(
+      110deg,
+      transparent 0%,
+      rgb(255 255 255 / 0.35) 45%,
+      transparent 90%
+    );
+    background-size: 200% 100%;
+    animation: buffr-shine 2.5s ease-in-out infinite;
+  }
+}
+
+@layer utilities {
+  @media (prefers-reduced-motion: reduce) {
+    .buffr-shine-edge,
+    .animate-bento-float,
+    .animate-shimmer,
+    .animate-ai-pulse {
+      animation: none !important;
+    }
+  }
+}

@@ -1,0 +1,31 @@
+Here are the tables in the Buffr Connect Supabase project (buffrconnect, public schema):
+Table	RLS	Rows	Purpose
+accounts	✅	0	User bank/e-money accounts (provider, consent, external_account_id, type, status)
+agent_enrollments	❌	0	Agent-assisted enrollments (agent_id, customer_phone, customer_id_number, provider, status)
+aml_alerts	❌	0	AML/CFT alerts (user, api_key, severity, status, SAR filing)
+api_keys	✅	0	Developer API keys (user, key_hash, scopes, rate limits, status)
+audit_logs	❌	0	API/data access audit (user, action, resource, IP, status_code)
+balances	✅	0	Account balances (account_id, available, current, currency, as_of)
+categories	❌	8	Transaction categories (name, parent, icon, color, transaction_rules)
+complaints	❌	0	User complaints (subject, status, priority, escalation to BoN, SLA)
+consents	✅	0	AIS consents (user, provider, scopes, status, tokens, receipt_signature)
+instant_payments	✅	0	IP events (user, account, amount, direction, proxy, status, webhook_delivered)
+incidents	❌	0	Security/ops incidents (severity, status, BoN notification)
+oauth_authorization_codes	❌	0	OAuth auth codes (code, user, client_id, consent_id, provider)
+oauth_par_requests	❌	0	PAR requests (request_uri, client_id, code_challenge, provider)
+offline_queue	❌	0	Store-and-forward for offline actions (user, action_type, payload, status, synced_at)
+offline_tokens	❌	0	Offline consent tokens (token_code, user, consent_id, signature, qr_code_data)
+payment_proxies	❌	0	Phone/ID/email proxies (user, proxy_type, proxy_value, primary_account_id)
+providers	✅	7	Banks/e-money providers (name, type, OAuth URLs, mTLS, supported_scopes)
+sms_deliveries	❌	0	SMS send log (recipient, message, provider, status, cost, fallback_used)
+transactions	✅	0	Account transactions (account_id, amount, type, date, merchant, category)
+users	✅	0	Users (email, phone, national_id, role, KYC, MFA, ussd_pin_hash)
+ussd_otps	✅	0	USSD OTPs (user_id, otp_hash, phone, purpose, expires_at)
+ussd_sessions	✅	0	USSD session state (session_id, phone_number, state, data, expires_at)
+webhooks	✅	0	Developer webhooks (user, url, event_types, secret, status)
+webhook_deliveries	❌	0	Webhook delivery log (webhook_id, payload, response_status, delivered)
+Summary
+24 tables in public.
+RLS enabled on: accounts, balances, consents, instant_payments, api_keys, providers, transactions, users, ussd_otps, ussd_sessions, webhooks.
+Data present: providers (7), categories (8); all others 0 rows.
+Covers: AIS (users, accounts, consents, transactions, balances), OAuth/PAR, USSD (sessions, OTPs), offline (tokens, queue), agent enrollments, payment proxies, instant payments, complaints, AML, audit, webhooks, SMS deliveries, incidents.
