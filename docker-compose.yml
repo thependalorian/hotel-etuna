@@ -1,0 +1,79 @@
+# buffr-host — local infrastructure (microservice-oriented boundaries).
+#
+# Default: Redis + Qdrant on Docker networks `buffr_edge` / `buffr_data`.
+# Legacy standalone Postgres: docker compose --profile legacy-pg up -d
+# Host port 55432 avoids clashing with other Postgres on 5432 (Fineract, local pg, etc.).
+#
+# Full Supabase (Studio, Auth, Realtime, Storage): run `npm run supabase:start`
+# in this directory — uses DB on host port 54322 by default (see DEPLOYMENT.md).
+#
+# Usage:
+#   docker compose up -d
+#   REDIS_URL=redis://localhost:6379
+#   QDRANT_URL=http://localhost:6333
+
+name: buffr-host
+
+networks:
+  buffr_edge:
+    driver: bridge
+  buffr_data:
+    driver: bridge
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: buffr-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - buffr_redis:/data
+    networks:
+      - buffr_edge
+      - buffr_data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: buffr-qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - buffr_qdrant:/qdrant/storage
+    networks:
+      - buffr_data
+
+  postgres:
+    profiles:
+      - legacy-pg
+    image: postgres:16-alpine
+    container_name: buffr-postgres
+    restart: unless-stopped
+    ports:
+      - "55432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: buffr
+    volumes:
+      - buffr_pgdata:/var/lib/postgresql/data
+    networks:
+      - buffr_data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d buffr"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  buffr_redis:
+  buffr_qdrant:
+  buffr_pgdata:

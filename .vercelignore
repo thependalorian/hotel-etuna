@@ -1,0 +1,21 @@
+# Dependencies and build output (Vercel runs install + build)
+node_modules
+.next
+out
+build
+.turbo
+
+# Env and secrets
+.env
+.env.*
+!.env.example
+
+# Dev and cache
+*.tsbuildinfo
+.next/cache
+coverage
+.vercel
+
+# Git
+.git
+.gitignore

@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1777320451551,
+      "tag": "0000_equal_lifeguard",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1777322914130,
+      "tag": "0001_broad_firebird",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777323801296,
+      "tag": "0002_daffy_silver_surfer",
+      "breakpoints": true
+    }
+  ]
+}

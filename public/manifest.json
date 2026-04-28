@@ -1,0 +1,23 @@
+{
+  "name": "Hotel Etuna",
+  "short_name": "Etuna",
+  "description": "Hotel Etuna in Ongwediva, Namibia",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#b8955a",
+  "background_color": "#fef7f0",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icons/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
