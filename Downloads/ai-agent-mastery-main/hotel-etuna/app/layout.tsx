@@ -6,6 +6,8 @@ import { SessionProviderWrapper } from "@/components/providers/SessionProviderWr
 import { AuthGateProvider } from "@/components/providers/AuthGateProvider";
 import { RootErrorBoundary } from "@/components/RootErrorBoundary";
 import { PostHogProvider } from "@/components/providers/PostHogProvider";
+import OfflineBanner from "@/components/providers/OfflineBanner";
+import ServiceWorkerRegistration from "@/components/providers/ServiceWorkerRegistration";
 import { Toaster } from "@/components/ui";
 import { Suspense } from "react";
 
@@ -72,6 +74,7 @@ export const metadata: Metadata = {
   verification: {
     // Add verification codes when available
   },
+  manifest: '/manifest.json',
 };
 
 export const viewport: Viewport = {
@@ -79,6 +82,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
+  themeColor: '#b8955a',
 };
 
 export default function RootLayout({
@@ -91,6 +95,8 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${playfairDisplay.variable} ${jetbrainsMono.variable} ${dancingScript.variable} min-h-screen bg-surface-background text-surface-foreground font-sans antialiased`}
       >
+        <ServiceWorkerRegistration />
+        <OfflineBanner />
         <Suspense fallback={null}>
           <PostHogProvider>
             <StackProviderWrapper>
