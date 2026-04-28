@@ -16,6 +16,7 @@ import { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { and, asc, desc, eq, inArray } from 'drizzle-orm';
+import { getServerSession } from 'next-auth';
 import {
   db,
   cmsMenuItems,
@@ -28,11 +29,14 @@ import {
   rooms,
   tenants,
 } from '@/lib/db';
+import { authOptions } from '@/lib/auth/config';
+import { resolvePublicHubProperty } from '@/lib/utils/public-property';
 import NavigationHeader from '@/components/sections/landing/NavigationHeader';
 import { LandingBookingWidget } from '@/components/sections/landing/LandingBookingWidget';
 import { Button } from '@/components/ui/Button';
 import { slugify } from '@/lib/utils/slugify';
-import { Calendar, Check, Compass, Mail, MapPin, Phone, Sparkles, Star, Utensils } from 'lucide-react';
+import Footer from '@/components/shared/Footer';
+import { Calendar, Check, Compass, MapPin, Sparkles, Star, Utensils } from 'lucide-react';
 
 export const revalidate = 300;
 
@@ -54,31 +58,12 @@ function formatCurrency(amount: number | null, currency: string): string {
   return `From ${currency} ${amount.toLocaleString()}/night`;
 }
 
-function formatTime(value: string | null | undefined): string {
-  if (!value) return 'N/A';
-  const [hour, minute] = value.split(':');
-  if (!hour || !minute) return value;
-  return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
-}
-
 export default async function LandingPage() {
-  const hubTenantId = process.env.HUB_TENANT_ID?.trim();
-  const propertyId = process.env.DEFAULT_PROPERTY_ID?.trim();
-  if (!hubTenantId || !propertyId) {
-    throw new Error('Missing HUB_TENANT_ID or DEFAULT_PROPERTY_ID');
-  }
-
-  const [hubTenant] = await db
-    .select({ id: tenants.id, name: tenants.name })
-    .from(tenants)
-    .where(eq(tenants.id, hubTenantId))
-    .limit(1);
-
-  const [hubProperty] = await db
-    .select()
-    .from(properties)
-    .where(eq(properties.id, propertyId))
-    .limit(1);
+  const session = await getServerSession(authOptions);
+  const isAuthenticated = Boolean(session?.user);
+  const { hubTenant, property: hubProperty } = await resolvePublicHubProperty();
+  const hubTenantId = hubTenant.id;
+  const propertyId = hubProperty.id;
 
   const roomRows = await db
     .select({
@@ -203,7 +188,7 @@ export default async function LandingPage() {
               Welcome to {hubTenant?.name ?? 'Hotel Etuna'} - your home in the heart of Ongwediva
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="xl" className="bg-khaki-600 hover:bg-khaki-700">
+              <Button asChild size="xl" className="bg-khaki-600 hover:bg-rustic">
                 <Link href="#booking">
                   <Calendar className="w-5 h-5" />
                   Book Your Stay
@@ -254,7 +239,11 @@ export default async function LandingPage() {
                     </div>
                     <div className="p-6">
                       <h3 className="font-display text-2xl font-bold text-terracotta-900 mb-2">{room.roomType}</h3>
-                      <p className="text-khaki-600 font-semibold mb-1">{formatCurrency(amount, currency)}</p>
+                      {isAuthenticated ? (
+                        <p className="text-khaki-600 font-semibold mb-1">{formatCurrency(amount, currency)}</p>
+                      ) : (
+                        <p className="text-khaki-600 font-semibold mb-1">Sign in to view prices</p>
+                      )}
                       <p className="text-sm text-terracotta-800 mb-4">Up to {room.maxOccupancy ?? 2} guests</p>
                       <ul className="space-y-2 mb-4">
                         {(room.amenities ?? []).slice(0, 5).map((amenity) => (
@@ -265,7 +254,7 @@ export default async function LandingPage() {
                         ))}
                       </ul>
                       <div className="text-khaki-600 font-semibold group-hover:text-khaki-700 flex items-center gap-2">
-                        View Details
+                        {isAuthenticated ? 'View Details' : 'Sign up to see prices'}
                         <span className="group-hover:translate-x-1 transition-transform">→</span>
                       </div>
                     </div>
@@ -294,14 +283,17 @@ export default async function LandingPage() {
                         {(menuByCategory.get(category.id) ?? []).slice(0, 2).map((item) => {
                           const price = Number(item.price);
                           const label = Number.isNaN(price) ? 'Price on request' : `${item.currency ?? 'NAD'} ${price.toLocaleString()}`;
-                          return `${item.name} (${label})`;
+                          return isAuthenticated ? `${item.name} (${label})` : item.name;
                         }).join(' • ') || 'No items yet'}
                       </div>
                     </li>
                   ))}
                 </ul>
                 <Button asChild size="lg">
-                  <Link href="/dining"><Utensils className="w-5 h-5" />View Full Menu</Link>
+                  <Link href={isAuthenticated ? '/dining' : '/login?redirect=/dining'}>
+                    <Utensils className="w-5 h-5" />
+                    {isAuthenticated ? 'View Full Menu' : 'Sign in to order online'}
+                  </Link>
                 </Button>
               </div>
               <div className="relative h-[400px] rounded-2xl overflow-hidden shadow-card">
@@ -360,7 +352,9 @@ export default async function LandingPage() {
                           <Star key={`${review.id}-${index}`} className="w-5 h-5 fill-khaki-600 text-khaki-600" />
                         ))}
                       </div>
-                      <p className="text-terracotta-800 mb-4 italic">"{review.reviewText ?? 'Guest left a rating without a text comment.'}"</p>
+                      <p className="text-terracotta-800 mb-4 italic border-l-4 border-rustic pl-3">
+                        "{review.reviewText ?? 'Guest left a rating without a text comment.'}"
+                      </p>
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-khaki-600 rounded-full flex items-center justify-center text-white font-bold">{name[0]}</div>
                         <div>
@@ -411,54 +405,8 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        <footer className="bg-terracotta-900 text-white py-12">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-10 h-10 bg-khaki-600 rounded-full flex items-center justify-center font-display font-bold">HE</div>
-                  <span className="font-display text-xl font-bold">{hubTenant?.name ?? 'Hotel Etuna'}</span>
-                </div>
-                <p className="text-white/80 text-sm mb-4">He takes care of us - authentic Namibian hospitality in Ongwediva</p>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-4">Quick Links</h4>
-                <ul className="space-y-2 text-sm">
-                  <li><Link href="/rooms" className="text-white/80 hover:text-khaki-600 transition-colors">Rooms</Link></li>
-                  <li><Link href="/dining" className="text-white/80 hover:text-khaki-600 transition-colors">Dining</Link></li>
-                  <li><Link href="/tours" className="text-white/80 hover:text-khaki-600 transition-colors">Tours</Link></li>
-                  <li><Link href="/about" className="text-white/80 hover:text-khaki-600 transition-colors">About Us</Link></li>
-                  <li><Link href="/contact" className="text-white/80 hover:text-khaki-600 transition-colors">Contact</Link></li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-4">Contact Us</h4>
-                <ul className="space-y-3 text-sm">
-                  <li className="flex items-start gap-2"><MapPin className="w-4 h-4 mt-0.5 shrink-0" /><span className="text-white/80">{hubProperty?.address ?? 'Ongwediva, Namibia'}</span></li>
-                  <li className="flex items-center gap-2"><Phone className="w-4 h-4 shrink-0" /><span className="text-white/80">{restaurant?.contactPhone ?? 'Contact reception for latest number'}</span></li>
-                  <li className="flex items-center gap-2"><Mail className="w-4 h-4 shrink-0" /><a href={`mailto:${restaurant?.contactEmail ?? 'info@hoteletuna.com'}`} className="text-white/80 hover:text-khaki-600 transition-colors">{restaurant?.contactEmail ?? 'info@hoteletuna.com'}</a></li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-4">Hours</h4>
-                <ul className="space-y-2 text-sm text-white/80">
-                  <li>Check-in: {formatTime(hubProperty?.checkInTime)}</li>
-                  <li>Check-out: {formatTime(hubProperty?.checkOutTime)}</li>
-                  <li>Reception: 24/7</li>
-                  <li>Restaurant: {openingHours.breakfast ?? '06:30'} - {openingHours.dinner ?? '22:00'}</li>
-                </ul>
-              </div>
-            </div>
-            <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-white/60">
-              <p>© {new Date().getFullYear()} Hotel Etuna. All rights reserved.</p>
-              <div className="flex gap-6">
-                <Link href="/legal/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
-                <Link href="/legal/terms" className="hover:text-white transition-colors">Terms of Service</Link>
-              </div>
-            </div>
-          </div>
-        </footer>
       </main>
+      <Footer />
     </div>
   );
 }

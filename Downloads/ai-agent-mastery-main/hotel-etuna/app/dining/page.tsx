@@ -10,54 +10,63 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { Utensils, Coffee, Clock, Leaf } from 'lucide-react';
+import { getServerSession } from 'next-auth';
+import { asc, eq, inArray } from 'drizzle-orm';
+import { db, cmsMenuItems, menuCategories, restaurants } from '@/lib/db';
+import { authOptions } from '@/lib/auth/config';
+import { resolvePublicHubProperty } from '@/lib/utils/public-property';
+import PublicHero from '@/components/shared/PublicHero';
+import Footer from '@/components/shared/Footer';
 
 export const metadata: Metadata = {
   title: 'Dining & Restaurant',
   description: 'Experience authentic Namibian cuisine at Hotel Etuna. Buffet breakfast, traditional specialties, and international favorites.',
 };
 
-export default function DiningPage() {
-  const menuCategories = [
-    {
-      name: 'Breakfast Buffet',
-      time: '6:00 AM - 10:00 AM',
-      icon: Coffee,
-      items: [
-        'Fresh Tropical Fruits',
-        'Pastries & Breads',
-        'Hot Namibian Dishes',
-        'Eggs to Order',
-        'Cereals & Yogurt',
-        'Fresh Juices & Coffee',
-      ],
-    },
-    {
-      name: 'Traditional Namibian',
-      time: 'All Day',
-      icon: Utensils,
-      items: [
-        'Potjiekos (Slow-cooked Stew)',
-        'Boerewors (Traditional Sausage)',
-        'Biltong Platter',
-        'Kapana (Grilled Meat)',
-        'Oshiwambo Cuisine',
-        'Grilled Game Meats',
-      ],
-    },
-    {
-      name: 'International Favorites',
-      time: '11:00 AM - 9:00 PM',
-      icon: Utensils,
-      items: [
-        'Grilled Steaks',
-        'Fresh Seafood',
-        'Pasta Dishes',
-        'Gourmet Burgers',
-        'Chef Salads',
-        'Vegetarian Options',
-      ],
-    },
-  ];
+export default async function DiningPage() {
+  const session = await getServerSession(authOptions);
+  const isAuthenticated = Boolean(session?.user);
+  const { property } = await resolvePublicHubProperty();
+  const propertyId = property.id;
+
+  const [restaurant] = await db
+    .select()
+    .from(restaurants)
+    .where(eq(restaurants.propertyId, propertyId))
+    .limit(1);
+
+  const categoryRows = restaurant
+    ? await db
+        .select({
+          id: menuCategories.id,
+          name: menuCategories.name,
+        })
+        .from(menuCategories)
+        .where(eq(menuCategories.restaurantId, restaurant.id))
+        .orderBy(asc(menuCategories.displayOrder), asc(menuCategories.name))
+    : [];
+
+  const categoryIds = categoryRows.map((category) => category.id);
+  const itemRows = categoryIds.length
+    ? await db
+        .select({
+          id: cmsMenuItems.id,
+          categoryId: cmsMenuItems.categoryId,
+          name: cmsMenuItems.name,
+          price: cmsMenuItems.price,
+          currency: cmsMenuItems.currency,
+        })
+        .from(cmsMenuItems)
+        .where(inArray(cmsMenuItems.categoryId, categoryIds))
+        .orderBy(asc(cmsMenuItems.displayOrder), asc(cmsMenuItems.name))
+    : [];
+
+  const itemsByCategory = new Map<string, typeof itemRows>();
+  for (const item of itemRows) {
+    const key = item.categoryId ?? '';
+    if (!itemsByCategory.has(key)) itemsByCategory.set(key, []);
+    itemsByCategory.get(key)?.push(item);
+  }
 
   return (
     <div className="min-h-screen bg-surface-background">
@@ -80,36 +89,23 @@ export default function DiningPage() {
       </header>
 
       <main>
-        {/* Hero */}
-        <section className="relative h-[500px] flex items-center overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-terracotta-900/60 to-terracotta-900/40 z-10" />
-          <div 
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: "url('/images/hospitality/restaurant_dining.jpeg')" }}
-          />
-          
-          <div className="relative z-20 container mx-auto px-4 text-white">
-            <h1 className="font-display text-5xl md:text-6xl font-bold mb-6">
-              A Taste of Namibia
-            </h1>
-            <p className="text-xl md:text-2xl max-w-2xl opacity-95">
-              Authentic flavors and warm hospitality in every dish
-            </p>
-          </div>
-        </section>
+        <PublicHero
+          title="A Taste of Namibia"
+          subtitle="Authentic flavors and warm hospitality in every dish."
+          backgroundImage="/images/hospitality/restaurant_dining.jpeg"
+          breadcrumbLabel="Dining"
+        />
 
         {/* Restaurant Overview */}
         <section className="py-16 bg-white">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto text-center">
               <h2 className="font-display text-4xl font-bold text-terracotta-900 mb-6">
-                Our Restaurant
+                {restaurant?.name ?? 'Our Restaurant'}
               </h2>
               <p className="text-lg text-terracotta-800 leading-relaxed mb-8">
-                At Hotel Etuna, dining is more than just a meal—it's an experience that celebrates Namibian 
-                culture and hospitality. Our on-site restaurant serves a carefully curated menu featuring 
-                traditional Namibian specialties alongside international favorites, all prepared with fresh, 
-                locally-sourced ingredients.
+                {restaurant?.description ??
+                  "At Hotel Etuna, dining is more than just a meal-it's an experience that celebrates Namibian culture and hospitality."}
               </p>
               <div className="grid md:grid-cols-3 gap-6 mt-12">
                 <div className="bg-nude-50 rounded-xl p-6">
@@ -153,10 +149,14 @@ export default function DiningPage() {
               </h2>
               
               <div className="grid md:grid-cols-3 gap-8">
-                {menuCategories.map((category) => (
-                  <div key={category.name} className="bg-white rounded-2xl p-8 shadow-card">
+                {categoryRows.map((category) => (
+                  <div key={category.id} className="bg-white rounded-2xl p-8 shadow-card">
                     <div className="w-16 h-16 bg-khaki-600 rounded-full flex items-center justify-center mb-4">
-                      <category.icon className="w-8 h-8 text-white" />
+                      {category.name.toLowerCase().includes('breakfast') ? (
+                        <Coffee className="w-8 h-8 text-white" />
+                      ) : (
+                        <Utensils className="w-8 h-8 text-white" />
+                      )}
                     </div>
                     
                     <h3 className="font-display text-2xl font-bold text-terracotta-900 mb-2">
@@ -165,14 +165,16 @@ export default function DiningPage() {
                     
                     <div className="flex items-center gap-2 text-sm text-khaki-600 font-semibold mb-6">
                       <Clock className="w-4 h-4" />
-                      {category.time}
+                      {category.name.toLowerCase().includes('breakfast') ? 'Breakfast service' : 'All day'}
                     </div>
 
                     <ul className="space-y-3">
-                      {category.items.map((item) => (
-                        <li key={item} className="flex items-start gap-2 text-terracotta-800">
+                      {(itemsByCategory.get(category.id) ?? []).slice(0, 6).map((item) => (
+                        <li key={item.id} className="flex items-start gap-2 text-terracotta-800">
                           <span className="text-sage mt-1">•</span>
-                          {item}
+                          {isAuthenticated
+                            ? `${item.name} (${item.currency ?? 'NAD'} ${Number(item.price).toLocaleString()})`
+                            : item.name}
                         </li>
                       ))}
                     </ul>
@@ -222,7 +224,7 @@ export default function DiningPage() {
                   </div>
                 </div>
               </div>
-              <div className="aspect-[4/3] relative rounded-2xl overflow-hidden shadow-card">
+              <div className="aspect-4/3 relative rounded-2xl overflow-hidden shadow-card">
                 <Image
                   src="/images/hospitality/restaurant_dining.jpeg"
                   alt="Dining Experience at Hotel Etuna"
@@ -235,7 +237,7 @@ export default function DiningPage() {
         </section>
 
         {/* Hours & Reservations */}
-        <section className="py-16 bg-gradient-to-br from-khaki-600 to-terracotta-800 text-white">
+        <section className="py-16 bg-linear-to-br from-khaki-600 to-terracotta-800 text-white">
           <div className="container mx-auto px-4 text-center">
             <h2 className="font-display text-4xl font-bold mb-6">
               Operating Hours
@@ -257,12 +259,15 @@ export default function DiningPage() {
             <p className="text-white/90 mb-8">
               Reservations recommended for dinner, especially on weekends
             </p>
-            <Button asChild size="xl" className="bg-white text-terracotta-900 hover:bg-nude-100">
-              <Link href="/contact">Make a Reservation</Link>
+            <Button asChild size="xl" className="bg-white text-terracotta-900 hover:bg-rustic hover:text-white">
+              <Link href={isAuthenticated ? '/contact' : '/login?redirect=/dining'}>
+                {isAuthenticated ? 'Make a Reservation' : 'Sign in to order online'}
+              </Link>
             </Button>
           </div>
         </section>
       </main>
+      <Footer />
     </div>
   );
 }
