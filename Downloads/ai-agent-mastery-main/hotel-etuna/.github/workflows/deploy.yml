@@ -45,4 +45,4 @@ jobs:
       - name: Deployment Status
         run: |
           echo "✅ Deployment completed successfully"
-          echo "Production URL: https://buffr-host.vercel.app"
+          echo "Production URL: https://hotel-etuna.vercel.app"

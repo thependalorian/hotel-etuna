@@ -11,52 +11,48 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('Navigation', () => {
-  test('should have working navigation links on homepage', async ({ page }) => {
-    await page.goto('/');
-    
-    // Find all navigation links
-    const navLinks = page.locator('nav a, [role="navigation"] a');
-    const linkCount = await navLinks.count();
-    
-    // Should have at least some navigation links
-    expect(linkCount).toBeGreaterThan(0);
-    
-    // Check first link is clickable
-    if (linkCount > 0) {
-      const firstLink = navLinks.first();
-      await expect(firstLink).toBeVisible();
-      
-      const href = await firstLink.getAttribute('href');
-      expect(href).toBeTruthy();
+  const assertRouteLoads = async (page: any, route: string) => {
+    let response;
+    try {
+      response = await page.goto(route, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+    } catch {
+      response = await page.goto(route, { waitUntil: 'load', timeout: 45_000 });
+    }
+    expect(response?.status()).toBeLessThan(400);
+    await expect(page.locator('body')).toBeVisible();
+  };
+
+  test('public routes should load without 404', async ({ page }) => {
+    test.setTimeout(120_000);
+    const routes = [
+      '/rooms',
+      '/rooms/standard-room',
+      '/rooms/luxury-room',
+      '/rooms/family-room',
+      '/rooms/executive-suite',
+      '/rooms/premier-room',
+      '/dining',
+      '/tours',
+      '/about',
+      '/contact',
+      '/partners',
+      '/partners/jayla',
+      '/partners/aquarius',
+      '/login',
+      '/legal/privacy',
+      '/legal/terms',
+    ];
+
+    for (const route of routes) {
+      await assertRouteLoads(page, route);
     }
   });
 
-  test('should navigate to login page', async ({ page }) => {
-    await page.goto('/login');
-    await expect(page).toHaveURL(/\/login$/);
-    await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible();
-  });
-
-  test('verify-email and forgot-password pages render', async ({ page }) => {
-    await page.goto('/verify-email?email=test%40example.com');
-    await expect(page.getByRole('heading', { name: /verify your email/i })).toBeVisible();
-
-    await page.goto('/forgot-password');
-    await expect(page).toHaveURL(/\/forgot-password/);
-  });
-
-  test('landing CTA navigates to register', async ({ page }) => {
-    await page.goto('/');
-    await page.locator('a[href="/register"]').first().click();
-    await expect(page).toHaveURL(/\/register$/);
-  });
-
-  test('unknown route shows not-found content', async ({ page }) => {
-    const response = await page.goto('/this-route-does-not-exist-12345');
-    const status = response?.status() ?? 0;
+  test('unknown route should return not-found page', async ({ page }) => {
+    const response = await page.goto('/nonexistent');
     const html = (await page.content()).toLowerCase();
 
-    expect(status === 404 || html.includes('not found') || html.includes('could not be found')).toBe(
+    expect(response?.status() === 404 || html.includes('not found') || html.includes('could not be found')).toBe(
       true,
     );
   });
@@ -117,98 +113,11 @@ test.describe('Navigation', () => {
     expect(focusedElement.tagName).toBeTruthy();
   });
 
-  // ============================================================================
-  // COMPREHENSIVE TESTS - Added to achieve full coverage per audit
-  // ============================================================================
+  test('verify-email and forgot-password pages render', async ({ page }) => {
+    await page.goto('/verify-email?email=test%40example.com');
+    await expect(page.getByRole('heading', { name: /verify your email/i })).toBeVisible();
 
-  test('should have sidebar links that navigate correctly', async ({ page }) => {
-    // This test would require authentication, so we test structure instead
-    await page.goto('/');
-    
-    // Look for sidebar or navigation structure
-    const sidebar = page.locator('aside, [role="complementary"], nav.sidebar, [class*="sidebar"]').first();
-    const navLinks = page.locator('nav a, aside a, [role="navigation"] a');
-    
-    // If sidebar exists, check links
-    const sidebarExists = await sidebar.isVisible().catch(() => false);
-    const hasNavLinks = await navLinks.count() > 0;
-    
-    expect(sidebarExists || hasNavLinks).toBe(true);
-    
-    // Verify links have proper hrefs
-    if (hasNavLinks) {
-      const firstLink = navLinks.first();
-      const href = await firstLink.getAttribute('href');
-      expect(href).toBeTruthy();
-      expect(href).toMatch(/^\/|^http/); // Should be a valid path or URL
-    }
-  });
-
-  test('should have mobile sidebar toggle that works', async ({ page }) => {
-    // Set mobile viewport
-    await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto('/');
-    await page.waitForLoadState('load');
-    
-    // Look for mobile sidebar toggle button
-    const toggleButton = page.locator(
-      'button[aria-label*="menu"], button[aria-label*="sidebar"], button[aria-label*="navigation"], button:has-text("menu"), [class*="sidebar-toggle"], [class*="menu-toggle"]'
-    ).first();
-    
-    // Check if toggle exists
-    const toggleExists = await toggleButton.isVisible().catch(() => false);
-    
-    if (toggleExists) {
-      // Click to open
-      await toggleButton.click();
-      await page.waitForTimeout(500);
-      
-      // Sidebar or menu should appear
-      const sidebar = page.locator('aside, [role="dialog"], [class*="sidebar"], [class*="menu"]');
-      const sidebarVisible = await sidebar.first().isVisible().catch(() => false);
-      
-      // Either sidebar visible or toggle is interactive
-      expect(sidebarVisible || toggleExists).toBe(true);
-    } else {
-      // If no toggle, navigation should still be accessible
-      const nav = page.locator('nav, [role="navigation"]');
-      await expect(nav.first()).toBeVisible();
-    }
-  });
-
-  test('should highlight active route in navigation', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('load');
-    
-    // Find navigation links
-    const navLinks = page.locator('nav a, [role="navigation"] a, aside a');
-    const linkCount = await navLinks.count();
-    
-    if (linkCount > 0) {
-      // Check if any link has active styling
-      for (let i = 0; i < Math.min(linkCount, 5); i++) {
-        const link = navLinks.nth(i);
-        const classes = await link.getAttribute('class') || '';
-        const ariaCurrentValue = await link.getAttribute('aria-current');
-        
-        // Check for active indicators
-        if (
-          classes.includes('active') ||
-          classes.includes('current') ||
-          ariaCurrentValue === 'page' ||
-          ariaCurrentValue === 'true'
-        ) {
-          // Found an active link
-          expect(true).toBe(true);
-          return;
-        }
-      }
-      
-      // If no active class found, that's okay - structure is testable
-      expect(true).toBe(true);
-    } else {
-      // No links found, but that might be okay for homepage
-      expect(true).toBe(true);
-    }
+    await page.goto('/forgot-password');
+    await expect(page).toHaveURL(/\/forgot-password/);
   });
 });

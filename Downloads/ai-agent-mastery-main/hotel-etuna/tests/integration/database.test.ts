@@ -18,6 +18,9 @@ import {
   properties,
   bookings,
   guests,
+  guestReviews,
+  rooms,
+  cmsMenuItems,
   aiConversations,
   aiMessages,
 } from '@/lib/db/schema';
@@ -518,5 +521,127 @@ describe('Database - Performance & Indexing', () => {
       .where(eq(guests.tenantId, tenant.id));
 
     expect(count.length).toBeGreaterThanOrEqual(100);
+  });
+});
+
+describe('Database - Hotel Etuna seed integrity', () => {
+  it('guests table should support CRUD operations', async () => {
+    const [tenant] = await db
+      .insert(tenants)
+      .values({ name: `Guest CRUD ${Date.now()}`, subdomain: `guest-crud-${Date.now()}` })
+      .returning();
+
+    const [createdGuest] = await db
+      .insert(guests)
+      .values({
+        tenantId: tenant.id,
+        email: `guest-crud-${Date.now()}@example.com`,
+        firstName: 'Guest',
+        lastName: 'Crud',
+      })
+      .returning();
+    expect(createdGuest.id).toBeTruthy();
+
+    const [readGuest] = await db.select().from(guests).where(eq(guests.id, createdGuest.id)).limit(1);
+    expect(readGuest?.email).toBe(createdGuest.email);
+
+    const [updatedGuest] = await db
+      .update(guests)
+      .set({ firstName: 'Updated' })
+      .where(eq(guests.id, createdGuest.id))
+      .returning();
+    expect(updatedGuest.firstName).toBe('Updated');
+
+    await db.delete(guests).where(eq(guests.id, createdGuest.id));
+    const [deleted] = await db.select().from(guests).where(eq(guests.id, createdGuest.id)).limit(1);
+    expect(deleted).toBeUndefined();
+  });
+
+  it('guest_reviews should have is_public column with enforced boolean default', async () => {
+    const [tenant] = await db
+      .insert(tenants)
+      .values({ name: `Reviews Tenant ${Date.now()}`, subdomain: `reviews-tenant-${Date.now()}` })
+      .returning();
+
+    const [guest] = await db
+      .insert(guests)
+      .values({
+        tenantId: tenant.id,
+        email: `review-guest-${Date.now()}@example.com`,
+        firstName: 'Review',
+        lastName: 'Guest',
+      })
+      .returning();
+
+    const [review] = await db
+      .insert(guestReviews)
+      .values({
+        tenantId: tenant.id,
+        guestId: guest.id,
+        rating: 5,
+        reviewText: 'Excellent stay',
+      })
+      .returning();
+
+    expect(typeof review.isPublic).toBe('boolean');
+
+    const defaultExpr = await db.execute(`
+      SELECT column_default
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name = 'guest_reviews'
+        AND column_name = 'is_public'
+    `);
+    expect(defaultExpr.rows.length).toBe(1);
+  });
+
+  it('hub property should have exactly 5 rooms', async () => {
+    const hubTenantId = process.env.HUB_TENANT_ID;
+    expect(hubTenantId).toBeTruthy();
+
+    const [hubProperty] = await db
+      .select({ id: properties.id })
+      .from(properties)
+      .where(and(eq(properties.tenantId, hubTenantId as string), eq(properties.slug, 'hotel-etuna')))
+      .limit(1);
+
+    expect(hubProperty?.id).toBeTruthy();
+
+    const hubRooms = await db.select({ id: rooms.id }).from(rooms).where(eq(rooms.propertyId, hubProperty!.id));
+    expect(hubRooms.length).toBe(5);
+  });
+
+  it('cms_menu_items should filter by is_available', async () => {
+    const rows = await db.select({ isAvailable: cmsMenuItems.isAvailable }).from(cmsMenuItems);
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.some((row) => row.isAvailable)).toBe(true);
+  });
+
+  it("partner tenants should be typed partner and linked to parent tenant", async () => {
+    const partnerRows = await db
+      .select({
+        id: tenants.id,
+        type: tenants.type,
+        parentTenantId: tenants.parentTenantId,
+      })
+      .from(tenants)
+      .where(eq(tenants.type, 'partner'));
+
+    expect(partnerRows.length).toBeGreaterThanOrEqual(2);
+    partnerRows.forEach((row) => {
+      expect(row.type).toBe('partner');
+      expect(row.parentTenantId).toBeTruthy();
+    });
+  });
+
+  it('should have RLS policies configured for tenant-sensitive tables', async () => {
+    const policies = await db.execute(`
+      SELECT tablename, policyname
+      FROM pg_policies
+      WHERE schemaname = 'public'
+        AND tablename IN ('guests', 'bookings', 'properties', 'rooms')
+    `);
+
+    expect(policies.rows.length).toBeGreaterThan(0);
   });
 });

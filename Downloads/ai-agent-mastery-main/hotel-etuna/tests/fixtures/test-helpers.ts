@@ -7,6 +7,7 @@
 import { db } from '@/lib/db';
 import { tenants, users, properties, guests } from '@/lib/db/schema';
 import { v4 as uuidv4 } from 'uuid';
+import { eq } from 'drizzle-orm';
 
 interface TestTenant {
   id: string;
@@ -115,9 +116,9 @@ export async function createTestContext() {
  */
 export async function cleanupTestTenant(tenantId: string) {
   // Delete in reverse order of dependencies
-  await db.delete(guests).where({ tenantId } as any);
-  await db.delete(properties).where({ tenantId } as any);
-  await db.delete(tenants).where({ id: tenantId } as any);
+  await db.delete(guests).where(eq(guests.tenantId, tenantId));
+  await db.delete(properties).where(eq(properties.tenantId, tenantId));
+  await db.delete(tenants).where(eq(tenants.id, tenantId));
 }
 
 /**

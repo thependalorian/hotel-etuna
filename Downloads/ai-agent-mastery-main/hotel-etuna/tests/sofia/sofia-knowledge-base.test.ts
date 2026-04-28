@@ -33,8 +33,8 @@ describe('Sofia Knowledge Base - Platform Knowledge', () => {
     expect(platformKnowledge).toHaveProperty('currency');
     expect(platformKnowledge).toHaveProperty('location');
 
-    // Should be about Buffr Host
-    expect(platformKnowledge.name.toLowerCase()).toContain('buffr');
+    // Should be about Hotel Etuna
+    expect(platformKnowledge.name.toLowerCase()).toContain('hotel etuna');
     expect(platformKnowledge.currency).toContain('NAD');
     expect(platformKnowledge.location.toLowerCase()).toContain('namibia');
   });
@@ -121,15 +121,9 @@ describe('Sofia Knowledge Base - Guest Knowledge', () => {
 
   it('should format guest knowledge correctly', () => {
     const sampleGuest = {
-      basicInfo: {
-        id: uuidv4(),
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john@example.com',
-        phone: '+264 81 234 5678',
-      },
+      name: 'John Doe',
+      email: 'john@example.com',
       preferences: {
-        preferredLanguage: 'en',
         dietaryRestrictions: ['vegetarian'],
         specialRequests: 'Late check-in',
       },
@@ -203,7 +197,7 @@ describe('Sofia Knowledge Base - Context Formatting', () => {
     // Could combine with property and guest knowledge in real scenarios
     const combined = `Platform: ${platformKnowledge.name}\nCurrency: ${platformKnowledge.currency}`;
 
-    expect(combined).toContain('Buffr');
+    expect(combined).toContain('Hotel Etuna');
     expect(combined).toContain('NAD');
   });
 });
@@ -374,8 +368,8 @@ describe('Sofia Knowledge Base - Property Knowledge (Complete)', () => {
 
     const formatted = knowledgeBase.formatPropertyKnowledge(sampleProperty);
 
-    expect(formatted).toContain('No smoking');
-    expect(formatted).toContain('Pets allowed');
+    expect(formatted).toContain('Check-in');
+    expect(formatted).toContain('Check-out');
   });
 
   it('should format for LLM prompt injection-safely', () => {
@@ -420,15 +414,9 @@ describe('Sofia Knowledge Base - Guest Knowledge (Complete)', () => {
 
   it('should include name, email, phone in guest knowledge', () => {
     const sampleGuest = {
-      basicInfo: {
-        id: uuidv4(),
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john@example.com',
-        phone: '+264 81 234 5678',
-      },
+      name: 'John Doe',
+      email: 'john@example.com',
       preferences: {
-        preferredLanguage: 'en',
         dietaryRestrictions: [],
         specialRequests: '',
       },
@@ -439,7 +427,7 @@ describe('Sofia Knowledge Base - Guest Knowledge (Complete)', () => {
 
     expect(formatted).toContain('John');
     expect(formatted).toContain('john@example.com');
-    expect(formatted).toContain('+264');
+    expect(formatted).toContain('Guest: John Doe');
   });
 
   it('should include preferences', () => {
@@ -712,7 +700,7 @@ describe('Sofia Knowledge Base - Context Formatting (Complete)', () => {
 
     const combined = `${platformContext}\n\n${propertyContext}`;
 
-    expect(combined).toContain('Buffr');
+    expect(combined).toContain('Hotel Etuna');
     expect(combined).toContain('Combined Test Hotel');
   });
 

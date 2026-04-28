@@ -95,4 +95,72 @@ describe('Compliance & fraud DB smoke', () => {
     await sql`DELETE FROM bon_incident_reports WHERE incident_id = ${incidentId}`;
     await sql`DELETE FROM cybersecurity_incidents WHERE id = ${incidentId}`;
   });
+
+  it('audit_trail should capture guest data changes', async () => {
+    const guestIns = await sql`
+      INSERT INTO guests (tenant_id, email, first_name, last_name)
+      VALUES (${tenantId}, ${`audit-guest-${Date.now()}@example.com`}, 'Audit', 'Guest')
+      RETURNING id
+    `;
+    const guestId = (guestIns as { id: string }[])[0]?.id;
+    expect(guestId).toBeTruthy();
+
+    await sql`
+      INSERT INTO audit_trail (
+        tenant_id,
+        actor_user_id,
+        action,
+        resource_type,
+        resource_id,
+        changes,
+        ip_address
+      )
+      VALUES (
+        ${tenantId},
+        NULL,
+        'update',
+        'guest',
+        ${guestId},
+        ${JSON.stringify({ marketing_consent: { from: false, to: true } })},
+        ${'127.0.0.1'}
+      )
+    `;
+
+    const rows = await sql`
+      SELECT id
+      FROM audit_trail
+      WHERE tenant_id = ${tenantId}
+        AND resource_type = 'guest'
+        AND resource_id = ${guestId}
+      ORDER BY timestamp DESC
+      LIMIT 1
+    `;
+    expect((rows as { id: string }[])[0]?.id).toBeTruthy();
+  });
+
+  it('CRM personalization query should respect marketing consent', async () => {
+    const g1 = await sql`
+      INSERT INTO guests (tenant_id, email, first_name, marketing_consent)
+      VALUES (${tenantId}, ${`consent-yes-${Date.now()}@example.com`}, 'ConsentYes', true)
+      RETURNING id
+    `;
+    const g2 = await sql`
+      INSERT INTO guests (tenant_id, email, first_name, marketing_consent)
+      VALUES (${tenantId}, ${`consent-no-${Date.now()}@example.com`}, 'ConsentNo', false)
+      RETURNING id
+    `;
+
+    const optedIn = await sql`
+      SELECT id
+      FROM guests
+      WHERE tenant_id = ${tenantId}
+        AND marketing_consent = true
+    `;
+    const ids = (optedIn as { id: string }[]).map((row) => row.id);
+    const g1Id = (g1 as { id: string }[])[0]?.id;
+    const g2Id = (g2 as { id: string }[])[0]?.id;
+
+    expect(ids).toContain(g1Id);
+    expect(ids).not.toContain(g2Id);
+  });
 });

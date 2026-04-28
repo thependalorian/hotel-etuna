@@ -18,6 +18,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { SofiaService } from '@/lib/services/sofia/SofiaService';
 import { SofiaConciergeService } from '@/lib/services/ai/SofiaConciergeService';
+import { KnowledgeBaseService } from '@/lib/services/ai/KnowledgeBaseService';
 import { v4 as uuidv4 } from 'uuid';
 import { createTestTenant, cleanupTestTenant } from '../fixtures/test-helpers';
 
@@ -1021,5 +1022,24 @@ describe('Sofia - Context Building (Complete)', () => {
     const response = await conciergeService.processMessage(request, 'guest');
     expect(response).toBeTruthy();
     expect(response.response).toBeTruthy();
+  });
+});
+
+describe('Sofia branding and hospitality knowledge', () => {
+  it('platform knowledge should mention Hotel Etuna (not Buffr Host)', () => {
+    const kb = new KnowledgeBaseService();
+    const platform = kb.getPlatformKnowledge();
+    expect(platform.name).toContain('Hotel Etuna');
+    expect(platform.name.toLowerCase()).not.toContain('buffr host');
+  });
+
+  it('platform context should include Etuna meaning and breakfast hours baseline', () => {
+    const kb = new KnowledgeBaseService();
+    const platform = kb.getPlatformKnowledge();
+    const combined = `${platform.name} ${platform.description}`.toLowerCase();
+
+    // "Etuna" and hospitality context should remain in platform narrative.
+    expect(combined).toContain('etuna');
+    expect(combined).toContain('namib');
   });
 });

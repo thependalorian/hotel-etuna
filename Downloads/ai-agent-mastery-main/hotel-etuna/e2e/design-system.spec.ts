@@ -20,18 +20,23 @@ test.describe('Design System', () => {
       .toMatch(/inter|geist|system-ui|ui-sans|apple|segoe|helvetica/i);
   });
 
-  test('should have iOS-style rounded buttons', async ({ page }) => {
+  test('primary CTA should use khaki-600 family (not nude-600)', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('load');
 
-    const cta = page.locator('a[href="/register"]').first();
+    const cta = page.getByRole('link', { name: /book your stay/i }).first();
     await expect(cta).toBeVisible();
 
-    const borderRadius = await cta.evaluate((el) => {
+    const styles = await cta.evaluate((el) => {
       const t = (el.querySelector('button') as HTMLElement) || el;
-      return window.getComputedStyle(t).borderRadius;
+      const computed = window.getComputedStyle(t);
+      return {
+        borderRadius: computed.borderRadius,
+        backgroundColor: computed.backgroundColor,
+      };
     });
-    expect(borderRadius).not.toBe('0px');
+    expect(styles.borderRadius).not.toBe('0px');
+    expect(styles.backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
   });
 
   test('should use defined body colors', async ({ page }) => {
@@ -51,23 +56,28 @@ test.describe('Design System', () => {
 
   test('should have padded content inside main landmark', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('main#main-content')).toBeVisible({ timeout: 20_000 });
+    const main = page.locator('main').first();
+    await expect(main).toBeVisible({ timeout: 20_000 });
 
-    const firstSection = page.locator('main#main-content section').first();
+    const firstSection = page.locator('main section').first();
     await expect(firstSection).toBeVisible({ timeout: 15_000 });
 
     const padding = await firstSection.evaluate((el) => window.getComputedStyle(el).padding);
     expect(padding).not.toMatch(/^0(px)?(\s+0(px)?){3}$/);
   });
 
-  test('should have minimum sensible button height', async ({ page }) => {
+  test('should have minimum touch target height on mobile (44px)', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/');
     await page.waitForLoadState('load');
 
-    const firstButton = page.locator('button').first();
-    const height = await firstButton.evaluate((el) => el.getBoundingClientRect().height);
+    const firstButton = page.getByRole('link', { name: /book your stay/i }).first();
+    const height = await firstButton.evaluate((el) => {
+      const target = (el.querySelector('button') as HTMLElement) || (el as HTMLElement);
+      return target.getBoundingClientRect().height;
+    });
 
-    expect(height).toBeGreaterThanOrEqual(32);
+    expect(height).toBeGreaterThanOrEqual(44);
   });
 
   test('should show focus-visible ring after keyboard focus', async ({ page }) => {
@@ -93,7 +103,7 @@ test.describe('Design System', () => {
   test('should have semantic landmarks', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('nav').first()).toBeVisible({ timeout: 20_000 });
-    await expect(page.locator('main#main-content')).toBeVisible();
+    await expect(page.locator('main').first()).toBeVisible();
   });
 
   test('should be responsive - mobile (no large horizontal overflow)', async ({ page }) => {
@@ -134,115 +144,20 @@ test.describe('Design System', () => {
     expect(Boolean(aria || labelled)).toBe(true);
   });
 
-  // ============================================================================
-  // COMPREHENSIVE TESTS - Added to achieve full coverage per audit
-  // ============================================================================
-
-  test('should render button variants correctly', async ({ page }) => {
+  test('H1 should use display/serif heading font', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('load');
-    
-    // Look for buttons (various variants: primary, secondary, ghost, luxury)
-    const buttons = page.locator('button, a[role="button"]');
-    const buttonCount = await buttons.count();
-    
-    expect(buttonCount).toBeGreaterThan(0);
-    
-    // Check first button has proper styling
-    if (buttonCount > 0) {
-      const firstButton = buttons.first();
-      
-      // Check for border radius (rounded corners)
-      const borderRadius = await firstButton.evaluate((el) => 
-        window.getComputedStyle(el).borderRadius
-      );
-      expect(borderRadius).not.toBe('0px');
-      
-      // Check for background color
-      const backgroundColor = await firstButton.evaluate((el) => 
-        window.getComputedStyle(el).backgroundColor
-      );
-      expect(backgroundColor).toBeTruthy();
-      expect(backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
-      expect(backgroundColor).not.toBe('transparent');
-      
-      // Check for padding
-      const padding = await firstButton.evaluate((el) => 
-        window.getComputedStyle(el).padding
-      );
-      expect(padding).not.toMatch(/^0(px)?(\s+0(px)?)*$/);
-    }
-  });
 
-  test('should have typography hierarchy with font-display on H1 and font-sans on body', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('load');
-    
-    // Check body font (should be Inter or system sans-serif)
-    const bodyFont = await page.evaluate(() => 
-      window.getComputedStyle(document.body).fontFamily
-    );
-    expect(bodyFont.toLowerCase()).toMatch(/inter|geist|system-ui|ui-sans|apple|segoe|helvetica/i);
-    
-    // Check H1 font (should be display font or Playfair Display)
     const h1 = page.locator('h1, [role="heading"][aria-level="1"]').first();
-    const h1Exists = await h1.isVisible().catch(() => false);
-    
-    if (h1Exists) {
-      const h1Font = await h1.evaluate((el) => 
-        window.getComputedStyle(el).fontFamily
-      );
-      
-      // H1 should use display font or at least have a font family defined
-      expect(h1Font).toBeTruthy();
-      expect(h1Font.length).toBeGreaterThan(0);
-      
-      // Check H1 is larger than body
-      const h1Size = await h1.evaluate((el) => 
-        parseFloat(window.getComputedStyle(el).fontSize)
-      );
-      const bodySize = await page.evaluate(() => 
-        parseFloat(window.getComputedStyle(document.body).fontSize)
-      );
-      
-      expect(h1Size).toBeGreaterThan(bodySize);
-    }
+    await expect(h1).toBeVisible();
+    const h1Font = await h1.evaluate((el) => window.getComputedStyle(el).fontFamily.toLowerCase());
+    expect(h1Font).toMatch(/playfair|serif|display/);
   });
 
-  test('should have touch targets >= 44px on mobile', async ({ page }) => {
-    // Set mobile viewport
-    await page.setViewportSize({ width: 375, height: 667 });
+  test('should render Hotel Etuna HE badge', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('load');
-    
-    // Find all interactive elements (buttons, links)
-    const interactiveElements = page.locator('button, a, input, [role="button"]');
-    const count = await interactiveElements.count();
-    
-    expect(count).toBeGreaterThan(0);
-    
-    // Check first few interactive elements
-    for (let i = 0; i < Math.min(count, 5); i++) {
-      const element = interactiveElements.nth(i);
-      const isVisible = await element.isVisible().catch(() => false);
-      
-      if (isVisible) {
-        const dimensions = await element.evaluate((el) => {
-          const rect = el.getBoundingClientRect();
-          return {
-            width: rect.width,
-            height: rect.height,
-          };
-        });
-        
-        // Touch targets should be at least 44x44px (WCAG guideline)
-        // Allow some tolerance for inline elements
-        const minTouchTarget = 32; // Relaxed for testing, ideal is 44
-        
-        if (dimensions.height > 0) {
-          expect(dimensions.height).toBeGreaterThanOrEqual(minTouchTarget);
-        }
-      }
-    }
+
+    await expect(page.getByText('HE').first()).toBeVisible();
   });
 });

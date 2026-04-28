@@ -204,7 +204,7 @@ describe('Vercel Project Configuration', () => {
     const content = readFileSync(vercelProjectPath, 'utf-8');
     vercelProject = JSON.parse(content);
 
-    expect(vercelProject.projectId).toBe('prj_DAnw1MRhSCVCwA8LKWVEqVT6NG5O');
+    expect(vercelProject.projectId).toBe('prj_1GjNB8oTxlKUytg6oOvxYWMLeC6W');
   });
 
   it('should have correct org ID', () => {
@@ -218,6 +218,6 @@ describe('Vercel Project Configuration', () => {
     const content = readFileSync(vercelProjectPath, 'utf-8');
     vercelProject = JSON.parse(content);
 
-    expect(vercelProject.projectName).toBe('buffr-host');
+    expect(vercelProject.projectName).toBe('hotel-etuna');
   });
 });

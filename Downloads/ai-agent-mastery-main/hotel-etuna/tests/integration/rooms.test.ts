@@ -7,6 +7,8 @@
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { RoomService } from '@/lib/services/room/RoomService';
+import { and, eq } from 'drizzle-orm';
+import { db, properties, rooms } from '@/lib/db';
 import {
   createTestTenant,
   createTestUser,
@@ -166,5 +168,52 @@ describe('RoomService Integration Tests', () => {
       expect(rooms.length).toBeGreaterThan(0);
       expect(rooms.some((r) => r.id === room.id)).toBe(true);
     });
+  });
+});
+
+describe('Hub room seed validation', () => {
+  it('hub property should have exactly 5 rooms with expected slugs', async () => {
+    const hubTenantId = process.env.HUB_TENANT_ID;
+    expect(hubTenantId).toBeTruthy();
+
+    const [hubProperty] = await db
+      .select({ id: properties.id })
+      .from(properties)
+      .where(and(eq(properties.tenantId, hubTenantId as string), eq(properties.slug, 'hotel-etuna')))
+      .limit(1);
+    expect(hubProperty).toBeTruthy();
+
+    const hubRooms = await db
+      .select({ roomType: rooms.roomType, amenities: rooms.amenities })
+      .from(rooms)
+      .where(eq(rooms.propertyId, hubProperty!.id));
+
+    expect(hubRooms.length).toBe(5);
+
+    const slugify = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const slugs = hubRooms.map((room) => slugify(room.roomType));
+    expect(slugs.sort()).toEqual(
+      ['standard-room', 'luxury-room', 'family-room', 'executive-suite', 'premier-room'].sort(),
+    );
+  });
+
+  it('room amenities should not include removed fictional entries', async () => {
+    const hubTenantId = process.env.HUB_TENANT_ID;
+    const [hubProperty] = await db
+      .select({ id: properties.id })
+      .from(properties)
+      .where(and(eq(properties.tenantId, hubTenantId as string), eq(properties.slug, 'hotel-etuna')))
+      .limit(1);
+    expect(hubProperty).toBeTruthy();
+
+    const hubRooms = await db
+      .select({ amenities: rooms.amenities })
+      .from(rooms)
+      .where(eq(rooms.propertyId, hubProperty!.id));
+
+    const flattened = hubRooms.flatMap((room) => room.amenities ?? []).map((entry) => entry.toLowerCase());
+    expect(flattened).not.toContain('private pool');
+    expect(flattened).not.toContain('butler service');
+    expect(flattened).not.toContain('spa bath');
   });
 });

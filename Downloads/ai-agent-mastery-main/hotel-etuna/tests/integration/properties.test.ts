@@ -6,7 +6,9 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { and, eq } from 'drizzle-orm';
 import { PropertyService } from '@/lib/services/property/PropertyService';
+import { db, properties, restaurants } from '@/lib/db';
 import {
   createTestTenant,
   createTestUser,
@@ -164,5 +166,42 @@ describe('PropertyService Integration Tests', () => {
       expect(found?.id).toBe(property.id);
       expect(found?.slug).toBe(property.slug);
     });
+  });
+});
+
+describe('Hub property contact seed validation', () => {
+  it('hub property should have the corrected address', async () => {
+    const hubTenantId = process.env.HUB_TENANT_ID;
+    expect(hubTenantId).toBeTruthy();
+
+    const [hubProperty] = await db
+      .select({ id: properties.id, address: properties.address })
+      .from(properties)
+      .where(and(eq(properties.tenantId, hubTenantId as string), eq(properties.slug, 'hotel-etuna')))
+      .limit(1);
+
+    expect(hubProperty).toBeTruthy();
+    expect(hubProperty!.address).toContain('5544 Valley of the Leopard Street');
+  });
+
+  it('hub property should expose the corrected phone and email', async () => {
+    const hubTenantId = process.env.HUB_TENANT_ID;
+    const [hubProperty] = await db
+      .select({ id: properties.id })
+      .from(properties)
+      .where(and(eq(properties.tenantId, hubTenantId as string), eq(properties.slug, 'hotel-etuna')))
+      .limit(1);
+    expect(hubProperty).toBeTruthy();
+
+    const [restaurant] = await db
+      .select({ contactPhone: restaurants.contactPhone, contactEmail: restaurants.contactEmail })
+      .from(restaurants)
+      .where(eq(restaurants.propertyId, hubProperty!.id))
+      .limit(1);
+
+    expect(restaurant).toBeTruthy();
+    expect(restaurant!.contactPhone).toBe('+264 65 231 177');
+    // DB may store null and UI falls back to info@hoteletuna.com.
+    expect(restaurant!.contactEmail === null || restaurant!.contactEmail === 'info@hoteletuna.com').toBe(true);
   });
 });
