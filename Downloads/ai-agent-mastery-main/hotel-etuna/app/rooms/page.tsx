@@ -15,6 +15,7 @@ import { authOptions } from '@/lib/auth/config';
 import { getHubRooms } from '@/lib/data/rooms';
 import PublicHero from '@/components/shared/PublicHero';
 import Footer from '@/components/shared/Footer';
+import NavigationHeader from '@/components/sections/landing/NavigationHeader';
 
 export const metadata: Metadata = {
   title: 'Rooms & Suites',
@@ -27,24 +28,7 @@ export default async function RoomsPage() {
   const roomRows = await getHubRooms();
   return (
     <div className="min-h-screen bg-surface-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-nude-200">
-        <nav className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-khaki-600 rounded-full flex items-center justify-center text-white font-display font-bold">
-              HE
-            </div>
-            <div className="flex flex-col">
-              <span className="font-display text-lg font-bold text-terracotta-900">Hotel Etuna</span>
-              <span className="text-xs text-terracotta-800">Ongwediva, Namibia</span>
-            </div>
-          </Link>
-          
-          <Button asChild size="sm">
-            <Link href="/">Back to Home</Link>
-          </Button>
-        </nav>
-      </header>
+      <NavigationHeader />
 
       <main>
         <PublicHero

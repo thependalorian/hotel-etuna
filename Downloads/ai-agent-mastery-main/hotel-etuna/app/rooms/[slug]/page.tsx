@@ -11,6 +11,7 @@ import { LandingBookingWidget } from '@/components/sections/landing/LandingBooki
 import { resolvePublicHubProperty } from '@/lib/utils/public-property';
 import PublicHero from '@/components/shared/PublicHero';
 import Footer from '@/components/shared/Footer';
+import NavigationHeader from '@/components/sections/landing/NavigationHeader';
 
 type Props = { params: { slug: string } };
 
@@ -33,6 +34,7 @@ export default async function RoomDetailPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-surface-background">
+      <NavigationHeader />
       <PublicHero title={room.roomType} subtitle="Comfort, warmth, and authentic Namibian hospitality." breadcrumbLabel="Room Details" />
 
       <main className="py-8">

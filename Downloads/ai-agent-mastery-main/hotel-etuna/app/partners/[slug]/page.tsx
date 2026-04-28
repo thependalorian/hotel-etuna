@@ -25,6 +25,7 @@ import {
 import { authOptions } from '@/lib/auth/config';
 import PublicHero from '@/components/shared/PublicHero';
 import Footer from '@/components/shared/Footer';
+import NavigationHeader from '@/components/sections/landing/NavigationHeader';
 
 interface PartnerProperty {
   property: {
@@ -124,6 +125,7 @@ export default async function PartnerPropertyPage({
 
   return (
     <div className="min-h-screen bg-white">
+      <NavigationHeader />
       <PublicHero
         title={property.name}
         subtitle={`${property.address.city}, ${property.address.country} · ${property.type.replace('_', ' ')}`}

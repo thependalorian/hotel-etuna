@@ -46,9 +46,9 @@ export const metadata: Metadata = {
 };
 
 type OpeningHours = {
-  breakfast?: string;
-  lunch?: string;
-  dinner?: string;
+  breakfast?: string | { open?: string; close?: string };
+  lunch?: string | { open?: string; close?: string };
+  dinner?: string | { open?: string; close?: string };
 };
 
 const fallbackImage = '/images/hospitality/hero_hotel_lobby.jpeg';
@@ -56,6 +56,18 @@ const fallbackImage = '/images/hospitality/hero_hotel_lobby.jpeg';
 function formatCurrency(amount: number | null, currency: string): string {
   if (amount === null || Number.isNaN(amount)) return 'Price on request';
   return `From ${currency} ${amount.toLocaleString()}/night`;
+}
+
+function formatOpeningSlot(
+  slot: string | { open?: string; close?: string } | undefined,
+  fallback: string
+): string {
+  if (!slot) return fallback;
+  if (typeof slot === 'string') return slot;
+  const open = slot.open?.trim();
+  const close = slot.close?.trim();
+  if (open && close) return `${open} - ${close}`;
+  return fallback;
 }
 
 export default async function LandingPage() {
@@ -274,8 +286,8 @@ export default async function LandingPage() {
                   {restaurant?.description ?? 'Our on-site restaurant serves authentic Namibian cuisine alongside international favorites.'}
                 </p>
                 <ul className="space-y-3 mb-8">
-                  <li className="flex items-center gap-3 text-terracotta-800"><div className="w-2 h-2 rounded-full bg-sage" />Breakfast: {openingHours.breakfast ?? '06:30 - 10:00'}</li>
-                  <li className="flex items-center gap-3 text-terracotta-800"><div className="w-2 h-2 rounded-full bg-sage" />Dinner: {openingHours.dinner ?? '18:00 - 22:00'}</li>
+                  <li className="flex items-center gap-3 text-terracotta-800"><div className="w-2 h-2 rounded-full bg-sage" />Breakfast: {formatOpeningSlot(openingHours.breakfast, '06:30 - 10:00')}</li>
+                  <li className="flex items-center gap-3 text-terracotta-800"><div className="w-2 h-2 rounded-full bg-sage" />Dinner: {formatOpeningSlot(openingHours.dinner, '18:00 - 22:00')}</li>
                   {categoryRows.slice(0, 2).map((category) => (
                     <li key={category.id} className="text-terracotta-800">
                       <div className="font-semibold">{category.name}</div>
