@@ -1,16 +1,61 @@
 /**
- * Tailwind CSS Configuration - Unified Design System
- * 
- * Purpose: Comprehensive design tokens combining mobile-first approach,
- * emotional design patterns, and accessibility best practices
- * Location: /tailwind.config.ts
- * 
- * Version: 3.11.0 - Unified Mobile-First Design System
- * Last Updated: February 2026
+ * Buffr Host — Tailwind configuration
+ * Design System: v1.0.0 (January 2026). All color hex lives here; use theme utilities in UI.
  */
 
 import type { Config } from "tailwindcss";
 import daisyui from "daisyui";
+import tailwindPlugin from "tailwindcss/plugin";
+
+/** Nude Foundation — exact palette from Design System v1.0.0 */
+const nude = {
+  50: "#fef7f0",
+  100: "#fceee0",
+  200: "#f8dcc0",
+  300: "#f2c49f",
+  400: "#e8a87a",
+  500: "#d18b5c",
+  600: "#b8704a",
+  700: "#9d5a3a",
+  800: "#7d452e",
+  900: "#5d3322",
+} as const;
+
+const luxury = {
+  charlotte: "#d4a574",
+  champagne: "#f7e7ce",
+  rose: "#e8b4a0",
+  bronze: "#cd853f",
+  gold: "#d4af37",
+} as const;
+
+const semantic = {
+  success: "#22c55e",
+  "success-light": "#dcfce7",
+  "success-dark": "#15803d",
+  warning: "#f59e0b",
+  "warning-light": "#fef3c7",
+  "warning-dark": "#b45309",
+  error: "#ef4444",
+  "error-light": "#fee2e2",
+  "error-dark": "#b91c1c",
+  info: "#0ea5e9",
+  "info-light": "#e0f2fe",
+  "info-dark": "#0369a1",
+} as const;
+
+/** Surfaces — Design System §2 */
+const surface = {
+  background: nude[50],
+  canvas: nude[50],
+  foreground: nude[800],
+  muted: nude[200],
+  elevated: "#ffffff",
+  card: "#ffffff",
+  input: "#ffffff",
+  hover: nude[100],
+  sidebar: nude[100],
+} as const;
 
 const config = {
   content: [
@@ -28,90 +73,94 @@ const config = {
       "2xl": "1536px",
     },
     extend: {
+      container: {
+        center: true,
+        padding: {
+          DEFAULT: "1rem",
+          sm: "1.5rem",
+          lg: "2rem",
+        },
+        screens: {
+          "2xl": "1400px",
+        },
+      },
       colors: {
-        surface: {
-          canvas: "var(--surface-canvas)",
-          panel: "var(--surface-panel)",
-          strong: "var(--surface-panel-strong)",
-          muted: "var(--surface-muted)",
-          sidebar: "var(--surface-sidebar)",
-        },
+        nude,
+        luxury,
+        semantic,
+        surface,
+        /** Legacy aliases → map to DS tokens for gradual migration */
+        /** Body / ink text ramp — maps to nude scale for WCAG AA on warm surfaces */
         ink: {
-          950: "var(--ink-950)",
-          900: "var(--ink-900)",
-          800: "var(--ink-800)",
-          700: "var(--ink-700)",
-          600: "var(--ink-600)",
-          500: "var(--ink-500)",
-          400: "var(--ink-400)",
-          300: "var(--ink-300)",
+          950: nude[900],
+          900: nude[900],
+          800: nude[800],
+          700: nude[700],
+          600: nude[600],
+          500: nude[600],
+          400: nude[500],
+          300: nude[400],
         },
+        /** shadcn-style ring offset token */
+        background: surface.background,
+        foreground: surface.foreground,
         brand: {
-          50: "var(--brand-50)",
-          100: "var(--brand-100)",
-          200: "var(--brand-200)",
-          300: "var(--brand-300)",
-          400: "var(--brand-400)",
-          500: "var(--brand-500)",
-          600: "var(--brand-600)",
-          700: "var(--brand-700)",
-          800: "var(--brand-800)",
-          900: "var(--brand-900)",
+          50: nude[50],
+          100: nude[100],
+          200: nude[200],
+          300: nude[300],
+          400: nude[400],
+          500: nude[500],
+          600: nude[600],
+          700: nude[700],
+          800: nude[800],
+          900: nude[900],
         },
-        nude: {
-          50: "var(--brand-50)",
-          100: "var(--brand-100)",
-          200: "var(--brand-200)",
-          300: "var(--brand-300)",
-          400: "var(--brand-400)",
-          500: "var(--brand-500)",
-          600: "var(--brand-600)",
-          700: "var(--brand-700)",
-          800: "var(--brand-800)",
-          900: "var(--brand-900)",
-          950: "var(--ink-950)",
-        },
-        luxury: {
-          charlotte: "var(--brand-400)",
-          champagne: "var(--brand-100)",
-          rose: "#d8a08c",
-          bronze: "var(--brand-600)",
-        },
-        semantic: {
-          success: "#22C55E",
-          "success-light": "#DCFCE7",
-          "success-dark": "#15803D",
-          warning: "#F59E0B",
-          "warning-light": "#FEF3C7",
-          "warning-dark": "#B45309",
-          error: "#EF4444",
-          "error-light": "#FEE2E2",
-          "error-dark": "#B91C1C",
-          info: "#0EA5E9",
-          "info-light": "#E0F2FE",
-          "info-dark": "#0369A1",
+        cta: {
+          primary: nude[600],
+          secondary: nude[700],
+          vip: nude[500],
+          luxury: "#d4af37",
         },
       },
       fontFamily: {
-        display: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
-        body: ["Inter", "sans-serif"],
-        sans: ["Inter", "system-ui", "sans-serif"],
-        mono: ["JetBrains Mono", "monospace"],
-        signature: ["Dancing Script", "cursive"],
+        sans: ["var(--font-inter)", "Inter", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+        display: [
+          "var(--font-playfair-display)",
+          "Playfair Display",
+          "ui-serif",
+          "Georgia",
+          "serif",
+        ],
+        body: ["var(--font-inter)", "Inter", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+        mono: ["var(--font-jetbrains-mono)", "JetBrains Mono", "ui-monospace", "monospace"],
+        signature: ["var(--font-dancing-script)", "Dancing Script", "cursive"],
       },
       fontSize: {
-        "5xl": ["3rem", { lineHeight: "1.1" }],
-        "4xl": ["2.25rem", { lineHeight: "1.1" }],
-        "3xl": ["1.875rem", { lineHeight: "1.25" }],
-        "2xl": ["1.5rem", { lineHeight: "1.25" }],
-        xl: ["1.25rem", { lineHeight: "1.25" }],
+        xs: ["0.75rem", { lineHeight: "1.5", letterSpacing: "0.025em" }],
+        sm: ["0.875rem", { lineHeight: "1.5", letterSpacing: "0.01em" }],
+        base: ["1rem", { lineHeight: "1.5", letterSpacing: "0" }],
+        lg: ["1.125rem", { lineHeight: "1.625", letterSpacing: "-0.01em" }],
+        xl: ["1.25rem", { lineHeight: "1.25", letterSpacing: "-0.025em" }],
+        "2xl": ["1.5rem", { lineHeight: "1.25", letterSpacing: "-0.025em" }],
+        "3xl": ["1.875rem", { lineHeight: "1.25", letterSpacing: "-0.025em" }],
+        "4xl": ["2.25rem", { lineHeight: "1.1", letterSpacing: "-0.025em" }],
+        "5xl": ["3rem", { lineHeight: "1.1", letterSpacing: "-0.025em" }],
+        "6xl": ["3.75rem", { lineHeight: "1.1", letterSpacing: "-0.025em" }],
+      },
+      maxWidth: {
+        "prose-sm": "45ch",
+        "prose-lg": "75ch",
+        "container-xs": "20rem",
+        "container-sm": "24rem",
+        "container-md": "28rem",
+        "container-lg": "32rem",
+        "container-xl": "36rem",
+        "container-2xl": "42rem",
       },
       spacing: {
-        "0.5": "0.125rem",
-        "1.5": "0.375rem",
-        "2.5": "0.625rem",
-        "3.5": "0.875rem",
         "touch-mobile": "44px",
+        "touch-desktop": "32px",
       },
       borderRadius: {
         xs: "2px",
@@ -129,56 +178,112 @@ const config = {
         lg: "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
         xl: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
         "2xl": "0 25px 50px -12px rgb(0 0 0 / 0.25)",
+        inner: "inset 0 2px 4px 0 rgb(0 0 0 / 0.05)",
         "nude-soft": "0 2px 8px rgba(212, 175, 140, 0.15)",
         "nude-medium": "0 4px 16px rgba(212, 175, 140, 0.2)",
         "nude-strong": "0 8px 24px rgba(212, 175, 140, 0.25)",
+        "nude-primary": "0 4px 14px 0 rgba(184, 112, 74, 0.25)",
         "luxury-soft": "0 2px 12px rgba(212, 175, 55, 0.1)",
-        card: "var(--shadow-card)",
-        "card-hover": "var(--shadow-card-hover)",
-        focus: "var(--shadow-focus)",
+        "luxury-medium": "0 4px 20px rgba(212, 175, 55, 0.15)",
+        "luxury-strong": "0 8px 32px rgba(212, 175, 55, 0.2)",
+        /** Card / CTA elevation aliases */
+        card: "0 4px 16px rgba(212, 175, 140, 0.2)",
+        "card-hover": "0 8px 24px rgba(212, 175, 140, 0.25)",
+      },
+      transitionDuration: {
+        fast: "150ms",
+        normal: "200ms",
+        slow: "300ms",
+        slower: "500ms",
+      },
+      transitionTimingFunction: {
+        "in-expo": "cubic-bezier(0.4, 0, 1, 1)",
+        "out-expo": "cubic-bezier(0, 0, 0.2, 1)",
+        "in-out-expo": "cubic-bezier(0.4, 0, 0.2, 1)",
       },
       animation: {
         "fade-in": "fadeIn 200ms ease-out",
+        "fade-out": "fadeOut 150ms ease-in forwards",
         "slide-up": "slideUp 200ms ease-out",
         "slide-down": "slideDown 200ms ease-out",
         "scale-in": "scaleIn 200ms ease-out",
         "gentle-lift": "gentleLift 300ms ease-out",
         "ai-pulse": "aiPulse 2s ease-in-out infinite",
         shimmer: "shimmer 2s linear infinite",
+        "spin-slow": "spin 2s linear infinite",
+        "bounce-subtle": "bounceSubtle 1.2s ease-in-out infinite",
+        "pulse-soft": "pulseSoft 2s ease-in-out infinite",
       },
       keyframes: {
         fadeIn: { "0%": { opacity: "0" }, "100%": { opacity: "1" } },
-        slideUp: { "0%": { transform: "translateY(10px)", opacity: "0" }, "100%": { transform: "translateY(0)", opacity: "1" } },
-        slideDown: { "0%": { transform: "translateY(-10px)", opacity: "0" }, "100%": { transform: "translateY(0)", opacity: "1" } },
-        scaleIn: { "0%": { transform: "scale(0.95)", opacity: "0" }, "100%": { transform: "scale(1)", opacity: "1" } },
-        gentleLift: { "0%": { transform: "scale(1) translateY(0)" }, "50%": { transform: "scale(1.02) translateY(-2px)" }, "100%": { transform: "scale(1) translateY(0)" } },
-        aiPulse: { "0%, 100%": { boxShadow: "0 0 20px rgba(212, 165, 116, 0.3)" }, "50%": { boxShadow: "0 0 30px rgba(212, 165, 116, 0.5)" } },
-        shimmer: { "0%": { backgroundPosition: "-1000px 0" }, "100%": { backgroundPosition: "1000px 0" } },
+        fadeOut: { "0%": { opacity: "1" }, "100%": { opacity: "0" } },
+        slideUp: {
+          "0%": { transform: "translateY(10px)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        slideDown: {
+          "0%": { transform: "translateY(-10px)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        scaleIn: {
+          "0%": { transform: "scale(0.95)", opacity: "0" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        gentleLift: {
+          "0%": { transform: "scale(1) translateY(0)" },
+          "50%": { transform: "scale(1.02) translateY(-2px)" },
+          "100%": { transform: "scale(1) translateY(0)" },
+        },
+        aiPulse: {
+          "0%, 100%": { boxShadow: "0 0 20px rgba(212, 165, 116, 0.3)" },
+          "50%": { boxShadow: "0 0 30px rgba(212, 165, 116, 0.5)" },
+        },
+        shimmer: {
+          "0%": { backgroundPosition: "-1000px 0" },
+          "100%": { backgroundPosition: "1000px 0" },
+        },
+        bounceSubtle: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-3px)" },
+        },
+        pulseSoft: {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.65" },
+        },
       },
     },
   },
-  plugins: [daisyui],
-  // DaisyUI plugin options (not in Tailwind Config type; see https://daisyui.com/docs/config/)
+  plugins: [
+    daisyui,
+    tailwindPlugin(({ addUtilities }) => {
+      addUtilities({
+        ".scrollbar-thin": {
+          "scrollbar-width": "thin",
+          "scrollbar-color": `${nude[300]} transparent`,
+        },
+      });
+    }),
+  ],
   daisyui: {
     themes: [
       {
         buffr: {
-          primary: "#a96332",
-          "primary-content": "#ffffff",
-          secondary: "#0f766e",
-          "secondary-content": "#ffffff",
-          accent: "#d9a76f",
-          "accent-content": "#241711",
-          neutral: "#33231a",
-          "neutral-content": "#fffaf3",
-          "base-100": "#fffaf3",
-          "base-200": "#f1e8da",
-          "base-300": "#e4d6c6",
-          "base-content": "#33231a",
-          info: "#0EA5E9",
-          success: "#22C55E",
-          warning: "#F59E0B",
-          error: "#EF4444",
+          primary: nude[600],
+          "primary-content": nude[50],
+          secondary: nude[700],
+          "secondary-content": nude[50],
+          accent: luxury.charlotte,
+          "accent-content": nude[900],
+          neutral: nude[800],
+          "neutral-content": nude[100],
+          "base-100": surface.background,
+          "base-200": nude[100],
+          "base-300": nude[200],
+          "base-content": nude[900],
+          info: semantic["info-light"],
+          success: semantic["success-light"],
+          warning: semantic["warning-light"],
+          error: semantic["error-light"],
         },
       },
     ],

@@ -27,6 +27,8 @@ import { useSession } from 'next-auth/react';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import ErrorDisplay from '@/components/shared/ErrorDisplay';
 import EmptyState from '@/components/shared/EmptyState';
+import PageHeader from '@/components/shared/PageHeader';
+import { Card } from '@/components/ui/Card';
 import PropertySelector from '@/components/features/restaurant/PropertySelector';
 import OrderCard from '@/components/features/restaurant/orders/OrderCard';
 import { apiUrl } from '@/lib/utils/api-url';
@@ -170,87 +172,90 @@ export default function RestaurantOrdersPage() {
 
   if (loading || status === 'loading') {
     return (
-      <div className="flex items-center justify-center min-h-64">
-        <LoadingSpinner size="lg" text="Loading order management..." />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <LoadingSpinner size="lg" text="Loading order management..." />
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <ErrorDisplay 
-        error={error} 
-        title="Error Loading Orders"
-        variant="full"
-      />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <ErrorDisplay 
+          error={error} 
+          title="Error Loading Orders"
+          variant="full"
+        />
+      </div>
     );
   }
 
   if (!session) {
     return (
-      <div className="card bg-warning/10 border border-warning shadow-lg">
-        <div className="card-body">
-          <p className="text-warning font-medium">Please log in to manage your orders.</p>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <Card variant="elevated" className="border-semantic-warning">
+          <p className="text-semantic-warning font-medium">Please log in to manage your orders.</p>
+        </Card>
       </div>
     );
   }
 
   if (properties.length === 0) {
     return (
-      <EmptyState
-        title="No Restaurant Properties Found"
-        description="Please add a property with restaurant features to manage orders."
-        action={{
-          label: "Add New Property",
-          href: "/properties/new"
-        }}
-        size="md"
-      />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <EmptyState
+          title="No Restaurant Properties Found"
+          description="Please add a property with restaurant features to manage orders."
+          action={{
+            label: "Add New Property",
+            href: "/properties/new"
+          }}
+          size="md"
+        />
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="dashboard-surface rounded-[1.75rem] p-6 sm:p-8">
-        <span className="ops-pill mb-4">Kitchen workflow</span>
-        <h1 className="text-3xl md:text-4xl font-black mb-2">Order Management</h1>
-        <p className="max-w-2xl text-ink-500">
-          Manage restaurant order states through the same validated lifecycle used by the API.
-          Staff can only move orders through allowed kitchen transitions.
-        </p>
-      </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="space-y-6 animate-fade-in">
+        <PageHeader
+          eyebrow="Kitchen workflow"
+          title="Order Management"
+          description="Manage restaurant order states through validated lifecycle workflows."
+        />
 
-      <PropertySelector 
-        properties={properties}
-        selectedPropertyId={selectedPropertyId}
-        onPropertyChange={setSelectedPropertyId}
-      />
+        <PropertySelector 
+          properties={properties}
+          selectedPropertyId={selectedPropertyId}
+          onPropertyChange={setSelectedPropertyId}
+        />
 
-      {restaurantId ? (
-        <div className="space-y-4">
-          <h3 className="text-xl font-black text-ink-950">Recent Orders</h3>
-          {orders.length === 0 ? (
-            <EmptyState
-              title="No orders found"
-              description="No orders found for this restaurant."
-              size="md"
-            />
-          ) : (
-            <div className="space-y-4">
-              {orders.map((order, index) => (
-                <OrderCard key={order.id} order={order} index={index} />
-              ))}
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="card bg-base-100 shadow-lg">
-          <div className="card-body text-center py-12">
-            <p className="text-base-content/70">Select a property to manage its orders.</p>
+        {restaurantId ? (
+          <div className="space-y-4">
+            <h3 className="font-display text-xl font-semibold text-nude-900">Recent Orders</h3>
+            {orders.length === 0 ? (
+              <EmptyState
+                title="No orders found"
+                description="No orders found for this restaurant."
+                size="md"
+              />
+            ) : (
+              <div className="grid grid-cols-1 gap-4">
+                {orders.map((order, index) => (
+                  <OrderCard key={order.id} order={order} index={index} />
+                ))}
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        ) : (
+          <Card variant="elevated" className="text-center py-12">
+            <p className="text-nude-600">Select a property to manage its orders.</p>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }

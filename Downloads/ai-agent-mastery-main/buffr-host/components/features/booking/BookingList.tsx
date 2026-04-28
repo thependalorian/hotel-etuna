@@ -2,9 +2,10 @@ import { BookingService } from '@/lib/services/booking/BookingService';
 import { Card, CardContent } from '@/components/ui/Card';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils/cn';
-import { bookingStatusBadgeClass } from '@/lib/utils/status-normalize';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 import EmptyState from '@/components/shared/EmptyState';
 import Link from 'next/link';
+import { Calendar, User, MapPin } from 'lucide-react';
 
 type BookingListRow = {
   id: string;
@@ -63,52 +64,66 @@ export async function BookingList({ propertyId, tenantId }: BookingListProps) {
             <Card 
               key={booking.id} 
               variant="elevated"
-              className="animate-slide-up dashboard-card-hover"
+              className="animate-slide-up hover:shadow-nude-medium hover:-translate-y-0.5 transition-all duration-200"
               style={{ animationDelay: `${index * 50}ms` }}
             >
               <CardContent className="p-6">
+                {/* Header with Reference and Status */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-                  <div>
-                    <p className="font-bold text-lg text-base-content mb-1">
-                      Ref: {booking.bookingReference ?? booking.booking_reference ?? booking.id}
-                    </p>
-                    <p className="text-sm text-base-content/70">
-                      Guest ID: {booking.guest_id ?? 'Not assigned'}
-                    </p>
+                  <div className="flex-1">
+                    <h3 className="font-display text-lg font-semibold text-nude-900 mb-1">
+                      {booking.bookingReference ?? booking.booking_reference ?? booking.id}
+                    </h3>
+                    <div className="flex items-center gap-2 text-sm text-nude-600">
+                      <User className="w-4 h-4" aria-hidden="true" />
+                      <span>Guest: {booking.guest_id ?? 'Not assigned'}</span>
+                    </div>
                   </div>
-                  <div
-                    className={cn('badge badge-lg', bookingStatusBadgeClass(booking.status))}
-                  >
-                    {booking.status}
-                  </div>
+                  <StatusBadge status={booking.status} showDot />
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 bg-base-200 rounded-lg">
+                {/* Date Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 bg-nude-50 rounded-lg border border-nude-200">
                   <div>
-                    <p className="text-xs text-base-content/60 mb-1">Check-in</p>
-                    <p className="font-medium text-base-content">
+                    <p className="text-xs font-semibold text-nude-700 mb-1 flex items-center gap-1">
+                      <Calendar className="w-3 h-3" aria-hidden="true" />
+                      Check-in
+                    </p>
+                    <p className="font-medium text-nude-900">
                       {formatBookingDate(booking.checkInDate ?? booking.check_in_date)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-base-content/60 mb-1">Check-out</p>
-                    <p className="font-medium text-base-content">
+                    <p className="text-xs font-semibold text-nude-700 mb-1 flex items-center gap-1">
+                      <Calendar className="w-3 h-3" aria-hidden="true" />
+                      Check-out
+                    </p>
+                    <p className="font-medium text-nude-900">
                       {formatBookingDate(booking.checkOutDate ?? booking.check_out_date)}
                     </p>
                   </div>
                 </div>
                 
+                {/* Room Count */}
                 {(booking.roomCount ?? booking.room_count ?? 0) > 0 && (
-                  <div>
-                    <p className="font-medium text-base-content mb-2">Rooms</p>
-                    <div className="badge badge-outline">
+                  <div className="mb-4">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-nude-100 text-nude-800 rounded-full text-sm font-medium">
+                      <MapPin className="w-4 h-4" aria-hidden="true" />
                       {booking.roomCount ?? booking.room_count} room{(booking.roomCount ?? booking.room_count) === 1 ? '' : 's'}
                     </div>
                   </div>
                 )}
-                <div className="mt-5 flex justify-end">
-                  <Link href={`/bookings/${booking.id}`} className="btn btn-outline btn-sm min-h-[40px]">
-                    View workflow
+                
+                {/* Action Button */}
+                <div className="flex justify-end pt-4 border-t border-nude-200">
+                  <Link 
+                    href={`/bookings/${booking.id}`} 
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-nude-600 text-white rounded-lg font-semibold text-sm hover:bg-nude-700 transition-colors duration-200 min-h-[44px]"
+                  >
+                    View Details
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </Link>
                 </div>
               </CardContent>

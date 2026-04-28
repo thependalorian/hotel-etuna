@@ -69,56 +69,79 @@ export default function OrderCard({ order, index }: OrderCardProps) {
   const orderedAt = order.ordered_at ? new Date(order.ordered_at) : null;
   const total = Number(order.total_amount || 0);
 
+  // Calculate time elapsed for priority indicator
+  const timeElapsed = orderedAt ? Math.floor((Date.now() - orderedAt.getTime()) / 60000) : 0;
+  const timeColor = timeElapsed > 30 ? 'semantic-error' : timeElapsed > 15 ? 'semantic-warning' : 'semantic-success';
+
   return (
     <div 
-      className="dashboard-card dashboard-card-hover animate-slide-up"
-      style={{ animationDelay: `${index * 50}ms` }}
+      className="rounded-lg border-l-4 bg-surface-elevated shadow-nude-soft hover:shadow-nude-medium transition-all duration-200 animate-slide-up overflow-hidden"
+      style={{ 
+        animationDelay: `${index * 50}ms`,
+        borderLeftColor: `var(--color-${timeColor})`,
+      }}
     >
       <div className="p-5 sm:p-6">
+        {/* Order Header with Status and Timer */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-          <div>
-            <h4 className="text-lg font-black text-ink-950 mb-1">Order #{order.order_number}</h4>
-            <p className="text-sm text-ink-500">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <h4 className="font-display text-lg font-bold text-nude-900">Order #{order.order_number}</h4>
+              {timeElapsed > 30 && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-semantic-error text-white">
+                  HIGH PRIORITY
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-nude-600 font-medium">
               {order.order_type} • {order.table_number || order.room_number || 'No table/room'}
             </p>
           </div>
+          
           <div className="flex items-center gap-3">
-            <StatusBadge status={status} size="md" />
+            <StatusBadge status={status} showDot />
             <div className="text-right">
-              <p className="text-xl font-black text-ink-950">N${total.toFixed(2)}</p>
-              <p className="text-xs text-ink-400">
-                {orderedAt ? orderedAt.toLocaleString() : 'Time unavailable'}
-              </p>
+              <p className="font-display text-2xl font-bold text-nude-900">N${total.toFixed(2)}</p>
+              <div className={`text-xs font-semibold ${timeElapsed > 30 ? 'text-semantic-error' : timeElapsed > 15 ? 'text-semantic-warning' : 'text-semantic-success'}`}>
+                {timeElapsed}min elapsed
+              </div>
             </div>
           </div>
         </div>
         
-        <div className="p-4 bg-brand-50 rounded-2xl mb-4 border border-base-300/70">
-          <p className="text-sm font-bold text-ink-800 mb-2">Items</p>
-          <div className="space-y-1">
+        {/* Order Items */}
+        <div className="p-4 bg-nude-50 rounded-lg mb-4 border border-nude-200">
+          <p className="text-sm font-semibold text-nude-800 mb-3">Order Items</p>
+          <div className="space-y-2">
             {(order.items || []).map((item, itemIndex) => (
-              <div key={itemIndex} className="flex justify-between text-sm">
-                <span className="text-ink-700">
-                  {item.quantity}x {item.item_name}
+              <div key={itemIndex} className="flex justify-between items-center text-sm py-1">
+                <span className="text-nude-900 font-medium">
+                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-nude-200 text-nude-800 text-xs font-bold mr-2">
+                    {item.quantity}
+                  </span>
+                  {item.item_name}
                 </span>
-                <span className="font-medium text-ink-500">
+                <span className="font-semibold text-nude-900">
                   N${Number(item.total_price || 0).toFixed(2)}
                 </span>
               </div>
             ))}
             {(!order.items || order.items.length === 0) && (
-              <p className="text-sm text-ink-400">No line items attached.</p>
+              <p className="text-sm text-nude-500 italic">No items attached.</p>
             )}
           </div>
         </div>
 
-        <WorkflowStatusActions
-          currentStatus={status}
-          transitions={RESTAURANT_ORDER_STATUS_TRANSITIONS}
-          endpoint={`/api/restaurant/orders/${order.id}/status`}
-          compact
-          onUpdated={setStatus}
-        />
+        {/* Status Actions */}
+        <div className="pt-4 border-t border-nude-200">
+          <WorkflowStatusActions
+            currentStatus={status}
+            transitions={RESTAURANT_ORDER_STATUS_TRANSITIONS}
+            endpoint={`/api/restaurant/orders/${order.id}/status`}
+            compact
+            onUpdated={setStatus}
+          />
+        </div>
       </div>
     </div>
   );

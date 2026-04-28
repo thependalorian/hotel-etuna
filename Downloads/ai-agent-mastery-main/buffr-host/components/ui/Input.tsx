@@ -3,43 +3,71 @@ import { cn } from "@/lib/utils/cn";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
+  /** Shown below the field when there is no error (muted). */
   helperText?: string;
+  error?: string;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, label, helperText, ...props }, ref) => {
-    const hasError = props["aria-invalid"];
+  ({ className, type, label, helperText, error, ...props }, ref) => {
+    const inputId = props.id || React.useId();
+    const errorId = `${inputId}-error`;
+    const helperTextId = `${inputId}-helper`;
+    const hasError = error || props["aria-invalid"];
+
+    // Build aria-describedby based on what's present
+    const describedBy = [
+      error ? errorId : null,
+      helperText && !error ? helperTextId : null,
+      props["aria-describedby"],
+    ]
+      .filter(Boolean)
+      .join(" ") || undefined;
 
     return (
       <div className="w-full">
         {label && (
           <label
-            htmlFor={props.id}
-            className="mb-1.5 block text-sm font-semibold text-ink-700"
+            htmlFor={inputId}
+            className="mb-2 block text-sm font-semibold text-nude-800"
           >
             {label}
+            {props.required && (
+              <span className="ml-1 text-semantic-error" aria-label="required">
+                *
+              </span>
+            )}
           </label>
         )}
         <input
+          id={inputId}
           type={type}
           className={cn(
-            "flex h-11 w-full rounded-xl border border-base-300 bg-white/85 px-3.5 py-2 text-sm text-ink-900 shadow-xs ring-offset-background transition-all duration-200 file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-ink-400 hover:border-brand-300 focus-visible:border-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/20 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:bg-base-200 disabled:opacity-70",
-            hasError && "border-semantic-error focus-visible:ring-semantic-error",
+            "flex h-11 w-full rounded-sm border border-nude-200 bg-surface-input px-4 py-3 font-sans text-base text-nude-900 transition-all duration-200",
+            "placeholder:text-nude-400",
+            "hover:border-nude-300",
+            "focus:border-nude-500 focus:outline-none focus:ring-2 focus:ring-nude-500 focus:ring-offset-2",
+            "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-nude-50",
+            "file:border-0 file:bg-transparent file:text-sm file:font-medium",
+            hasError && "border-semantic-error focus:border-semantic-error focus:ring-semantic-error",
             className
           )}
           ref={ref}
+          aria-invalid={hasError ? true : undefined}
+          aria-describedby={describedBy}
+          aria-required={props.required ? true : undefined}
           {...props}
         />
-        {helperText && (
-          <p
-            className={cn(
-              "mt-1.5 text-sm text-ink-500",
-              hasError && "text-semantic-error"
-            )}
-          >
+        {helperText && !error ? (
+          <p id={helperTextId} className="mt-1.5 text-sm text-nude-600">
             {helperText}
           </p>
-        )}
+        ) : null}
+        {error ? (
+          <p id={errorId} className="mt-1.5 text-sm text-semantic-error-dark" role="alert">
+            {error}
+          </p>
+        ) : null}
       </div>
     );
   }

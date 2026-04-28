@@ -22,8 +22,8 @@ export default function DashboardLayout({
       />
       <div className="flex-1 flex flex-col min-w-0 lg:ml-0">
         <Header />
-        <main className="flex-1 overflow-y-auto scrollbar-thin px-4 py-5 sm:px-6 md:px-8 md:py-8">
-          <div className="max-w-7xl mx-auto w-full">
+        <main className="buffr-dashboard-main scrollbar-thin" role="main" aria-label="Main content">
+          <div className="buffr-dashboard-inner">
             <DashboardErrorBoundary>{children}</DashboardErrorBoundary>
           </div>
         </main>
