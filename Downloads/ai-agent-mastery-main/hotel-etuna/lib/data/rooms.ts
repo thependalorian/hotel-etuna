@@ -1,91 +1,158 @@
-import { and, eq, inArray } from 'drizzle-orm';
-import { db, roomRates, rooms } from '@/lib/db';
-import { resolvePublicHubProperty } from '@/lib/utils/public-property';
-import { slugify } from '@/lib/utils/slugify';
+/**
+ * Shared Data Access Layer — Rooms
+ * 
+ * Purpose: Single source of truth for room queries
+ * Location: lib/data/rooms.ts
+ * 
+ * Features:
+ * - getHubRooms() — Fetch all Hotel Etuna hub rooms
+ * - getRoomBySlug(slug) — Fetch single room by slug
+ * - Eliminates DRY violations across pages
+ * - Consistent query structure
+ * 
+ * @version 1.0.0
+ * @since April 28, 2026
+ */
 
-export type PublicRoom = {
-  id: string;
-  slug: string;
-  roomType: string;
-  maxOccupancy: number;
-  amenities: string[];
-  images: string[];
-  priceAmount: number | null;
-  currency: string;
-};
+import { db } from '@/lib/db';
+import { rooms, properties, tenants } from '@/lib/db/schema';
+import { eq, and } from 'drizzle-orm';
+import { cache } from 'react';
 
-function mapRoomWithRate(
-  room: {
-    id: string;
-    roomType: string;
-    maxOccupancy: number | null;
-    amenities: string[] | null;
-    images: string[] | null;
-    baseRate: string | null;
-    currency: string | null;
-  },
-  ratesByRoomId: Map<string, { amount: number; currency: string }>
-): PublicRoom {
-  const explicitRate = ratesByRoomId.get(room.id);
-  const baseRate = room.baseRate ? Number(room.baseRate) : null;
-  const parsedBaseRate = baseRate !== null && !Number.isNaN(baseRate) ? baseRate : null;
+const HUB_TENANT_ID = process.env.HUB_TENANT_ID!;
+const DEFAULT_PROPERTY_ID = process.env.DEFAULT_PROPERTY_ID!;
 
-  return {
-    id: room.id,
-    slug: slugify(room.roomType),
-    roomType: room.roomType,
-    maxOccupancy: room.maxOccupancy ?? 2,
-    amenities: room.amenities ?? [],
-    images: room.images ?? [],
-    priceAmount: explicitRate?.amount ?? parsedBaseRate,
-    currency: explicitRate?.currency ?? room.currency ?? 'NAD',
-  };
-}
+/**
+ * Get all Hotel Etuna hub rooms
+ * Cached using React cache() for request deduplication
+ */
+export const getHubRooms = cache(async () => {
+  try {
+    const hubRooms = await db
+      .select({
+        id: rooms.id,
+        name: rooms.name,
+        slug: rooms.slug,
+        description: rooms.description,
+        maxOccupancy: rooms.maxOccupancy,
+        bedType: rooms.bedType,
+        amenities: rooms.amenities,
+        images: rooms.images,
+        priceFrom: rooms.pricePerNight,
+        currency: rooms.currency,
+        isAvailable: rooms.isAvailable,
+        roomType: rooms.roomType,
+        squareMeters: rooms.squareMeters,
+        viewType: rooms.viewType,
+        propertyId: rooms.propertyId,
+        createdAt: rooms.createdAt,
+      })
+      .from(rooms)
+      .innerJoin(properties, eq(rooms.propertyId, properties.id))
+      .where(
+        and(
+          eq(properties.tenantId, HUB_TENANT_ID),
+          eq(rooms.propertyId, DEFAULT_PROPERTY_ID),
+          eq(rooms.isAvailable, true)
+        )
+      )
+      .orderBy(rooms.roomType, rooms.pricePerNight);
 
-export async function getHubRooms(): Promise<PublicRoom[]> {
-  const { property } = await resolvePublicHubProperty();
-  const roomRows = await db
-    .select({
-      id: rooms.id,
-      roomType: rooms.roomType,
-      maxOccupancy: rooms.maxOccupancy,
-      amenities: rooms.amenities,
-      images: rooms.images,
-      baseRate: rooms.baseRate,
-      currency: rooms.currency,
-    })
-    .from(rooms)
-    .where(eq(rooms.propertyId, property.id));
-
-  const roomIds = roomRows.map((room) => room.id);
-  const rateRows = roomIds.length
-    ? await db
-        .select({
-          roomId: roomRates.roomId,
-          amount: roomRates.rateAmount,
-          currency: roomRates.currency,
-        })
-        .from(roomRates)
-        .where(and(inArray(roomRates.roomId, roomIds), eq(roomRates.isDefault, true)))
-    : [];
-
-  const ratesByRoomId = new Map<string, { amount: number; currency: string }>();
-  for (const rateRow of rateRows) {
-    if (!rateRow.roomId) continue;
-    const parsedAmount = Number(rateRow.amount);
-    if (Number.isNaN(parsedAmount)) continue;
-    ratesByRoomId.set(rateRow.roomId, {
-      amount: parsedAmount,
-      currency: rateRow.currency ?? 'NAD',
-    });
+    return hubRooms;
+  } catch (error) {
+    console.error('[getHubRooms] Error:', error);
+    return [];
   }
+});
 
-  return roomRows
-    .map((room) => mapRoomWithRate(room, ratesByRoomId))
-    .sort((a, b) => a.roomType.localeCompare(b.roomType));
-}
+/**
+ * Get single room by slug
+ * Cached using React cache() for request deduplication
+ */
+export const getRoomBySlug = cache(async (slug: string) => {
+  try {
+    const [room] = await db
+      .select({
+        id: rooms.id,
+        name: rooms.name,
+        slug: rooms.slug,
+        description: rooms.description,
+        maxOccupancy: rooms.maxOccupancy,
+        bedType: rooms.bedType,
+        amenities: rooms.amenities,
+        images: rooms.images,
+        priceFrom: rooms.pricePerNight,
+        currency: rooms.currency,
+        isAvailable: rooms.isAvailable,
+        roomType: rooms.roomType,
+        squareMeters: rooms.squareMeters,
+        viewType: rooms.viewType,
+        bathType: rooms.bathType,
+        roomNumber: rooms.roomNumber,
+        propertyId: rooms.propertyId,
+        createdAt: rooms.createdAt,
+        // Additional details for single room view
+        longDescription: rooms.longDescription,
+        highlights: rooms.highlights,
+      })
+      .from(rooms)
+      .innerJoin(properties, eq(rooms.propertyId, properties.id))
+      .where(
+        and(
+          eq(rooms.slug, slug),
+          eq(properties.tenantId, HUB_TENANT_ID),
+          eq(rooms.propertyId, DEFAULT_PROPERTY_ID)
+        )
+      )
+      .limit(1);
 
-export async function getRoomBySlug(slug: string): Promise<PublicRoom | null> {
-  const roomsList = await getHubRooms();
-  return roomsList.find((room) => room.slug === slug) ?? null;
-}
+    return room || null;
+  } catch (error) {
+    console.error('[getRoomBySlug] Error:', error);
+    return null;
+  }
+});
+
+/**
+ * Get room availability for a date range
+ * (Future enhancement - currently rooms are just marked available/unavailable)
+ */
+export const getRoomAvailability = cache(async (
+  roomId: string,
+  checkIn: string,
+  checkOut: string
+) => {
+  try {
+    const [room] = await db
+      .select({
+        id: rooms.id,
+        isAvailable: rooms.isAvailable,
+      })
+      .from(rooms)
+      .where(eq(rooms.id, roomId))
+      .limit(1);
+
+    // TODO: Check against bookings table for date conflicts
+    // For now, just return the room's availability status
+    return {
+      available: room?.isAvailable ?? false,
+      roomId,
+      checkIn,
+      checkOut,
+    };
+  } catch (error) {
+    console.error('[getRoomAvailability] Error:', error);
+    return {
+      available: false,
+      roomId,
+      checkIn,
+      checkOut,
+    };
+  }
+});
+
+/**
+ * Type exports for consumers
+ */
+export type HubRoom = Awaited<ReturnType<typeof getHubRooms>>[0];
+export type RoomDetail = Awaited<ReturnType<typeof getRoomBySlug>>;
