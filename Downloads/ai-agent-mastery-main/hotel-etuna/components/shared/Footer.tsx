@@ -86,7 +86,7 @@ export const Footer: React.FC<FooterProps> = ({
           {/* Brand Section */}
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-nude-600 to-nude-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-md">
+              <div className="w-10 h-10 rounded-lg bg-linear-to-br from-nude-600 to-nude-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-md">
                 <span className="text-xl font-bold text-white">H</span>
               </div>
               <div>
@@ -136,7 +136,7 @@ export const Footer: React.FC<FooterProps> = ({
             <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-base-content/70">
               <div className="flex items-center gap-2">
                 <Mail className="w-3 h-3 shrink-0" />
-                <a href="mailto:concierge@buffr.ai" className="hover:text-primary transition-colors">
+                <a href="mailto:concierge@hoteletuna.com" className="hover:text-primary transition-colors">
                   concierge@hoteletuna.com
                 </a>
               </div>

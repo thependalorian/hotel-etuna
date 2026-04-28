@@ -175,6 +175,7 @@ function hasRouteAccess(pathname: string, role: string): boolean {
   // Partner self-service scope only
   if (normalizedRole.startsWith('partner')) {
     return (
+      pathname.startsWith('/partner') ||
       pathname.startsWith('/dashboard') ||
       pathname.startsWith('/bookings') ||
       pathname.startsWith('/rooms') ||
