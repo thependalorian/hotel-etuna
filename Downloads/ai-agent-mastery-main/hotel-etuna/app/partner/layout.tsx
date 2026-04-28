@@ -7,6 +7,7 @@
 
 import Link from 'next/link';
 import { ReactNode } from 'react';
+import { SessionTimeoutWrapper } from '@/components/providers/SessionTimeoutWrapper';
 
 const partnerLinks = [
   { href: '/partner/dashboard', label: 'Dashboard' },
@@ -19,30 +20,32 @@ const partnerLinks = [
 
 export default function PartnerLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-base-100">
-      <header className="border-b border-base-300 bg-base-100">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-base-content/60">Partner Portal</p>
-            <h1 className="text-lg font-semibold text-base-content">Hotel Etuna Network</h1>
+    <SessionTimeoutWrapper>
+      <div className="min-h-screen bg-base-100">
+        <header className="border-b border-base-300 bg-base-100">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-base-content/60">Partner Portal</p>
+              <h1 className="text-lg font-semibold text-base-content">Hotel Etuna Network</h1>
+            </div>
+            <Link href="/" className="btn btn-ghost btn-sm">
+              Hotel Etuna
+            </Link>
           </div>
-          <Link href="/" className="btn btn-ghost btn-sm">
-            Hotel Etuna
-          </Link>
+        </header>
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-6 md:grid-cols-[260px_1fr]">
+          <aside className="rounded-xl border border-base-300 bg-base-100 p-3">
+            <nav className="menu gap-1">
+              {partnerLinks.map((item) => (
+                <li key={item.href}>
+                  <Link href={item.href}>{item.label}</Link>
+                </li>
+              ))}
+            </nav>
+          </aside>
+          <main className="rounded-xl border border-base-300 bg-base-100 p-6">{children}</main>
         </div>
-      </header>
-      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-6 md:grid-cols-[260px_1fr]">
-        <aside className="rounded-xl border border-base-300 bg-base-100 p-3">
-          <nav className="menu gap-1">
-            {partnerLinks.map((item) => (
-              <li key={item.href}>
-                <Link href={item.href}>{item.label}</Link>
-              </li>
-            ))}
-          </nav>
-        </aside>
-        <main className="rounded-xl border border-base-300 bg-base-100 p-6">{children}</main>
       </div>
-    </div>
+    </SessionTimeoutWrapper>
   );
 }

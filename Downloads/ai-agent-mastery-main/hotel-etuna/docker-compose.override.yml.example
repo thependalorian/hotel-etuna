@@ -1,0 +1,11 @@
+# Copy to docker-compose.override.yml to add local workers or extra services.
+# Example: a future RAG API or queue consumer on buffr_data network.
+#
+# services:
+#   rag-worker:
+#     build: ./workers/rag
+#     networks:
+#       - buffr_data
+#     environment:
+#       REDIS_URL: redis://redis:6379
+#       QDRANT_URL: http://qdrant:6333

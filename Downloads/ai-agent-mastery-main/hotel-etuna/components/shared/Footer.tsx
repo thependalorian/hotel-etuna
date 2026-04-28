@@ -102,7 +102,36 @@ export const Footer: React.FC<FooterProps> = ({
           <div>
             <h3 className="text-sm font-semibold text-base-content mb-4">Company</h3>
             <ul className="space-y-2">
-              {/* Note: About and Contact pages do not exist yet - links removed to avoid 404s */}
+              <li>
+                <Link href="/rooms" className="text-sm text-base-content/70 hover:text-primary transition-colors">
+                  Rooms
+                </Link>
+              </li>
+              <li>
+                <Link href="/dining" className="text-sm text-base-content/70 hover:text-primary transition-colors">
+                  Dining
+                </Link>
+              </li>
+              <li>
+                <Link href="/tours" className="text-sm text-base-content/70 hover:text-primary transition-colors">
+                  Tours
+                </Link>
+              </li>
+              <li>
+                <Link href="/about" className="text-sm text-base-content/70 hover:text-primary transition-colors">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="text-sm text-base-content/70 hover:text-primary transition-colors">
+                  Contact
+                </Link>
+              </li>
+              <li>
+                <Link href="/partners" className="text-sm text-base-content/70 hover:text-primary transition-colors">
+                  Referral Partners – Windhoek Lodging
+                </Link>
+              </li>
               <li>
                 <Link href="/legal/privacy" className="text-sm text-base-content/70 hover:text-primary transition-colors">
                   Privacy Policy

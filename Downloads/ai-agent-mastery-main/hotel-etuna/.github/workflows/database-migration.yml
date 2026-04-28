@@ -1,0 +1,46 @@
+name: Database Migration Check
+
+on:
+  push:
+    paths:
+      - 'lib/db/schema.ts'
+      - 'database/drizzle/**'
+      - 'drizzle.config.ts'
+  pull_request:
+    paths:
+      - 'lib/db/schema.ts'
+      - 'database/drizzle/**'
+      - 'drizzle.config.ts'
+  workflow_dispatch:
+
+jobs:
+  check-migrations:
+    name: Validate Database Migrations
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check Migration Files
+        run: |
+          echo "Checking migration files..."
+          test -f database/drizzle/meta/_journal.json
+          test -n "$(ls database/drizzle/*.sql)"
+          echo "Migration files checked"
+
+      - name: Check Schema Sync
+        run: |
+          echo "Checking if schema is in sync..."
+          npm run db:generate
+          git diff --exit-code -- database/drizzle

@@ -55,6 +55,7 @@ const PUBLIC_API_ROUTES = [
   '/api/health',         // Health check
   '/api/public/properties', // Public property listings
   '/api/public/restaurant', // Public restaurant endpoints
+  '/api/partners',         // Public partner directory/detail endpoints
   '/api/webhooks',       // Meta WhatsApp / external webhooks (verified via signature)
 ];
 
@@ -174,6 +175,9 @@ function hasRouteAccess(pathname: string, role: string): boolean {
 
   // Partner self-service scope only
   if (normalizedRole.startsWith('partner')) {
+    if (pathname.startsWith('/partner') && normalizedRole !== 'partner_admin') {
+      return false;
+    }
     return (
       pathname.startsWith('/partner') ||
       pathname.startsWith('/dashboard') ||
@@ -491,6 +495,14 @@ export default withAuth(
     // Check if user is authenticated (NextAuth fallback)
     if (!token) {
       return redirectToLogin(req);
+    }
+
+    // Enforce NextAuth token expiry for protected routes
+    const tokenExp = (token as MiddlewareToken & { exp?: number }).exp;
+    if (typeof tokenExp === 'number' && Date.now() >= tokenExp * 1000) {
+      const url = new URL('/login', req.url);
+      url.searchParams.set('reason', 'expired');
+      return NextResponse.redirect(url);
     }
     
     // Check user role and route access

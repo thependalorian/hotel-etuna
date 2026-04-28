@@ -47,7 +47,7 @@ const navItems: NavItem[] = [
   { href: "/bookings", label: "Bookings", icon: Calendar, section: "Operations" },
   { href: "/restaurant/orders", label: "Restaurant orders", icon: UtensilsCrossed, section: "Operations" },
   { href: "/restaurant/menu", label: "Restaurant menu", icon: BookOpenCheck, section: "Operations" },
-  { href: "/crm", label: "Guest CRM", icon: Users, section: "Experience" },
+  { href: "/crm/guests", label: "Guest CRM", icon: Users, section: "Experience" },
   { href: "/crm/knowledge", label: "Sofia knowledge", icon: FileText, section: "Experience" },
   { href: "/ai", label: "Sofia AI", icon: Bot, section: "Experience" },
   { href: "/sofia/email", label: "Sofia email", icon: LifeBuoy, section: "Experience" },
