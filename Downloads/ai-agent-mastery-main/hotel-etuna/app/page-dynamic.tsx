@@ -82,7 +82,7 @@ export default async function LandingPage() {
   });
 
   // Fetch menu categories and items for preview
-  let menuPreview: Array<{ name: string; price: string; category: string }> = [];
+  const menuPreview: Array<{ name: string; price: string; category: string }> = [];
   if (restaurant) {
     const categories = await db.query.menuCategories.findMany({
       where: and(

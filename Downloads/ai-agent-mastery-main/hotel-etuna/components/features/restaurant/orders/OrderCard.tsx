@@ -67,20 +67,20 @@ interface OrderCardProps {
 export default function OrderCard({ order, index }: OrderCardProps) {
   const [status, setStatus] = useState(normalizeDbStatus(order.status));
   const orderedAt = order.ordered_at ? new Date(order.ordered_at) : null;
+  const orderedAtMs = orderedAt?.getTime() ?? null;
   const total = Number(order.total_amount || 0);
 
-  const [timeElapsed, setTimeElapsed] = useState(0);
+  const [timeElapsed, setTimeElapsed] = useState(() =>
+    orderedAtMs ? Math.floor((Date.now() - orderedAtMs) / 60000) : 0
+  );
   useEffect(() => {
-    if (!orderedAt) {
-      setTimeElapsed(0);
-      return;
-    }
+    if (!orderedAtMs) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- interval-driven elapsed timer for kitchen SLA badge
     const update = () =>
-      setTimeElapsed(Math.floor((Date.now() - orderedAt.getTime()) / 60000));
-    update();
+      setTimeElapsed(Math.floor((Date.now() - orderedAtMs) / 60000));
     const interval = window.setInterval(update, 60_000);
     return () => window.clearInterval(interval);
-  }, [orderedAt]);
+  }, [orderedAtMs]);
 
   const timeColor = timeElapsed > 30 ? 'semantic-error' : timeElapsed > 15 ? 'semantic-warning' : 'semantic-success';
 

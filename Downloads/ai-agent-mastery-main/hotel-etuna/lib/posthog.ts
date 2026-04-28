@@ -169,19 +169,10 @@ export const trackPageView = (pageName?: string) => {
 /**
  * Server-side PostHog client (for API routes)
  */
-export const getServerPostHog = () => {
-  const { PostHog } = require('posthog-node');
-  const apiKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-  const apiHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com';
-
-  if (!apiKey) {
-    console.warn('PostHog API key not configured. Server-side analytics disabled.');
-    return null;
-  }
-
-  return new PostHog(apiKey, {
-    host: apiHost,
-  });
+export const getServerPostHog = async () => {
+  // Server analytics client lives in /lib/monitoring/posthog-server.ts.
+  // Keep this shared file browser-safe because it is imported by client components.
+  return null;
 };
 
 /**
@@ -192,13 +183,8 @@ export const trackServerEvent = async (
   distinctId: string,
   properties?: Record<string, any>
 ) => {
-  const client = getServerPostHog();
-  if (client) {
-    client.capture({
-      distinctId,
-      event: eventName,
-      properties,
-    });
-    await client.shutdown();
-  }
+  void eventName;
+  void distinctId;
+  void properties;
+  return;
 };
