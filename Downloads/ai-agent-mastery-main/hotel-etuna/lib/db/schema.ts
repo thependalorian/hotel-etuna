@@ -440,6 +440,10 @@ export const bookings = pgTable('bookings', {
   commissionAmount: decimal('commission_amount', { precision: 12, scale: 2 }),
   currency: varchar('currency', { length: 3 }).default('NAD'),
   paymentStatus: varchar('payment_status', { length: 50 }).default('pending'),
+  paymentMethod: varchar('payment_method', { length: 50 }).default('card'),
+  amountTendered: decimal('amount_tendered', { precision: 10, scale: 2 }),
+  changeGiven: decimal('change_given', { precision: 10, scale: 2 }),
+  receiptNumber: varchar('receipt_number', { length: 100 }),
   specialRequests: text('special_requests'),
   cancellationPolicy: varchar('cancellation_policy', { length: 100 }),
   aiProcessed: boolean('ai_processed').default(false),
@@ -452,6 +456,7 @@ export const bookings = pgTable('bookings', {
   guestIdx: index('idx_bookings_guest_id').on(table.guestId),
   statusIdx: index('idx_bookings_status').on(table.status),
   checkInIdx: index('idx_bookings_check_in_date').on(table.checkInDate),
+  paymentMethodIdx: index('idx_bookings_payment_method').on(table.paymentMethod),
 }));
 
 export const bookingRooms = pgTable('booking_rooms', {
@@ -465,6 +470,25 @@ export const bookingRooms = pgTable('booking_rooms', {
 }, (table) => ({
   bookingIdx: index('idx_booking_rooms_booking_id').on(table.bookingId),
   roomIdx: index('idx_booking_rooms_room_id').on(table.roomId),
+}));
+
+export const cashReconciliations = pgTable('cash_reconciliations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }),
+  propertyId: uuid('property_id').references(() => properties.id, { onDelete: 'cascade' }),
+  reconciliationDate: date('reconciliation_date').notNull(),
+  shift: varchar('shift', { length: 20 }),
+  expectedAmount: decimal('expected_amount', { precision: 12, scale: 2 }).notNull(),
+  actualAmount: decimal('actual_amount', { precision: 12, scale: 2 }).notNull(),
+  discrepancy: decimal('discrepancy', { precision: 12, scale: 2 }),
+  notes: text('notes'),
+  staffId: uuid('staff_id').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  tenantDateIdx: index('idx_cash_reconciliations_tenant_date').on(table.tenantId, table.reconciliationDate),
+  propertyDateIdx: index('idx_cash_reconciliations_property_date').on(table.propertyId, table.reconciliationDate),
+  staffIdx: index('idx_cash_reconciliations_staff').on(table.staffId),
 }));
 
 // ============================================================================
@@ -2684,3 +2708,7 @@ export type PaymentPerformanceMetrics = typeof paymentPerformanceMetrics.$inferS
 export type NewPaymentPerformanceMetrics = typeof paymentPerformanceMetrics.$inferInsert;
 export type RecordRetentionAudit = typeof recordRetentionAudit.$inferSelect;
 export type NewRecordRetentionAudit = typeof recordRetentionAudit.$inferInsert;
+
+// Cash Reconciliation Types
+export type CashReconciliation = typeof cashReconciliations.$inferSelect;
+export type NewCashReconciliation = typeof cashReconciliations.$inferInsert;
