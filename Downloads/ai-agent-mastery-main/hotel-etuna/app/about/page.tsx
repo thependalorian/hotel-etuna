@@ -10,6 +10,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { Heart, Users, Award, Leaf } from 'lucide-react';
+import PublicHero from '@/components/shared/PublicHero';
+import Footer from '@/components/shared/Footer';
 
 export const metadata: Metadata = {
   title: 'About Us',
@@ -38,17 +40,11 @@ export default function AboutPage() {
       </header>
 
       <main>
-        {/* Hero */}
-        <section className="py-20 bg-linear-to-br from-khaki-600 to-terracotta-800 text-white">
-          <div className="container mx-auto px-4 text-center">
-            <h1 className="font-display text-5xl md:text-7xl font-bold mb-6">
-              He Takes Care of Us
-            </h1>
-            <p className="text-2xl md:text-3xl font-signature opacity-95 max-w-3xl mx-auto">
-              The story behind Hotel Etuna
-            </p>
-          </div>
-        </section>
+        <PublicHero
+          title="He Takes Care of Us"
+          subtitle="The story behind Hotel Etuna."
+          breadcrumbLabel="About"
+        />
 
         {/* The Meaning */}
         <section className="py-16 bg-white">
@@ -103,7 +99,7 @@ export default function AboutPage() {
                   </p>
                 </div>
               </div>
-              <div className="aspect-[4/3] relative rounded-2xl overflow-hidden shadow-card">
+              <div className="aspect-4/3 relative rounded-2xl overflow-hidden shadow-card">
                 <Image
                   src="/images/hospitality/hero_hotel_lobby.jpeg"
                   alt="Hotel Etuna Story"
@@ -271,6 +267,7 @@ export default function AboutPage() {
           </div>
         </section>
       </main>
+      <Footer />
     </div>
   );
 }

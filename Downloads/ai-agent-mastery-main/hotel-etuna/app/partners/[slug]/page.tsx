@@ -9,6 +9,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
+import { getServerSession } from 'next-auth';
 import { Button } from '@/components/ui/Button';
 import { PartnerAvailabilityWidget } from '@/components/partners/PartnerAvailabilityWidget';
 import { 
@@ -21,6 +22,9 @@ import {
   Check,
   BadgeCheck
 } from 'lucide-react';
+import { authOptions } from '@/lib/auth/config';
+import PublicHero from '@/components/shared/PublicHero';
+import Footer from '@/components/shared/Footer';
 
 interface PartnerProperty {
   property: {
@@ -105,6 +109,8 @@ export default async function PartnerPropertyPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  const session = await getServerSession(authOptions);
+  const isAuthenticated = Boolean(session?.user);
   const { slug } = await params;
   const data = await getPartnerProperty(slug);
 
@@ -118,44 +124,12 @@ export default async function PartnerPropertyPage({
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section with Gallery */}
-      <section className="relative h-[60vh] bg-gradient-to-br from-khaki-600 to-terracotta-800">
-        {hasImages && (
-          <div className="absolute inset-0">
-            <Image
-              src={primaryImage}
-              alt={property.name}
-              fill
-              className="object-cover opacity-40"
-              priority
-            />
-          </div>
-        )}
-        <div className="relative h-full flex items-center justify-center text-center px-4">
-          <div className="max-w-4xl">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <BadgeCheck className="w-6 h-6 text-white" />
-              <span className="text-white/90 text-sm font-medium uppercase tracking-wider">
-                Hotel Etuna Verified Partner
-              </span>
-            </div>
-            <h1 className="font-display text-5xl md:text-6xl text-white mb-4">
-              {property.name}
-            </h1>
-            <div className="flex items-center justify-center gap-4 text-white/90">
-              <div className="flex items-center gap-1">
-                <MapPin className="w-4 h-4" />
-                <span>{property.address.city}, {property.address.country}</span>
-              </div>
-              <span>•</span>
-              <div className="flex items-center gap-1">
-                <Star className="w-4 h-4 fill-current" />
-                <span className="capitalize">{property.type.replace('_', ' ')}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <PublicHero
+        title={property.name}
+        subtitle={`${property.address.city}, ${property.address.country} · ${property.type.replace('_', ' ')}`}
+        backgroundImage={primaryImage}
+        breadcrumbLabel="Partner Details"
+      />
 
       <div className="max-w-7xl mx-auto px-4 py-16">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
@@ -180,7 +154,7 @@ export default async function PartnerPropertyPage({
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {property.amenities.map((amenity, index) => (
                     <div key={index} className="flex items-center gap-2">
-                      <Check className="w-5 h-5 text-khaki-600 flex-shrink-0" />
+                      <Check className="w-5 h-5 text-khaki-600 shrink-0" />
                       <span className="text-gray-700">{amenity}</span>
                     </div>
                   ))}
@@ -230,12 +204,14 @@ export default async function PartnerPropertyPage({
                         <div className="flex flex-col items-end gap-2">
                           <div className="text-right">
                             <div className="text-3xl font-bold text-terracotta-800">
-                              {property.currency} {room.pricePerNight}
+                              {isAuthenticated ? `${property.currency} ${room.pricePerNight}` : 'Sign in to view rates'}
                             </div>
                             <div className="text-sm text-gray-600">per night</div>
                           </div>
-                          <Button variant="primary" size="md">
-                            Check Availability
+                          <Button asChild variant="primary" size="md">
+                            <Link href={isAuthenticated ? `/partners/${slug}` : `/login?redirect=/partners/${slug}`}>
+                              {isAuthenticated ? 'Check Availability' : 'Sign In to View Partner Rates & Book'}
+                            </Link>
                           </Button>
                         </div>
                       </div>
@@ -245,7 +221,16 @@ export default async function PartnerPropertyPage({
               )}
             </section>
 
-            <PartnerAvailabilityWidget propertyId={property.id} />
+            {isAuthenticated ? (
+              <PartnerAvailabilityWidget propertyId={property.id} />
+            ) : (
+              <div className="rounded-xl border border-khaki-600/30 bg-khaki-600/10 p-6 text-center">
+                <p className="text-terracotta-900 font-semibold mb-3">Sign in to view partner rates and book</p>
+                <Button asChild>
+                  <Link href={`/login?redirect=/partners/${slug}`}>Sign In</Link>
+                </Button>
+              </div>
+            )}
 
             {/* Contact Form */}
             <section className="bg-nude-50 rounded-xl p-8">
@@ -347,7 +332,7 @@ export default async function PartnerPropertyPage({
               <div className="space-y-2">
                 <h4 className="font-semibold text-gray-900">Location</h4>
                 <div className="flex items-start gap-2">
-                  <MapPin className="w-4 h-4 text-khaki-600 mt-1 flex-shrink-0" />
+                  <MapPin className="w-4 h-4 text-khaki-600 mt-1 shrink-0" />
                   <address className="text-sm text-gray-700 not-italic">
                     {property.address.street}<br />
                     {property.address.city}, {property.address.state}<br />
@@ -378,6 +363,7 @@ export default async function PartnerPropertyPage({
           </Link>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

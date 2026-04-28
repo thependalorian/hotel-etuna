@@ -9,6 +9,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { MapPin, Phone, Mail, Clock, Send } from 'lucide-react';
+import PublicHero from '@/components/shared/PublicHero';
+import Footer from '@/components/shared/Footer';
 
 export const metadata: Metadata = {
   title: 'Contact Us',
@@ -37,17 +39,11 @@ export default function ContactPage() {
       </header>
 
       <main>
-        {/* Hero */}
-        <section className="py-16 bg-gradient-to-br from-khaki-600 to-terracotta-800 text-white">
-          <div className="container mx-auto px-4 text-center">
-            <h1 className="font-display text-5xl md:text-6xl font-bold mb-6">
-              Get In Touch
-            </h1>
-            <p className="text-xl md:text-2xl max-w-3xl mx-auto opacity-95">
-              We're here to help with reservations, inquiries, and making your stay perfect
-            </p>
-          </div>
-        </section>
+        <PublicHero
+          title="Get In Touch"
+          subtitle="We're here to help with reservations, inquiries, and making your stay perfect."
+          breadcrumbLabel="Contact"
+        />
 
         {/* Contact Form & Info */}
         <section className="py-16">
@@ -158,7 +154,7 @@ export default function ContactPage() {
                   
                   <div className="space-y-6">
                     <div className="flex gap-4">
-                      <div className="w-12 h-12 bg-khaki-600 rounded-full flex items-center justify-center flex-shrink-0">
+                      <div className="w-12 h-12 bg-khaki-600 rounded-full flex items-center justify-center shrink-0">
                         <MapPin className="w-6 h-6 text-white" />
                       </div>
                       <div>
@@ -171,7 +167,7 @@ export default function ContactPage() {
                     </div>
 
                     <div className="flex gap-4">
-                      <div className="w-12 h-12 bg-khaki-600 rounded-full flex items-center justify-center flex-shrink-0">
+                      <div className="w-12 h-12 bg-khaki-600 rounded-full flex items-center justify-center shrink-0">
                         <Phone className="w-6 h-6 text-white" />
                       </div>
                       <div>
@@ -189,7 +185,7 @@ export default function ContactPage() {
                     </div>
 
                     <div className="flex gap-4">
-                      <div className="w-12 h-12 bg-khaki-600 rounded-full flex items-center justify-center flex-shrink-0">
+                      <div className="w-12 h-12 bg-khaki-600 rounded-full flex items-center justify-center shrink-0">
                         <Mail className="w-6 h-6 text-white" />
                       </div>
                       <div>
@@ -207,7 +203,7 @@ export default function ContactPage() {
                     </div>
 
                     <div className="flex gap-4">
-                      <div className="w-12 h-12 bg-khaki-600 rounded-full flex items-center justify-center flex-shrink-0">
+                      <div className="w-12 h-12 bg-khaki-600 rounded-full flex items-center justify-center shrink-0">
                         <Clock className="w-6 h-6 text-white" />
                       </div>
                       <div>
@@ -312,7 +308,7 @@ export default function ContactPage() {
         </section>
 
         {/* CTA */}
-        <section className="py-16 bg-gradient-to-br from-terracotta-800 to-terracotta-900 text-white">
+        <section className="py-16 bg-linear-to-br from-terracotta-800 to-terracotta-900 text-white">
           <div className="container mx-auto px-4 text-center">
             <h2 className="font-display text-4xl font-bold mb-4">
               Ready to Book Your Stay?
@@ -326,6 +322,7 @@ export default function ContactPage() {
           </div>
         </section>
       </main>
+      <Footer />
     </div>
   );
 }

@@ -10,6 +10,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { MapPin, Star, Home, BadgeCheck } from 'lucide-react';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/config';
+import PublicHero from '@/components/shared/PublicHero';
+import Footer from '@/components/shared/Footer';
 
 export const metadata: Metadata = {
   title: 'Partner Accommodations - Windhoek Lodging | Hotel Etuna',
@@ -30,6 +34,7 @@ interface Partner {
   images: string[];
   amenities: string[];
   type: string;
+  roomCount: number;
   tenantId: string;
   tenantName: string;
 }
@@ -55,6 +60,8 @@ async function getPartners(): Promise<Partner[]> {
 }
 
 export default async function PartnersPage() {
+  const session = await getServerSession(authOptions);
+  const isAuthenticated = Boolean(session?.user);
   const partners = await getPartners();
 
   return (
@@ -79,21 +86,12 @@ export default async function PartnersPage() {
       </header>
 
       <main>
-        {/* Hero Section */}
-        <section className="py-16 bg-gradient-to-br from-khaki-600 to-terracotta-800 text-white">
-          <div className="container mx-auto px-4 text-center">
-            <h1 className="font-display text-4xl md:text-6xl font-bold mb-6">
-              Referral Partners – Windhoek Lodging
-            </h1>
-            <p className="text-xl md:text-2xl mb-4 max-w-3xl mx-auto opacity-95">
-              Trusted accommodation partners across Windhoek
-            </p>
-            <p className="text-white/80 max-w-2xl mx-auto">
-              Can't find availability at Hotel Etuna? Explore our carefully selected partner properties 
-              offering quality accommodation throughout the region.
-            </p>
-          </div>
-        </section>
+        <PublicHero
+          title="Referral Partners - Windhoek Lodging"
+          subtitle="Trusted accommodation partners across Windhoek."
+          backgroundImage="/images/hospitality/partner_jayla.jpeg"
+          breadcrumbLabel="Partners"
+        />
 
         {/* Partners Grid */}
         <section className="py-16">
@@ -117,7 +115,7 @@ export default async function PartnersPage() {
                       className="bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300"
                     >
                       {/* Image */}
-                      <div className="aspect-[16/9] relative bg-nude-200">
+                      <div className="aspect-video relative bg-nude-200">
                         <Image
                           src={primaryImage}
                           alt={partner.name}
@@ -154,6 +152,9 @@ export default async function PartnersPage() {
                         <p className="text-terracotta-800 mb-6 leading-relaxed line-clamp-3">
                           {partner.description}
                         </p>
+                        <p className="text-sm text-rustic font-semibold mb-4">
+                          {partner.roomCount} room{partner.roomCount === 1 ? '' : 's'} available
+                        </p>
 
                         {/* Amenities */}
                         {partner.amenities && partner.amenities.length > 0 && (
@@ -185,9 +186,9 @@ export default async function PartnersPage() {
 
                         {/* CTA */}
                         <Button asChild size="lg" className="w-full">
-                          <Link href={`/partners/${partner.slug}`}>
+                          <Link href={isAuthenticated ? `/partners/${partner.slug}` : `/login?redirect=/partners/${partner.slug}`}>
                             <Home className="w-5 h-5" />
-                            View Property Details
+                            {isAuthenticated ? 'View Property Details' : 'Sign In to View Partner Rates & Book'}
                           </Link>
                         </Button>
                       </div>
@@ -216,39 +217,7 @@ export default async function PartnersPage() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-terracotta-900 text-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <h3 className="font-display text-xl font-bold mb-4">Hotel Etuna</h3>
-              <p className="text-white/80 text-sm">
-                "He Takes Care of Us"<br />
-                Ongwediva, Namibia
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="/" className="text-white/80 hover:text-white transition-colors">Home</Link></li>
-                <li><Link href="/rooms" className="text-white/80 hover:text-white transition-colors">Rooms</Link></li>
-                <li><Link href="/about" className="text-white/80 hover:text-white transition-colors">About Us</Link></li>
-                <li><Link href="/contact" className="text-white/80 hover:text-white transition-colors">Contact</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="/legal/privacy" className="text-white/80 hover:text-white transition-colors">Privacy Policy</Link></li>
-                <li><Link href="/legal/terms" className="text-white/80 hover:text-white transition-colors">Terms of Service</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-8 pt-8 border-t border-white/20 text-center text-sm text-white/60">
-            © {new Date().getFullYear()} Hotel Etuna. All rights reserved.
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

@@ -45,6 +45,20 @@ const sage = {
   DEFAULT: "#9bae8a",
 } as const;
 
+const rustic = {
+  DEFAULT: "#480404",
+  50: "#fdf2f2",
+  100: "#fde8e8",
+  200: "#fbd0d0",
+  300: "#f7a8a8",
+  400: "#f17070",
+  500: "#e54545",
+  600: "#c53030",
+  700: "#9b2020",
+  800: "#822222",
+  900: "#480404",
+} as const;
+
 const semantic = {
   success: "#22c55e",
   "success-light": "#dcfce7",
@@ -106,6 +120,7 @@ const config = {
         khaki,
         terracotta,
         sage,
+        rustic,
         semantic,
         surface,
         /** Legacy aliases → map to DS tokens for gradual migration */

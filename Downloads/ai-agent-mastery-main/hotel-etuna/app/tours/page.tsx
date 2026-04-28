@@ -10,6 +10,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { Compass, Users, Clock, MapPin, Car, Camera } from 'lucide-react';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/config';
+import PublicHero from '@/components/shared/PublicHero';
+import Footer from '@/components/shared/Footer';
 
 export const metadata: Metadata = {
   title: 'Tours & Experiences',
@@ -109,7 +113,9 @@ const tours = [
   },
 ];
 
-export default function ToursPage() {
+export default async function ToursPage() {
+  const session = await getServerSession(authOptions);
+  const isAuthenticated = Boolean(session?.user);
   return (
     <div className="min-h-screen bg-surface-background">
       {/* Header */}
@@ -131,18 +137,12 @@ export default function ToursPage() {
       </header>
 
       <main>
-        {/* Hero */}
-        <section className="py-16 bg-gradient-to-br from-sage to-khaki-600 text-white">
-          <div className="container mx-auto px-4 text-center">
-            <Compass className="w-16 h-16 mx-auto mb-6" />
-            <h1 className="font-display text-5xl md:text-6xl font-bold mb-6">
-              Tours & Experiences
-            </h1>
-            <p className="text-xl md:text-2xl max-w-3xl mx-auto opacity-95">
-              Discover the heart of Northern Namibia with our curated experiences
-            </p>
-          </div>
-        </section>
+        <PublicHero
+          title="Tours & Experiences"
+          subtitle="Discover the heart of Northern Namibia with curated experiences."
+          backgroundImage="/images/hospitality/room_luxury.jpeg"
+          breadcrumbLabel="Tours"
+        />
 
         {/* Tours Grid */}
         <section className="py-16">
@@ -153,7 +153,7 @@ export default function ToursPage() {
                   key={tour.name}
                   className="bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300"
                 >
-                  <div className="aspect-[4/3] relative bg-nude-200">
+                  <div className="aspect-4/3 relative bg-nude-200">
                     <Image
                       src={tour.image}
                       alt={tour.name}
@@ -197,11 +197,15 @@ export default function ToursPage() {
                     <div className="border-t border-nude-200 pt-4 flex items-center justify-between">
                       <div>
                         <div className="text-2xl font-display font-bold text-khaki-600">
-                          NAD {tour.price.toLocaleString()}
+                          {isAuthenticated ? `NAD ${tour.price.toLocaleString()}` : 'Sign in to view rates'}
                         </div>
                         <div className="text-xs text-terracotta-800">per person</div>
                       </div>
-                      <Button size="sm">Inquire</Button>
+                      <Button asChild size="sm">
+                        <Link href={isAuthenticated ? '/contact' : '/login?redirect=/tours'}>
+                          {isAuthenticated ? 'Inquire' : 'Sign In to Book'}
+                        </Link>
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -226,7 +230,7 @@ export default function ToursPage() {
                   { icon: MapPin, label: 'Entry Fees', desc: 'All entrance fees and permits included' },
                 ].map((item) => (
                   <div key={item.label} className="flex gap-4 bg-white rounded-xl p-6">
-                    <div className="w-12 h-12 bg-sage/20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <div className="w-12 h-12 bg-sage/20 rounded-full flex items-center justify-center shrink-0">
                       <item.icon className="w-6 h-6 text-sage" />
                     </div>
                     <div>
@@ -241,7 +245,7 @@ export default function ToursPage() {
         </section>
 
         {/* CTA */}
-        <section className="py-16 bg-gradient-to-br from-terracotta-800 to-terracotta-900 text-white">
+        <section className="py-16 bg-linear-to-br from-terracotta-800 to-terracotta-900 text-white">
           <div className="container mx-auto px-4 text-center">
             <h2 className="font-display text-4xl font-bold mb-4">
               Ready to Explore?
@@ -250,8 +254,10 @@ export default function ToursPage() {
               Contact our concierge to book your tour or create a custom experience
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="xl" className="bg-white text-terracotta-900 hover:bg-nude-100">
-                <Link href="/contact">Contact Concierge</Link>
+            <Button asChild size="xl" className="bg-white text-terracotta-900 hover:bg-rustic hover:text-white">
+                <Link href={isAuthenticated ? '/contact' : '/login?redirect=/tours'}>
+                  {isAuthenticated ? 'Contact Concierge' : 'Sign in to book a tour'}
+                </Link>
               </Button>
               <Button asChild size="xl" variant="outline" className="border-white text-white hover:bg-white/20">
                 <Link href="/">Book Your Stay</Link>
@@ -260,6 +266,7 @@ export default function ToursPage() {
           </div>
         </section>
       </main>
+      <Footer />
     </div>
   );
 }

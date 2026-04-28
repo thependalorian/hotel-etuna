@@ -6,8 +6,8 @@
  */
 
 import { NextResponse } from 'next/server';
-import { db, properties, tenants } from '@/lib/db';
-import { and, asc, eq } from 'drizzle-orm';
+import { db, properties, rooms, tenants } from '@/lib/db';
+import { and, asc, eq, inArray } from 'drizzle-orm';
 
 export async function GET() {
   try {
@@ -32,6 +32,20 @@ export async function GET() {
       .where(and(eq(tenants.type, 'partner'), eq(properties.status, 'active')))
       .orderBy(asc(properties.name));
 
+    const propertyIds = rows.map((row) => row.id);
+    const roomCountRows = propertyIds.length
+      ? await db
+          .select({ propertyId: rooms.propertyId })
+          .from(rooms)
+          .where(inArray(rooms.propertyId, propertyIds))
+      : [];
+    const roomCountMap = roomCountRows.reduce<Record<string, number>>((acc, row) => {
+      const id = row.propertyId ?? '';
+      if (!id) return acc;
+      acc[id] = (acc[id] ?? 0) + 1;
+      return acc;
+    }, {});
+
     const partners = rows.map((row) => ({
       id: row.id,
       name: row.name,
@@ -46,6 +60,7 @@ export async function GET() {
       images: row.images ?? [],
       amenities: row.amenities ?? [],
       type: row.type,
+      roomCount: roomCountMap[row.id] ?? 0,
       tenantId: row.tenantId,
       tenantName: row.tenantName,
     }));
