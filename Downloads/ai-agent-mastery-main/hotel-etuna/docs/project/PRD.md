@@ -1,6 +1,6 @@
 # Hotel Etuna — Product Requirements Document (PRD)
 
-**Version:** 2.0.0  
+**Version:** 2.1.0  
 **Date:** April 28, 2026  
 **Audience:** Product, engineering, design, Hotel Etuna management  
 **Status:** ✅ Production — All Core Features Implemented & Verified  
@@ -13,7 +13,7 @@
 Hotel Etuna is a **hub‑and‑spoke hospitality platform** built on the Buffr Host core, featuring:
 
 - A **flagship property** (Hotel Etuna) with full PMS, CRM, F&B, and staff operations
-- A **public‑facing guest website** for booking rooms, viewing amenities, dining menus, and AI‑powered concierge (Sofia)
+- A **public‑facing guest website** with **gated content** (descriptions visible, prices/booking require login) for booking rooms, viewing amenities, dining menus, and AI‑powered concierge (Sofia)
 - A **B2B referral partner network** enabling trusted properties (JayLa Accommodation, Aquarius Airbnb Windhoek) to join the platform
 - **Self‑service partner portals** for independent property management while earning Hotel Etuna commissions
 
@@ -36,8 +36,8 @@ Hotel Etuna is a **hub‑and‑spoke hospitality platform** built on the Buffr H
 | **Communications** | Sofia AI voice/web chat, WhatsApp webhook, support tickets. Email automation (booking confirmations, check‑in reminders, post‑stay thank you). **Hub tenant only** — partners do not have Sofia AI or email automation. |
 | **Support** | Platform support tickets for hotel staff and partners. Integrated issue tracker for bug reports, feature requests. Hub admin can view all support tickets. |
 | **Compliance & Risk** | Consumer rights / cyber incident lifecycles; **KYC/KYB for Hotel Etuna and all partners**. Court‑admissible audit themes. All regulatory requirements (PSD‑12, PSD‑4, ETA 2019) apply platform‑wide. |
-| **AI (Sofia)** | **Hub‑exclusive AI concierge** with knowledge base for Hotel Etuna only. RAG over Hotel Etuna property documents, guest preferences, CRM memory. Human escalation for low confidence or policy keywords. **Partners do not have access to Sofia AI or any AI features.** |
-| **Guest‑Facing Website** | Public homepage with hero, Hotel Etuna room listings, restaurant menu, photo gallery, contact page, **plus** a "Referral Partners" section showcasing partner properties. Fully branded with Hotel Etuna visual identity. **✅ Database‑driven** — all content pulled live from Neon DB. **✅ Review approval workflow** (`is_public` toggle). |
+| **AI (Sofia)** | **Hub‑exclusive AI concierge** with knowledge base for Hotel Etuna only. RAG over Hotel Etuna property documents, guest preferences, CRM memory. Human escalation for low confidence or policy keywords. **Partners do not have access to Sofia AI or any AI features.** Sofia enforces gated content: will not disclose prices or availability to unauthenticated users, instead prompts sign‑up. |
+| **Guest‑Facing Website** | Public homepage with hero, Hotel Etuna room listings, restaurant menu, photo gallery, contact page, **plus** a "Referral Partners" section showcasing partner properties. Fully branded with Hotel Etuna visual identity. **✅ Database‑driven** — all content pulled live from Neon DB. **✅ Review approval workflow** (`is_public` toggle). **✅ Gated content model** — prices/booking hidden until login. |
 | **Platform** | Hub‑and‑spoke multi‑tenancy with `tenant_type` distinction. Hub admin has elevated permissions. Domain: `hoteletuna.com` with partner subpages at `/partners/[slug]`. |
 
 ### 2.2 B2B Referral Partner Network
@@ -58,21 +58,76 @@ Hotel Etuna is a **hub‑and‑spoke hospitality platform** built on the Buffr H
 | **Partner Management** | Hub admin can invite external properties (JayLa Accommodation — 4 self‑catering rooms; Aquarius Luxurious Penthouse — 1 double room) via email. Each invite creates a **Partner Tenant** with isolated access to only their property, rooms, rates, images, and bookings. RLS policies enforce complete tenant isolation. |
 | **Self‑Service Portal** | Partners authenticate via `/partner` route and land on a white‑labeled dashboard. They can manage: property name, description, photos, room types, rates, availability calendar, and view their bookings. No access to hub features or other partners. |
 | **Invite & Onboarding** | Hub admin clicks **"Invite Partner"** in the dashboard, enters partner email and property name. System generates a unique invite token, sends branded email with sign‑up link. Partner claims invite, sets password, auto‑creates their tenant (`type=partner`) and property record. |
-| **Public Listings** | Each partner gets a public profile page at `/partners/[slug]` (e.g., `/partners/jayla`). Displays: hero image, property description, room listings, photo gallery, amenities, booking widget (pre‑filled with partner's propertyId), contact information. **No Sofia AI chat widget** — simple contact form instead. |
+| **Public Listings** | Each partner gets a public profile page at `/partners/[slug]` (e.g., `/partners/jayla`). Displays: hero image, property description, room listings, photo gallery, amenities, booking widget (pre‑filled with partner's propertyId), contact information. **No Sofia AI chat widget** — simple contact form instead. **Gated content:** Partner prices hidden until user logs in. |
 | **Booking & Commission** | All bookings processed centrally. Commission model: configurable percentage (default 10%) on partner bookings. `commission_amount` calculated at booking time. Hub admin dashboard shows aggregated commissions per partner, filterable by date range. |
 | **AI Exclusivity** | **Sofia AI is exclusive to Hotel Etuna (hub tenant only).** All AI endpoints (`/api/sofia/*`, `/api/ai/*`, `/api/crm/*`) are restricted to hub tenant only via middleware enforcement. Partners cannot access CRM, knowledge base, or any AI features. |
 
 ---
 
-## 3. Non‑Functional Requirements
+## 3. Gated Content Strategy (Authentication Wall)
 
-### 3.1 Architecture & Data Isolation
+### 3.1 Rationale
+
+Hotel Etuna uses a **gated content model** to:
+- Build a qualified guest database
+- Protect rate integrity from competitors
+- Increase conversion (registered users book more)
+- Provide personalized pricing and recommendations post-login
+
+### 3.2 Public Page Visibility Matrix (Unauthenticated)
+
+| Page | Visible Content | Hidden Content | Primary CTA |
+|------|----------------|----------------|-------------|
+| **Landing (/)** | Hero, story, room **names & images** (no prices), dining overview (no prices), approved reviews, partner cards, footer. | Room prices, booking form (replaced with "Sign in to check"), menu prices. | "View Rooms" → `/rooms`<br>"Sign Up to See Prices" on room cards. |
+| **/rooms** | Room type cards with images, descriptions, amenities icons. | Prices, booking button. | "Sign In to View Prices & Book" on each card. |
+| **/rooms/[slug]** | Photo gallery, full description, amenities list, room capacity. | Price per night, date picker / booking widget. | "Sign In to Check Availability" CTA. |
+| **/dining** | Restaurant name, description, menu categories, **dish names & descriptions** (no prices). | Prices, "Order to Room" button. | "Sign In to Order Online" CTA. |
+| **/tours** | Tour titles, descriptions, durations, images. | Prices, booking button. | "Sign In to Book a Tour" CTA. |
+| **/partners & /partners/[slug]** | Partner property info, images, descriptions, room types. | Partner prices, partner booking widget. | "Sign In to View Partner Rates & Book". |
+| **Sofia AI Chat** | Public visitors can ask general questions (e.g., "Do you have a pool?", "What time is check‑in?"). Sofia **must not** disclose room rates, availability, or take booking requests from unauthenticated users. | Prices, availability, booking. | Sofia replies: *"For pricing and availability, please sign up — it only takes a minute!"* |
+
+### 3.3 Post-Login Experience
+
+**After login**, all prices, availability, and booking/ordering widgets become visible. The system redirects the user back to the page they were on before login (via a `redirect` query parameter).
+
+**Login Flow:**
+1. User clicks "Sign In to View Prices" on `/rooms`
+2. Redirects to `/login?redirect=/rooms`
+3. After successful auth, returns to `/rooms` with prices visible
+4. All booking widgets become active
+
+### 3.4 Implementation Requirements
+
+| Component | Requirement |
+|-----------|-------------|
+| **AuthGate Context** | React Context exposing `isAuthenticated` (from session). All price displays check this before rendering. |
+| **Landing Page** | Replace price lines with "Sign in to view prices". Hide booking widget, show "Sign in to check availability" card. |
+| **Room Pages** | Hide prices when `!isAuthenticated`. Replace booking button with "Sign In" CTA. |
+| **Dining Page** | Show menu with names/descriptions, hide prices. Replace "Order" with "Sign in to order". |
+| **Tours Page** | Show tour details without prices. Replace "Book Now" with "Sign in to book". |
+| **Partner Pages** | Apply same gating: hide partner room prices, replace booking widget with sign‑in prompt. |
+| **Sofia AI** | System prompt: *"Never disclose prices or availability to unauthenticated users. Instead, invite them to sign up."* Chat widget visible to all, but responses change based on auth state. |
+| **Login Redirect** | After successful login, read `redirect` query param and return user to original page. Default to `/dashboard` if no redirect. |
+
+### 3.5 Verification Checklist
+
+- [ ] Visit site in incognito → no prices visible, all CTAs lead to login
+- [ ] Log in → all prices, booking, and ordering features appear
+- [ ] Sofia chat responds with sign‑up invitation when asked about prices
+- [ ] Login redirect works correctly from all pages
+- [ ] Authenticated users see no "Sign in" CTAs (replaced with booking widgets)
+
+---
+
+## 4. Non‑Functional Requirements
+
+### 4.1 Architecture & Data Isolation
 
 - **Hub‑and‑Spoke Multi‑Tenancy:** Hotel Etuna = hub tenant with full access. Partners = lightweight tenants with strict RLS enforcement. 62 PostgreSQL RLS policies active. `tenant_type` enum distinguishes `hub` from `partner`. `parent_tenant_id` links partners to hub.
 - **Database:** **Neon (serverless Postgres)** — connection pooling for serverless environments. Drizzle ORM handles all database interactions. No Supabase‑specific features used.
 - **Vector Database:** **Qdrant** — collection `sofia_knowledge` with hub tenant namespace for Hotel Etuna property knowledge.
 
-### 3.2 Security & Compliance
+### 4.2 Security & Compliance
 
 - **Authentication:** Stack Auth (or NextAuth) for all users. JWT tokens include `tenant_id` and `role` claims.
 - **Authorization:** RBAC: `owner`, `manager`, `admin`, `staff`. Middleware enforces tenant isolation. Hub‑only routes (`/api/sofia/*`, `/api/crm/*`, `/api/ai/*`) return 403 for partners.
@@ -81,7 +136,7 @@ Hotel Etuna is a **hub‑and‑spoke hospitality platform** built on the Buffr H
 - **Data Protection:** GDPR and POPIA compliant. Marketing consent flags enforced in CRM queries. Audit trail logs all sensitive operations with old/new values, user ID, IP, timestamp.
 - **Session Management:** 8‑hour absolute session max, 30‑minute inactivity timeout (with 2‑minute warning toast), rolling session extension on activity.
 
-### 3.3 Branding & User Experience
+### 4.3 Branding & User Experience
 
 | Surface | Theme |
 |---------|-------|
@@ -91,14 +146,14 @@ Hotel Etuna is a **hub‑and‑spoke hospitality platform** built on the Buffr H
 | **Partner Public Listings** | Hotel Etuna website wrapper with partner‑specific content. Partner logo and images. Contact form (not Sofia chat widget). |
 | **Email Templates** | Hotel Etuna branded for hub emails. Simple transactional templates for partner booking confirmations. |
 
-### 3.4 Performance & Reliability
+### 4.4 Performance & Reliability
 
 - **Uptime Target:** 99.9% (aligned with PSD‑12)
 - **AI Reliability:** Multi‑provider fallback (DeepSeek → Anthropic → Groq)
 - **Caching:** ISR revalidation every 300 seconds on landing page
 - **Image Handling:** Vercel Blob for property images; max 5MB per image, 20 images per property
 
-### 3.5 Deployability
+### 4.5 Deployability
 
 - **Hosting:** Vercel (Next.js App Router)
 - **Domain:** `hoteletuna.com` with Vercel DNS
@@ -106,7 +161,7 @@ Hotel Etuna is a **hub‑and‑spoke hospitality platform** built on the Buffr H
 
 ---
 
-## 4. Out of Scope
+## 5. Out of Scope
 
 - Partner AI/CRM parity with hub
 - Open marketplace onboarding (partners are invite‑only)
@@ -119,22 +174,25 @@ Hotel Etuna is a **hub‑and‑spoke hospitality platform** built on the Buffr H
 
 ---
 
-## 5. Success Metrics
+## 6. Success Metrics
 
 - Guests complete booking in <3 minutes with consistent state between website and back‑office
+- **Sign‑up conversion rate:** ≥30% of visitors who click "View Prices" complete registration
 - Partner onboarding works end‑to‑end (invite → claim → listing live)
 - Commission tracking is 100% accurate and auditable
 - Zero cross‑tenant data leakage (verified by RLS test script)
 - Sofia remains unavailable to partners (middleware‑enforced 403)
+- **Sofia enforces gating:** 100% of price/availability inquiries from unauthenticated users result in sign‑up prompt
 - Sofia AI answers ≥70% of guest inquiries correctly
 - Staff manage 100% of booking lifecycle digitally (zero spreadsheets)
 - CRM captures ≥95% of guest interactions
+- **Registered users book at 3x the rate of anonymous visitors**
 
 ---
 
-## 6. Design Direction (Brand)
+## 7. Design Direction (Brand)
 
-### 6.1 Color Palette
+### 7.1 Color Palette
 
 | Token | Hex | Usage |
 |-------|-----|-------|
@@ -151,14 +209,14 @@ Hotel Etuna is a **hub‑and‑spoke hospitality platform** built on the Buffr H
 | `khaki‑sand` | `#c4a97d` | Badges/soft backgrounds |
 | `sage‑green` | `#9bae8a` | Nature/tours accents |
 
-### 6.2 Typography
+### 7.2 Typography
 
 - **Body:** Inter (system‑ui stack), 16px base
 - **Display:** Playfair Display (headlines, room names, hero text)
 - **Mono:** JetBrains Mono (invoices, analytics, code)
 - **Signature:** Dancing Script (limited personal touches)
 
-### 6.3 Component Direction
+### 7.3 Component Direction
 
 - **Primary button:** `bg‑khaki‑600 hover:bg‑khaki‑700 text‑white`
 - **Focus ring:** `ring‑2 ring‑khaki‑600 ring‑offset‑2`
@@ -167,7 +225,7 @@ Hotel Etuna is a **hub‑and‑spoke hospitality platform** built on the Buffr H
 - **Hub sidebar:** Hotel Etuna "HE" badge + name
 - **Partner dashboard:** Neutral palette, no Sofia/CRM navigation
 
-### 6.4 Tone of Voice
+### 7.4 Tone of Voice
 
 - Warm, personal, knowledgeable — like a friend who grew up in northern Namibia
 - Inclusive: "we" and "you", never the royal "Hotel Etuna allows"
@@ -176,23 +234,23 @@ Hotel Etuna is a **hub‑and‑spoke hospitality platform** built on the Buffr H
 
 ---
 
-## 7. Landing Page Structure (`app/page.tsx`)
+## 8. Landing Page Structure (`app/page.tsx`)
 
 **✅ DATABASE‑DRIVEN IMPLEMENTATION COMPLETE**
 
 All sections are **database‑driven** (React Server Component with Drizzle ORM queries):
 
-| # | Section | Data Source |
-|---|---------|-------------|
-| 1 | **Hero:** "He Takes Care of Us" — background image, CTA buttons | `properties` (hub) |
-| 2 | **Etuna Story:** Brand narrative, stats (5 rooms, pool, 10+ tours) | Static text + `rooms` count |
-| 3 | **Rooms:** 5 room type cards with real amenities, prices, slugs | `rooms` table |
-| 4 | **Dining:** Etuna Restaurant overview, sample menu items | `restaurants` + `cms_menu_items` |
-| 5 | **Tours:** 7 curated tours with descriptions, prices | Static (future: `tours` table) |
-| 6 | **Guest Love:** Approved reviews only (`is_public = true`), aggregate rating | `guest_reviews` |
-| 7 | **Booking Widget:** Date picker, guests, room type selector | `POST /api/bookings/availability` |
-| 8 | **Referral Partners:** JayLa + Aquarius cards | `tenants` (type=partner) + `properties` |
-| 9 | **Footer:** Real address, phone, email, quick links | `properties` (hub) |
+| # | Section | Data Source | Gated Content |
+|---|---------|-------------|---------------|
+| 1 | **Hero:** "He Takes Care of Us" — background image, CTA buttons | `properties` (hub) | None (public) |
+| 2 | **Etuna Story:** Brand narrative, stats (5 rooms, pool, 10+ tours) | Static text + `rooms` count | None (public) |
+| 3 | **Rooms:** 5 room type cards with names, images, amenities | `rooms` table | ✅ **Prices hidden** — "Sign in to view prices" CTA |
+| 4 | **Dining:** Etuna Restaurant overview, dish names/descriptions | `restaurants` + `cms_menu_items` | ✅ **Prices hidden** — "Sign in to order" CTA |
+| 5 | **Tours:** 7 curated tours with descriptions, durations | Static (future: `tours` table) | ✅ **Prices hidden** — "Sign in to book" CTA |
+| 6 | **Guest Love:** Approved reviews only (`is_public = true`), aggregate rating | `guest_reviews` | None (public) |
+| 7 | **Booking Widget:** Replaced with "Sign in to check availability" card | `properties` | ✅ **Entire widget hidden** — auth required |
+| 8 | **Referral Partners:** JayLa + Aquarius cards | `tenants` (type=partner) + `properties` | None (names/images public) |
+| 9 | **Footer:** Real address, phone, email, quick links | `properties` (hub) | None (public) |
 
 **ISR Revalidation:** 300 seconds (5 minutes).
 
@@ -205,6 +263,7 @@ All sections are **database‑driven** (React Server Component with Drizzle ORM 
 - ✅ Average rating calculated from approved reviews
 - ✅ Empty state handling ("No reviews yet. Be the first!")
 - ✅ Guest name fallback ("Anonymous" if guest deleted)
+- ⏳ **Gated content:** Prices hidden until authentication (PENDING)
 
 **Review Approval Workflow:**
 - ✅ Admin dashboard at `/crm/reviews` with toggle functionality
@@ -221,9 +280,9 @@ All sections are **database‑driven** (React Server Component with Drizzle ORM 
 
 ---
 
-## 8. Technical Architecture
+## 9. Technical Architecture
 
-### 8.1 System Overview
+### 9.1 System Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -250,18 +309,19 @@ All sections are **database‑driven** (React Server Component with Drizzle ORM 
                               │
                      ┌────────▼────────┐
                      │ Public Website  │
-                     │ (Database‑driven)│
+                     │ (Database‑driven│
+                     │ + Gated Content)│
                      └─────────────────┘
 ```
 
-### 8.2 Database (Neon Serverless Postgres)
+### 9.2 Database (Neon Serverless Postgres)
 
 - **34 tables** migrated from Buffr Host
 - **6 additional migrations** for partner network (0003–0006)
 - **62 RLS policies** enforcing tenant isolation
 - **Key tables:** `tenants` (with `type`, `parent_tenant_id`, `commission_percent`), `properties`, `rooms`, `bookings` (with `commission_amount`), `guest_reviews` (with `is_public`), `partner_invites`
 
-### 8.3 API Architecture
+### 9.3 API Architecture
 
 **Partner Network Endpoints:**
 - `POST /api/admin/partners/invite` — Hub admin invites partner
@@ -275,21 +335,23 @@ All sections are **database‑driven** (React Server Component with Drizzle ORM 
 
 **AI/CRM Endpoints (Hub‑Only):**
 - `POST /api/sofia/knowledge/ingest` — Knowledge base ingestion
+- `POST /api/sofia/chat` — AI chat (enforces gated content for unauthenticated users)
 - All blocked for partners via middleware → 403
 
-### 8.4 Sofia AI Architecture (Hub Only)
+### 9.4 Sofia AI Architecture (Hub Only)
 
 - **Qdrant** vector database for semantic search
 - **LLM Provider Router:** DeepSeek → Anthropic → Groq (fallback chain)
 - **Knowledge Base:** 5 Hotel Etuna documents (facts, rooms, restaurant, tours, local area)
 - **Chunking:** Semantic chunking with 800‑char target, 100‑char overlap
-- **Embeddings:** OpenAI `text‑embedding‑3‑small` (1536‑dim) — requires API key; fallback to Voyage AI, Ollama, or Hugging Face
+- **Embeddings:** Voyage AI `voyage-3` (1024‑dim) or OpenAI `text‑embedding‑3‑small` (1536‑dim); fallback to Ollama or Hugging Face
 - **Multi‑Channel:** Web chat, email, WhatsApp, phone (all hub only)
 - **Human Escalation:** Low confidence (<0.55) or policy keywords trigger staff notification
+- **Gated Content Enforcement:** System prompt instructs Sofia to never disclose prices/availability to unauthenticated users, instead prompting sign‑up
 
 ---
 
-## 9. Implementation Status (April 28, 2026)
+## 10. Implementation Status (April 28, 2026)
 
 ### ✅ Complete
 
@@ -309,32 +371,170 @@ All sections are **database‑driven** (React Server Component with Drizzle ORM 
 | **TypeScript** | Zero errors |
 | **Production Build** | Successful (92 APIs + 61 pages compiled) |
 
-### ⚠️ Pending
+### ⏳ In Progress / Pending
 
-| Item | Priority |
-|------|----------|
-| **OpenAI/Voyage API key** for Sofia embeddings | P1 |
-| **Session inactivity timeout** implementation | P1 |
-| **E2E test suite update** for database‑driven content | P1 |
-| **Duplicate service consolidation** (Fraud, Menu) | P2 |
-| **On‑demand revalidation** for instant review approval reflection | P2 |
-| **Image upload UI** for admin | P2 |
-
----
-
-## 10. Change Control
-
-Material scope/behavior changes must update this PRD in the same change set as implementation. Reviewed quarterly with Hotel Etuna management.
+| Item | Priority | Status |
+|------|----------|--------|
+| **Gated Content (Authentication Wall)** | P0 | ⏳ **SPEC COMPLETE** — Implementation pending |
+| **Sofia AI Gated Content Enforcement** | P0 | ⏳ System prompt update needed |
+| **OpenAI/Voyage API key** for Sofia embeddings | P1 | Voyage AI selected, rate limit handling implemented |
+| **Session inactivity timeout** implementation | P1 | Spec defined (30‑min timeout, 2‑min warning) |
+| **E2E test suite update** for database‑driven content | P1 | Pending |
+| **Duplicate service consolidation** (Fraud, Menu) | P2 | Pending |
+| **On‑demand revalidation** for instant review approval reflection | P2 | Pending |
+| **Image upload UI** for admin | P2 | Pending |
 
 ---
 
-## 11. Version History
+## 11. Implementation Phases & Timeline
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | 2026‑04‑28 | Initial single‑tenant Hotel Etuna PRD |
-| **2.0.0** | **2026‑04‑28** | Added B2B partner network, self‑service portal, Neon DB migration, hub‑and‑spoke architecture, **database‑driven landing page**, **review approval workflow**, Sofia AI exclusivity enforcement, complete design direction, implementation status tracking |
+### Phase 1: Foundation (Weeks 1-2) ✅ COMPLETE
+- ✅ Neon database setup and migration
+- ✅ Remove Supabase dependencies
+- ✅ Hub tenant pre-seeding
+- ✅ Hotel Etuna branding applied
+- ✅ Public website launch (hub only)
+
+### Phase 2: Partner Infrastructure (Weeks 3-4) ✅ COMPLETE
+- ✅ Partner invite/claim flow
+- ✅ Partner dashboard UI
+- ✅ Tenant isolation middleware
+- ✅ Commission calculation logic
+- ✅ RLS policy enforcement
+
+### Phase 3: Partner Listings & Bookings (Weeks 5-6) ✅ COMPLETE
+- ✅ Public partner directory page
+- ✅ Dynamic partner listing pages (`/partners/[slug]`)
+- ✅ Unified booking widget with partner context
+- ✅ Commission tracking in hub dashboard
+
+### Phase 4: Database-Driven Content (Week 7) ✅ COMPLETE
+- ✅ Landing page refactored to query database
+- ✅ Review approval workflow implemented
+- ✅ All room, restaurant, partner data dynamic
+
+### Phase 5: Gated Content (Week 8) ⏳ CURRENT
+- ⏳ AuthGate Context implementation
+- ⏳ Hide prices/booking for unauthenticated users
+- ⏳ Login redirect with query parameter
+- ⏳ Sofia AI gated content enforcement
+- ⏳ Verification testing (incognito + authenticated)
+
+### Phase 6: Testing & Launch (Week 9)
+- Integration and E2E tests
+- Partner beta (JayLa, Aquarius)
+- Performance optimization
+- Production deployment
+
+### Phase 7: Post-Launch (Ongoing)
+- Monitor KPIs (sign‑up conversion, partner signups, commission revenue)
+- Partner feedback and iteration
+- Additional partner invites (expansion)
+- Feature enhancements based on usage data
 
 ---
 
-*This PRD (v2.0.0) is effective April 28, 2026 and supersedes all previous versions. All implementation teams must reference this document as the source of truth for product requirements, architecture decisions, and success metrics.*
+## 12. Change Control & Governance
+
+### 12.1 PRD Updates
+
+- **Material Changes:** Any scope addition/removal, architectural shift, or KPI modification requires PRD update in the same PR/commit as the implementation.
+- **Non-Material Changes:** Bug fixes, UI polish, and minor copy changes do not require PRD updates but should be documented in `CHANGELOG.md`.
+- **Approval Process:** Material changes require sign-off from Hotel Etuna management and engineering lead.
+
+### 12.2 Partner Policy Changes
+
+- **Commission Rate Adjustments:** Require 30-day notice to affected partners via email.
+- **Terms of Service Updates:** Partners must acknowledge updated terms before next payout.
+- **Feature Deprecation:** Minimum 90-day deprecation notice with migration path provided.
+
+### 12.3 Technical Debt Management
+
+- **Monthly Review:** Engineering team reviews technical debt backlog.
+- **Quarterly Prioritization:** Balance new features with debt paydown (target: 20% of sprint capacity for debt).
+- **Critical Debt:** Security vulnerabilities, performance bottlenecks, or RLS bypasses are P0 and addressed immediately.
+
+### 12.4 Compliance & Audit
+
+- **Quarterly Compliance Review:** Verify PSD-12, PSD-4, ETA 2019 adherence.
+- **Annual Security Audit:** External penetration testing and vulnerability assessment.
+- **Partner Verification:** KYC/KYB documentation reviewed annually per Bank of Namibia requirements.
+
+---
+
+## 13. Appendices
+
+### Appendix A: Partner Invite Email Template
+
+```
+Subject: You're Invited to Join Hotel Etuna's Partner Network
+
+Dear [Partner Name],
+
+Hotel Etuna is building a curated network of trusted lodging partners in Windhoek, and we'd love to include [Property Name].
+
+By joining our platform, you'll:
+✓ Get featured on our website (hoteletuna.com)
+✓ Access our easy-to-use booking management dashboard
+✓ Reach Hotel Etuna's established guest network
+✓ Receive booking notifications and commission reports
+✓ Simple setup with no monthly fees
+
+Commission: 10% on bookings made through our platform
+(We handle booking collection; you manage guest communications directly)
+
+Click here to get started: [Claim Invite Link]
+
+Questions? Reply to this email or call us at +264 XXX XXXX.
+
+Warm regards,
+The Hotel Etuna Team
+```
+
+### Appendix B: Key Stakeholders
+
+| Role | Name | Responsibility |
+|------|------|----------------|
+| **Product Owner** | Hotel Etuna Management | Strategic direction, partner selection, KPI approval |
+| **Engineering Lead** | TBD | Technical architecture, deployment, performance |
+| **Design Lead** | TBD | Hub and partner UI/UX, branding consistency |
+| **QA Lead** | TBD | Test strategy, E2E automation, compliance verification |
+| **Partner Success Manager** | TBD | Partner onboarding, support, relationship management |
+
+### Appendix C: Glossary
+
+- **Hub Tenant:** Hotel Etuna's central tenant with elevated platform permissions
+- **Partner Tenant:** Invited property with isolated self-service dashboard
+- **Commission:** Percentage of partner booking revenue retained by Hotel Etuna
+- **RLS:** Row Level Security (PostgreSQL feature for tenant isolation)
+- **Neon:** Serverless PostgreSQL database provider
+- **Sofia AI:** Multi-channel AI concierge with RAG knowledge base (exclusive to Hotel Etuna hub tenant; not available to partners)
+- **Qdrant:** Vector database for Sofia's semantic search
+- **Slug:** URL-friendly property identifier (e.g., `jayla-accommodation`)
+- **Gated Content:** Content strategy where prices/booking are hidden until user authentication
+- **ISR:** Incremental Static Regeneration (Next.js caching strategy)
+- **AuthGate:** React Context managing authentication state for content gating
+
+### Appendix D: External References
+
+- **Buffr Host PRD:** `/Users/georgenekwaya/Downloads/ai-agent-mastery-main/buffr-host/PRD.md`
+- **Neon Documentation:** https://neon.tech/docs
+- **Bank of Namibia PSD-12:** Payment systems directive (compliance)
+- **Vercel Deployment Guide:** https://vercel.com/docs
+- **Qdrant Documentation:** https://qdrant.tech/documentation
+- **Database-Driven Landing Page:** `docs/reports/DATABASE_DRIVEN_LANDING_PAGE.md`
+- **Testing Guide:** `TESTING_GUIDE.md`
+
+---
+
+## 14. Version History
+
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 1.0.0 | 2026-04-28 | Engineering Team | Initial PRD for single-tenant Hotel Etuna |
+| 2.0.0 | 2026-04-28 | Engineering Team | Added B2B partner network, self-service portal, Neon DB migration, hub-and-spoke architecture, database-driven landing page, review approval workflow |
+| **2.1.0** | **2026-04-28** | **Engineering Team** | **Added gated content strategy (Section 3): authentication wall for prices/booking, Sofia AI gated enforcement, sign-up conversion KPIs, implementation phases updated, restored full PRD detail** |
+
+---
+
+*This PRD (v2.1.0) is effective April 28, 2026 and supersedes all previous versions. It will be reviewed quarterly with Hotel Etuna management and updated as needed. All implementation teams must reference this document as the source of truth for product requirements, architecture decisions, and success metrics.*
