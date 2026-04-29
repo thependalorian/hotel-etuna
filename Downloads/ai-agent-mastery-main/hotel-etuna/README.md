@@ -256,6 +256,7 @@ hotel-etuna/
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |
 | `npm run test` | Run Vitest (excludes **`e2e/playwright`** specs — use **`test:e2e`**) |
+| `npm run verify:production` | **Pre-deploy:** `tsc` + Vitest + `next build` |
 | `npm run test:e2e` | Run Playwright E2E tests |
 | `npm run test:e2e:ui` | Run Playwright in UI mode |
 | `npm run db:push` | Apply Drizzle migrations |
