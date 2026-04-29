@@ -57,6 +57,7 @@
 ## Phase 6 — Tests
 
 - [x] **`npx vitest run`** — **334/334** · Link: **`docs/reports/PRODUCTION_SMOKE_TEST.md`**  
+- [x] **`npm run verify:production`** — `tsc` + Vitest + `next build` (pre-deploy gate)  
 - [ ] **`npx playwright test`** — optional **`npm run test:e2e`**
 
 ---

@@ -6,8 +6,8 @@
 
 ## Pre-deploy
 
-- [ ] **`npm run build`** succeeds locally or in CI.  
-- [ ] **`npx vitest run`** — target **334/334** on default config (Playwright **`e2e/`** runs via **`npm run test:e2e`**, not Vitest).  
+- [ ] One-shot gate: **`npm run verify:production`** — runs **`tsc` → Vitest → `next build`** (Playwright **`e2e/`** is not part of this; use **`npm run test:e2e`** separately).  
+- [ ] Or run steps manually: **`npm run build`**, **`npx vitest run`**.  
 - [ ] **Neon:** cash columns + `cash_reconciliations` verified (see smoke report SQL). Never apply **`drizzle-kit push`** if the plan contains mass **`DROP POLICY`**.  
 - [ ] **Secrets:** Confirm **Voyage** / **Qdrant** keys in Vercel are **current** — if credentials were ever exposed, **rotate them in-provider** and update Vercel env only (never commit).  
 

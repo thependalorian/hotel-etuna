@@ -8,6 +8,7 @@
     "postinstall": "echo 'Run db:generate if needed'",
     "start": "next start",
     "lint": "eslint",
+    "verify:production": "npx tsc --noEmit && vitest run && npm run build",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
@@ -34,6 +35,8 @@
     "db:studio": "drizzle-kit studio",
     "db:drop": "drizzle-kit drop",
     "db:types": "echo 'After db:push, regenerate types via Supabase Dashboard/MCP/CLI → lib/db/database.types.ts'",
+    "rag:seed": "tsx scripts/ingest-hotel-etuna-knowledge.ts",
+    "rag:seed:dry": "tsx scripts/ingest-hotel-etuna-knowledge.ts --dry",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "supabase:status": "supabase status"
