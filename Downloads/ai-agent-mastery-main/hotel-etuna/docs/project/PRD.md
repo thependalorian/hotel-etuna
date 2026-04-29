@@ -1,9 +1,9 @@
 # Hotel Etuna — Product Requirements Document (PRD)
 
-**Version:** 2.1.0  
-**Date:** April 28, 2026  
+**Version:** 2.3.0  
+**Date:** April 29, 2026  
 **Audience:** Product, engineering, design, Hotel Etuna management  
-**Status:** ✅ Production — All Core Features Implemented & Verified  
+**Status:** **In production** (Vercel + Neon). Phases 1–4 + operational tests + docs **complete**. **Sofia Qdrant ingestion** deferred (Voyage 429); see **`TASK.md`**, **`PRODUCTION_DEPLOYMENT_CHECKLIST.md`**, **`PRODUCTION_SMOKE_TEST.md`**.  
 **DRY:** Architecture and rationale live in **`PLANNING.md`**. Execution checklist lives in **`TASK.md`**. Long‑form technical phases remain in **`IMPLEMENTATION_PLAN.md`** until merged into TASK.
 
 ---
@@ -111,11 +111,11 @@ Hotel Etuna uses a **gated content model** to:
 
 ### 3.5 Verification Checklist
 
-- [ ] Visit site in incognito → no prices visible, all CTAs lead to login
-- [ ] Log in → all prices, booking, and ordering features appear
-- [ ] Sofia chat responds with sign‑up invitation when asked about prices
-- [ ] Login redirect works correctly from all pages
-- [ ] Authenticated users see no "Sign in" CTAs (replaced with booking widgets)
+- [x] Visit site in incognito → no prices visible, all CTAs lead to login
+- [x] Log in → all prices, booking, and ordering features appear
+- [x] Sofia chat responds with sign‑up invitation when asked about prices
+- [x] Login redirect works correctly from all pages
+- [x] Authenticated users see no "Sign in" CTAs (replaced with booking widgets)
 
 ---
 
@@ -275,7 +275,7 @@ All sections are **database‑driven** (React Server Component with Drizzle ORM 
 
 **Documentation:**
 - Detailed implementation: `docs/reports/DATABASE_DRIVEN_LANDING_PAGE.md`
-- Testing guide: `TESTING_GUIDE.md`
+- Testing guide: `docs/TESTING_GUIDE.md`
 - Summary: `IMPLEMENTATION_COMPLETE.md`
 
 ---
@@ -369,20 +369,19 @@ All sections are **database‑driven** (React Server Component with Drizzle ORM 
 | **Branding** | Khaki‑terracotta‑sage palette, Playfair Display, "HE" badge |
 | **Middleware** | Tenant isolation, hub‑only route blocking, public route whitelist |
 | **TypeScript** | Zero errors |
-| **Production Build** | Successful (92 APIs + 61 pages compiled) |
+| **Production Build** | Successful |
+| **Cash Payments + Reconciliation** | Migration, APIs, reconciliation workflow, audit trail logging implemented |
+| **PWA + Offline Queue** | Manifest, service worker, offline page/banner, queue + replay mechanics implemented |
+| **Session Timeout Security** | Inactivity timeout, warning toast, absolute timeout and middleware expiry redirect implemented |
 
 ### ⏳ In Progress / Pending
 
 | Item | Priority | Status |
 |------|----------|--------|
-| **Gated Content (Authentication Wall)** | P0 | ⏳ **SPEC COMPLETE** — Implementation pending |
-| **Sofia AI Gated Content Enforcement** | P0 | ⏳ System prompt update needed |
-| **OpenAI/Voyage API key** for Sofia embeddings | P1 | Voyage AI selected, rate limit handling implemented |
-| **Session inactivity timeout** implementation | P1 | Spec defined (30‑min timeout, 2‑min warning) |
-| **E2E test suite update** for database‑driven content | P1 | Pending |
-| **Duplicate service consolidation** (Fraud, Menu) | P2 | Pending |
-| **On‑demand revalidation** for instant review approval reflection | P2 | Pending |
-| **Image upload UI** for admin | P2 | Pending |
+| **Voyage embedding migration + ingestion rerun** | P0 | In progress |
+| **Qdrant collection dimension verification** | P0 | In progress |
+| **Vitest/Playwright suite stabilization** | P1 | In progress |
+| **Cleanup + final deployment checklist** | P1 | In progress |
 
 ---
 
@@ -413,24 +412,20 @@ All sections are **database‑driven** (React Server Component with Drizzle ORM 
 - ✅ Review approval workflow implemented
 - ✅ All room, restaurant, partner data dynamic
 
-### Phase 5: Gated Content (Week 8) ⏳ CURRENT
-- ⏳ AuthGate Context implementation
-- ⏳ Hide prices/booking for unauthenticated users
-- ⏳ Login redirect with query parameter
-- ⏳ Sofia AI gated content enforcement
-- ⏳ Verification testing (incognito + authenticated)
+### Phase 5: Sofia Embedding Migration (Current)
+- Switch embeddings from OpenAI-default path to Voyage API client.
+- Resolve embedding dimension compatibility with current Qdrant collection.
+- Re-run ingestion and verify answer quality.
 
-### Phase 6: Testing & Launch (Week 9)
-- Integration and E2E tests
-- Partner beta (JayLa, Aquarius)
-- Performance optimization
-- Production deployment
+### Phase 6: Testing & Launch Hardening
+- Update integration and E2E tests to match current gated and database-driven behavior.
+- Resolve known fixture instability in Sofia/email suites.
+- Produce final test evidence bundle.
 
-### Phase 7: Post-Launch (Ongoing)
-- Monitor KPIs (sign‑up conversion, partner signups, commission revenue)
-- Partner feedback and iteration
-- Additional partner invites (expansion)
-- Feature enhancements based on usage data
+### Phase 7: Cleanup & Documentation Lock
+- Archive ad-hoc scripts and remove stale directories.
+- Consolidate markdown docs under `docs/`.
+- Publish production deployment checklist and release sign-off artifacts.
 
 ---
 
@@ -523,7 +518,21 @@ The Hotel Etuna Team
 - **Vercel Deployment Guide:** https://vercel.com/docs
 - **Qdrant Documentation:** https://qdrant.tech/documentation
 - **Database-Driven Landing Page:** `docs/reports/DATABASE_DRIVEN_LANDING_PAGE.md`
-- **Testing Guide:** `TESTING_GUIDE.md`
+- **Testing Guide:** `docs/TESTING_GUIDE.md`
+- **Frontend accuracy audit (before/after):** `docs/reports/FRONTEND_ACCURACY_AUDIT.md`
+
+### Appendix E: Public Content Accuracy & Landing Structure
+
+Public copy is aligned to seeded Neon data (no fictional amenities). Canonical facts:
+
+| Area | Notes |
+|------|--------|
+| **Rooms** | Slugs: `standard-room`, `luxury-room`, `family-room`, `executive-suite`, `premier-room`; Premier Room must not advertise amenities absent from DB (e.g. private pool). |
+| **Contact** | 5544 Valley of the Leopard Street, Ongwediva; +264 65 231 177; +264 81 802 4833; check-in 14:00, check-out 11:00. |
+| **Etuna Restaurant** | Name “Etuna Restaurant”; breakfast 06:30–10:00. |
+| **Partners** | JayLa: four self-catering rooms; Aquarius: one double-room penthouse — copy matches tenant/property records. |
+
+**Gated content verification (manual):** Incognito — prices hidden on `/`, `/rooms`, `/dining`, `/tours`, `/partners`; login preserves `?redirect=`; Sofia refuses rate/availability prompts without auth (see Section 3).
 
 ---
 
@@ -534,7 +543,9 @@ The Hotel Etuna Team
 | 1.0.0 | 2026-04-28 | Engineering Team | Initial PRD for single-tenant Hotel Etuna |
 | 2.0.0 | 2026-04-28 | Engineering Team | Added B2B partner network, self-service portal, Neon DB migration, hub-and-spoke architecture, database-driven landing page, review approval workflow |
 | **2.1.0** | **2026-04-28** | **Engineering Team** | **Added gated content strategy (Section 3): authentication wall for prices/booking, Sofia AI gated enforcement, sign-up conversion KPIs, implementation phases updated, restored full PRD detail** |
+| **2.2.0** | **2026-04-28** | **Engineering Team** | **Aligned status with completed Phases 1-4 (public hardening, cash/reconciliation, PWA/offline, session security) and re-baselined remaining work to Phases 5-7 (Voyage ingestion, test stabilization, cleanup/docs).** |
+| **2.3.0** | **2026-04-29** | **Engineering Team** | **Consolidated scattered root documentation into canonical `docs/project/*`; added Appendix E (public content accuracy, gated verification pointer); updated references to `docs/TESTING_GUIDE.md`.** |
 
 ---
 
-*This PRD (v2.1.0) is effective April 28, 2026 and supersedes all previous versions. It will be reviewed quarterly with Hotel Etuna management and updated as needed. All implementation teams must reference this document as the source of truth for product requirements, architecture decisions, and success metrics.*
+*This PRD (v2.3.0) is effective April 29, 2026 and supersedes all previous versions. It will be reviewed quarterly with Hotel Etuna management and updated as needed. All implementation teams must reference this document as the source of truth for product requirements, architecture decisions, and success metrics.*
