@@ -73,7 +73,8 @@ export class EmailService {
     }
 
     try {
-      const senderEmail = process.env.EMAIL_SENDER_EMAIL || 'concierge@hoteletuna.com';
+      /** Must match SMTP-authenticated mailbox (e.g. Namecheap/Buffr). Override via EMAIL_SENDER_EMAIL. */
+      const senderEmail = process.env.EMAIL_SENDER_EMAIL || 'concierge@buffr.ai';
       const senderName = process.env.EMAIL_SENDER_NAME || 'Sofia Concierge';
 
       const ccRecipients = data.cc ?? [];

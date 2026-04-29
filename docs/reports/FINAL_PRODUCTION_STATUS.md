@@ -1,7 +1,16 @@
 # 🎯 Hotel Etuna: Final Production Status Report
 
-**Date:** April 28, 2026  
-**Status:** 95% Complete - Knowledge Ingestion Blocked by Rate Limits
+**Date:** April 29, 2026  
+**Status:** Production codebase ready; **ongoing:** RAG production parity (embedding dimension + ingest verification), lifecycle email spot-checks in deployed env, Phase 7 cleanup items.
+
+**Single source of truth:** This file plus `docs/project/TASK.md` for phase checklists. Root-level progress markdown was consolidated April 29, 2026 into `docs/project/PRD.md`, `PLANNING.md`, `TASK.md`, and `IMPLEMENTATION_PLAN.md`.
+
+### Executive snapshot (April 29, 2026)
+
+- **Operational:** Core Sofia stack, multi-provider LLM routing, CRM memory bridge, compliance workflows, fraud surfaces, most automation paths.
+- **RAG:** Code path uses Voyage (`embedTextForRag`) for ingest/search when configured; production usefulness requires `RAG_ENABLED=true`, valid `VOYAGE_API_KEY`, Qdrant connectivity, and **matching** collection vector dimension vs embedding model.
+- **Cash:** Implementation complete (`PATCH` booking payment, reconciliation APIs/UI); remaining work is **staff QA** on property, not greenfield schema work.
+- **Session / PWA:** `SessionTimeoutWrapper` and PWA/offline assets exist; optional hardening (e.g. partner route coverage, offline endurance tests).
 
 ---
 

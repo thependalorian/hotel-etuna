@@ -5,6 +5,7 @@ import {
   properties,
   bookings,
   guests,
+  type Guest,
 } from '@/lib/db/schema';
 import { and, eq, desc, asc, gte, inArray } from 'drizzle-orm';
 import {
@@ -617,9 +618,9 @@ Current user message: ${message}`;
   }
 
   /**
-   * Find or create guest record by email
+   * Resolve guest by tenant + email, then insert with ON CONFLICT on global <code>email</code> (race-safe).
    */
-  private async findOrCreateGuest(tenantId: string, email: string) {
+  private async findOrCreateGuest(tenantId: string, email: string): Promise<Guest | null> {
     try {
       const [existing] = await db
         .select()
@@ -628,11 +629,31 @@ Current user message: ${message}`;
         .limit(1);
       if (existing) return existing;
 
-      const [created] = await db.insert(guests).values({ tenantId, email }).returning();
-      return created ?? null;
+      const [guest] = await db
+        .insert(guests)
+        .values({
+          tenantId,
+          email,
+          isSignedUp: false,
+        })
+        .onConflictDoUpdate({
+          target: guests.email,
+          set: { updatedAt: new Date() },
+        })
+        .returning();
+
+      if (guest) return guest;
+
+      const [fallback] = await db.select().from(guests).where(eq(guests.email, email)).limit(1);
+      return fallback ?? null;
     } catch (error) {
       console.error('Error finding or creating guest:', error);
-      return null;
+      try {
+        const [byEmail] = await db.select().from(guests).where(eq(guests.email, email)).limit(1);
+        return byEmail ?? null;
+      } catch {
+        return null;
+      }
     }
   }
 

@@ -22,6 +22,10 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { BOOKING_STATUS_TRANSITIONS } from '@/lib/workflows/domainTransitions';
 import { WorkflowStatusActions } from '@/components/shared/WorkflowStatusActions';
+import {
+  BookingCashPaymentSection,
+  type BookingCashRow,
+} from '@/components/features/bookings/BookingCashPaymentSection';
 import { Card } from '@/components/ui/Card';
 import PageHeader from '@/components/shared/PageHeader';
 import { Calendar, MapPin, User, Mail, Phone } from 'lucide-react';
@@ -209,7 +213,7 @@ const BookingDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
           </div>
 
           {/* Sidebar - Actions */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 space-y-6">
             <Card variant="elevated" className="sticky top-6">
               <h3 className="font-display text-lg font-semibold mb-4 text-nude-900">Status Actions</h3>
               <p className="text-sm text-nude-600 mb-4">
@@ -221,6 +225,12 @@ const BookingDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
                 endpoint={`/api/bookings/${booking.id}/status`}
               />
             </Card>
+
+            <BookingCashPaymentSection
+              booking={booking as unknown as BookingCashRow}
+              guest={guest}
+              property={property}
+            />
           </div>
         </div>
       </div>

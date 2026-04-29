@@ -1,24 +1,52 @@
 # Testing Guide: Database-Driven Landing Page & Review Approval
 
-This guide will help you test the newly implemented database-driven landing page and review approval workflow.
+**Location:** `docs/TESTING_GUIDE.md` (canonical). Use this for **local QA**, **staging**, and **production smoke tests** after deploy.
+
+**Production:** App is **live** — use your deployed origin (e.g. `https://your-domain.com`) wherever examples show `http://localhost:3000`. Set `BASE_URL` in your shell for scripted checks: `export BASE_URL=https://your-domain.com`.
 
 ---
 
-## Quick Start
+## 0. Production smoke test (run after each deploy)
+
+Do this on the **live** site first; repeat on `localhost` only when debugging.
+
+| # | Area | Action | Pass criteria |
+|---|------|--------|----------------|
+| 1 | Health | Open `/` | 200, no blank shell, footer contact loads |
+| 2 | Public hub | `#rooms`, `#dining`, `#reviews`, `#partners` | Real DB content; gated prices off until login |
+| 3 | Partner | `/partners/[slug]` | Page loads; rates gated |
+| 4 | Staff login | `/login` → dashboard | Session works |
+| 5 | Cash booking | `/bookings/[id]` (cash booking) | Mark paid → receipt / print OK |
+| 6 | Reconciliation | `/payments/reconciliation` | Date filter + save discrepancy flow OK |
+| 7 | Reviews CRM | `/crm/reviews` | Toggle `is_public`; landing `#reviews` updates after ISR window |
+| 8 | Sofia | Hub Sofia chat | Reply without errors (RAG optional — see `docs/project/TASK.md`) |
+| 9 | Vercel | Dashboard logs | No spike of 5xx on deploy |
+
+Automated gates (also run locally before merge):
+
+```bash
+cd hotel-etuna
+npx tsc --noEmit
+npm run build
+npx vitest run --reporter=verbose   # Playwright specs live under e2e/ — run npm run test:e2e separately
+```
+
+**Note:** `vitest.config.ts` **excludes** `e2e/**` so **`npm run test`** is Vitest-only; use **`npm run test:e2e`** for Playwright.
+
+---
+
+## Quick Start (local development)
 
 ```bash
 # 1. Start development server
 npm run dev
 
 # 2. Visit http://localhost:3000
-# Landing page should now show real data from database
+# Landing page should show real data from database
 
-# 3. Login as admin
-# Visit http://localhost:3000/login
-# Use your admin credentials
+# 3. Login as admin — http://localhost:3000/login
 
-# 4. Test review approval
-# Visit http://localhost:3000/crm/reviews
+# 4. Test review approval — http://localhost:3000/crm/reviews
 # Toggle a review's public status
 ```
 
@@ -362,23 +390,29 @@ npm run build
 
 ---
 
-## 7. Manual Checklist
+## 7. Manual checklist
 
-Before deploying to production, verify:
+### 7.1 Ongoing (production + staging)
+
+Re-run after meaningful releases or config changes:
 
 - [ ] All room cards display correct data
-- [ ] Room detail pages load (click "View Details")
+- [ ] Room detail pages load ("View Details")
 - [ ] Restaurant section shows real menu items
-- [ ] Only approved reviews visible on public page
-- [ ] Admin can toggle review approval
-- [ ] Toggle reflects in database (`is_public` column)
-- [ ] Partner cards link correctly
-- [ ] Footer has correct contact info
-- [ ] No console errors
-- [ ] No 404 errors
-- [ ] All navigation links work
-- [ ] TypeScript compiles without errors
-- [ ] Production build succeeds
+- [ ] Only approved reviews (`is_public = true`) on public landing
+- [ ] Admin can toggle review visibility in `/crm/reviews`
+- [ ] Toggle persists in DB (`guest_reviews.is_public`)
+- [ ] Partner cards link to `/partners/[slug]`
+- [ ] Footer contact block correct
+- [ ] No console errors on critical paths
+- [ ] No 404s on nav and deep links tested in §0
+- [ ] Cash: mark paid + receipt (`/bookings/[id]`)
+- [ ] Reconciliation (`/payments/reconciliation`) for a known date
+
+### 7.2 Build / CI gates
+
+- [ ] `npx tsc --noEmit`
+- [ ] `npm run build`
 
 ---
 
@@ -437,33 +471,33 @@ VALUES (
 
 ---
 
-## 10. Production Deployment
+## 10. Production operations (ongoing)
 
-Once all tests pass:
+Deploys are assumed **automated** (e.g. push to `main` → Vercel). After each deploy:
+
+1. Run **§0 Production smoke test** on the live origin.
+2. Confirm **Vercel** env vars for that environment: `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `HUB_TENANT_ID`, `DEFAULT_PROPERTY_ID`, plus LLM/SMTP and (when using RAG) Voyage + Qdrant.
+3. Watch **Vercel** function logs and **Neon** for errors in the first hour.
 
 ```bash
-# 1. Commit changes (already done)
-git push origin main
-
-# 2. Vercel auto-deploys
-# Check: https://vercel.com/your-project/deployments
-
-# 3. Verify environment variables in Vercel
-# - HUB_TENANT_ID
-# - DEFAULT_PROPERTY_ID
-# - DATABASE_URL
-# - NEXTAUTH_SECRET
-
-# 4. Test live site
-# - Visit https://hoteletuna.com
-# - Verify all sections load
-# - Login and test review approval
-
-# 5. Monitor logs
-# Check Vercel dashboard for any errors
+git push origin main   # triggers deploy when connected
 ```
 
 ---
 
-**Questions or Issues?**  
-Check `docs/reports/DATABASE_DRIVEN_LANDING_PAGE.md` for detailed implementation notes.
+## 11. Cash payments & reconciliation (staff)
+
+**URLs:** `/bookings/[id]` · `/payments/reconciliation`
+
+**Steps (smoke):**
+
+1. Open a booking with `payment_method = cash` and `payment_status = pending`.
+2. **Mark as paid** — enter amount tendered; confirm change and receipt number.
+3. Open **View / print receipt** — layout and print dialog OK.
+4. Open **reconciliation** — pick the business date; enter **actual cash counted**; confirm **discrepancy** math and required notes when over threshold.
+
+See **`docs/project/TASK.md`** for schema column names (`snake_case` in SQL).
+
+---
+
+**Further reading:** `docs/reports/DATABASE_DRIVEN_LANDING_PAGE.md` (implementation notes) · `docs/project/PRD.md` · `docs/project/PLANNING.md`

@@ -60,7 +60,7 @@ async function outreachLog(opts: {
   subject: string;
   body: string;
 }) {
-  await outreach.createTouch({
+  await outreach.logTouch({
     tenantId: opts.tenantId,
     guestId: opts.guestId,
     propertyId: opts.propertyId,

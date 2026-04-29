@@ -2,14 +2,16 @@
 
 **"He Takes Care of Us"** — A luxury hospitality platform for Hotel Etuna in Ongwediva, Namibia.
 
-[![Status](https://img.shields.io/badge/Status-In%20Development-yellow)](https://hoteletuna.com)
-[![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
+[![Status](https://img.shields.io/badge/Status-In%20Production-green)](https://hoteletuna.com)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict-blue)](https://www.typescriptlang.org/)
 [![Neon](https://img.shields.io/badge/Database-Neon%20PostgreSQL-green)](https://neon.tech)
 
 **Forked from:** Buffr Host v1.0.0  
 **Version:** 2.0.0 (Hotel Etuna Hub-and-Spoke)  
-**Last Updated:** April 28, 2026
+**Last Updated:** April 29, 2026
+
+**Production:** Deployed on **Vercel** (`hoteletuna.com`). See **`docs/project/PRODUCTION_DEPLOYMENT_CHECKLIST.md`**, **`docs/reports/PRODUCTION_SMOKE_TEST.md`**, and **`docs/project/TASK.md`**. Automated tests: **Vitest `334 / 334` passed** (`npm run test`); Playwright E2E: **`npm run test:e2e`**. Sofia **Qdrant vector ingestion** remains **deferred** (Voyage rate limits) until a scheduled maintenance window.
 
 ---
 
@@ -180,10 +182,10 @@ CREATE TABLE tenants (
    STACK_SECRET_SERVER_KEY=<stack-secret>
    ```
 
-4. **Apply database migrations:**
+4. **Apply database migrations** (prefer reviewed SQL migrations; **never confirm** `drizzle-kit push` if it plans mass **`DROP POLICY`** — sync `lib/db/schema.ts` with Neon instead):
    ```bash
-   npx drizzle-kit push
-   npm run db:seed  # Seed Hotel Etuna hub tenant
+   npx drizzle-kit push   # inspect output first — abort if destructive
+   npm run db:seed  # if your repo provides seed scripts
    ```
 
 5. **Start development server:**
@@ -231,9 +233,14 @@ hotel-etuna/
 │   ├── sofia/               # Sofia AI unit tests
 │   ├── e2e/                 # Playwright E2E tests
 │   └── workflows/           # CI/CD workflow tests
-├── PRD.md                   # Product Requirements (v2.0.0)
-├── IMPLEMENTATION_PLAN.md   # Technical implementation guide
-└── MIGRATION_SUMMARY.md     # Buffr Host → Hotel Etuna migration
+├── docs/project/PRD.md      # Product requirements (canonical)
+├── docs/project/PLANNING.md # Architecture & ops notes
+├── docs/project/TASK.md     # Phase checklist
+├── docs/project/IMPLEMENTATION_PLAN.md
+├── docs/project/PRODUCTION_DEPLOYMENT_CHECKLIST.md
+├── docs/TESTING_GUIDE.md              # QA & smoke procedures
+├── docs/reports/PRODUCTION_SMOKE_TEST.md
+└── docs/reports/MIGRATION_SUMMARY.md
 ```
 
 ---
@@ -248,7 +255,8 @@ hotel-etuna/
 | `npm run build` | Build for production |
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |
-| `npm run test` | Run Vitest unit/integration tests |
+| `npm run test` | Run Vitest (excludes **`e2e/playwright`** specs — use **`test:e2e`**) |
+| `npm run verify:production` | **Pre-deploy:** `tsc` + Vitest + `next build` |
 | `npm run test:e2e` | Run Playwright E2E tests |
 | `npm run test:e2e:ui` | Run Playwright in UI mode |
 | `npm run db:push` | Apply Drizzle migrations |
@@ -456,11 +464,15 @@ npm run test:e2e:ui
 
 | Document | Purpose |
 |----------|---------|
-| `PRD.md` | Product requirements (v2.0.0) |
-| `IMPLEMENTATION_PLAN.md` | Technical implementation steps |
-| `MIGRATION_SUMMARY.md` | Buffr Host → Hotel Etuna migration guide |
-| `TASK.md` | Current implementation checklist |
-| `PLANNING.md` | Architecture decisions |
+| `docs/project/PRD.md` | Product requirements |
+| `docs/project/PLANNING.md` | Architecture, local dev, ingestion notes |
+| `docs/project/TASK.md` | Phase checklist |
+| `docs/project/IMPLEMENTATION_PLAN.md` | Technical sequence & verification |
+| `docs/TESTING_GUIDE.md` | Landing page & review approval testing |
+| `docs/reports/FINAL_PRODUCTION_STATUS.md` | Executive production snapshot |
+| `docs/reports/MIGRATION_SUMMARY.md` | Buffr Host → Hotel Etuna migration |
+
+**Quick local setup:** See **Local Development & Knowledge Ingestion** in `docs/project/PLANNING.md`.
 
 ---
 

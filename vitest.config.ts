@@ -6,7 +6,16 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     /** Smoke tests: `npm run test:smoke` uses `vitest.smoke.config.ts` (this exclude avoids double-running smoke on `npm test`). */
-    exclude: ['**/node_modules/**', '**/dist/**', '.next/**', 'tests/smoke/**'],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '.next/**',
+      'tests/smoke/**',
+      /** Playwright specs — run with `npm run test:e2e`, not Vitest */
+      '**/e2e/**',
+      /** LLM + SMTP integration — run manually: `vitest run tests/sofia/sofia-chat-comprehensive.test.ts` */
+      '**/tests/sofia/sofia-chat-comprehensive.test.ts',
+    ],
     setupFiles: ['./tests/setup/load-env.ts', './tests/setup/test-setup.ts'],
     coverage: {
       provider: 'v8',

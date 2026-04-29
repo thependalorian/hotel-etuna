@@ -81,9 +81,10 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
   const hasImages = property.images && property.images.length > 0;
   const primaryImage = hasImages
     ? property.images![0]
-    : '/images/hospitality/hero_hotel_lobby.jpeg';
+    : '/icons/icon.svg';
 
-  const subtitle = `${property.city ?? ''}, ${property.country ?? ''} · ${property.type.replace('_', ' ')}`;
+  const propertyTypeLabel = (property.type ?? 'property').replace(/_/g, ' ');
+  const subtitle = `${property.city ?? ''}, ${property.country ?? ''} · ${propertyTypeLabel}`;
 
   const addressStreet =
     typeof property.address === 'string' && property.address.trim().length > 0 ? property.address : null;

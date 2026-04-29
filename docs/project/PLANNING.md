@@ -77,4 +77,31 @@ Ship Hotel Etuna to full daily-operations readiness on Vercel + Neon with:
 
 ---
 
-The detailed checklist is in `TASK.md`. The technical sequence is in `IMPLEMENTATION_PLAN.md`.
+The detailed checklist is in `docs/project/TASK.md`. The technical sequence is in `docs/project/IMPLEMENTATION_PLAN.md`.
+
+---
+
+## Local Development & Knowledge Ingestion
+
+1. Install deps: `npm install`
+2. Copy `.env.example` → `.env.local` and set hub/property UUIDs, Neon URLs, LLM keys, Qdrant, Voyage (`VOYAGE_API_KEY`), SMTP, `NEXTAUTH_*`.
+3. Apply schema: `npm run db:push` (or project migration workflow).
+4. Seed (dry run first):  
+   `npx tsx scripts/seed-hotel-etuna.ts --dry`  
+   `npx tsx scripts/seed-partners.ts --dry`
+5. Ingest RAG corpus (dry run optional):  
+   `npx tsx scripts/ingest-hotel-etuna-knowledge.ts --dry`  
+   Then run without `--dry` when keys and Qdrant collection dimensions match `EMBEDDING_MODEL` / Voyage settings.
+6. Dev server: `npm run dev` → http://localhost:3000
+
+**Ingestion troubleshooting:** Voyage rate limits — wait and retry, or use a local embedding path only if dimensions remain consistent with the Qdrant collection. **Dimension mismatch** between embeddings and collection requires recreating or migrating the collection.
+
+**Sofia smoke (after ingest):** With `RAG_ENABLED=true`, ask doc-specific questions (e.g. breakfast time, meaning of “Etuna”) and confirm answers cite hotel knowledge rather than generic fallback.
+
+---
+
+## References & Archived Narratives
+
+- **Historical gap analysis:** Early “offline/cash” markdown reports captured schema/API gaps *before* migration `0007` and UI work; the **current** implementation is described in `TASK.md` and `IMPLEMENTATION_PLAN.md` (cash PATCH, reconciliation routes, PWA assets). Do not use obsolete root copies — they were merged and deleted in doc consolidation.
+- **Executive engineering snapshot:** Component-level status for Sofia, CRM, RAG, compliance, and fraud stacks lives in `docs/reports/FINAL_PRODUCTION_STATUS.md` (keep updated when phases close).
+- **Testing procedures:** `docs/TESTING_GUIDE.md` (landing page + reviews).

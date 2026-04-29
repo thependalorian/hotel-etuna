@@ -108,7 +108,8 @@ async function main() {
       checkInTime: '14:00',
       checkOutTime: '10:00',
       starRating: 3,
-      images: ['/images/hospitality/partner_jayla.jpeg'],
+      // Use a committed public asset until partner photography is added under public/images/hospitality/
+      images: ['/icons/icon.svg'],
       status: 'active',
       commissionPercent: '10.00',
       rooms: [
@@ -165,7 +166,7 @@ async function main() {
       checkInTime: '14:00',
       checkOutTime: '10:00',
       starRating: 2,
-      images: ['/images/hospitality/partner_aquarius.jpeg'],
+      images: ['/icons/icon.svg'],
       status: 'active',
       commissionPercent: '10.00',
       rooms: [

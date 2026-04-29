@@ -37,7 +37,7 @@ export default async function PartnersPage() {
         <PublicHero
           title="Referral Partners - Windhoek Lodging"
           subtitle="Trusted accommodation partners across Windhoek."
-          backgroundImage="/images/hospitality/partner_jayla.jpeg"
+          backgroundImage="/icons/icon.svg"
           breadcrumbLabel="Partners"
         />
 
@@ -55,7 +55,7 @@ export default async function PartnersPage() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
                 {partners.map((partner) => {
                   const hasImages = partner.images && partner.images.length > 0;
-                  const primaryImage = hasImages ? partner.images[0] : '/images/hospitality/hero_hotel_lobby.jpeg';
+                  const primaryImage = hasImages ? partner.images[0] : '/icons/icon.svg';
                   
                   return (
                     <div

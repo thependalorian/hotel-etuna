@@ -41,7 +41,7 @@ Complete remaining production-readiness work for Hotel Etuna in strict phase ord
 2. Remove stale empty directories (`lib/database/` if present).
 3. Move remaining root markdown docs to canonical `docs/` structure.
 4. Publish final `docs/project/PRODUCTION_DEPLOYMENT_CHECKLIST.md`.
-5. Ensure `PRD.md`, `PLANNING.md`, `TASK.md`, and this file are mutually consistent.
+5. Ensure `docs/project/PRD.md`, `PLANNING.md`, `TASK.md`, and this file are mutually consistent.
 
 ## Verification Standard (Per Phase)
 
@@ -57,4 +57,20 @@ Complete remaining production-readiness work for Hotel Etuna in strict phase ord
 
 ---
 
-`TASK.md` is the checklist source of truth. This document defines execution order and verification discipline.
+## Implemented Deliverables Reference (Cash & Offline Track)
+
+| Area | Primary files |
+|------|----------------|
+| Cash payment API | `app/api/bookings/[id]/payment/route.ts` |
+| Reconciliation API | `app/api/payments/reconciliation/route.ts` |
+| Cash UI | `components/features/bookings/CashPaymentModal.tsx`, `BookingReceipt.tsx` |
+| Reconciliation UI | `app/(dashboard)/payments/reconciliation/page.tsx` |
+| Schema / migration | `lib/db/schema.ts`, `lib/db/migrations/0007_cash_payments_and_reconciliation.sql` |
+| PWA / offline | `public/manifest.json`, `public/sw.js`, `app/offline/page.tsx`, offline banner integration |
+| Session security | `SessionTimeoutWrapper` + dashboard layout; middleware session expiry |
+
+Historical root-level audit narratives described **pre-migration** gaps; they are superseded by the rows above and by `TASK.md`.
+
+---
+
+`docs/project/TASK.md` is the checklist source of truth. This document defines execution order and verification discipline.

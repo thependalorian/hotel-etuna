@@ -4,13 +4,14 @@ import { Sparkles, ShieldCheck, Clock } from 'lucide-react';
 import { LoginForm } from '@/components/features/auth/LoginForm';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 
-const LoginPage = ({
+const LoginPage = async ({
   searchParams,
 }: {
-  searchParams?: { reason?: string; redirect?: string };
+  searchParams?: Promise<{ reason?: string; redirect?: string }>;
 }) => {
-  const reason = searchParams?.reason;
-  const redirect = searchParams?.redirect;
+  const sp = (await searchParams) ?? {};
+  const reason = sp.reason;
+  const redirect = sp.redirect;
   const sessionMessage =
     reason === 'inactivity'
       ? 'You were signed out due to inactivity. Please sign in again.'

@@ -31,6 +31,11 @@ export type BookingDetailsRow = Record<string, unknown> & {
   total_amount?: string | number | null;
   currency?: string | null;
   payment_status?: string | null;
+  payment_method?: string | null;
+  amount_tendered?: string | number | null;
+  change_given?: string | number | null;
+  receipt_number?: string | null;
+  created_at?: string | Date | null;
   special_requests?: string | null;
   guest?: Record<string, unknown> | null;
   property?: Record<string, unknown> | null;
@@ -201,6 +206,10 @@ export class BookingService {
           b.total_amount,
           b.currency,
           b.payment_status,
+          b.payment_method,
+          b.amount_tendered,
+          b.change_given,
+          b.receipt_number,
           b.special_requests,
           b.created_at,
           b.updated_at,

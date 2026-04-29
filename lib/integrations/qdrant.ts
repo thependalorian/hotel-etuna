@@ -48,13 +48,13 @@ export async function ensureQdrantCollection(collection: string, vectorSize: num
     throw new Error(`Qdrant create collection failed: ${res.status} ${t}`);
   }
 
-  // Create index on tenantId for filtering (idempotent operation)
+  // Payload field must match RAGSearchService / RagIngestService (`tenant_id`)
   const indexUrl = `${baseUrl()}/collections/${encodeURIComponent(collection)}/index`;
   const indexRes = await fetch(indexUrl, {
     method: 'PUT',
     headers: getHeaders(),
     body: JSON.stringify({
-      field_name: 'tenantId',
+      field_name: 'tenant_id',
       field_schema: 'keyword',
     }),
   });

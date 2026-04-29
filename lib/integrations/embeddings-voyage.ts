@@ -70,19 +70,24 @@ export async function getEmbedding(text: string): Promise<number[] | null> {
  * For 1536-dim vectors, use voyage-large-2 or voyage-large-2-instruct.
  * 
  * Models:
- * - voyage-3, voyage-3-lite: 1024 dimensions
+ * - voyage-3, voyage-3-lite, voyage-3-large: 1024 dimensions (validated against live API responses)
  * - voyage-large-2, voyage-large-2-instruct: 1536 dimensions
  * - voyage-2: 1024 dimensions
+ *
+ * Override: set `EMBEDDING_DIMENSIONS` only if you know the exact size for your model revision and Qdrant collection.
  */
 export function getEmbeddingDimension(): number {
+  const explicit = process.env.EMBEDDING_DIMENSIONS?.trim();
+  if (explicit && /^\d+$/.test(explicit)) {
+    return parseInt(explicit, 10);
+  }
+
   const model = process.env.EMBEDDING_MODEL?.trim() || 'voyage-3';
 
-  // 1536-dim Voyage models (match Qdrant collection size to this)
-  if (model.includes('large-2') || model.includes('voyage-3-large')) {
+  if (model.includes('large-2')) {
     return 1536;
   }
 
-  // Default (voyage-3, voyage-3-lite, voyage-2, etc.)
   return 1024;
 }
 

@@ -71,8 +71,8 @@ describe('Sofia Email - Template Generation', () => {
     });
 
     expect(html).toBeTruthy();
-    expect(html).not.toContain('<script>');
-    expect(html).toContain('&lt;script&gt;');
+    expect(html).not.toMatch(/<script[\s\S]*?>|<\/script>/i);
+    // DOMPurify strips tags before entity encoding; prose must survive without executable HTML
     expect(html).toContain('Test message');
   });
 
@@ -203,8 +203,7 @@ describe('Sofia Email - Template Branding (Complete)', () => {
       body: 'Test content',
     });
 
-    expect(html).toContain('Buffr');
-    // Branding should be present
+    expect(html).toMatch(/Hotel Etuna/i);
   });
 
   it('should use nude color palette', () => {

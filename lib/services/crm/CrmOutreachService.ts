@@ -66,6 +66,14 @@ export class CrmOutreachService {
     return row ?? null;
   }
 
+  /**
+   * Alias for {@link createTouch} — semantic name for transactional / lifecycle audits (e.g. booking emails).
+   * Same behavior as <code>createTouch</code>.
+   */
+  logTouch(input: Parameters<CrmOutreachService['createTouch']>[0]): ReturnType<CrmOutreachService['createTouch']> {
+    return this.createTouch(input);
+  }
+
   async transitionStatus(
     tenantId: string,
     touchId: string,

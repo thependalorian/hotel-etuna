@@ -2,7 +2,7 @@
  * Hotel Etuna Knowledge Base Ingestion Script
  *
  * Loads markdown documents from data/hotel-etuna-knowledge/, chunks them semantically,
- * generates embeddings via OpenAI, and upserts to Qdrant with tenant isolation.
+ * generates embeddings via Voyage AI, and upserts to Qdrant with tenant isolation.
  *
  * Usage:
  *   npx tsx scripts/ingest-hotel-etuna-knowledge.ts          # Full ingestion
@@ -10,8 +10,9 @@
  *
  * Requirements:
  *   - QDRANT_URL and QDRANT_API_KEY in .env.local
- *   - VOYAGE_API_KEY in .env.local (embeddings; align EMBEDDING_MODEL with stored collection dimension)
+ *   - VOYAGE_API_KEY in .env.local (embeddings; align EMBEDDING_MODEL with collection vector size)
  *   - HUB_TENANT_ID in .env.local
+ *   - Optional: RAG_QDRANT_COLLECTION (default buffr_rag — must match RAGSearchService / Sofia)
  */
 
 import { readFileSync, readdirSync } from 'fs';
@@ -36,13 +37,16 @@ dotenv.config({ path: '.env.local' });
 
 // Configuration
 const KNOWLEDGE_DIR = join(process.cwd(), 'data', 'hotel-etuna-knowledge');
-const COLLECTION_NAME = 'sofia_knowledge';
+/** Must match `RAGSearchService` / env `RAG_QDRANT_COLLECTION` (default buffr_rag). */
+const COLLECTION_NAME = process.env.RAG_QDRANT_COLLECTION?.trim() || 'buffr_rag';
 const CHUNK_MAX_CHARS = 800;
 const CHUNK_OVERLAP = 100;
-const BATCH_SIZE = 5; // Reduced to avoid rate limits
-const RETRY_ATTEMPTS = 5; // More retries for rate limits
-const BASE_RETRY_DELAY_MS = 2000; // Longer base delay
-const BATCH_DELAY_MS = 3000; // Longer delay between batches
+const BATCH_SIZE = 3; // Smaller bursts to ease Voyage free-tier limits
+const RETRY_ATTEMPTS = 8;
+const BASE_RETRY_DELAY_MS = 3500;
+const RATE_LIMIT_EXTRA_MS = 45000; // Added on HTTP 429
+const BETWEEN_CHUNK_MS = 450; // Pace requests inside a nominal “batch”
+const BATCH_DELAY_MS = 5500;
 
 interface DocumentChunk {
   documentTitle: string;
@@ -128,28 +132,23 @@ function chunkMarkdownDocument(markdown: string, maxChars: number, overlap: numb
     if (chunk.length <= maxChars) {
       finalChunks.push(chunk);
     } else {
-      // Split oversized chunk by characters with overlap
-      let pos = 0;
-      while (pos < chunk.length) {
-        const end = Math.min(pos + maxChars, chunk.length);
-        let piece = chunk.slice(pos, end);
-
-        // Try to break at word boundary
-        if (end < chunk.length) {
-          const lastSpace = piece.lastIndexOf(' ');
-          if (lastSpace > maxChars * 0.5) {
-            piece = piece.slice(0, lastSpace);
+      /** Fixed‑stride slicing so overlap cannot advance byte‑by‑byte (that produced 100+ micro‑chunks per paragraph). */
+      let offset = 0;
+      while (offset < chunk.length) {
+        const raw = chunk.slice(offset, Math.min(offset + maxChars, chunk.length));
+        if (offset + maxChars < chunk.length) {
+          const boundary = raw.lastIndexOf(' ');
+          if (boundary > maxChars * 0.55) {
+            const piece = chunk.slice(offset, offset + boundary).trim();
+            if (piece) finalChunks.push(piece);
+            offset += boundary;
+            continue;
           }
         }
-
-        const trimmed = piece.trim();
-        if (trimmed) {
-          finalChunks.push(trimmed);
-        }
-        
-        // Always advance forward; overlap cannot exceed piece length - 1
-        const actualOverlap = Math.min(overlap, piece.length - 1);
-        pos += Math.max(1, piece.length - actualOverlap);
+        const trimmed = raw.trim();
+        if (trimmed) finalChunks.push(trimmed);
+        const stride = Math.max(1, maxChars - overlap);
+        offset += Math.min(raw.length, stride);
       }
     }
   }
@@ -246,11 +245,17 @@ async function generateEmbeddings(
           } else {
             throw new Error(`Invalid embedding: expected ${embeddingDimension}d, got ${embedding ? `${embedding.length}d` : 'null'}`);
           }
-        } catch (error) {
+        } catch (error: unknown) {
           attempt++;
+          const status =
+            typeof error === 'object' && error && 'status' in error ? (error as { status?: number }).status : undefined;
+          const code429 = status === 429;
           if (attempt < RETRY_ATTEMPTS) {
-            // Exponential backoff: 2s, 4s, 8s, 16s, 32s
-            const delayMs = BASE_RETRY_DELAY_MS * Math.pow(2, attempt - 1);
+            let delayMs = BASE_RETRY_DELAY_MS * Math.pow(2, attempt - 1);
+            if (code429) {
+              delayMs += RATE_LIMIT_EXTRA_MS;
+              console.log(`      ⚠️  Rate limited (429) — waiting extra ${RATE_LIMIT_EXTRA_MS / 1000}s before retry...`);
+            }
             console.log(`      ⚠️  Retry ${attempt}/${RETRY_ATTEMPTS} after ${delayMs}ms...`);
             await new Promise((resolve) => setTimeout(resolve, delayMs));
           } else {
@@ -260,9 +265,8 @@ async function generateEmbeddings(
         }
       }
       
-      // Small delay between embeddings within batch
       if (!dryRun) {
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, BETWEEN_CHUNK_MS));
       }
     }
 
@@ -294,7 +298,9 @@ async function upsertToQdrant(
     for (const [chunk, _] of entries) {
       const id = generateDeterministicUuid(tenantId, chunk.documentTitle, chunk.chunkIndex);
       console.log(`   [DRY RUN] Point ID: ${id}`);
-      console.log(`              Payload: tenantId=${tenantId}, doc=${chunk.documentTitle}, chunk=${chunk.chunkIndex}`);
+      console.log(
+        `              Payload: tenant_id=${tenantId}, text=…, source=${chunk.source}, doc=${chunk.documentTitle}, chunk=${chunk.chunkIndex}`
+      );
     }
     console.log(`✅ Dry run complete\n`);
     return;
@@ -306,7 +312,7 @@ async function upsertToQdrant(
 
   // Clear existing points for this tenant (idempotency)
   console.log(`   Clearing existing points for tenant ${tenantId}...`);
-  await qdrantDeleteByFilter(COLLECTION_NAME, { tenantId });
+  await qdrantDeleteByFilter(COLLECTION_NAME, { tenant_id: tenantId });
 
   // Prepare points
   const points: QdrantPoint[] = [];
@@ -317,12 +323,12 @@ async function upsertToQdrant(
       id,
       vector,
       payload: {
-        tenantId,
-        documentTitle: chunk.documentTitle,
+        tenant_id: tenantId,
+        text: chunk.content,
         source: chunk.source,
-        chunkIndex: chunk.chunkIndex,
-        content: chunk.content,
-        metadata: chunk.metadata,
+        document_title: chunk.documentTitle,
+        chunk_index: chunk.chunkIndex,
+        chunk_length: chunk.content.length,
       },
     });
   }

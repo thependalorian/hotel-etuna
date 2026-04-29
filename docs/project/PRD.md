@@ -1,9 +1,9 @@
 # Hotel Etuna — Product Requirements Document (PRD)
 
-**Version:** 2.2.0  
-**Date:** April 28, 2026  
+**Version:** 2.3.0  
+**Date:** April 29, 2026  
 **Audience:** Product, engineering, design, Hotel Etuna management  
-**Status:** 🚧 Production Hardening — Phases 1-4 complete, Phases 5-7 in progress  
+**Status:** **In production** (Vercel + Neon). Phases 1–4 + operational tests + docs **complete**. **Sofia Qdrant ingestion** deferred (Voyage 429); see **`TASK.md`**, **`PRODUCTION_DEPLOYMENT_CHECKLIST.md`**, **`PRODUCTION_SMOKE_TEST.md`**.  
 **DRY:** Architecture and rationale live in **`PLANNING.md`**. Execution checklist lives in **`TASK.md`**. Long‑form technical phases remain in **`IMPLEMENTATION_PLAN.md`** until merged into TASK.
 
 ---
@@ -275,7 +275,7 @@ All sections are **database‑driven** (React Server Component with Drizzle ORM 
 
 **Documentation:**
 - Detailed implementation: `docs/reports/DATABASE_DRIVEN_LANDING_PAGE.md`
-- Testing guide: `TESTING_GUIDE.md`
+- Testing guide: `docs/TESTING_GUIDE.md`
 - Summary: `IMPLEMENTATION_COMPLETE.md`
 
 ---
@@ -518,7 +518,21 @@ The Hotel Etuna Team
 - **Vercel Deployment Guide:** https://vercel.com/docs
 - **Qdrant Documentation:** https://qdrant.tech/documentation
 - **Database-Driven Landing Page:** `docs/reports/DATABASE_DRIVEN_LANDING_PAGE.md`
-- **Testing Guide:** `TESTING_GUIDE.md`
+- **Testing Guide:** `docs/TESTING_GUIDE.md`
+- **Frontend accuracy audit (before/after):** `docs/reports/FRONTEND_ACCURACY_AUDIT.md`
+
+### Appendix E: Public Content Accuracy & Landing Structure
+
+Public copy is aligned to seeded Neon data (no fictional amenities). Canonical facts:
+
+| Area | Notes |
+|------|--------|
+| **Rooms** | Slugs: `standard-room`, `luxury-room`, `family-room`, `executive-suite`, `premier-room`; Premier Room must not advertise amenities absent from DB (e.g. private pool). |
+| **Contact** | 5544 Valley of the Leopard Street, Ongwediva; +264 65 231 177; +264 81 802 4833; check-in 14:00, check-out 11:00. |
+| **Etuna Restaurant** | Name “Etuna Restaurant”; breakfast 06:30–10:00. |
+| **Partners** | JayLa: four self-catering rooms; Aquarius: one double-room penthouse — copy matches tenant/property records. |
+
+**Gated content verification (manual):** Incognito — prices hidden on `/`, `/rooms`, `/dining`, `/tours`, `/partners`; login preserves `?redirect=`; Sofia refuses rate/availability prompts without auth (see Section 3).
 
 ---
 
@@ -530,7 +544,8 @@ The Hotel Etuna Team
 | 2.0.0 | 2026-04-28 | Engineering Team | Added B2B partner network, self-service portal, Neon DB migration, hub-and-spoke architecture, database-driven landing page, review approval workflow |
 | **2.1.0** | **2026-04-28** | **Engineering Team** | **Added gated content strategy (Section 3): authentication wall for prices/booking, Sofia AI gated enforcement, sign-up conversion KPIs, implementation phases updated, restored full PRD detail** |
 | **2.2.0** | **2026-04-28** | **Engineering Team** | **Aligned status with completed Phases 1-4 (public hardening, cash/reconciliation, PWA/offline, session security) and re-baselined remaining work to Phases 5-7 (Voyage ingestion, test stabilization, cleanup/docs).** |
+| **2.3.0** | **2026-04-29** | **Engineering Team** | **Consolidated scattered root documentation into canonical `docs/project/*`; added Appendix E (public content accuracy, gated verification pointer); updated references to `docs/TESTING_GUIDE.md`.** |
 
 ---
 
-*This PRD (v2.2.0) is effective April 28, 2026 and supersedes all previous versions. It will be reviewed quarterly with Hotel Etuna management and updated as needed. All implementation teams must reference this document as the source of truth for product requirements, architecture decisions, and success metrics.*
+*This PRD (v2.3.0) is effective April 29, 2026 and supersedes all previous versions. It will be reviewed quarterly with Hotel Etuna management and updated as needed. All implementation teams must reference this document as the source of truth for product requirements, architecture decisions, and success metrics.*

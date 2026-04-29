@@ -13,25 +13,16 @@ export class SofiaEmailTemplateGenerator {
    * Sanitize HTML input to prevent XSS attacks
    * Uses DOMPurify for comprehensive sanitization
    */
+  /**
+   * DOMPurify already entity-encodes text for safe HTML embedding; do not add a second encode pass
+   * (that would turn <code>&amp;</code> into <code>&amp;amp;</code>).
+   */
   private sanitizeHtml(value: string): string {
-    // First pass: DOMPurify sanitization
-    const sanitized = DOMPurify.sanitize(value, {
-      ALLOWED_TAGS: [], // Strip all HTML tags
-      ALLOWED_ATTR: [], // Strip all attributes
-      KEEP_CONTENT: true, // Keep text content
+    return DOMPurify.sanitize(value, {
+      ALLOWED_TAGS: [],
+      ALLOWED_ATTR: [],
+      KEEP_CONTENT: true,
     });
-    
-    // Second pass: HTML entity encoding for extra safety
-    return this.escapeHtml(sanitized);
-  }
-
-  private escapeHtml(value: string): string {
-    return value
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#39;');
   }
 
   private sanitizeUrl(url?: string): string | undefined {
