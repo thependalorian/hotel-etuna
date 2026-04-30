@@ -72,12 +72,10 @@ async function executeWithRetry<T>(
 // Create Neon serverless connection (HTTP driver — best on Vercel serverless)
 const sql = createConnection();
 
-// Use Neon HTTP only on Vercel (or when explicitly opted in). `next dev` does not
-// always expose NODE_ENV === "development" in every server bundle, so gating on
-// NODE_ENV alone incorrectly picked the Neon driver and triggered prepared-statement
-// / payload errors against Neon. Local and CI use node-postgres + DATABASE_URL.
-const useNeonHttpDriver =
-  process.env.VERCEL === '1' || process.env.USE_NEON_HTTP === '1';
+// Default to node-postgres everywhere for stability.
+// Enable Neon HTTP only with explicit opt-in env var.
+// This avoids intermittent Neon HTTP payload parsing failures seen in production.
+const useNeonHttpDriver = process.env.USE_NEON_HTTP === '1';
 
 const isNodePostgresRuntime = !useNeonHttpDriver;
 const nodePool = isNodePostgresRuntime

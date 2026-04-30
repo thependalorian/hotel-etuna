@@ -342,6 +342,10 @@ export default withAuth(
       if (isPublicRoute(pathname)) {
         const response = NextResponse.next();
         addSecurityHeaders(response);
+        // Hotfix: prevent stale app-shell/runtime cache mismatches on public pages.
+        response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+        response.headers.set('Pragma', 'no-cache');
+        response.headers.set('Expires', '0');
         return response;
       }
       
@@ -542,6 +546,10 @@ export default withAuth(
     // Add security headers for all authenticated users
     const response = NextResponse.next();
     addSecurityHeaders(response);
+    // Hotfix: disable browser/proxy caching on protected app routes as well.
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
     
     return response;
     } catch (error: unknown) {

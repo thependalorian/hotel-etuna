@@ -5,9 +5,29 @@ import { useEffect } from 'react';
 export default function ServiceWorkerRegistration() {
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
-    navigator.serviceWorker.register('/sw.js').catch((error) => {
-      console.error('[SW] Registration failed:', error);
-    });
+    // Emergency production safeguard:
+    // clear older SW controllers/caches that can serve stale App Router payloads.
+    // We keep offline features disabled until SW strategy is fully stabilized.
+    const cleanup = async () => {
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map((registration) => registration.unregister()));
+      } catch (error) {
+        console.error('[SW] Unregister failed:', error);
+      }
+
+      if ('caches' in window) {
+        try {
+          const keys = await caches.keys();
+          const targets = keys.filter((key) => key.startsWith('hotel-etuna-'));
+          await Promise.all(targets.map((key) => caches.delete(key)));
+        } catch (error) {
+          console.error('[SW] Cache cleanup failed:', error);
+        }
+      }
+    };
+
+    void cleanup();
   }, []);
 
   return null;

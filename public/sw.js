@@ -1,5 +1,5 @@
-const CACHE_NAME = 'hotel-etuna-v1';
-const APP_SHELL = ['/', '/rooms', '/dining', '/tours', '/offline', '/manifest.json'];
+const CACHE_NAME = 'hotel-etuna-v2';
+const APP_SHELL = ['/offline', '/manifest.json'];
 const BOOKING_QUEUE_DB = 'hotel-etuna-offline-db';
 const BOOKING_STORE = 'bookingQueue';
 
@@ -110,22 +110,37 @@ self.addEventListener('fetch', (event) => {
 
   if (request.method !== 'GET') return;
 
+  // Never cache API or Next.js runtime/data routes to avoid stale app states.
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/_next/')) {
+    return;
+  }
+
+  // For full-page navigations, prefer fresh network response.
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then(async (networkResponse) => {
+          if (networkResponse.ok && url.origin === self.location.origin) {
+            const cache = await caches.open(CACHE_NAME);
+            cache.put(request, networkResponse.clone());
+          }
+          return networkResponse;
+        })
+        .catch(async () => (await caches.match(request)) || (await caches.match('/offline')))
+    );
+    return;
+  }
+
+  // Cache-first for static, non-critical assets only.
   event.respondWith(
     caches.match(request).then(async (cached) => {
       if (cached) return cached;
-      try {
-        const networkResponse = await fetch(request);
-        if (networkResponse.ok && url.origin === self.location.origin) {
-          const cache = await caches.open(CACHE_NAME);
-          cache.put(request, networkResponse.clone());
-        }
-        return networkResponse;
-      } catch (_error) {
-        if (request.mode === 'navigate') {
-          return caches.match('/offline');
-        }
-        return new Response('Offline', { status: 503 });
+      const networkResponse = await fetch(request);
+      if (networkResponse.ok && url.origin === self.location.origin) {
+        const cache = await caches.open(CACHE_NAME);
+        cache.put(request, networkResponse.clone());
       }
+      return networkResponse;
     })
   );
 });

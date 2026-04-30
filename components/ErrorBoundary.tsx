@@ -44,6 +44,34 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
     captureClientException(error, { componentStack: errorInfo.componentStack ?? '' });
+
+    // Self-heal stale client/runtime states after deploys:
+    // if Server Components payload/chunks are out of sync, clear SW/cache and reload once.
+    if (typeof window !== 'undefined' && error.message.includes('Server Components render')) {
+      const recoveryKey = 'etuna_rsc_recovery_attempted';
+      const alreadyAttempted = window.sessionStorage.getItem(recoveryKey) === '1';
+      if (!alreadyAttempted) {
+        window.sessionStorage.setItem(recoveryKey, '1');
+        void (async () => {
+          try {
+            if ('serviceWorker' in navigator) {
+              const registrations = await navigator.serviceWorker.getRegistrations();
+              await Promise.all(registrations.map((registration) => registration.unregister()));
+            }
+            if ('caches' in window) {
+              const keys = await caches.keys();
+              await Promise.all(keys.map((key) => caches.delete(key)));
+            }
+          } catch (cleanupError) {
+            console.error('Client recovery cleanup failed:', cleanupError);
+          } finally {
+            const next = new URL(window.location.href);
+            next.searchParams.set('__rsc_recover', Date.now().toString());
+            window.location.replace(next.toString());
+          }
+        })();
+      }
+    }
   }
 
   handleReset = () => {

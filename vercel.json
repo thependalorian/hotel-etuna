@@ -12,13 +12,11 @@
     },
     {
       "path": "/api/cron/booking-reminders",
-      "schedule": "0 7 * * *",
-      "description": "Pre-arrival reminders (check-in tomorrow)"
+      "schedule": "0 7 * * *"
     },
     {
       "path": "/api/cron/uptime-monitor",
-      "schedule": "* * * * *",
-      "description": "PSD-12 uptime monitoring (every minute)"
+      "schedule": "0 12 * * *"
     }
   ],
   "headers": [

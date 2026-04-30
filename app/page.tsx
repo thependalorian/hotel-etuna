@@ -16,7 +16,6 @@ import { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { and, asc, desc, eq, inArray } from 'drizzle-orm';
-import { getServerSession } from 'next-auth';
 import {
   db,
   cmsMenuItems,
@@ -29,7 +28,6 @@ import {
   rooms,
   tenants,
 } from '@/lib/db';
-import { authOptions } from '@/lib/auth/config';
 import { resolvePublicHubProperty } from '@/lib/utils/public-property';
 import NavigationHeader from '@/components/sections/landing/NavigationHeader';
 import { LandingBookingWidget } from '@/components/sections/landing/LandingBookingWidget';
@@ -38,7 +36,7 @@ import { slugify } from '@/lib/utils/slugify';
 import Footer from '@/components/shared/Footer';
 import { Calendar, Check, Compass, MapPin, Sparkles, Star, Utensils } from 'lucide-react';
 
-export const revalidate = 300;
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Hotel Etuna - He Takes Care of Us',
@@ -52,6 +50,27 @@ type OpeningHours = {
 };
 
 const fallbackImage = '/images/hospitality/hero_hotel_lobby.jpeg';
+
+function asStringArray(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0);
+  }
+  if (typeof value === 'string' && value.trim().length > 0) {
+    return [value.trim()];
+  }
+  return [];
+}
+
+function firstImage(value: unknown, fallback: string): string {
+  const images = asStringArray(value);
+  const first = images[0];
+  if (!first) return fallback;
+
+  // Accept absolute URLs and root-relative public paths only.
+  if (first.startsWith('/')) return first;
+  if (/^https?:\/\//i.test(first)) return first;
+  return fallback;
+}
 
 function formatCurrency(amount: number | null, currency: string): string {
   if (amount === null || Number.isNaN(amount)) return 'Price on request';
@@ -71,121 +90,172 @@ function formatOpeningSlot(
 }
 
 export default async function LandingPage() {
-  const session = await getServerSession(authOptions);
-  const isAuthenticated = Boolean(session?.user);
-  const { hubTenant, property: hubProperty } = await resolvePublicHubProperty();
-  const hubTenantId = hubTenant.id;
-  const propertyId = hubProperty.id;
-
-  const roomRows = await db
-    .select({
-      id: rooms.id,
-      roomType: rooms.roomType,
-      maxOccupancy: rooms.maxOccupancy,
-      baseRate: rooms.baseRate,
-      currency: rooms.currency,
-      amenities: rooms.amenities,
-      images: rooms.images,
-    })
-    .from(rooms)
-    .where(eq(rooms.propertyId, propertyId))
-    .orderBy(asc(rooms.roomType));
-
-  const roomIds = roomRows.map((room) => room.id);
-  const defaultRoomRates = roomIds.length
-    ? await db
-        .select({
-          roomId: roomRates.roomId,
-          amount: roomRates.rateAmount,
-          currency: roomRates.currency,
-        })
-        .from(roomRates)
-        .where(and(inArray(roomRates.roomId, roomIds), eq(roomRates.isDefault, true)))
-    : [];
-
+  // Keep landing page fully static/fail-safe; authenticated actions are handled on protected routes.
+  const isAuthenticated = false;
+  let hubTenant: { id: string; name: string | null } | null = null;
+  let hubProperty: typeof properties.$inferSelect | null = null;
+  let roomRows: Array<{
+    id: string;
+    roomType: string;
+    maxOccupancy: number | null;
+    baseRate: string | null;
+    currency: string | null;
+    amenities: unknown;
+    images: unknown;
+  }> = [];
   const rateMap = new Map<string, { amount: number; currency: string }>();
-  for (const rate of defaultRoomRates) {
-    const amount = Number(rate.amount);
-    if (!rate.roomId || Number.isNaN(amount)) continue;
-    rateMap.set(rate.roomId, { amount, currency: rate.currency ?? 'NAD' });
+  let restaurant: typeof restaurants.$inferSelect | null = null;
+  let categoryRows: Array<{ id: string; name: string; displayOrder: number | null }> = [];
+  let menuByCategory = new Map<string, Array<{
+    id: string;
+    categoryId: string | null;
+    name: string;
+    price: string | null;
+    currency: string | null;
+    createdAt: Date | null;
+  }>>();
+  let publicReviews: Array<{
+    id: string;
+    rating: number | null;
+    reviewText: string | null;
+    createdAt: Date | null;
+    guestFirstName: string | null;
+    guestCity: string | null;
+    guestCountry: string | null;
+  }> = [];
+  let ratingAvg = 0;
+  let partners: Array<{
+    tenantId: string;
+    tenantName: string | null;
+    propertyId: string | null;
+    propertyName: string | null;
+    propertySlug: string | null;
+    description: string | null;
+    city: string | null;
+    country: string | null;
+    images: unknown;
+  }> = [];
+  let openingHours: OpeningHours = {};
+
+  try {
+    const resolved = await resolvePublicHubProperty();
+    hubTenant = resolved.hubTenant;
+    hubProperty = resolved.property;
+    const hubTenantId = hubTenant.id;
+    const propertyId = hubProperty.id;
+
+    roomRows = await db
+      .select({
+        id: rooms.id,
+        roomType: rooms.roomType,
+        maxOccupancy: rooms.maxOccupancy,
+        baseRate: rooms.baseRate,
+        currency: rooms.currency,
+        amenities: rooms.amenities,
+        images: rooms.images,
+      })
+      .from(rooms)
+      .where(eq(rooms.propertyId, propertyId))
+      .orderBy(asc(rooms.roomType));
+
+    const roomIds = roomRows.map((room) => room.id);
+    const defaultRoomRates = roomIds.length
+      ? await db
+          .select({
+            roomId: roomRates.roomId,
+            amount: roomRates.rateAmount,
+            currency: roomRates.currency,
+          })
+          .from(roomRates)
+          .where(and(inArray(roomRates.roomId, roomIds), eq(roomRates.isDefault, true)))
+      : [];
+
+    for (const rate of defaultRoomRates) {
+      const amount = Number(rate.amount);
+      if (!rate.roomId || Number.isNaN(amount)) continue;
+      rateMap.set(rate.roomId, { amount, currency: rate.currency ?? 'NAD' });
+    }
+
+    [restaurant] = await db
+      .select()
+      .from(restaurants)
+      .where(eq(restaurants.propertyId, propertyId))
+      .limit(1);
+
+    categoryRows = restaurant
+      ? await db
+          .select({ id: menuCategories.id, name: menuCategories.name, displayOrder: menuCategories.displayOrder })
+          .from(menuCategories)
+          .where(eq(menuCategories.restaurantId, restaurant.id))
+          .orderBy(asc(menuCategories.displayOrder), asc(menuCategories.name))
+      : [];
+
+    const categoryIds = categoryRows.map((category) => category.id);
+    const menuRows = categoryIds.length
+      ? await db
+          .select({
+            id: cmsMenuItems.id,
+            categoryId: cmsMenuItems.categoryId,
+            name: cmsMenuItems.name,
+            price: cmsMenuItems.price,
+            currency: cmsMenuItems.currency,
+            createdAt: cmsMenuItems.createdAt,
+          })
+          .from(cmsMenuItems)
+          .where(inArray(cmsMenuItems.categoryId, categoryIds))
+          .orderBy(asc(cmsMenuItems.displayOrder), desc(cmsMenuItems.createdAt))
+      : [];
+
+    menuByCategory = new Map<string, typeof menuRows>();
+    for (const item of menuRows) {
+      const key = item.categoryId ?? '';
+      if (!menuByCategory.has(key)) menuByCategory.set(key, []);
+      menuByCategory.get(key)?.push(item);
+    }
+
+    publicReviews = await db
+      .select({
+        id: guestReviews.id,
+        rating: guestReviews.rating,
+        reviewText: guestReviews.reviewText,
+        createdAt: guestReviews.createdAt,
+        guestFirstName: guests.firstName,
+        guestCity: guests.city,
+        guestCountry: guests.country,
+      })
+      .from(guestReviews)
+      .leftJoin(guests, eq(guestReviews.guestId, guests.id))
+      .where(and(eq(guestReviews.tenantId, hubTenantId), eq(guestReviews.isPublic, true)))
+      .orderBy(desc(guestReviews.createdAt))
+      .limit(6);
+
+    ratingAvg = publicReviews.length
+      ? publicReviews.reduce((sum, review) => sum + (review.rating ?? 0), 0) / publicReviews.length
+      : 0;
+
+    const partnerRows = await db
+      .select({
+        tenantId: tenants.id,
+        tenantName: tenants.name,
+        propertyId: properties.id,
+        propertyName: properties.name,
+        propertySlug: properties.slug,
+        description: properties.description,
+        city: properties.city,
+        country: properties.country,
+        images: properties.images,
+      })
+      .from(tenants)
+      .leftJoin(properties, eq(properties.tenantId, tenants.id))
+      .where(and(eq(tenants.type, 'partner'), eq(tenants.status, 'active')))
+      .orderBy(asc(tenants.name));
+
+    partners = partnerRows.filter((partner) => partner.propertyId).slice(0, 3);
+    openingHours = (restaurant?.openingHours as OpeningHours | null) ?? {};
+  } catch (error) {
+    console.error('[LandingPage] DB content load failed, rendering safe fallback:', error);
   }
-
-  const [restaurant] = await db
-    .select()
-    .from(restaurants)
-    .where(eq(restaurants.propertyId, propertyId))
-    .limit(1);
-
-  const categoryRows = restaurant
-    ? await db
-        .select({ id: menuCategories.id, name: menuCategories.name, displayOrder: menuCategories.displayOrder })
-        .from(menuCategories)
-        .where(eq(menuCategories.restaurantId, restaurant.id))
-        .orderBy(asc(menuCategories.displayOrder), asc(menuCategories.name))
-    : [];
-
-  const categoryIds = categoryRows.map((category) => category.id);
-  const menuRows = categoryIds.length
-    ? await db
-        .select({
-          id: cmsMenuItems.id,
-          categoryId: cmsMenuItems.categoryId,
-          name: cmsMenuItems.name,
-          price: cmsMenuItems.price,
-          currency: cmsMenuItems.currency,
-          createdAt: cmsMenuItems.createdAt,
-        })
-        .from(cmsMenuItems)
-        .where(inArray(cmsMenuItems.categoryId, categoryIds))
-        .orderBy(asc(cmsMenuItems.displayOrder), desc(cmsMenuItems.createdAt))
-    : [];
-
-  const menuByCategory = new Map<string, typeof menuRows>();
-  for (const item of menuRows) {
-    const key = item.categoryId ?? '';
-    if (!menuByCategory.has(key)) menuByCategory.set(key, []);
-    menuByCategory.get(key)?.push(item);
-  }
-
-  const publicReviews = await db
-    .select({
-      id: guestReviews.id,
-      rating: guestReviews.rating,
-      reviewText: guestReviews.reviewText,
-      createdAt: guestReviews.createdAt,
-      guestFirstName: guests.firstName,
-      guestCity: guests.city,
-      guestCountry: guests.country,
-    })
-    .from(guestReviews)
-    .leftJoin(guests, eq(guestReviews.guestId, guests.id))
-    .where(and(eq(guestReviews.tenantId, hubTenantId), eq(guestReviews.isPublic, true)))
-    .orderBy(desc(guestReviews.createdAt))
-    .limit(6);
-
-  const ratingAvg = publicReviews.length
-    ? publicReviews.reduce((sum, review) => sum + (review.rating ?? 0), 0) / publicReviews.length
-    : 0;
-
-  const partnerRows = await db
-    .select({
-      tenantId: tenants.id,
-      tenantName: tenants.name,
-      propertyId: properties.id,
-      propertyName: properties.name,
-      propertySlug: properties.slug,
-      description: properties.description,
-      city: properties.city,
-      country: properties.country,
-      images: properties.images,
-    })
-    .from(tenants)
-    .leftJoin(properties, eq(properties.tenantId, tenants.id))
-    .where(and(eq(tenants.type, 'partner'), eq(tenants.status, 'active')))
-    .orderBy(asc(tenants.name));
-
-  const partners = partnerRows.filter((partner) => partner.propertyId).slice(0, 3);
-  const openingHours = (restaurant?.openingHours as OpeningHours | null) ?? {};
+  const propertyId = hubProperty?.id ?? process.env.DEFAULT_PROPERTY_ID ?? '';
 
   return (
     <div className="min-h-screen bg-surface-background">
@@ -240,6 +310,8 @@ export default async function LandingPage() {
                 const fallbackAmount = room.baseRate ? Number(room.baseRate) : null;
                 const amount = rate?.amount ?? (Number.isNaN(fallbackAmount) ? null : fallbackAmount);
                 const currency = rate?.currency ?? room.currency ?? hubProperty?.currency ?? 'NAD';
+                const roomAmenities = asStringArray(room.amenities).slice(0, 5);
+                const roomImage = firstImage(room.images, fallbackImage);
                 return (
                   <Link
                     key={room.id}
@@ -247,7 +319,7 @@ export default async function LandingPage() {
                     className="group bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1"
                   >
                     <div className="aspect-4/3 relative bg-nude-200">
-                      <Image src={room.images?.[0] ?? fallbackImage} alt={room.roomType} fill className="object-cover" />
+                      <Image src={roomImage} alt={room.roomType} fill className="object-cover" />
                     </div>
                     <div className="p-6">
                       <h3 className="font-display text-2xl font-bold text-terracotta-900 mb-2">{room.roomType}</h3>
@@ -258,7 +330,7 @@ export default async function LandingPage() {
                       )}
                       <p className="text-sm text-terracotta-800 mb-4">Up to {room.maxOccupancy ?? 2} guests</p>
                       <ul className="space-y-2 mb-4">
-                        {(room.amenities ?? []).slice(0, 5).map((amenity) => (
+                        {roomAmenities.map((amenity) => (
                           <li key={amenity} className="flex items-center gap-2 text-sm text-terracotta-800">
                             <Check className="w-4 h-4 text-sage" />
                             {amenity}
@@ -309,7 +381,12 @@ export default async function LandingPage() {
                 </Button>
               </div>
               <div className="relative h-[400px] rounded-2xl overflow-hidden shadow-card">
-                <Image src={restaurant?.images?.[0] ?? '/images/hospitality/restaurant_dining.jpeg'} alt={restaurant?.name ?? 'Etuna Restaurant'} fill className="object-cover" />
+                <Image
+                  src={firstImage(restaurant?.images, '/images/hospitality/restaurant_dining.jpeg')}
+                  alt={restaurant?.name ?? 'Etuna Restaurant'}
+                  fill
+                  className="object-cover"
+                />
               </div>
             </div>
           </div>
@@ -401,7 +478,12 @@ export default async function LandingPage() {
               {partners.map((partner) => (
                 <Link key={partner.propertyId} href={`/partners/${partner.propertySlug}`} className="group bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300">
                   <div className="aspect-video relative bg-nude-200">
-                    <Image src={partner.images?.[0] ?? fallbackImage} alt={partner.propertyName ?? 'Partner property'} fill className="object-cover" />
+                    <Image
+                      src={firstImage(partner.images, fallbackImage)}
+                      alt={partner.propertyName ?? 'Partner property'}
+                      fill
+                      className="object-cover"
+                    />
                   </div>
                   <div className="p-6">
                     <h3 className="font-display text-2xl font-bold text-terracotta-900 mb-2">{partner.propertyName}</h3>
