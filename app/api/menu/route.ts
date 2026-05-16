@@ -63,12 +63,18 @@ export async function POST(request: NextRequest) {
 
       try {
         // Ensure propertyId is included in the data
+        const propertyId =
+          validation.data.propertyId ||
+          (validation.data as { property_id?: string }).property_id;
+        if (!propertyId) {
+          return errorResponse('propertyId is required', 400, 'VALIDATION_ERROR');
+        }
         const menuItemData = {
           name: validation.data.name,
           description: validation.data.description,
           category: validation.data.category,
           price: validation.data.price,
-          propertyId: validation.data.propertyId || (validation.data as { property_id?: string }).property_id,
+          propertyId,
           imageUrl: validation.data.imageUrl?.trim() || null,
         };
         const newMenuItem = await menuService.createMenuItem(
