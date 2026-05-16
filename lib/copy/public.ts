@@ -62,7 +62,10 @@ export const publicCopy = {
     menuBrowseOnly:
       'This menu is for browsing only. Sign in to place room service or dine-in orders.',
     roomsBrowseOnly:
-      'Browse room photo tours freely. Sign in to view rates and complete your booking.',
+      'Photo tours are free to browse. Rates are hidden until you sign in; booking requires an account.',
+    roomsSignedInHint:
+      'You are signed in — each room tour shows live rates and the booking form below.',
+    roomTourRatesHidden: 'Rates hidden — sign in to view',
     completeBooking: 'Sign in to complete booking',
     roomsFoundSignIn: 'Rooms found. Sign in or create an account to complete your booking.',
     roomAvailableSignIn:
@@ -71,8 +74,10 @@ export const publicCopy = {
   ctas: {
     bookStay: 'Book your stay',
     bookNow: 'Book now',
+    completeYourBooking: 'Complete your booking',
     explore: 'Explore',
     viewDetails: 'View details',
+    takeTheTour: 'Take the tour',
     viewPropertyDetails: 'View property details',
     signIn: 'Sign in',
     signUp: 'Sign up',

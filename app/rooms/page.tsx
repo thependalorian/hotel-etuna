@@ -13,6 +13,8 @@ import Footer from '@/components/shared/Footer';
 import NavigationHeader from '@/components/sections/landing/NavigationHeader';
 import { Button } from '@/components/ui/Button';
 import PublicRoomsBrowseBanner from '@/components/PublicRoomsBrowseBanner';
+import PublicRoomsSignedInBanner from '@/components/PublicRoomsSignedInBanner';
+import { publicCopy } from '@/lib/copy/public';
 import RoomsIncludedStrip from '@/components/RoomsIncludedStrip';
 import RoomsFilmstrip from '@/components/RoomsFilmstrip';
 
@@ -28,6 +30,7 @@ export default async function RoomsPage() {
   const session = await getServerSession(authOptions);
   const isAuthenticated = Boolean(session?.user);
   const roomRows = await getHubRooms();
+  const firstTourSlug = roomRows[0]?.slug ?? 'standard-room';
 
   return (
     <div className="min-h-screen bg-surface-background">
@@ -53,8 +56,16 @@ export default async function RoomsPage() {
               Experience authentic Namibian hospitality at Hotel Etuna
             </p>
             <Button asChild size="xl" className="bg-white text-terracotta-900 hover:bg-nude-100">
-              <Link href={isAuthenticated ? '/#booking' : '/login?redirect=/#booking'}>
-                Check availability
+              <Link
+                href={
+                  isAuthenticated
+                    ? `/rooms/${firstTourSlug}#booking`
+                    : '/login?redirect=/rooms'
+                }
+              >
+                {isAuthenticated
+                  ? publicCopy.ctas.completeYourBooking
+                  : publicCopy.gated.viewPricesAndBook}
               </Link>
             </Button>
           </div>

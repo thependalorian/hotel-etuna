@@ -98,10 +98,13 @@ export default function RoomsFilmstrip({ rooms, isAuthenticated }: RoomsFilmstri
                       </span>
                     ))}
                   </div>
-                  <Button asChild size="md" className="mt-4 w-full min-h-11 sm:mt-5">
-                    <Link href={`/rooms/${room.slug}#tour`}>
-                      {isAuthenticated ? 'Take the tour' : publicCopy.ctas.viewDetails}
-                    </Link>
+                  {!isAuthenticated ? (
+                    <p className="mt-3 text-xs font-medium text-khaki-700">
+                      {publicCopy.gated.roomTourRatesHidden}
+                    </p>
+                  ) : null}
+                  <Button asChild size="md" className="mt-3 w-full min-h-11 sm:mt-4">
+                    <Link href={`/rooms/${room.slug}#tour`}>{publicCopy.ctas.takeTheTour}</Link>
                   </Button>
                 </div>
               </article>

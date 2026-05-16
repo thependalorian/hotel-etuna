@@ -151,7 +151,10 @@ export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
           <h3 className="font-semibold text-terracotta-900">Available Rooms</h3>
           {filteredResults.map((room) => (
             <div key={room.id} className="rounded-lg border border-nude-200 p-3 text-sm text-terracotta-800">
-              {room.roomType} ({room.roomNumber}) · Max {room.maxOccupancy} guests · NAD {room.baseRate ?? 'N/A'}
+              {room.roomType} ({room.roomNumber}) · Max {room.maxOccupancy} guests
+              {isAuthenticated
+                ? ` · NAD ${room.baseRate ?? 'N/A'}`
+                : ` · ${publicCopy.gated.viewRates}`}
             </div>
           ))}
           {!isAuthenticated ? (

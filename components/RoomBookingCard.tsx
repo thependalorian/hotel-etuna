@@ -46,9 +46,9 @@ export default function RoomBookingCard({
 
       {isAuthenticated ? (
         <Button asChild size="lg" className="mb-3 w-full min-h-11">
-          <Link href="/#booking">
+          <Link href="#booking">
             <Calendar className="h-5 w-5" aria-hidden />
-            Complete booking
+            {publicCopy.ctas.completeYourBooking}
           </Link>
         </Button>
       ) : (

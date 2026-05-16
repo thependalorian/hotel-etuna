@@ -18,6 +18,8 @@ import Footer from '@/components/shared/Footer';
 import NavigationHeader from '@/components/sections/landing/NavigationHeader';
 import RoomPhotoTour from '@/components/RoomPhotoTour';
 import RoomBookingCard from '@/components/RoomBookingCard';
+import PublicRoomsBrowseBanner from '@/components/PublicRoomsBrowseBanner';
+import PublicRoomsSignedInBanner from '@/components/PublicRoomsSignedInBanner';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,6 +58,12 @@ export default async function RoomDetailPage({ params }: Props) {
         breadcrumbLabel="Room details"
       />
 
+      <PublicRoomsBrowseBanner
+        isAuthenticated={isAuthenticated}
+        redirectPath={`/rooms/${slug}`}
+      />
+      <PublicRoomsSignedInBanner isAuthenticated={isAuthenticated} />
+
       <main className="py-6 sm:py-8">
         <div className="container mx-auto px-4">
           <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-3 lg:gap-8">
@@ -90,7 +98,7 @@ export default async function RoomDetailPage({ params }: Props) {
                 </div>
               </div>
 
-              <div className="rounded-2xl bg-white p-6 shadow-card">
+              <div id="booking" className="scroll-mt-24 rounded-2xl bg-white p-6 shadow-card">
                 <h2 className="mb-4 font-display text-2xl font-bold text-terracotta-900">
                   Check availability
                 </h2>

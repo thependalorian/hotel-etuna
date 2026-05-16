@@ -9,9 +9,14 @@ import { publicCopy } from '@/lib/copy/public';
 
 type PublicRoomsBrowseBannerProps = {
   isAuthenticated: boolean;
+  /** Post-login return path (defaults to /rooms). */
+  redirectPath?: string;
 };
 
-export default function PublicRoomsBrowseBanner({ isAuthenticated }: PublicRoomsBrowseBannerProps) {
+export default function PublicRoomsBrowseBanner({
+  isAuthenticated,
+  redirectPath = '/rooms',
+}: PublicRoomsBrowseBannerProps) {
   if (isAuthenticated) return null;
 
   return (
@@ -24,7 +29,7 @@ export default function PublicRoomsBrowseBanner({ isAuthenticated }: PublicRooms
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <span className="text-sm">{publicCopy.gated.roomsBrowseOnly}</span>
           <Link
-            href="/login?redirect=/rooms"
+            href={`/login?redirect=${encodeURIComponent(redirectPath)}`}
             className="btn btn-sm btn-primary min-h-10 shrink-0 border-0 bg-khaki-600 text-white hover:bg-khaki-700"
           >
             {publicCopy.gated.viewPricesAndBook}

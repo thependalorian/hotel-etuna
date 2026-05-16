@@ -1,7 +1,7 @@
 # Hotel Etuna — Task & Production Tracker
 
 **Status:** **Production Live** — core platform complete; RAG upsert remains (`npm audit --audit-level=critical`: **0 critical**)  
-**Last Updated:** May 17, 2026 (`/rooms` DB fix via `resolvePublicHubProperty`, responsive filmstrip, redeploy)  
+**Last Updated:** May 17, 2026 (room tour gating: masked public rates, same tour when signed in, docs PRD §3.1.2 v2.8.0)  
 **Production URL:** https://www.hoteletuna.com (Vercel deploy `C5yP5uj1` — May 16, 2026; env via `node scripts/push-env-to-vercel.mjs`)
 
 ---
@@ -188,6 +188,7 @@ For every new feature or significant code change:
 - [x] Digital menu book on `/dining` — full-menu `MenuBookFullMenu`, DB-only load, analytics guest favourites, `image_url` seed/validate scripts (PRD §3.1.1)
 - [x] Menu book layout — food 4/page (2×2 + thumbnails); drinks list without images; view-only public menu + CMS edit at `/menu/[itemId]/edit`
 - [x] Room photo tours on `/rooms` + `/rooms/[slug]` — `RoomPhotoTour`, filmstrip listing, included-amenities strip, browse-only banner, Premier 4 guests / 6 stops (`lib/rooms/room-display.ts`, PRD §3.1.2)
+- [x] Room tour gating — public: masked rates, **Take the tour** CTA, sign-in to book; signed-in: same tour + rates + `#booking` widget (PRD v2.8.0)
 - [x] `tests/unit/room-display.test.ts` — Premier occupancy, tour stops, mini-fridge strip
 - [x] Reviews section (approved only)
 - [x] Partners section

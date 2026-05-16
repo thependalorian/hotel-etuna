@@ -15,7 +15,9 @@
 import { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
+import { getServerSession } from 'next-auth';
 import { and, asc, desc, eq, inArray } from 'drizzle-orm';
+import { authOptions } from '@/lib/auth/config';
 import {
   db,
   cmsMenuItems,
@@ -95,8 +97,8 @@ function formatOpeningSlot(
 }
 
 export default async function LandingPage() {
-  // Keep landing page fully static/fail-safe; authenticated actions are handled on protected routes.
-  const isAuthenticated = false;
+  const session = await getServerSession(authOptions);
+  const isAuthenticated = Boolean(session?.user);
   let hubTenant: { id: string; name: string | null } | null = null;
   let hubProperty: typeof properties.$inferSelect | null = null;
   let roomRows: Array<{
@@ -311,7 +313,9 @@ export default async function LandingPage() {
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="font-display text-4xl md:text-5xl font-bold text-terracotta-900 mb-4">Our Rooms ({roomRows.length})</h2>
-              <p className="text-lg text-terracotta-800 max-w-2xl mx-auto">Live availability-linked room data from our booking system.</p>
+              <p className="text-lg text-terracotta-800 max-w-2xl mx-auto">
+                Walk through each room in a photo tour — sign in to view rates and book.
+              </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {roomRows.map((room) => {
@@ -324,7 +328,7 @@ export default async function LandingPage() {
                 return (
                   <Link
                     key={room.id}
-                    href={`/rooms/${slugify(room.roomType)}`}
+                    href={`/rooms/${slugify(room.roomType)}#tour`}
                     className="group bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1"
                   >
                     <div className="aspect-4/3 relative bg-nude-200">
@@ -347,7 +351,7 @@ export default async function LandingPage() {
                         ))}
                       </ul>
                       <div className="text-khaki-600 font-semibold group-hover:text-khaki-700 flex items-center gap-2">
-                        {isAuthenticated ? publicCopy.ctas.viewDetails : publicCopy.gated.viewPricesAndBook}
+                        {publicCopy.ctas.takeTheTour}
                         <span className="group-hover:translate-x-1 transition-transform">→</span>
                       </div>
                     </div>

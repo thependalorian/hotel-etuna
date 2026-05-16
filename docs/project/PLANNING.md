@@ -267,7 +267,7 @@ Hotel Etuna (hub)
 - `lib/data/rooms.ts` as DRY source for room queries
 - Rustic brand token usage
 - **Digital menu book (`/dining`):** Neon-only `getCompleteMenu()` → `serializePublicMenu()` + `MenuPopularityService` → `PublicMenuBoard` / `MenuBookFullMenu` (single book; food 4-up grid + drink lists; view-only banner). CMS `/menu/[itemId]/edit`; scripts `seed:menu-images`, `validate:menu-images`, `seed:menu-images:full` — PRD §3.1.1
-- **Room photo tours (`/rooms`, `/rooms/[slug]`):** `lib/rooms/room-display.ts` + `lib/data/rooms.ts` → `RoomsFilmstrip`, `RoomPhotoTour`, gated `RoomBookingCard`; Premier 4 guests / 6 stops; seed updates `max_occupancy` on conflict — PRD §3.1.2
+- **Room photo tours (`/rooms`, `/rooms/[slug]`):** Same `RoomPhotoTour` for guests and signed-in users; rates masked on public cards (`RoomBookingCard`, filmstrip); sign-in required for `#booking` widget; `takeTheTour` CTA everywhere — PRD §3.1.2
 
 #### Phase 2 — Cash Ops ✅
 - Migration `0007` for cash columns + reconciliation table

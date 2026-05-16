@@ -1,6 +1,6 @@
 # Hotel Etuna — Product Requirements Document (PRD)
 
-**Version:** 2.7.9  
+**Version:** 2.8.0  
 **Date:** May 16, 2026  
 **Auditor:** Product Team  
 **Status:** **In production** (Vercel + Neon). All core features complete. This is the consolidated single source of truth for all product requirements.  
@@ -156,9 +156,10 @@ Hotel Etuna is a **hub‑and‑spoke hospitality platform** built on the Buffr H
 
 | Layer | Implementation |
 |-------|----------------|
-| **Data** | `getHubRooms()` / `getRoomBySlug()` (`lib/data/rooms.ts`) from Neon `rooms` (rates, amenities, optional `images[]`). Public copy and tour stops: **`lib/rooms/room-display.ts`** (single source — summaries, highlights, `displayOccupancy`; Premier **4 guests** product override even if DB still has 6). |
-| **Listing UX** | `/rooms`: `PublicRoomsBrowseBanner` (`publicCopy.gated.roomsBrowseOnly`), `RoomsIncludedStrip` (mini fridge in every room + WiFi/AC/housekeeping/mosquito nets), horizontal **`RoomsFilmstrip`** cards (hero, occupancy, photo-stop count, highlights, link to `/rooms/[slug]#tour`). |
-| **Detail UX** | `/rooms/[slug]`: **`RoomPhotoTour`** — large hero with prev/next and stop rail (not menu book page-turn). Sticky **`RoomBookingCard`** (mini-fridge callout, gated rates). Highlights + DB amenities; **`LandingBookingWidget`** when signed in. |
+| **Data** | `getHubRooms()` / `getRoomBySlug()` (`lib/data/rooms.ts`) — resolves hub property via **`resolvePublicHubProperty()`** (same as landing), then loads `rooms` excluding maintenance/out-of-order (case-insensitive). `export const dynamic = 'force-dynamic'` on `/rooms` pages. Public copy/tour stops: **`lib/rooms/room-display.ts`**. |
+| **Listing UX** | `/rooms`: `PublicRoomsBrowseBanner` (guests — rates masked, sign in to book), `PublicRoomsSignedInBanner` (signed-in — same tours, rates + booking on each detail page), `RoomsIncludedStrip`, **`RoomsFilmstrip`** (no prices on cards; **Take the tour** → `/rooms/[slug]#tour`; guests see “Rates hidden — sign in to view”). |
+| **Detail UX** | **Same `RoomPhotoTour` for everyone** (guests and signed-in). Guests: `RoomBookingCard` shows `publicCopy.gated.viewRates` (no NAD amounts); availability block hidden behind sign-in. Signed-in: live rates in card, **`LandingBookingWidget`** at `#booking`, CTA **Complete your booking** scrolls to widget. |
+| **Gating** | Public pages never render room `baseRate` in tour UI. Homepage room cards + filmstrip link to `#tour`; prices only after login (`getServerSession` on `/` and `/rooms`). Booking completion requires account. |
 | **Premier** | Six stops: overview, lounge, master bedroom, twin room, bathroom, balcony. Sleeps **4** (private lounge + master + twin configuration). Seed: `scripts/seed-hotel-etuna.ts` — `max_occupancy = 4`, amenities include **Mini fridge**. |
 | **Images** | Prefer `rooms.images[]` when set; otherwise hospitality fallbacks under `/images/hospitality/*` per slug in `room-display.ts`. Replace with property photography via CMS/DB when available. |
 | **Components** | `RoomPhotoTour`, `RoomsFilmstrip`, `RoomsIncludedStrip`, `PublicRoomsBrowseBanner`, `RoomBookingCard`. |
@@ -1515,8 +1516,8 @@ Hotel Etuna uses a **gated content model** to:
 | Page | Visible Content | Hidden Content | Primary CTA |
 |------|----------------|----------------|-------------|
 | **Landing (/)** | Hero, story, room **names & images** (no prices), dining overview (no prices), approved reviews, partner cards, footer. | Room prices, booking form (replaced with "Sign in to check"), menu prices. | "View Rooms" → `/rooms`<br>"Sign Up to See Prices" on room cards. |
-| **/rooms** | **Photo-tour filmstrip** — images, summaries, highlights, occupancy, photo-stop count; "Every room includes" strip (mini fridge). | Prices, live booking. | Browse banner: sign in for rates; **"Take the tour"** / **View details** → `/rooms/[slug]#tour`. |
-| **/rooms/[slug]** | **`RoomPhotoTour`** (hero + stop rail), full description, highlights, amenities, capacity (Premier **4 guests**). | Price per night, **`LandingBookingWidget`** until signed in. | **Sign in** for rates and availability widget. |
+| **/rooms** | **Photo-tour filmstrip** — same **Take the tour** CTA for all visitors; no prices on cards. Signed-in banner explains rates on detail pages. | NAD rates, booking form. | Guests: sign-in banner. All: **Take the tour** → `/rooms/[slug]#tour`. |
+| **/rooms/[slug]** | **`RoomPhotoTour`** (identical UX signed-in or guest), description, highlights, amenities, capacity. | Guests: nightly rate, **`#booking`** widget. | Guests: **Sign in** on card + banner. Signed-in: rates + **Complete your booking** → `#booking`. |
 | **/dining** | Restaurant overview; **digital menu book** (all categories/items), dish photos, names, descriptions, **NAD prices**; guest favourites strip (analytics). Page-turn UX (click, drag, ← →). | In-page room-service ordering (folio) for guests not checked in. | "Sign In to Order Online" / reservation CTA in hours section. |
 | **/partners & /partners/[slug]** | Partner property info, images, descriptions, room types. | Partner prices, partner booking widget. | "Sign In to View Partner Rates & Book". |
 | **Sofia AI Chat** | Public visitors can ask general questions (e.g., "Do you have a pool?", "What time is check‑in?"). Sofia **must not** disclose room rates, availability, or take booking requests from unauthenticated users. | Prices, availability, booking. | Sofia replies: *"For pricing and availability, please sign up — it only takes a minute!"* |
