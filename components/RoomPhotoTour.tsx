@@ -35,7 +35,7 @@ export default function RoomPhotoTour({ roomName, stops }: RoomPhotoTourProps) {
 
   return (
     <section id="tour" className="space-y-4" aria-label={`${roomName} photo tour`}>
-      <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl bg-nude-100 shadow-card">
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-nude-100 shadow-card sm:aspect-[16/10]">
         <Image
           key={active.imageSrc}
           src={active.imageSrc}
@@ -50,7 +50,7 @@ export default function RoomPhotoTour({ roomName, stops }: RoomPhotoTourProps) {
         <button
           type="button"
           onClick={() => go(-1)}
-          className="btn btn-circle btn-sm absolute left-3 top-1/2 -translate-y-1/2 border-0 bg-white/90 min-h-11 min-w-11"
+          className="btn btn-circle btn-sm absolute left-2 top-1/2 -translate-y-1/2 border-0 bg-white/90 min-h-11 min-w-11 sm:left-3"
           aria-label="Previous photo"
         >
           <ChevronLeft className="h-5 w-5" aria-hidden />
@@ -58,7 +58,7 @@ export default function RoomPhotoTour({ roomName, stops }: RoomPhotoTourProps) {
         <button
           type="button"
           onClick={() => go(1)}
-          className="btn btn-circle btn-sm absolute right-3 top-1/2 -translate-y-1/2 border-0 bg-white/90 min-h-11 min-w-11"
+          className="btn btn-circle btn-sm absolute right-2 top-1/2 -translate-y-1/2 border-0 bg-white/90 min-h-11 min-w-11 sm:right-3"
           aria-label="Next photo"
         >
           <ChevronRight className="h-5 w-5" aria-hidden />

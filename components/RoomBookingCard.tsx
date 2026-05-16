@@ -27,14 +27,14 @@ export default function RoomBookingCard({
   const currency = room.currency ?? 'NAD';
 
   return (
-    <div className="sticky top-24 rounded-2xl bg-white p-6 shadow-card">
+    <div className="rounded-2xl bg-white p-5 shadow-card sm:p-6 lg:sticky lg:top-24">
       <div className="mb-4 flex items-center gap-2 text-sm text-terracotta-800">
         <Refrigerator className="h-4 w-4 text-khaki-600" aria-hidden />
         Mini fridge in every room
       </div>
 
       <div className="mb-6">
-        <div className="mb-1 font-display text-4xl font-bold text-khaki-600">
+        <div className="mb-1 font-display text-2xl font-bold text-khaki-600 sm:text-3xl lg:text-4xl">
           {isAuthenticated
             ? price !== null && !Number.isNaN(Number(price))
               ? `${currency} ${Number(price).toLocaleString()}`

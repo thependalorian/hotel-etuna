@@ -6,13 +6,11 @@
  */
 
 import { db } from '@/lib/db';
-import { rooms, properties } from '@/lib/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { rooms } from '@/lib/db/schema';
+import { asc, eq, sql } from 'drizzle-orm';
 import { cache } from 'react';
 import { slugify } from '@/lib/utils/slugify';
-
-const HUB_TENANT_ID = process.env.HUB_TENANT_ID!;
-const DEFAULT_PROPERTY_ID = process.env.DEFAULT_PROPERTY_ID!;
+import { resolvePublicHubProperty } from '@/lib/utils/public-property';
 
 type HubRoomRow = {
   id: string;
@@ -42,11 +40,23 @@ function mapHubRoom(row: HubRoomRow) {
   };
 }
 
+function publicRoomsWhere(propertyId: string) {
+  return sql`(
+    ${rooms.propertyId} = ${propertyId}
+    AND (
+      ${rooms.status} IS NULL
+      OR LOWER(${rooms.status}) NOT IN ('maintenance', 'out_of_order')
+    )
+  )`;
+}
+
 /**
- * All published hub rooms for the default landing property.
+ * All hub rooms for the resolved public property (same source as landing page).
  */
 export const getHubRooms = cache(async () => {
   try {
+    const { property } = await resolvePublicHubProperty();
+
     const rows = await db
       .select({
         id: rooms.id,
@@ -63,15 +73,8 @@ export const getHubRooms = cache(async () => {
         createdAt: rooms.createdAt,
       })
       .from(rooms)
-      .innerJoin(properties, eq(rooms.propertyId, properties.id))
-      .where(
-        and(
-          eq(properties.tenantId, HUB_TENANT_ID),
-          eq(rooms.propertyId, DEFAULT_PROPERTY_ID),
-          eq(rooms.status, 'available'),
-        ),
-      )
-      .orderBy(rooms.roomType, rooms.baseRate);
+      .where(publicRoomsWhere(property.id))
+      .orderBy(asc(rooms.roomType), asc(rooms.baseRate));
 
     return rows.map((r) => mapHubRoom(r as HubRoomRow));
   } catch (error) {
@@ -127,5 +130,5 @@ export const getRoomAvailability = cache(
   },
 );
 
-export type HubRoom = Awaited<ReturnType<typeof getHubRooms>>[0];
+export type HubRoom = Awaited<ReturnType<typeof getHubRooms>>[number];
 export type RoomDetail = Awaited<ReturnType<typeof getRoomBySlug>>;

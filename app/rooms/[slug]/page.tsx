@@ -19,10 +19,13 @@ import NavigationHeader from '@/components/sections/landing/NavigationHeader';
 import RoomPhotoTour from '@/components/RoomPhotoTour';
 import RoomBookingCard from '@/components/RoomBookingCard';
 
-type Props = { params: { slug: string } };
+export const dynamic = 'force-dynamic';
+
+type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const room = await getRoomBySlug(params.slug);
+  const { slug } = await params;
+  const room = await getRoomBySlug(slug);
   if (!room) return { title: 'Room Not Found' };
   const display = getPublicRoomDisplay(room);
   return {
@@ -32,9 +35,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function RoomDetailPage({ params }: Props) {
+  const { slug } = await params;
   const session = await getServerSession(authOptions);
   const isAuthenticated = Boolean(session?.user);
-  const room = await getRoomBySlug(params.slug);
+  const room = await getRoomBySlug(slug);
   if (!room) notFound();
 
   const display = getPublicRoomDisplay(room);
@@ -52,10 +56,10 @@ export default async function RoomDetailPage({ params }: Props) {
         breadcrumbLabel="Room details"
       />
 
-      <main className="py-8">
+      <main className="py-6 sm:py-8">
         <div className="container mx-auto px-4">
-          <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-3">
-            <div className="md:col-span-2 space-y-8">
+          <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-3 lg:gap-8">
+            <div className="space-y-6 sm:space-y-8 lg:col-span-2">
               <RoomPhotoTour roomName={room.roomType} stops={display.tourStops} />
 
               <div>
@@ -94,7 +98,7 @@ export default async function RoomDetailPage({ params }: Props) {
                   <LandingBookingWidget propertyId={property.id} />
                 ) : (
                   <p className="text-sm text-terracotta-800">
-                    <Link href={`/login?redirect=/rooms/${params.slug}`} className="link link-primary">
+                    <Link href={`/login?redirect=/rooms/${slug}`} className="link link-primary">
                       Sign in
                     </Link>{' '}
                     to check live availability and rates for your dates.
@@ -103,11 +107,11 @@ export default async function RoomDetailPage({ params }: Props) {
               </div>
             </div>
 
-            <div>
+            <div className="lg:col-span-1">
               <RoomBookingCard
                 room={room}
                 display={display}
-                slug={params.slug}
+                slug={slug}
                 isAuthenticated={isAuthenticated}
               />
             </div>

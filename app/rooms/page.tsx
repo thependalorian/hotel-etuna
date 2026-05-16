@@ -16,6 +16,8 @@ import PublicRoomsBrowseBanner from '@/components/PublicRoomsBrowseBanner';
 import RoomsIncludedStrip from '@/components/RoomsIncludedStrip';
 import RoomsFilmstrip from '@/components/RoomsFilmstrip';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Rooms & Suites',
   description:
