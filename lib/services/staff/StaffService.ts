@@ -167,4 +167,72 @@ export class StaffService {
       throw handleServiceError(error, 'Error creating staff');
     }
   }
+
+  async getStaffById(staffId: string, tenantId: string): Promise<Staff | null> {
+    try {
+      const rows = await db.execute(sql`
+        SELECT id, tenant_id, property_id, employee_number, first_name, last_name, email, phone, position, department, employment_type, status, hire_date, created_at, updated_at
+        FROM staff
+        WHERE id = ${staffId} AND tenant_id = ${tenantId}
+        LIMIT 1
+      `);
+      const row = rows.rows[0];
+      return row ? this.mapStaffRow(row as Record<string, unknown>) : null;
+    } catch (error) {
+      throw handleServiceError(error, 'Error fetching staff member');
+    }
+  }
+
+  async updateStaff(staffId: string, tenantId: string, data: Partial<NewStaff>): Promise<Staff> {
+    try {
+      const existing = await this.getStaffById(staffId, tenantId);
+      if (!existing) {
+        throw new AppError(404, 'Staff member not found');
+      }
+
+      const employment = data.employmentType
+        ? String(data.employmentType).toUpperCase()
+        : undefined;
+      const status = data.status ? String(data.status).toUpperCase() : undefined;
+
+      const rows = await db.execute(sql`
+        UPDATE staff
+        SET
+          property_id = COALESCE(${data.propertyId ?? null}, property_id),
+          first_name = COALESCE(${data.firstName ?? null}, first_name),
+          last_name = COALESCE(${data.lastName ?? null}, last_name),
+          email = COALESCE(${data.email ?? null}, email),
+          phone = COALESCE(${data.phone ?? null}, phone),
+          position = COALESCE(${data.position ?? null}, position),
+          department = COALESCE(${data.department ?? null}, department),
+          employment_type = COALESCE(${employment ?? null}, employment_type),
+          status = COALESCE(${status ?? null}, status),
+          updated_at = NOW()
+        WHERE id = ${staffId} AND tenant_id = ${tenantId}
+        RETURNING id, tenant_id, property_id, employee_number, first_name, last_name, email, phone, position, department, employment_type, status, hire_date, created_at, updated_at
+      `);
+
+      if (!rows.rows[0]) {
+        throw new AppError(404, 'Staff member not found');
+      }
+      return this.mapStaffRow(rows.rows[0] as Record<string, unknown>);
+    } catch (error) {
+      throw handleServiceError(error, 'Error updating staff');
+    }
+  }
+
+  async deleteStaff(staffId: string, tenantId: string): Promise<void> {
+    try {
+      const result = await db.execute(sql`
+        DELETE FROM staff
+        WHERE id = ${staffId} AND tenant_id = ${tenantId}
+        RETURNING id
+      `);
+      if (!result.rows[0]) {
+        throw new AppError(404, 'Staff member not found');
+      }
+    } catch (error) {
+      throw handleServiceError(error, 'Error deleting staff');
+    }
+  }
 }

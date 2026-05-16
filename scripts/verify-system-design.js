@@ -27,7 +27,7 @@ function log(message, color = 'reset') {
 const checks = [
   {
     name: 'Middleware with System Design',
-    file: 'middleware.ts',
+    file: 'proxy.ts',
     checks: [
       { pattern: /withAuth/, desc: 'Uses NextAuth middleware' },
       { pattern: /hasRouteAccess/, desc: 'Role-based access control' },

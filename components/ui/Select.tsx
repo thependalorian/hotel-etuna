@@ -1,3 +1,57 @@
+/**
+ * Select Component
+ * 
+ * Purpose: Accessible dropdown select using Radix UI Select primitive
+ * Location: /components/ui/Select.tsx
+ * 
+ * Features:
+ * - Keyboard navigation (arrow keys, type to search)
+ * - Scrollable content with scroll buttons
+ * - Checkmark indicator for selected item
+ * - Option grouping support
+ * - Disabled state support
+ * - Portal rendering for proper z-index
+ * 
+ * Components:
+ * - Select: Root component
+ * - SelectTrigger: Button to open select
+ * - SelectValue: Displays selected value
+ * - SelectContent: Dropdown content container
+ * - SelectItem: Individual option
+ * - SelectLabel: Group label
+ * - SelectGroup: Option grouping
+ * - SelectSeparator: Visual separator
+ * 
+ * Design System:
+ * - Height: 44px (h-11) - Follows Fitt's Law
+ * - Rounded: xl (trigger), 2xl (content)
+ * - Border: nude-200
+ * - Focus ring: 2px with offset
+ * - Shadow: nude-medium on dropdown
+ * - Transitions: 200ms duration
+ * 
+ * Accessibility:
+ * - Full keyboard support (arrows, enter, escape, type-ahead)
+ * - ARIA role and attributes
+ * - Focus management
+ * - Screen reader announcements
+ * 
+ * Usage:
+ * ```tsx
+ * <Select value={value} onValueChange={setValue}>
+ *   <SelectTrigger>
+ *     <SelectValue placeholder="Select an option" />
+ *   </SelectTrigger>
+ *   <SelectContent>
+ *     <SelectItem value="1">Option 1</SelectItem>
+ *     <SelectItem value="2">Option 2</SelectItem>
+ *   </SelectContent>
+ * </Select>
+ * ```
+ * 
+ * @module Select
+ */
+
 "use client";
 
 import * as React from "react";

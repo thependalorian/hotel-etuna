@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { CashPaymentModal } from '@/components/features/bookings/CashPaymentModal';
 import { BookingReceipt } from '@/components/features/bookings/BookingReceipt';
+import { BookingDepositPayCard } from '@/components/payments/BookingDepositPayCard';
 import { Button } from '@/components/ui/Button';
 
 function read(record: Record<string, unknown> | null | undefined, key: string): string {
@@ -56,6 +57,7 @@ export function BookingCashPaymentSection({
   const currency = booking.currency ?? 'NAD';
 
   const canMarkCashPaid = pm === 'cash' && ps === 'pending';
+  const canPayCardDeposit = ps === 'pending' && total > 0;
 
   const canShowReceipt =
     pm === 'cash' &&
@@ -86,6 +88,15 @@ export function BookingCashPaymentSection({
           <Button type="button" variant="primary" size="md" onClick={() => setShowCashModal(true)}>
             Mark as Paid (Cash)
           </Button>
+        )}
+
+        {canPayCardDeposit && (
+          <BookingDepositPayCard
+            bookingId={booking.id}
+            bookingReference={booking.booking_reference}
+            amount={total}
+            currency={String(currency)}
+          />
         )}
 
         {canShowReceipt && (

@@ -41,9 +41,14 @@ export default async function ComplianceKycPage() {
         title="KYC / KYB queue"
         description="Tiered verification workflows (LangGraph). Open a case to view documents and approve manually."
         actions={
-          <Link href="/compliance/kyc/new" className="btn btn-primary min-h-[44px]">
-            New case
-          </Link>
+          <>
+            <Link href="/compliance/soc2" className="btn btn-outline min-h-[44px]">
+              SOC 2 readiness
+            </Link>
+            <Link href="/compliance/kyc/new" className="btn btn-primary min-h-[44px]">
+              New case
+            </Link>
+          </>
         }
       />
 

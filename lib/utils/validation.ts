@@ -88,18 +88,32 @@ export const createGuestReviewSchema = z.object({
   guestId: entityId(),
   propertyId: entityId(),
   rating: z.number().int().min(1).max(5),
-  reviewText: z.string().optional(),
+  reviewText: z.string().max(2000).optional(),
   reviewCategory: z.enum(reviewCategoryValues).optional(),
   isPublic: z.boolean().optional(),
 });
 
+const CMS_MEDIA_MAX_BYTES = 5 * 1024 * 1024;
+const CMS_ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'] as const;
+
 export const createCmsMediaSchema = z.object({
   propertyId: entityId(),
-  fileName: z.string().min(1),
+  fileName: z
+    .string()
+    .min(1)
+    .max(255)
+    .refine((n) => !n.includes('..') && !n.includes('/') && !n.includes('\\'), {
+      message: 'Invalid file name',
+    }),
   filePath: z.string().url(),
-  fileType: z.string().min(1),
-  fileSize: z.bigint().optional(),
-  mimeType: z.string().optional(),
+  fileType: z.string().min(1).max(64),
+  fileSize: z
+    .bigint()
+    .optional()
+    .refine((s) => s === undefined || s <= BigInt(CMS_MEDIA_MAX_BYTES), {
+      message: 'File exceeds 5MB limit',
+    }),
+  mimeType: z.enum(CMS_ALLOWED_MIME).optional(),
   storageLocation: z.string().optional(),
   metadata: z.record(z.string(), z.any()).optional(),
 });
@@ -142,6 +156,23 @@ export const createOrderItemSchema = z.object({
   totalPrice: z.number().min(0),
   customizations: z.any().optional(),
   specialInstructions: z.string().optional(),
+});
+
+export const guestRoomServiceOrderSchema = z.object({
+  items: z.array(createOrderItemSchema).min(1),
+  roomNumber: z.string().optional(),
+  specialInstructions: z.string().optional(),
+});
+
+export const guestFolioSettleSchema = z.object({
+  paymentMethod: z.enum(['cash', 'card']),
+  amountPaid: z.number().positive().optional(),
+  gatewayTransactionId: z.string().optional(),
+});
+
+export const guestLoyaltyRedeemSchema = z.object({
+  bookingId: entityId(),
+  pointsToRedeem: z.number().int().min(100),
 });
 
 export const createOrderSchema = z.object({

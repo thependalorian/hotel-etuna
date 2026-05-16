@@ -54,6 +54,49 @@ function getErrorStack(error: unknown): string | undefined {
   return error instanceof Error ? error.stack : undefined;
 }
 
+const PRODUCTION_STRIPPED_DETAIL_KEYS = new Set([
+  'stack',
+  'meta',
+  'cause',
+  'trace',
+  'sql',
+  'query',
+  'connectionString',
+  'DATABASE_URL',
+]);
+
+/** Strip internal fields from API error payloads in production (Gap 5). */
+export function sanitizeErrorDetails(details: unknown): unknown | undefined {
+  if (details === undefined || details === null) {
+    return undefined;
+  }
+  if (process.env.NODE_ENV !== 'production') {
+    return details;
+  }
+  if (Array.isArray(details)) {
+    return details;
+  }
+  if (typeof details !== 'object') {
+    return undefined;
+  }
+  const record = details as Record<string, unknown>;
+  const cleaned: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(record)) {
+    if (PRODUCTION_STRIPPED_DETAIL_KEYS.has(key)) {
+      continue;
+    }
+    if (key === 'fieldErrors' || key === 'formErrors') {
+      cleaned[key] = value;
+      continue;
+    }
+    if (typeof value === 'string' && value.length > 500) {
+      continue;
+    }
+    cleaned[key] = value;
+  }
+  return Object.keys(cleaned).length > 0 ? cleaned : undefined;
+}
+
 /**
  * Get authenticated user from session
  * Checks Stack Auth first, then falls back to NextAuth
@@ -331,12 +374,18 @@ export function errorResponse(
   code?: string,
   details?: unknown
 ): NextResponse {
+  const safeDetails = sanitizeErrorDetails(details);
+  const safeMessage =
+    process.env.NODE_ENV === 'production' && status >= 500
+      ? 'Internal server error'
+      : message;
+
   return NextResponse.json(
     {
       error: {
-        message,
+        message: safeMessage,
         code,
-        details,
+        ...(safeDetails !== undefined ? { details: safeDetails } : {}),
       },
     },
     { status }

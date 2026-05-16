@@ -11,6 +11,8 @@ import bcrypt from 'bcryptjs';
 import { randomUUID } from 'node:crypto';
 import { db, partnerInvites, properties, tenants, users } from '@/lib/db';
 import { eq } from 'drizzle-orm';
+import { rateLimitResponse } from '@/lib/utils/api-helpers';
+import { checkRateLimit, shouldRateLimit } from '@/lib/utils/rate-limit';
 
 const claimSchema = z.object({
   token: z.string().min(10),
@@ -21,7 +23,19 @@ const claimSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    if (shouldRateLimit(req.nextUrl.pathname)) {
+      const rateLimitResult = await checkRateLimit(req);
+      if (!rateLimitResult.allowed) {
+        return rateLimitResponse(rateLimitResult);
+      }
+    }
+
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 });
+    }
     const parsed = claimSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });

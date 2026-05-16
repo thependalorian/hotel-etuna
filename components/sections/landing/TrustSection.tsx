@@ -27,26 +27,26 @@ import { Shield, Lock, CheckCircle2, Clock, CreditCard, Headphones } from 'lucid
 const trustIndicators = [
   {
     icon: Shield,
-    title: 'Enterprise-Grade Security',
-    description: 'Bank-level encryption and security',
+    title: '24-Hour Security',
+    description: 'Peace of mind throughout your stay',
     color: 'primary' as const,
   },
   {
     icon: Clock,
-    title: 'Setup in 5 Minutes',
-    description: 'Get started immediately',
+    title: 'Trade Fair Proximity',
+    description: 'About 500m from Ongwediva Trade Fair Centre',
     color: 'success' as const,
   },
   {
     icon: CreditCard,
-    title: 'No Credit Card Required',
-    description: 'Start with zero commitment',
+    title: 'NFC Payments',
+    description: 'Pay on property with card and NFC',
     color: 'info' as const,
   },
   {
     icon: Headphones,
-    title: '24/7 Support',
-    description: 'Always here to help',
+    title: 'Sofia Concierge',
+    description: 'Guest support when you need it',
     color: 'warning' as const,
   },
 ];
@@ -64,10 +64,10 @@ export default function TrustSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold font-display mb-6 text-balance">
-            Trusted by Hospitality Businesses
+            Why guests choose Hotel Etuna
           </h2>
           <p className="text-xl text-base-content/90 max-w-2xl mx-auto">
-            Enterprise-grade security, regulatory compliance, and complete platform access—all included.
+            Reliable hospitality in northern Oshana—care, comfort, and a memorable table.
           </p>
         </div>
 

@@ -39,7 +39,7 @@ export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: 'Hotel Etuna – He Takes Care of Us',
-  description: 'Welcome to Hotel Etuna in Ongwediva, Namibia. Experience authentic Namibian hospitality with our rooms, on-site restaurant, pool, and curated tours.',
+  description: 'Welcome to Hotel Etuna in Ongwediva, Namibia. Experience authentic Namibian hospitality with our rooms, on-site restaurant, and pool.',
 };
 
 // Helper to slugify room types
@@ -177,9 +177,6 @@ export default async function LandingPage() {
             <Link href="#dining" className="text-terracotta-800 hover:text-khaki-600 transition-colors font-medium">
               Dining
             </Link>
-            <Link href="#tours" className="text-terracotta-800 hover:text-khaki-600 transition-colors font-medium">
-              Tours
-            </Link>
             <Link href="#about" className="text-terracotta-800 hover:text-khaki-600 transition-colors font-medium">
               About
             </Link>
@@ -245,8 +242,7 @@ export default async function LandingPage() {
                 <span className="font-display text-2xl text-khaki-600">"Etuna"</span> means{' '}
                 <span className="font-semibold">"He takes care of us"</span> in Oshiwambo, reflecting our
                 commitment to genuine Namibian hospitality. Located minutes from the Ongwediva Trade Fair,
-                we offer {uniqueRoomTypes.length} distinct room types, a refreshing pool, authentic on-site restaurant, and curated
-                cultural tours that showcase the heart of Northern Namibia.
+                we offer {uniqueRoomTypes.length} distinct room types, a refreshing pool, and authentic on-site dining in the heart of Northern Namibia.
               </p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12">
                 <div className="text-center">
@@ -262,8 +258,8 @@ export default async function LandingPage() {
                   <div className="text-sm text-terracotta-800">Pool & Restaurant</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-4xl font-display font-bold text-khaki-600 mb-2">10+</div>
-                  <div className="text-sm text-terracotta-800">Tours Available</div>
+                  <div className="text-4xl font-display font-bold text-khaki-600 mb-2">500m</div>
+                  <div className="text-sm text-terracotta-800">To Trade Fair</div>
                 </div>
               </div>
               <Button asChild size="lg" className="mt-12">
@@ -407,64 +403,6 @@ export default async function LandingPage() {
           </section>
         )}
 
-        {/* Tours Section */}
-        <section id="tours" className="py-20 bg-white">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="font-display text-4xl md:text-5xl font-bold text-terracotta-900 mb-4">
-                Explore Ongwediva & Beyond
-              </h2>
-              <p className="text-lg text-terracotta-800 max-w-2xl mx-auto">
-                Discover the cultural richness and natural beauty of Northern Namibia with our curated tours
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                {
-                  name: 'Cultural Heritage Tour',
-                  description: 'Visit traditional villages, meet local artisans, and learn about Oshiwambo culture.',
-                  icon: Compass,
-                  duration: 'Half Day',
-                },
-                {
-                  name: 'Nature & Wildlife',
-                  description: 'Explore nearby nature reserves, spot local wildlife, and enjoy scenic landscapes.',
-                  icon: Sparkles,
-                  duration: 'Full Day',
-                },
-                {
-                  name: 'City & Market Tour',
-                  description: 'Experience Ongwediva\'s vibrant markets, Trade Fair grounds, and city highlights.',
-                  icon: MapPin,
-                  duration: '3-4 Hours',
-                },
-              ].map((tour) => (
-                <div
-                  key={tour.name}
-                  className="bg-nude-50 rounded-2xl p-8 hover:shadow-card transition-shadow"
-                >
-                  <div className="w-12 h-12 bg-sage/20 rounded-full flex items-center justify-center mb-4">
-                    <tour.icon className="w-6 h-6 text-sage" />
-                  </div>
-                  <h3 className="font-display text-2xl font-bold text-terracotta-900 mb-3">
-                    {tour.name}
-                  </h3>
-                  <p className="text-terracotta-800 mb-4">{tour.description}</p>
-                  <div className="text-sm text-khaki-600 font-semibold">{tour.duration}</div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="text-center mt-12">
-              <Button asChild size="lg">
-                <Link href="/tours">
-                  See All Tours & Activities
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </section>
 
         {/* Guest Reviews Section */}
         <section className="py-20 bg-nude-50">
@@ -680,7 +618,6 @@ export default async function LandingPage() {
                 <ul className="space-y-2 text-sm">
                   <li><Link href="/rooms" className="text-white/80 hover:text-khaki-600 transition-colors">Rooms</Link></li>
                   <li><Link href="/dining" className="text-white/80 hover:text-khaki-600 transition-colors">Dining</Link></li>
-                  <li><Link href="/tours" className="text-white/80 hover:text-khaki-600 transition-colors">Tours</Link></li>
                   <li><Link href="/about" className="text-white/80 hover:text-khaki-600 transition-colors">About Us</Link></li>
                   <li><Link href="/contact" className="text-white/80 hover:text-khaki-600 transition-colors">Contact</Link></li>
                   <li><Link href="/partners" className="text-white/80 hover:text-khaki-600 transition-colors">Referral Partners – Windhoek Lodging</Link></li>
@@ -695,7 +632,7 @@ export default async function LandingPage() {
                     <>
                       <li className="flex items-start gap-2">
                         <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                        <span className="text-white/80">{property.address || "5544 Valley of the Leopard Street, Ongwediva, Namibia"}</span>
+                        <span className="text-white/80">{property.address || '5544 Valley Street, Ongwediva, Namibia'}</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <Phone className="w-4 h-4 flex-shrink-0" />

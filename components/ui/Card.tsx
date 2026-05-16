@@ -1,3 +1,70 @@
+/**
+ * Card Component
+ * 
+ * Purpose: Container component for content sections with consistent elevation and styling
+ * Location: /components/ui/Card.tsx
+ * 
+ * Features:
+ * - Multiple elevation variants (default, elevated, luxury, interactive)
+ * - Flexible padding sizes (none, sm, md, lg, xl)
+ * - Nude color palette with warm shadows
+ * - Hover states for interactive cards
+ * - Modular subcomponents (Header, Title, Description, Content, Footer)
+ * 
+ * Design System:
+ * - Background: surface-elevated (white)
+ * - Border: nude-200
+ * - Shadow: nude-soft/medium (warm, subtle)
+ * - Border radius: 2xl (24px) for friendly, modern feel
+ * - Typography: Playfair Display for titles, Inter for descriptions
+ * 
+ * Variants:
+ * - default: nude-soft shadow (content cards)
+ * - elevated: nude-medium shadow (emphasized cards, modals)
+ * - luxury: gradient background with luxury-soft shadow (VIP features)
+ * - interactive: hover lift effect + shadow transition (clickable cards)
+ * 
+ * Padding:
+ * - none: p-0 (custom padding needed)
+ * - sm: 16px mobile / 20px desktop
+ * - md: 20px mobile / 24px desktop (default)
+ * - lg: 24px mobile / 32px desktop
+ * - xl: 32px mobile / 40px desktop
+ * 
+ * Subcomponents:
+ * - CardHeader: Title + description container
+ * - CardTitle: H3 heading (lg/xl, Playfair Display)
+ * - CardDescription: Subtitle (sm, nude-600)
+ * - CardContent: Main content area
+ * - CardFooter: Action buttons or metadata
+ * 
+ * Psychology Principles:
+ * - Gestalt Closure: Rounded corners help define boundaries
+ * - Proximity: Related content grouped within card
+ * - Halo Effect: Subtle shadows create depth, premium feel
+ * - Doherty Threshold: Hover transitions <200ms
+ * 
+ * Accessibility:
+ * - Semantic HTML structure
+ * - WCAG AA contrast (nude-900 on white)
+ * - Keyboard navigation (when interactive)
+ * - Screen reader friendly
+ * 
+ * Usage:
+ * ```tsx
+ * <Card variant="elevated" padding="lg">
+ *   <CardHeader>
+ *     <CardTitle>Room Details</CardTitle>
+ *     <CardDescription>Premium Suite Information</CardDescription>
+ *   </CardHeader>
+ *   <CardContent>...</CardContent>
+ *   <CardFooter>...</CardFooter>
+ * </Card>
+ * ```
+ * 
+ * @module Card
+ */
+
 import * as React from "react";
 import { cn } from "@/lib/utils/cn";
 import { cva, type VariantProps } from "class-variance-authority";

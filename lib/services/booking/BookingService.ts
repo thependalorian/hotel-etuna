@@ -9,6 +9,7 @@ import {
   scheduleBookingCreatedEffects,
   scheduleBookingTransitionEffects,
 } from '@/lib/services/booking/bookingLifecycleSideEffects';
+import { FolioService } from '@/lib/services/folio/FolioService';
 
 // A DTO for creating a booking
 export interface CreateBookingDTO {
@@ -68,6 +69,31 @@ export class BookingService {
       return (rows.rows as any[]).map((row) => this.normalizeBookingRow(row));
     } catch (error) {
       throw handleServiceError(error, 'Error fetching bookings');
+    }
+  }
+
+  /**
+   * Bookings for a property overlapping a date range (calendar views).
+   */
+  async getBookingsForPropertyInDateRange(
+    propertyId: string,
+    tenantId: string,
+    rangeStart: string,
+    rangeEnd: string
+  ): Promise<any[]> {
+    try {
+      const rows = await db.execute(sql`
+        SELECT id, tenant_id, property_id, guest_id, booking_reference, status, check_in_date, check_out_date, room_count, adult_count, child_count, created_at, updated_at
+        FROM bookings
+        WHERE property_id = ${propertyId}
+          AND tenant_id = ${tenantId}
+          AND check_out_date >= ${rangeStart}
+          AND check_in_date <= ${rangeEnd}
+        ORDER BY check_in_date ASC
+      `);
+      return (rows.rows as any[]).map((row) => this.normalizeBookingRow(row));
+    } catch (error) {
+      throw handleServiceError(error, 'Error fetching bookings for date range');
     }
   }
 
@@ -173,6 +199,15 @@ export class BookingService {
         checkInDate: checkInStr,
         checkOutDate: checkOutStr,
       });
+
+      const [bookingRow] = await db
+        .select()
+        .from(bookingsSchema)
+        .where(eq(bookingsSchema.id, String(nb.id ?? '')))
+        .limit(1);
+      if (bookingRow) {
+        await new FolioService().ensureRoomChargeForBooking(bookingRow);
+      }
 
       return newBooking;
     } catch (error: any) {
@@ -344,6 +379,17 @@ export class BookingService {
 
       const next = out.resolvedStatus;
       const now = new Date();
+
+      if (next === 'checked_out') {
+        const folioService = new FolioService();
+        const folio = await folioService.getFolio(bookingId);
+        if (folio.balanceDue > 0 && !folio.folioClosedAt) {
+          throw new AppError(
+            409,
+            `Cannot check out: folio balance ${folio.currency} ${folio.balanceDue.toFixed(2)} is still open. Settle the stay folio first.`
+          );
+        }
+      }
 
       const [updated] = await db.transaction(async (tx) => {
         const patch: Record<string, unknown> = {

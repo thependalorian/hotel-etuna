@@ -1,14 +1,24 @@
 /**
  * Debug Auth Endpoint
  * 
- * Purpose: Debug Stack Auth token verification
+ * Purpose: Debug Stack Auth token verification (DEVELOPMENT ONLY)
  * Location: /app/api/debug/auth/route.ts
+ * 
+ * SECURITY: Disabled in production to prevent information disclosure
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { stackServerApp } from '@/stack';
 
 export async function GET(request: NextRequest) {
+  // Security: Disable debug endpoint in production
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json(
+      { error: 'Not found' },
+      { status: 404 }
+    );
+  }
+
   const authHeader = request.headers.get('authorization');
   const cookies = request.headers.get('cookie') || '';
   

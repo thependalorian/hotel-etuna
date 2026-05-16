@@ -118,6 +118,36 @@ export class CustomerService {
     }
   }
 
+  /** 100 points = NAD 50 folio discount (Playing to Win / ops brief). */
+  async redeemLoyaltyPoints(
+    guestId: string,
+    tenantId: string,
+    pointsToRedeem: number
+  ): Promise<{ pointsRedeemed: number; discountAmount: number; remainingPoints: number }> {
+    if (pointsToRedeem < 100) {
+      throw new AppError(400, 'Minimum redemption is 100 points');
+    }
+
+    const profile = await this.getGuestProfile(guestId, tenantId);
+    const available = profile.loyaltyPoints ?? 0;
+    if (pointsToRedeem > available) {
+      throw new AppError(400, 'Insufficient loyalty points');
+    }
+
+    const discountAmount = Math.round((pointsToRedeem / 100) * 50 * 100) / 100;
+    const remainingPoints = available - pointsToRedeem;
+
+    await db
+      .update(guestProfilesSchema)
+      .set({
+        loyaltyPoints: remainingPoints,
+        updatedAt: new Date(),
+      })
+      .where(eq(guestProfilesSchema.id, profile.id));
+
+    return { pointsRedeemed: pointsToRedeem, discountAmount, remainingPoints };
+  }
+
   async getAllGuestReviews(tenantId: string): Promise<GuestReview[]> {
     try {
       const reviews = await db

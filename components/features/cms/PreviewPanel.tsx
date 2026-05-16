@@ -19,6 +19,7 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { ImagePlaceholder } from '@/components/ui';
 import { Eye, Monitor, Tablet, Smartphone, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
+import { sanitizeHtml } from '@/lib/utils/sanitize-html';
 
 interface PreviewPanelProps {
   content?: {
@@ -125,7 +126,7 @@ export default function PreviewPanel({
               {content.body && (
                 <div
                   className="buffr-legal-content max-w-none [&_img]:max-w-full [&_img]:rounded-xl"
-                  dangerouslySetInnerHTML={{ __html: content.body }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(content.body) }}
                 />
               )}
             </div>

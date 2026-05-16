@@ -67,6 +67,13 @@ export class EmailService {
   }
 
   async sendEmail(tenantId: string, data: EmailData) {
+    if (!data.to?.trim()) {
+      throw new Error('No recipients defined');
+    }
+    if (!data.subject?.trim()) {
+      throw new Error('Email subject is required');
+    }
+
     if (!this.transporter) {
       await this.initializeTransporter();
       if (!this.transporter) throw new Error('Email transporter not initialized.');

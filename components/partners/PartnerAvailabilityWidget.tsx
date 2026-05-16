@@ -74,7 +74,7 @@ export function PartnerAvailabilityWidget({ propertyId }: PartnerAvailabilityWid
       <h2 className="font-display text-2xl text-terracotta-800 mb-6">Check Availability</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Check-in</label>
+          <label className="block text-sm font-medium text-nude-700 mb-2">Check-in</label>
           <input
             type="date"
             value={checkInDate}
@@ -83,7 +83,7 @@ export function PartnerAvailabilityWidget({ propertyId }: PartnerAvailabilityWid
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Check-out</label>
+          <label className="block text-sm font-medium text-nude-700 mb-2">Check-out</label>
           <input
             type="date"
             value={checkOutDate}
@@ -104,10 +104,10 @@ export function PartnerAvailabilityWidget({ propertyId }: PartnerAvailabilityWid
           <h3 className="font-semibold text-terracotta-800">Available Rooms</h3>
           {results.map((room) => (
             <div key={room.id} className="bg-white border border-gray-200 rounded-lg p-4">
-              <p className="font-medium text-gray-900">
+              <p className="font-medium text-nude-900">
                 {room.roomType} ({room.roomNumber})
               </p>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-nude-600">
                 Max guests: {room.maxOccupancy} · Rate: NAD {room.baseRate ?? 'N/A'}
               </p>
             </div>

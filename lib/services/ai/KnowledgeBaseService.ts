@@ -89,7 +89,7 @@ export class KnowledgeBaseService {
     return {
       name: 'Hotel Etuna',
       description:
-        'Enterprise-grade hospitality management platform for Namibian properties. 100% free forever for core features.',
+        'Hotel Etuna is a premium luxury guesthouse in Ongwediva, Namibia, offering refined stays, warm Oshiwambo hospitality, and concierge-supported guest experiences.',
       features: [
         'Property Management System (PMS)',
         'AI-Powered Concierge (Sofia)',
@@ -99,7 +99,8 @@ export class KnowledgeBaseService {
         'Guest Relationship Management (CRM)',
         'Business Intelligence & Analytics',
       ],
-      pricing: '100% Free Forever for core features. Premium add-ons available for advanced features.',
+      pricing:
+        'Room tiers include Standard, Luxury, Family, Executive Suite, and Premier. Rates start from N$850 per night, with fair seasonal packages and direct booking support through our team.',
       support: { email: 'concierge@hoteletuna.com', responseTime: '24/7 via Sofia AI' },
       location: 'Ongwediva, Namibia',
       currency: 'NAD (Namibian Dollar)',

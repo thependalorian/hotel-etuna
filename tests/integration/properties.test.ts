@@ -169,19 +169,23 @@ describe('PropertyService Integration Tests', () => {
   });
 });
 
-describe('Hub property contact seed validation', () => {
+const hubSeedValidationEnabled =
+  Boolean(process.env.HUB_TENANT_ID) && process.env.RUN_HUB_SEED_VALIDATION === 'true';
+
+describe.skipIf(!hubSeedValidationEnabled)(
+  'Hub property contact seed validation (set RUN_HUB_SEED_VALIDATION=true against seeded Neon)',
+  () => {
   it('hub property should have the corrected address', async () => {
-    const hubTenantId = process.env.HUB_TENANT_ID;
-    expect(hubTenantId).toBeTruthy();
+    const hubTenantId = process.env.HUB_TENANT_ID as string;
 
     const [hubProperty] = await db
       .select({ id: properties.id, address: properties.address })
       .from(properties)
-      .where(and(eq(properties.tenantId, hubTenantId as string), eq(properties.slug, 'hotel-etuna')))
+      .where(and(eq(properties.tenantId, hubTenantId), eq(properties.slug, 'hotel-etuna')))
       .limit(1);
 
     expect(hubProperty).toBeTruthy();
-    expect(hubProperty!.address).toContain('5544 Valley of the Leopard Street');
+    expect(hubProperty!.address).toContain('5544 Valley Street');
   });
 
   it('hub property should expose the corrected phone and email', async () => {
@@ -204,4 +208,5 @@ describe('Hub property contact seed validation', () => {
     // DB may store null and UI falls back to info@hoteletuna.com.
     expect(restaurant!.contactEmail === null || restaurant!.contactEmail === 'info@hoteletuna.com').toBe(true);
   });
-});
+  }
+);

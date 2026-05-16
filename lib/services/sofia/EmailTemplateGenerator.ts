@@ -1,27 +1,36 @@
 import DOMPurify from 'isomorphic-dompurify';
+import { EMAIL_SIGNATURE_COLORS } from '@/lib/email/hotel-etuna-email-signature';
+import {
+  getHotelEtunaEmailSignatureHtml,
+  getHotelEtunaEmailSignaturePlainText,
+} from '@/lib/email/hotel-etuna-email-signature';
+import { brand } from '@/lib/copy/brand';
+import { firstName } from '@/lib/email/sofia-email-helpers';
 
-interface EmailTemplateData {
+export interface EmailTemplateData {
   subject: string;
   body: string;
+  recipientName?: string;
   ctaLink?: string;
   ctaText?: string;
-  // Add more dynamic fields as needed
+  /** Shorter footer for OTP / security emails */
+  compactSignature?: boolean;
 }
 
 export class SofiaEmailTemplateGenerator {
-  /**
-   * Sanitize HTML input to prevent XSS attacks
-   * Uses DOMPurify for comprehensive sanitization
-   */
-  /**
-   * DOMPurify already entity-encodes text for safe HTML embedding; do not add a second encode pass
-   * (that would turn <code>&amp;</code> into <code>&amp;amp;</code>).
-   */
-  private sanitizeHtml(value: string): string {
+  private sanitizePlain(value: string): string {
     return DOMPurify.sanitize(value, {
       ALLOWED_TAGS: [],
       ALLOWED_ATTR: [],
       KEEP_CONTENT: true,
+    });
+  }
+
+  private sanitizeBodyHtml(value: string): string {
+    return DOMPurify.sanitize(value, {
+      ALLOWED_TAGS: ['strong', 'br', 'p', 'a', 'ul', 'li'],
+      ALLOWED_ATTR: ['style', 'href', 'class'],
+      ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto):)/i,
     });
   }
 
@@ -39,11 +48,19 @@ export class SofiaEmailTemplateGenerator {
   }
 
   generateHtmlTemplate(data: EmailTemplateData): string {
-    // Double sanitization: DOMPurify + HTML entity encoding
-    const safeSubject = this.sanitizeHtml(data.subject);
-    const safeBody = this.sanitizeHtml(data.body);
-    const safeCtaText = this.sanitizeHtml(data.ctaText || 'Learn More');
+    const safeSubject = this.sanitizePlain(data.subject);
+    const safeBody = this.sanitizeBodyHtml(data.body);
+    const safeCtaText = this.sanitizePlain(data.ctaText || 'View details');
     const safeCtaLink = this.sanitizeUrl(data.ctaLink);
+    const c = EMAIL_SIGNATURE_COLORS;
+    const greetingName = firstName(data.recipientName);
+    const greeting = `Dear ${this.sanitizePlain(greetingName)},`;
+
+    const signature = getHotelEtunaEmailSignatureHtml({
+      includeSocial: !data.compactSignature,
+      includeAmenities: !data.compactSignature,
+      includeLogo: true,
+    });
 
     return `
       <!DOCTYPE html>
@@ -53,41 +70,44 @@ export class SofiaEmailTemplateGenerator {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>${safeSubject}</title>
           <style>
-              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-              .container { max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
-              .header { background-color: #b8704a; color: white; padding: 10px 20px; text-align: center; border-radius: 8px 8px 0 0; }
-              .content { padding: 20px; }
-              .button { display: inline-block; background-color: #d18b5c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; }
-              .footer { text-align: center; font-size: 0.8em; color: #777; margin-top: 20px; }
+              body { font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: ${c.nude800}; margin: 0; padding: 0; background-color: #f5f0eb; }
+              .container { max-width: 600px; margin: 20px auto; padding: 0; border: 1px solid ${c.nude200}; border-radius: 8px; overflow: hidden; background-color: #ffffff; }
+              .header { background-color: ${c.terracotta800}; color: #ffffff; padding: 16px 20px; text-align: center; }
+              .header h1 { margin: 0 0 4px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 22px; font-weight: 700; letter-spacing: 0.5px; }
+              .header .tagline { margin: 0; font-size: 13px; font-style: italic; opacity: 0.95; }
+              .content { padding: 24px 20px; color: ${c.nude800}; font-size: 15px; }
+              .content p { margin: 0 0 14px 0; }
+              .button { display: inline-block; background-color: ${c.khaki600}; color: #ffffff !important; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; margin-top: 8px; }
+              .sign-off { margin-top: 20px; color: ${c.nude800}; }
           </style>
       </head>
       <body>
           <div class="container">
               <div class="header">
-                  <h2>Hotel Etuna</h2>
+                  <h1>${brand.name}</h1>
+                  <p class="tagline">“${this.sanitizePlain(brand.tagline)}”</p>
               </div>
               <div class="content">
-                  <p>Dear Guest,</p>
-                  <p>${safeBody}</p>
+                  <p>${greeting}</p>
+                  ${safeBody}
                   ${safeCtaLink ? `<p><a href="${safeCtaLink}" class="button">${safeCtaText}</a></p>` : ''}
-                  <p>Thank you for choosing Hotel Etuna.</p>
-                  <p>Best regards,<br>Sofia Concierge</p>
+                  <p class="sign-off">Thank you for choosing Hotel Etuna.</p>
+                  <p class="sign-off">Warm regards,<br><strong>Sofia</strong> · Hotel Etuna concierge</p>
               </div>
-              <div class="footer">
-                  <p>&copy; ${new Date().getFullYear()} Hotel Etuna. All rights reserved.</p>
-              </div>
+              ${signature}
           </div>
       </body>
       </html>
-    `;
+    `.trim();
   }
 
   generateTextTemplate(data: EmailTemplateData): string {
-    const cleanBody = data.body.replace(/<[^>]*>/g, '').trim();
-    const cleanCtaText = (data.ctaText || 'Learn More').replace(/<[^>]*>/g, '').trim();
+    const greetingName = firstName(data.recipientName);
+    const cleanBody = data.body.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    const cleanCtaText = (data.ctaText || 'View details').replace(/<[^>]*>/g, '').trim();
     const safeCtaLink = this.sanitizeUrl(data.ctaLink);
 
-    let text = `Dear Guest,
+    let text = `Dear ${greetingName},
 
 ${cleanBody}
 `;
@@ -99,10 +119,13 @@ ${cleanCtaText}: ${safeCtaLink}
     text += `
 Thank you for choosing Hotel Etuna.
 
-Best regards,
-Sofia Concierge
+Warm regards,
+Sofia · Hotel Etuna concierge
 
-© ${new Date().getFullYear()} Hotel Etuna. All rights reserved.
+${getHotelEtunaEmailSignaturePlainText({
+  includeSocial: !data.compactSignature,
+  includeAmenities: !data.compactSignature,
+})}
 `;
     return text;
   }

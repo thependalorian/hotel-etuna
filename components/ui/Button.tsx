@@ -1,3 +1,54 @@
+/**
+ * Button Component
+ * 
+ * Purpose: Primary interactive button following Hotel Etuna design system
+ * Location: /components/ui/Button.tsx
+ * 
+ * Features:
+ * - Psychology-driven sizing (Fitt's Law: min 44px touch targets)
+ * - Multiple variants: primary, secondary, outline, ghost, destructive, luxury
+ * - Loading states with spinner
+ * - Hover/focus/active states with scale animation
+ * - Keyboard accessible
+ * 
+ * Design System:
+ * - Primary CTA: khaki-600 with nude shadows
+ * - Touch targets: 44px minimum (mobile), 32px desktop
+ * - Rounded-full for modern, friendly feel
+ * - Scale animation on active (<400ms for Doherty Threshold)
+ * 
+ * Variants:
+ * - primary/default: khaki-600 (main CTAs like "Book Now")
+ * - secondary: terracotta-800 (alternate actions)
+ * - outline: transparent with khaki-600 border
+ * - ghost: minimal hover effect (navigation, subtle actions)
+ * - destructive: semantic-error (delete, cancel operations)
+ * - luxury: gradient for VIP/premium actions
+ * 
+ * Sizes:
+ * - sm: 44px mobile / 36px desktop (minimum)
+ * - md: 44px (default, follows Fitt's Law)
+ * - lg: 48px mobile / 56px desktop (emphasized CTAs)
+ * - xl: 48px mobile / 56px desktop (hero CTAs)
+ * - icon: 44x44px square (icon-only buttons)
+ * 
+ * Accessibility:
+ * - Semantic button element
+ * - ARIA busy state when loading
+ * - Focus ring: 2px khaki-600 with offset
+ * - Disabled state properly communicated
+ * - WCAG 2.1 AA compliant
+ * 
+ * Usage:
+ * ```tsx
+ * <Button variant="primary" size="lg">Book Now</Button>
+ * <Button variant="outline" isLoading>Saving...</Button>
+ * <Button asChild><Link href="/rooms">View Rooms</Link></Button>
+ * ```
+ * 
+ * @module Button
+ */
+
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";

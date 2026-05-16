@@ -77,11 +77,12 @@ export default function ScheduleCalendar({
         const response = await fetch(apiUrl(url));
         
         if (response.ok) {
-          const data = await response.json();
+          const json = await response.json();
+          const list = Array.isArray(json) ? json : Array.isArray(json?.data) ? json.data : [];
           const shiftsMap = new Map<string, Shift[]>();
           
-          if (Array.isArray(data)) {
-            data.forEach((shift: any) => {
+          if (list.length > 0) {
+            list.forEach((shift: any) => {
               // Use CalendarService to parse and format dates
               const shiftStart = new Date(shift.startDate || shift.start);
               const shiftEnd = new Date(shift.endDate || shift.end);

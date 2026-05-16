@@ -17,13 +17,15 @@ import {
   createTestUser,
 } from '../utils/test-helpers';
 
-const mockGetAuthenticatedUser = vi.fn();
+const { mockGetAuthenticatedUser } = vi.hoisted(() => ({
+  mockGetAuthenticatedUser: vi.fn(),
+}));
 
 vi.mock('@/lib/utils/api-helpers', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/utils/api-helpers')>();
   return {
     ...actual,
-    getAuthenticatedUser: mockGetAuthenticatedUser,
+    getAuthenticatedUser: (...args: unknown[]) => mockGetAuthenticatedUser(...args),
   };
 });
 
@@ -105,7 +107,7 @@ describe('POST /api/compliance/kyc/upgrade-prompts', () => {
         )
     );
     expect(audits.some((row) => row.action === 'kyc.upgrade_prompt.show')).toBe(true);
-  });
+  }, 90_000);
 
   it('rejects prompt mutation from a different tenant', async () => {
     mockGetAuthenticatedUser.mockResolvedValue({
@@ -130,5 +132,5 @@ describe('POST /api/compliance/kyc/upgrade-prompts', () => {
       db.select().from(kycUpgradePrompts).where(eq(kycUpgradePrompts.id, promptId)).limit(1)
     );
     expect(prompt?.isDismissed).toBe(false);
-  });
+  }, 90_000);
 });

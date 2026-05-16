@@ -1,7 +1,7 @@
 /**
  * Adumo Enterprise Payment Service
  *
- * Purpose: Integrate Buffr payment flows with Adumo Enterprise APIs.
+ * Purpose: Server-side card API (Enterprise). Guest checkout prefers Adumo Virtual (hosted page).
  * Location: /lib/services/payment/AdumoEnterpriseService.ts
  */
 

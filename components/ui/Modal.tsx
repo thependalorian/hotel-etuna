@@ -1,3 +1,61 @@
+/**
+ * Modal Component
+ * 
+ * Purpose: Accessible modal dialog system using Radix UI Dialog primitive
+ * Location: /components/ui/Modal.tsx
+ * 
+ * Features:
+ * - Overlay with backdrop blur
+ * - Centered positioning with animations
+ * - Keyboard navigation (ESC to close)
+ * - Focus trap and focus return
+ * - Close button with accessible label
+ * - Composable header, content, footer structure
+ * 
+ * Components:
+ * - Modal: Root component (wrapper)
+ * - ModalTrigger: Button to open modal
+ * - ModalContent: Main modal container
+ * - ModalHeader: Header section
+ * - ModalTitle: Dialog title (required for accessibility)
+ * - ModalDescription: Optional description
+ * - ModalFooter: Footer for actions
+ * - ModalClose: Close button component
+ * 
+ * Design System:
+ * - Shadow: luxury-strong
+ * - Border: nude-200
+ * - Background: surface-elevated
+ * - Rounded: 3xl
+ * - Animations: scale-in on open, fade-out on close
+ * 
+ * Accessibility:
+ * - ARIA dialog role
+ * - Focus management
+ * - Keyboard support (ESC, Tab)
+ * - Screen reader announcements
+ * 
+ * Usage:
+ * ```tsx
+ * <Modal>
+ *   <ModalTrigger asChild>
+ *     <Button>Open</Button>
+ *   </ModalTrigger>
+ *   <ModalContent>
+ *     <ModalHeader>
+ *       <ModalTitle>Title</ModalTitle>
+ *       <ModalDescription>Description</ModalDescription>
+ *     </ModalHeader>
+ *     <ModalFooter>
+ *       <Button>Confirm</Button>
+ *     </ModalFooter>
+ *   </ModalContent>
+ * </Modal>
+ * ```
+ * 
+ * @module Modal
+ */
+
 "use client";
 
 import * as React from "react";

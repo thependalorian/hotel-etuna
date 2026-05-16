@@ -22,6 +22,7 @@ import { getPartnerBySlug } from '@/lib/data/partners';
 import PublicHero from '@/components/shared/PublicHero';
 import Footer from '@/components/shared/Footer';
 import NavigationHeader from '@/components/sections/landing/NavigationHeader';
+import { publicCopy } from '@/lib/copy/public';
 
 function formatCheckTime(value: unknown): string {
   if (value == null) return '—';
@@ -108,7 +109,7 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
               <h2 className="font-display text-3xl text-terracotta-800 mb-4">
                 About This Property
               </h2>
-              <p className="text-lg text-gray-700 leading-relaxed">
+              <p className="text-lg text-nude-700 leading-relaxed">
                 {property.description || 'Partner accommodation.'}
               </p>
             </section>
@@ -123,7 +124,7 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
                   {property.amenities.map((amenity, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <Check className="w-5 h-5 text-khaki-600 shrink-0" />
-                      <span className="text-gray-700">{amenity}</span>
+                      <span className="text-nude-700">{amenity}</span>
                     </div>
                   ))}
                 </div>
@@ -136,7 +137,7 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
                 Available Rooms
               </h2>
               {mappedRooms.length === 0 ? (
-                <p className="text-gray-600">
+                <p className="text-nude-600">
                   No rooms currently listed. Please contact the property directly.
                 </p>
               ) : (
@@ -151,7 +152,7 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
                           <h3 className="font-display text-xl text-terracotta-800 mb-2">
                             {room.type}
                           </h3>
-                          <p className="text-gray-600 mb-3">{room.description}</p>
+                          <p className="text-nude-600 mb-3">{room.description}</p>
                           <div className="flex flex-wrap gap-2 mb-3">
                             {room.amenities.map((amenity, idx) => (
                               <span
@@ -162,7 +163,7 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
                               </span>
                             ))}
                           </div>
-                          <div className="flex items-center gap-4 text-sm text-gray-600">
+                          <div className="flex items-center gap-4 text-sm text-nude-600">
                             <span>Max {room.capacity} guests</span>
                             {room.available ? (
                               <span className="text-green-600 font-medium">Available</span>
@@ -176,9 +177,9 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
                             <div className="text-3xl font-bold text-terracotta-800">
                               {isAuthenticated
                                 ? `${room.currency} ${room.pricePerNight}`
-                                : 'Sign in to view rates'}
+                                : publicCopy.gated.viewRates}
                             </div>
-                            <div className="text-sm text-gray-600">per night</div>
+                            <div className="text-sm text-nude-600">per night</div>
                           </div>
                           <Button asChild variant="primary" size="md">
                             <Link
@@ -190,7 +191,7 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
                             >
                               {isAuthenticated
                                 ? 'Check Availability'
-                                : 'Sign In to View Partner Rates & Book'}
+                                : publicCopy.gated.viewPartnerRatesAndBook}
                             </Link>
                           </Button>
                         </div>
@@ -206,10 +207,10 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
             ) : (
               <div className="rounded-xl border border-khaki-600/30 bg-khaki-600/10 p-6 text-center">
                 <p className="text-terracotta-900 font-semibold mb-3">
-                  Sign in to view partner rates and book
+                  {publicCopy.gated.viewPartnerRatesAndBook}
                 </p>
                 <Button asChild>
-                  <Link href={`/login?redirect=/partners/${slug}`}>Sign In</Link>
+                  <Link href={`/login?redirect=/partners/${slug}`}>{publicCopy.ctas.signIn}</Link>
                 </Button>
               </div>
             )}
@@ -222,7 +223,7 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
               <form className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-nude-700 mb-2">
                       Your Name
                     </label>
                     <input
@@ -232,7 +233,7 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-nude-700 mb-2">
                       Email
                     </label>
                     <input
@@ -243,7 +244,7 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-nude-700 mb-2">
                     Message
                   </label>
                   <textarea
@@ -272,8 +273,8 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
                 <div className="flex items-start gap-3">
                   <Calendar className="w-5 h-5 text-khaki-600 mt-1" />
                   <div>
-                    <div className="text-sm text-gray-600">Check-in</div>
-                    <div className="font-medium text-gray-900">
+                    <div className="text-sm text-nude-600">Check-in</div>
+                    <div className="font-medium text-nude-900">
                       {formatCheckTime(property.checkInTime)}
                     </div>
                   </div>
@@ -281,8 +282,8 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
                 <div className="flex items-start gap-3">
                   <Calendar className="w-5 h-5 text-khaki-600 mt-1" />
                   <div>
-                    <div className="text-sm text-gray-600">Check-out</div>
-                    <div className="font-medium text-gray-900">
+                    <div className="text-sm text-nude-600">Check-out</div>
+                    <div className="font-medium text-nude-900">
                       {formatCheckTime(property.checkOutTime)}
                     </div>
                   </div>
@@ -293,10 +294,10 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
 
               {/* Location */}
               <div className="space-y-2">
-                <h4 className="font-semibold text-gray-900">Location</h4>
+                <h4 className="font-semibold text-nude-900">Location</h4>
                 <div className="flex items-start gap-2">
                   <MapPin className="w-4 h-4 text-khaki-600 mt-1 shrink-0" />
-                  <address className="text-sm text-gray-700 not-italic">
+                  <address className="text-sm text-nude-700 not-italic">
                     {addressStreet && (
                       <>
                         {addressStreet}
@@ -312,7 +313,7 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
 
               {/* Partner Badge */}
               <div className="mt-6 pt-6 border-t border-gray-200">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-sm text-nude-600">
                   <BadgeCheck className="w-5 h-5 text-khaki-600" />
                   <span>Verified Hotel Etuna Partner</span>
                 </div>

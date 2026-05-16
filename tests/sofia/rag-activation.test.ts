@@ -20,7 +20,7 @@ vi.mock('@/lib/integrations/qdrant', () => ({
       score: 0.92,
       payload: {
         tenant_id: 'tenant-xyz',
-        text: 'Breakfast is served daily from 06:30 to 10:00 in the dining room.',
+        text: 'Breakfast is served daily from 07:00 to 10:00 in the dining room.',
         source: 'breakfast-policy.md',
       },
     },
@@ -41,7 +41,7 @@ describe('RAG activation (mocked infra)', () => {
     const svc = new RAGSearchService();
     const chunks = await svc.search('What time is breakfast?', tenantId, { limit: 4 });
     expect(chunks.length).toBe(1);
-    expect(chunks[0].text).toContain('06:30');
+    expect(chunks[0].text).toContain('07:00');
     expect(chunks[0].source).toBe('breakfast-policy.md');
   });
 

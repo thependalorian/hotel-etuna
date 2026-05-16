@@ -221,6 +221,9 @@ export default function PlatformDashboardOverview({
             >
               Reporting pack (JSON)
             </a>
+            <Link href="/admin/platform/soc2" className="btn btn-primary btn-sm min-h-[44px]">
+              SOC 2 audit
+            </Link>
           </div>
           {paymentRails && (
             <div className="mt-4 p-3 rounded-lg bg-base-200 text-sm">

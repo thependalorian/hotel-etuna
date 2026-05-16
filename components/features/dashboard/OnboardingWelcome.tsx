@@ -33,7 +33,7 @@ export default function OnboardingWelcome() {
           </h1>
         </div>
         <p className="text-xl opacity-95 mb-6">
-          Get started in 60 seconds - Your free hospitality management platform is ready!
+          Align your property operations in 60 seconds and deliver premium guest experiences from day one.
         </p>
       </div>
 
@@ -48,7 +48,7 @@ export default function OnboardingWelcome() {
               <div className="flex-1">
                 <h3 className="font-semibold text-lg mb-2">Add Your First Property</h3>
                 <p className="text-base-content/70 mb-4">
-                  Tell us about your hotel or restaurant. Just name, type, and address - that&apos;s it!
+                  Add your hotel details so your team can manage rooms, reservations, and service standards in one place.
                 </p>
                 <Link href="/properties/new" className="btn btn-primary min-h-[44px]">
                   <Building className="w-4 h-4 mr-2" />
@@ -65,7 +65,7 @@ export default function OnboardingWelcome() {
               <div className="flex-1">
                 <h3 className="font-semibold text-lg mb-2">Configure Your Services</h3>
                 <p className="text-base-content/70">
-                  Add rooms, menu items, or staff members - customize as you go!
+                  Configure room tiers, dining services, and operational settings for smooth front desk and back-office workflows.
                 </p>
               </div>
             </div>
@@ -77,7 +77,7 @@ export default function OnboardingWelcome() {
               <div className="flex-1">
                 <h3 className="font-semibold text-lg mb-2">Start Managing</h3>
                 <p className="text-base-content/70">
-                  Accept bookings, manage orders, and let Sofia AI help your guests!
+                  Coordinate bookings, guest requests, and team tasks while Sofia supports your hospitality staff.
                 </p>
               </div>
             </div>
@@ -89,8 +89,8 @@ export default function OnboardingWelcome() {
         <div className="card-body">
           <h3 className="card-title text-success mb-2">Get Started</h3>
           <p className="text-base-content/80">
-            No credit card required. No hidden fees. 
-            Just sign up and start managing your hospitality business today!
+            Built for hotel operators who value excellence, reliability, and guest-first service.
+            Set up your operations and start delivering premium stays today.
           </p>
         </div>
       </div>

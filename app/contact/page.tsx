@@ -99,7 +99,6 @@ export default function ContactPage() {
                     >
                       <option value="">Select a subject</option>
                       <option value="reservation">Reservation Inquiry</option>
-                      <option value="tour">Tour Booking</option>
                       <option value="restaurant">Restaurant Reservation</option>
                       <option value="event">Event/Conference Inquiry</option>
                       <option value="general">General Question</option>
@@ -145,7 +144,7 @@ export default function ContactPage() {
                       <div>
                         <h3 className="font-semibold text-terracotta-900 mb-1">Address</h3>
                         <p className="text-terracotta-800">
-                          5544 Valley of the Leopard Street<br />
+                          5544 Valley Street<br />
                           Ongwediva, Namibia
                         </p>
                       </div>
@@ -256,7 +255,7 @@ export default function ContactPage() {
                 <div className="text-center">
                   <MapPin className="w-16 h-16 text-terracotta-800 mx-auto mb-4" />
                   <p className="text-terracotta-900 font-semibold text-lg mb-2">
-                    5544 Valley of the Leopard Street, Ongwediva, Namibia
+                    5544 Valley Street, Ongwediva, Namibia
                   </p>
                   <p className="text-terracotta-800">
                     5 minutes from Ongwediva Trade Fair

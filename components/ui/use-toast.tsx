@@ -1,3 +1,64 @@
+/**
+ * useToast Hook & Toast State Management
+ * 
+ * Purpose: Global toast notification state management and hook
+ * Location: /components/ui/use-toast.tsx
+ * 
+ * Features:
+ * - Global toast state with React Context
+ * - Queue management (max 5 toasts)
+ * - Auto-dismiss after 5 seconds
+ * - Toast lifecycle management (add, update, dismiss, remove)
+ * - Type-safe toast API
+ * - Memory-efficient state management
+ * 
+ * API:
+ * - toast(): Create a new toast notification
+ * - useToast(): Access toast state and methods
+ * - dismiss(): Dismiss specific or all toasts
+ * - update(): Update existing toast
+ * 
+ * Configuration:
+ * - TOAST_LIMIT: 5 (max concurrent toasts)
+ * - TOAST_REMOVE_DELAY: 5000ms (5 seconds)
+ * 
+ * Usage:
+ * ```tsx
+ * import { useToast } from "@/components/ui/use-toast"
+ * 
+ * function MyComponent() {
+ *   const { toast } = useToast()
+ *   
+ *   const handleClick = () => {
+ *     toast({
+ *       variant: "success",
+ *       title: "Success!",
+ *       description: "Changes saved successfully.",
+ *     })
+ *   }
+ *   
+ *   return <button onClick={handleClick}>Save</button>
+ * }
+ * ```
+ * 
+ * Advanced Usage:
+ * ```tsx
+ * // With action button
+ * const { id, dismiss, update } = toast({
+ *   title: "Confirmation needed",
+ *   action: <Button onClick={handleConfirm}>Confirm</Button>,
+ * })
+ * 
+ * // Update toast
+ * update({ title: "Processing..." })
+ * 
+ * // Dismiss programmatically
+ * dismiss()
+ * ```
+ * 
+ * @module useToast
+ */
+
 "use client";
 
 import * as React from "react";

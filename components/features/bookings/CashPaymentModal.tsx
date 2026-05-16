@@ -128,11 +128,11 @@ export function CashPaymentModal({
 
           {/* Amount Tendered Input */}
           <div>
-            <label htmlFor="amountTendered" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="amountTendered" className="block text-sm font-medium text-nude-700 mb-2">
               Amount Tendered <span className="text-red-600">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-nude-500">
                 {currency}
               </span>
               <input
@@ -164,11 +164,11 @@ export function CashPaymentModal({
           <div className={`border-2 rounded-lg p-4 ${
             changeGiven > 0 ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
           }`}>
-            <div className="text-sm font-medium text-gray-700 mb-1">
+            <div className="text-sm font-medium text-nude-700 mb-1">
               Change to Give
             </div>
             <div className={`text-2xl font-bold ${
-              changeGiven > 0 ? 'text-green-700' : 'text-gray-400'
+              changeGiven > 0 ? 'text-green-700' : 'text-nude-400'
             }`}>
               {currency} {changeGiven.toFixed(2)}
             </div>
@@ -181,7 +181,7 @@ export function CashPaymentModal({
 
           {/* Notes (Optional) */}
           <div>
-            <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="notes" className="block text-sm font-medium text-nude-700 mb-2">
               Notes (Optional)
             </label>
             <textarea

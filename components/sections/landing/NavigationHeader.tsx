@@ -29,6 +29,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
+import { HotelEtunaLogo } from '@/components/brand/HotelEtunaLogo';
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 
@@ -39,18 +40,12 @@ export default function NavigationHeader() {
     <header className="sticky top-0 z-50 bg-base-100/95 backdrop-blur-md border-b border-base-300 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-2 group" aria-label="Hotel Etuna Home">
-            <div className="w-10 h-10 rounded-lg bg-linear-to-br from-nude-600 to-nude-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-md">
-              <span className="text-xl font-bold text-white">H</span>
-            </div>
-            <span className="text-xl font-bold font-display text-base-content">Hotel Etuna</span>
-          </Link>
+          <HotelEtunaLogo size="md" href="/" />
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6" aria-label="Main navigation">
             <Link href="/rooms" className="text-sm font-medium text-base-content hover:text-primary transition-colors">Rooms</Link>
             <Link href="/dining" className="text-sm font-medium text-base-content hover:text-primary transition-colors">Dining</Link>
-            <Link href="/tours" className="text-sm font-medium text-base-content hover:text-primary transition-colors">Tours</Link>
             <Link href="/about" className="text-sm font-medium text-base-content hover:text-primary transition-colors">About</Link>
             <Link href="/contact" className="text-sm font-medium text-base-content hover:text-primary transition-colors">Contact</Link>
           </nav>
@@ -98,7 +93,6 @@ export default function NavigationHeader() {
               Rooms
             </Link>
             <Link href="/dining" className="py-3 text-base font-medium text-base-content hover:text-primary transition-colors min-h-[44px] flex items-center" onClick={() => setMobileMenuOpen(false)}>Dining</Link>
-            <Link href="/tours" className="py-3 text-base font-medium text-base-content hover:text-primary transition-colors min-h-[44px] flex items-center" onClick={() => setMobileMenuOpen(false)}>Tours</Link>
             <Link href="/about" className="py-3 text-base font-medium text-base-content hover:text-primary transition-colors min-h-[44px] flex items-center" onClick={() => setMobileMenuOpen(false)}>About</Link>
             <Link href="/contact" className="py-3 text-base font-medium text-base-content hover:text-primary transition-colors min-h-[44px] flex items-center" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
             <Link href="/login" className="py-3 text-base font-medium text-base-content hover:text-primary transition-colors min-h-[44px] flex items-center" onClick={() => setMobileMenuOpen(false)}>Sign In</Link>

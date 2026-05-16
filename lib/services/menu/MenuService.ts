@@ -26,6 +26,7 @@ interface MenuItemData {
   category: string;
   price: number;
   currency?: string;
+  imageUrl?: string | null;
   ingredients?: string[];
   allergens?: string[];
   dietary?: string[];
@@ -108,6 +109,7 @@ export class MenuService {
           currency: menuItemData.currency ?? 'NAD',
           allergens: menuItemData.allergens ?? [],
           dietaryTags: menuItemData.dietary ?? [],
+          imageUrl: menuItemData.imageUrl ?? null,
           isAvailable: menuItemData.isAvailable !== false,
           displayOrder: 0,
         })
@@ -253,6 +255,9 @@ export class MenuService {
       if (menuItemData.allergens !== undefined) set.allergens = menuItemData.allergens;
       if (menuItemData.dietary !== undefined) set.dietaryTags = menuItemData.dietary;
       if (menuItemData.isAvailable !== undefined) set.isAvailable = menuItemData.isAvailable;
+      if (menuItemData.price !== undefined) set.price = String(menuItemData.price);
+      if (menuItemData.imageUrl !== undefined) set.imageUrl = menuItemData.imageUrl;
+      if (menuItemData.currency !== undefined) set.currency = menuItemData.currency;
       await db.update(cmsMenuItems).set(set as Partial<typeof cmsMenuItems.$inferInsert>).where(eq(cmsMenuItems.id, menuItemId));
 
       const fullRows = await executeRawSql`
@@ -525,6 +530,48 @@ export class MenuService {
       return newMenuItems[0];
     } catch (error) {
       return handleServiceError(error, 'Error creating restaurant menu item');
+    }
+  }
+
+  async updateRestaurantMenuItem(
+    menuItemId: string,
+    tenantId: string,
+    data: Partial<RestaurantMenuItemPayload>,
+  ): Promise<CmsMenuItem> {
+    try {
+      const [existing] = await db
+        .select({ id: cmsMenuItemsSchema.id })
+        .from(cmsMenuItemsSchema)
+        .innerJoin(restaurants, eq(cmsMenuItemsSchema.restaurantId, restaurants.id))
+        .innerJoin(properties, eq(restaurants.propertyId, properties.id))
+        .where(and(eq(cmsMenuItemsSchema.id, menuItemId), eq(properties.tenantId, tenantId)))
+        .limit(1);
+
+      if (!existing) {
+        throw new Error('Menu item not found');
+      }
+
+      const set: Partial<NewCmsMenuItem> = { updatedAt: new Date() };
+      if (data.name !== undefined) set.name = data.name;
+      if (data.description !== undefined) set.description = data.description ?? null;
+      if (data.price !== undefined) set.price = String(data.price);
+      if (data.image_url !== undefined) set.imageUrl = data.image_url || null;
+      if (data.dietary_info !== undefined) set.dietaryTags = data.dietary_info;
+      if (data.allergens !== undefined) set.allergens = data.allergens;
+      if (data.is_available !== undefined) set.isAvailable = data.is_available;
+      if (data.display_order !== undefined) set.displayOrder = data.display_order;
+      if (data.categoryId !== undefined) set.categoryId = data.categoryId;
+
+      const [updated] = await db
+        .update(cmsMenuItemsSchema)
+        .set(set)
+        .where(eq(cmsMenuItemsSchema.id, menuItemId))
+        .returning();
+
+      if (!updated) throw new Error('Menu item not found after update');
+      return updated;
+    } catch (error) {
+      return handleServiceError(error, 'Error updating restaurant menu item');
     }
   }
 

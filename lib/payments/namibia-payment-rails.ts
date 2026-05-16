@@ -33,6 +33,7 @@ export const PaymentGatewayLabel = {
   NAMQR: 'namqr',
   BANK_EFT: 'bank_eft',
   CARD_ACQUIRER: 'card_acquirer',
+  ADUMO_VIRTUAL: 'adumo_virtual',
   EWALLET_AGGREGATOR: 'ewallet_aggregator',
   CASH_MANUAL: 'cash_manual',
   TRUST_RECONCILIATION: 'trust_reconciliation',
@@ -69,8 +70,9 @@ export const NAMIBIA_PAYMENT_RAILS: NamibiaPaymentRailInfo[] = [
     key: 'card',
     label: 'Card (domestic acquirer)',
     methodType: PaymentMethodType.CARD,
-    typicalGateway: PaymentGatewayLabel.CARD_ACQUIRER,
-    notes: 'Integrate via Namibian bank or licensed PSP — not Stripe for Namibia target market.',
+    typicalGateway: PaymentGatewayLabel.ADUMO_VIRTUAL,
+    notes:
+      'Inbound card: Adumo Virtual hosted page (JWT form POST) — SAQ A; optional Enterprise API for backoffice.',
   },
   {
     key: 'ewallet',

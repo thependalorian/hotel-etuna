@@ -68,11 +68,14 @@ export async function GET(request: NextRequest) {
       count: allReviews.length,
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[GET /api/crm/reviews] Error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
-      { status: 500 }
-    );
+    if (process.env.NODE_ENV !== 'production' && error instanceof Error) {
+      return NextResponse.json(
+        { error: 'Internal server error', details: error.message },
+        { status: 500 }
+      );
+    }
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

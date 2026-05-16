@@ -16,10 +16,11 @@ import { getReferralPartners } from '@/lib/data/partners';
 import PublicHero from '@/components/shared/PublicHero';
 import Footer from '@/components/shared/Footer';
 import NavigationHeader from '@/components/sections/landing/NavigationHeader';
+import { publicCopy } from '@/lib/copy/public';
 
 export const metadata: Metadata = {
-  title: 'Partner Accommodations - Windhoek Lodging | Hotel Etuna',
-  description: 'Explore trusted partner properties in the Windhoek area, curated by Hotel Etuna.',
+  title: publicCopy.partners.meta.title,
+  description: publicCopy.partners.meta.description,
 };
 
 export default async function PartnersPage() {
@@ -35,8 +36,8 @@ export default async function PartnersPage() {
 
       <main>
         <PublicHero
-          title="Referral Partners - Windhoek Lodging"
-          subtitle="Trusted accommodation partners across Windhoek."
+          title={publicCopy.partners.hero.title}
+          subtitle={publicCopy.partners.hero.subtitle}
           backgroundImage="/icons/icon.svg"
           breadcrumbLabel="Partners"
         />
@@ -46,7 +47,7 @@ export default async function PartnersPage() {
           <div className="container mx-auto px-4">
             {partners.length === 0 ? (
               <div className="text-center py-16">
-                <p className="text-xl text-gray-600">No partner properties available at this time.</p>
+                <p className="text-xl text-nude-600">No partner properties available at this time.</p>
                 <Button asChild variant="primary" size="lg" className="mt-6">
                   <Link href="/">Return to Hotel Etuna</Link>
                 </Button>
@@ -115,7 +116,7 @@ export default async function PartnersPage() {
                                 </div>
                               ))}
                               {partner.amenities.length > 4 && (
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-nude-500">
                                   +{partner.amenities.length - 4} more
                                 </div>
                               )}
@@ -136,7 +137,9 @@ export default async function PartnersPage() {
                         <Button asChild size="lg" className="w-full">
                           <Link href={isAuthenticated ? `/partners/${partner.slug}` : `/login?redirect=/partners/${partner.slug}`}>
                             <Home className="w-5 h-5" />
-                            {isAuthenticated ? 'View Property Details' : 'Sign In to View Partner Rates & Book'}
+                            {isAuthenticated
+                              ? publicCopy.ctas.viewPropertyDetails
+                              : publicCopy.gated.viewPartnerRatesAndBook}
                           </Link>
                         </Button>
                       </div>

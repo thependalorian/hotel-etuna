@@ -63,13 +63,13 @@ export default function BookingCalendar({
         );
         
         if (response.ok) {
-          const data = await response.json();
+          const json = await response.json();
+          const list = Array.isArray(json) ? json : Array.isArray(json?.data) ? json.data : [];
           const bookingsMap = new Map<string, number>();
           const occupancyMap = new Map<string, number>();
           
-          // Process bookings data (this would need to match your API response structure)
-          if (Array.isArray(data)) {
-            data.forEach((booking: any) => {
+          if (list.length > 0) {
+            list.forEach((booking: any) => {
               // Count bookings per date
               // Expand date ranges for multi-day bookings
               const checkIn = calendarService.startOfDay(new Date(booking.checkInDate || booking.startDate));

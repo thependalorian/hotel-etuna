@@ -77,7 +77,7 @@ export default function TryItSection() {
     {
       icon: X,
       title: 'No Catch',
-      description: 'Get started with no credit card required',
+      description: 'Book direct with transparent rates from N$850',
     },
   ];
 

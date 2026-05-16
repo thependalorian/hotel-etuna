@@ -30,10 +30,10 @@ export default function UnauthorizedPage() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="text-center">
-            <p className="text-gray-600 mb-2">
+            <p className="text-nude-600 mb-2">
               You don't have permission to access this resource.
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-nude-500">
               If you believe this is an error, please contact your administrator.
             </p>
           </div>

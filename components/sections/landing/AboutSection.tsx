@@ -26,6 +26,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { ImagePlaceholder } from '@/components/ui';
 import { ArrowRight } from 'lucide-react';
+import { brand } from '@/lib/copy/brand';
+import { publicCopy } from '@/lib/copy/public';
 
 export default function AboutSection() {
   return (
@@ -51,21 +53,14 @@ export default function AboutSection() {
 
           {/* Right: Text Content */}
           <div className="order-1 lg:order-2">
-            <h2 className="text-4xl md:text-5xl font-bold font-display mb-6 text-balance">
-              We Help Hospitality Businesses Turn Missed Opportunities Into Revenue
+            <h2 className="text-4xl md:text-5xl font-bold font-display mb-6 text-balance text-terracotta-900">
+              {publicCopy.home.story.heading}
             </h2>
-            <p className="text-xl text-base-content/90 mb-6 leading-relaxed">
-              Every missed call, unanswered email, or delayed response is a booking walking out your door. While competitors respond instantly, you're losing revenue to faster, more responsive businesses.
-            </p>
-            <p className="text-base-content/80 mb-6 leading-relaxed">
-              Hotel Etuna changes that. Our AI-powered platform ensures no inquiry goes unanswered—whether it's a phone call at midnight, an email on weekends, or a chat during peak hours. Sofia AI handles all inquiries 24/7 through chat, email, and phone. She captures guest email addresses when needed, sends quotations and confirmations automatically, and property owners are CC'd on all email communications for complete transparency. Everything converts into bookings and manages your entire operation in one unified platform.
-            </p>
-            <p className="text-base-content/80 mb-8 leading-relaxed">
-              Unlike phone-only solutions or expensive enterprise systems, Hotel Etuna provides everything you need—complete PMS, AI concierge, restaurant management, and business intelligence—in one integrated system. Get started with no credit card required.
-            </p>
-            <Link href="/register">
-              <Button variant="outline" size="lg" className="min-h-[48px]">
-                Get Started
+            <p className="text-xl text-terracotta-800 mb-6 leading-relaxed">{publicCopy.home.story.body}</p>
+            <p className="text-terracotta-800 mb-8 leading-relaxed">{brand.meaning}</p>
+            <Link href="/#booking">
+              <Button variant="primary" size="lg" className="min-h-[44px]">
+                {publicCopy.ctas.bookStay}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>

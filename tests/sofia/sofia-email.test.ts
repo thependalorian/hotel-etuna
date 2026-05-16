@@ -132,26 +132,27 @@ describe('Sofia Email - Message Storage', () => {
 
 describe('Sofia Email - Sending', () => {
   let emailService: EmailService;
+  let testTenantId: string;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     emailService = new EmailService();
+    const tenant = await createTestTenant('Sofia Email Sending Test');
+    testTenantId = tenant.id;
+  });
+
+  afterAll(async () => {
+    await cleanupTestTenant(testTenantId);
   });
 
   it('should validate email sending parameters', async () => {
-    const tenantId = uuidv4();
-
-    // Should handle missing parameters gracefully
-    try {
-      await emailService.sendEmail(tenantId, {
+    await expect(
+      emailService.sendEmail(testTenantId, {
         to: '',
         subject: '',
         htmlContent: '',
         textContent: '',
-      });
-    } catch (error) {
-      // Expected to fail validation or throw
-      expect(error).toBeDefined();
-    }
+      })
+    ).rejects.toThrow(/recipient|subject/i);
   });
 
   it('should handle email metadata', async () => {
@@ -436,17 +437,14 @@ describe('Sofia Email - Sending with Production Features (Complete)', () => {
   });
 
   it('should handle send failures gracefully', async () => {
-    try {
-      await emailService.sendEmail(testTenantId, {
-        to: 'invalid-email',
+    await expect(
+      emailService.sendEmail(testTenantId, {
+        to: '',
         subject: 'Test',
         htmlContent: '<p>Test</p>',
         textContent: 'Test',
-      });
-    } catch (error) {
-      // Should catch and handle errors
-      expect(error).toBeDefined();
-    }
+      })
+    ).rejects.toThrow(/recipient/i);
   });
 
   it('should implement retry logic for failed sends', async () => {

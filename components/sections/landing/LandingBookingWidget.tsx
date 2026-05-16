@@ -1,3 +1,35 @@
+/**
+ * LandingBookingWidget Component
+ * 
+ * Purpose: Quick booking form for landing page hero section
+ * Location: /components/sections/landing/LandingBookingWidget.tsx
+ * 
+ * Features:
+ * - Check-in/check-out date selection
+ * - Guest count input
+ * - Room type selector
+ * - Immediate availability check
+ * - Responsive design (mobile-first)
+ * 
+ * Design System:
+ * - Card with nude-100 background
+ * - Shadow: luxury-medium
+ * - Rounded: 3xl
+ * - Calls-to-action with khaki-600
+ * 
+ * User Flow:
+ * 1. User enters dates and guest count
+ * 2. System checks availability
+ * 3. Redirects to booking page or shows results
+ * 
+ * Accessibility:
+ * - Proper label associations
+ * - Date picker keyboard support
+ * - Error state announcements
+ * 
+ * @module LandingBookingWidget
+ */
+
 'use client';
 
 import { FormEvent, useMemo, useState } from 'react';
@@ -5,6 +37,7 @@ import { Button } from '@/components/ui/Button';
 import { Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
+import { publicCopy } from '@/lib/copy/public';
 
 type AvailabilityRoom = {
   id: string;
@@ -124,10 +157,10 @@ export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
           {!isAuthenticated ? (
             <div className="rounded-lg border border-khaki-600/30 bg-khaki-50 p-4 text-center">
               <p className="mb-3 text-sm text-terracotta-900">
-                Rooms found. Sign in or create an account to complete your booking.
+                {publicCopy.gated.roomsFoundSignIn}
               </p>
-              <Button asChild size="sm">
-                <Link href="/login?redirect=/#booking">Sign In to Complete Booking</Link>
+              <Button asChild size="sm" className="min-h-[44px]">
+                <Link href="/login?redirect=/#booking">{publicCopy.gated.completeBooking}</Link>
               </Button>
             </div>
           ) : null}

@@ -8,7 +8,10 @@ export default function OfflinePage() {
         <p className="text-terracotta-800 mb-6">
           Cached pages are still available. New bookings will be queued and synced when you reconnect.
         </p>
-        <Link href="/" className="inline-flex items-center justify-center h-11 px-6 rounded-lg bg-khaki-600 text-white hover:bg-rustic transition-colors">
+        <Link
+          href="/"
+          className="btn btn-primary min-h-[44px] inline-flex items-center justify-center px-6"
+        >
           Back to home
         </Link>
       </div>

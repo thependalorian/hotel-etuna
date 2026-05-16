@@ -144,7 +144,7 @@ export default function MenuItemCard({ item, index, onToggleAvailability, onDele
               {item.isAvailable ? 'Hide' : 'Show'}
             </button>
             <Link
-              href={`/menu/new?edit=${encodeURIComponent(item.id)}`}
+              href={`/menu/${item.id}/edit`}
               className="inline-flex items-center justify-center w-10 h-10 text-nude-700 hover:bg-nude-50 rounded-lg border border-nude-300 transition-colors duration-200 min-h-[44px]"
               aria-label={`Edit ${item.name}`}
             >

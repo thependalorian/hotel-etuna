@@ -18,6 +18,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 
@@ -148,16 +149,38 @@ export default function CashReconciliationPage() {
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Cash Reconciliation</h1>
-          <p className="text-gray-600 mt-1">Daily cash-up and discrepancy tracking</p>
+          <h1 className="text-3xl font-bold text-nude-900">Cash Reconciliation</h1>
+          <p className="text-nude-600 mt-1">Daily cash-up and discrepancy tracking</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/reports/accounting">
+            <Button variant="outline" size="sm">
+              Bookkeeping
+            </Button>
+          </Link>
+          <Link href="/reports/property-vat">
+            <Button variant="outline" size="sm">
+              Property VAT
+            </Button>
+          </Link>
+          <Link href="/payments/desk">
+            <Button variant="outline" size="sm">
+              Payments desk
+            </Button>
+          </Link>
+          <Link href="/payments/platform-billing">
+            <Button variant="outline" size="sm">
+              Platform billing (Buffr)
+            </Button>
+          </Link>
         </div>
       </div>
 
       {/* Date Selector */}
       <Card className="p-6">
-        <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="date" className="block text-sm font-medium text-nude-700 mb-2">
           Select Date
         </label>
         <input
@@ -173,7 +196,7 @@ export default function CashReconciliationPage() {
       {/* Loading State */}
       {isLoading && (
         <Card className="p-6">
-          <div className="flex items-center justify-center gap-3 text-gray-600">
+          <div className="flex items-center justify-center gap-3 text-nude-600">
             <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
               <circle
                 className="opacity-25"
@@ -215,52 +238,52 @@ export default function CashReconciliationPage() {
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card className="p-6">
-              <div className="text-sm text-gray-600 font-medium mb-1">Total Bookings</div>
-              <div className="text-3xl font-bold text-gray-900">{report.bookings.total}</div>
-              <div className="text-xs text-gray-500 mt-1">
+              <div className="text-sm text-nude-600 font-medium mb-1">Total Bookings</div>
+              <div className="text-3xl font-bold text-nude-900">{report.bookings.total}</div>
+              <div className="text-xs text-nude-500 mt-1">
                 {report.bookings.paid} paid • {report.bookings.pending} pending
               </div>
             </Card>
 
             <Card className="p-6">
-              <div className="text-sm text-gray-600 font-medium mb-1">Expected Cash</div>
+              <div className="text-sm text-nude-600 font-medium mb-1">Expected Cash</div>
               <div className="text-3xl font-bold text-terracotta-700">
                 NAD {parseFloat(report.amounts.expectedCash).toFixed(2)}
               </div>
-              <div className="text-xs text-gray-500 mt-1">From paid bookings</div>
+              <div className="text-xs text-nude-500 mt-1">From paid bookings</div>
             </Card>
 
             <Card className="p-6">
-              <div className="text-sm text-gray-600 font-medium mb-1">Total Tendered</div>
-              <div className="text-3xl font-bold text-gray-700">
+              <div className="text-sm text-nude-600 font-medium mb-1">Total Tendered</div>
+              <div className="text-3xl font-bold text-nude-700">
                 NAD {parseFloat(report.amounts.totalTendered).toFixed(2)}
               </div>
-              <div className="text-xs text-gray-500 mt-1">Cash received</div>
+              <div className="text-xs text-nude-500 mt-1">Cash received</div>
             </Card>
 
             <Card className="p-6">
-              <div className="text-sm text-gray-600 font-medium mb-1">Change Given</div>
-              <div className="text-3xl font-bold text-gray-700">
+              <div className="text-sm text-nude-600 font-medium mb-1">Change Given</div>
+              <div className="text-3xl font-bold text-nude-700">
                 NAD {parseFloat(report.amounts.totalChange).toFixed(2)}
               </div>
-              <div className="text-xs text-gray-500 mt-1">Returned to guests</div>
+              <div className="text-xs text-nude-500 mt-1">Returned to guests</div>
             </Card>
           </div>
 
           {/* Cash Bookings Table */}
           <Card className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Cash Bookings</h2>
+            <h2 className="text-xl font-semibold text-nude-900 mb-4">Cash Bookings</h2>
             {report.bookings.details.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b-2 border-gray-200">
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Booking Ref</th>
-                      <th className="text-right py-3 px-4 font-semibold text-gray-700">Total</th>
-                      <th className="text-right py-3 px-4 font-semibold text-gray-700">Tendered</th>
-                      <th className="text-right py-3 px-4 font-semibold text-gray-700">Change</th>
-                      <th className="text-center py-3 px-4 font-semibold text-gray-700">Status</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Receipt</th>
+                      <th className="text-left py-3 px-4 font-semibold text-nude-700">Booking Ref</th>
+                      <th className="text-right py-3 px-4 font-semibold text-nude-700">Total</th>
+                      <th className="text-right py-3 px-4 font-semibold text-nude-700">Tendered</th>
+                      <th className="text-right py-3 px-4 font-semibold text-nude-700">Change</th>
+                      <th className="text-center py-3 px-4 font-semibold text-nude-700">Status</th>
+                      <th className="text-left py-3 px-4 font-semibold text-nude-700">Receipt</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -289,7 +312,7 @@ export default function CashReconciliationPage() {
                             {booking.paymentStatus}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-xs text-gray-600 font-mono">
+                        <td className="py-3 px-4 text-xs text-nude-600 font-mono">
                           {booking.receiptNumber || '-'}
                         </td>
                       </tr>
@@ -298,7 +321,7 @@ export default function CashReconciliationPage() {
                 </table>
               </div>
             ) : (
-              <p className="text-gray-500 text-center py-8">
+              <p className="text-nude-500 text-center py-8">
                 No cash bookings found for this date.
               </p>
             )}
@@ -306,7 +329,7 @@ export default function CashReconciliationPage() {
 
           {/* Reconciliation Form */}
           <Card className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-nude-900 mb-4">
               {report.reconciliation ? 'Update Reconciliation' : 'Submit Reconciliation'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -314,24 +337,24 @@ export default function CashReconciliationPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Expected Amount */}
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-nude-700 mb-2">
                     Expected Cash in Drawer
                   </label>
-                  <div className="text-3xl font-bold text-gray-900">
+                  <div className="text-3xl font-bold text-nude-900">
                     NAD {expectedAmount.toFixed(2)}
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-nude-500 mt-1">
                     Calculated from paid bookings
                   </p>
                 </div>
 
                 {/* Actual Amount Input */}
                 <div>
-                  <label htmlFor="actualAmount" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="actualAmount" className="block text-sm font-medium text-nude-700 mb-2">
                     Actual Cash Counted <span className="text-red-600">*</span>
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-nude-500">
                       NAD
                     </span>
                     <input
@@ -360,7 +383,7 @@ export default function CashReconciliationPage() {
                     : 'bg-green-50 border-green-200'
                 }`}>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Discrepancy:</span>
+                    <span className="text-sm font-medium text-nude-700">Discrepancy:</span>
                     <span className={`text-2xl font-bold ${
                       hasDiscrepancy
                         ? discrepancy > 0
@@ -389,7 +412,7 @@ export default function CashReconciliationPage() {
 
               {/* Notes */}
               <div>
-                <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="notes" className="block text-sm font-medium text-nude-700 mb-2">
                   Notes {hasDiscrepancy && <span className="text-red-600">(Required for discrepancies)</span>}
                 </label>
                 <textarea

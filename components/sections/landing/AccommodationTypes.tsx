@@ -36,14 +36,14 @@ const accommodationTypes = [
     icon: Hotel,
     title: 'AirBnB & Lodges',
     subtitle: 'Large properties with multiple amenities',
-    features: ['Multiple Restaurants', 'Activities Management', 'Spa Services', 'Tour Bookings'],
+    features: ['Multiple Restaurants', 'Activities Management', 'Spa Services', 'Event Spaces'],
     image: '/images/hospitality/resort_exterior.jpeg',
   },
   {
     icon: Building,
     title: 'Guest Houses',
     subtitle: 'Smaller properties with intimate service',
-    features: ['Breakfast Management', 'Housekeeping', 'Local Tours', 'Personal Service'],
+    features: ['Breakfast Management', 'Housekeeping', 'Guest Services', 'Personal Service'],
     image: '/images/hospitality/guest_house.jpeg',
   },
 ];

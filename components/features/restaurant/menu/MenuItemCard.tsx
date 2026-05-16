@@ -29,6 +29,7 @@
  */
 
 import Image from 'next/image';
+import Link from 'next/link';
 
 interface MenuItem {
   id: string;
@@ -83,12 +84,13 @@ export default function MenuItemCard({ item, itemIndex, menuItemImages }: MenuIt
           </div>
         )}
         <div className="card-actions justify-end mt-2">
-          <button 
-            className="btn btn-sm btn-ghost gentle-lift min-h-[44px]" 
+          <Link
+            href={`/menu/${item.id}/edit`}
+            className="btn btn-sm btn-ghost gentle-lift min-h-[44px]"
             aria-label={`Edit ${item.name}`}
           >
             Edit
-          </button>
+          </Link>
           <button 
             className="btn btn-sm btn-error gentle-lift min-h-[44px]" 
             aria-label={`Delete ${item.name}`}

@@ -17,7 +17,7 @@
  * - Multi-Tenancy Strategy
  */
 
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { withApiAuth, errorResponse, successResponse } from '@/lib/utils/api-helpers';
 import { BookingService } from '@/lib/services/booking/BookingService';
 import { db, guests } from '@/lib/db';
@@ -25,12 +25,77 @@ import { eq, and } from 'drizzle-orm';
 import { entityId } from '@/lib/validation/entity-ids';
 import * as z from 'zod';
 
+const listBookingsQuerySchema = z.object({
+  propertyId: entityId('Invalid property ID'),
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'startDate must be YYYY-MM-DD').optional(),
+});
+
 const bookingSchema = z.object({
   checkInDate: z.string().min(1, 'Check-in date is required'),
   checkOutDate: z.string().min(1, 'Check-out date is required'),
   numGuests: z.number().min(1, 'Number of guests must be at least 1'),
   roomId: entityId('Invalid room ID'),
 });
+
+export async function GET(request: NextRequest) {
+  return withApiAuth(
+    request,
+    async (req, user) => {
+      if (!user.tenantId) {
+        return errorResponse('Tenant ID is required', 400, 'MISSING_TENANT_ID');
+      }
+
+      const parsed = listBookingsQuerySchema.safeParse({
+        propertyId: req.nextUrl.searchParams.get('propertyId'),
+        startDate: req.nextUrl.searchParams.get('startDate') ?? undefined,
+      });
+
+      if (!parsed.success) {
+        return errorResponse(
+          'Invalid query parameters',
+          400,
+          'VALIDATION_ERROR',
+          parsed.error.flatten().fieldErrors
+        );
+      }
+
+      const { propertyId, startDate } = parsed.data;
+      const bookingService = new BookingService();
+      let rows: Awaited<ReturnType<BookingService['getBookingsForProperty']>>;
+
+      if (startDate) {
+        const monthStart = new Date(startDate);
+        const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0);
+        const startIso = monthStart.toISOString().slice(0, 10);
+        const endIso = monthEnd.toISOString().slice(0, 10);
+        rows = await bookingService.getBookingsForPropertyInDateRange(
+          propertyId,
+          user.tenantId,
+          startIso,
+          endIso
+        );
+      } else {
+        rows = await bookingService.getBookingsForProperty(propertyId, user.tenantId);
+      }
+
+      const calendarRows = rows.map((b) => ({
+        id: b.id,
+        checkInDate: b.check_in_date ?? b.checkInDate,
+        checkOutDate: b.check_out_date ?? b.checkOutDate,
+        startDate: b.check_in_date ?? b.checkInDate,
+        endDate: b.check_out_date ?? b.checkOutDate,
+        status: b.status,
+      }));
+
+      /** BookingCalendar expects a top-level array (same as /api/bookings/availability). */
+      return NextResponse.json(calendarRows);
+    },
+    {
+      requireRole: ['owner', 'manager', 'admin', 'staff'],
+      rateLimit: true,
+    }
+  );
+}
 
 export async function POST(request: NextRequest) {
   return withApiAuth(
@@ -108,7 +173,7 @@ export async function POST(request: NextRequest) {
             error.message,
             error.statusCode,
             error.code || 'BOOKING_ERROR',
-            error.meta
+            process.env.NODE_ENV === 'production' ? undefined : error.meta
           );
         }
         
@@ -118,16 +183,13 @@ export async function POST(request: NextRequest) {
             error.message || 'Failed to create booking',
             500,
             'BOOKING_CREATION_ERROR',
-            { code: error.code, meta: error.meta }
+            process.env.NODE_ENV === 'production'
+              ? { code: error.code }
+              : { code: error.code, meta: error.meta }
           );
         }
         
-        // Generic error
-        return errorResponse(
-          error.message || 'Internal server error',
-          500,
-          'INTERNAL_ERROR'
-        );
+        return errorResponse('Internal server error', 500, 'INTERNAL_ERROR');
       }
     },
     {

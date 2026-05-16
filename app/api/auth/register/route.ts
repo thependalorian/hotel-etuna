@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db, users, tenants, sofiaEmailLogs } from '@/lib/db';
 import { eq } from 'drizzle-orm';
 import bcryptjs from 'bcryptjs';
@@ -6,6 +6,8 @@ import * as z from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import { EmailService } from '@/lib/services/sofia/EmailService';
 import { EmailTemplateService } from '@/lib/services/sofia/EmailTemplateService';
+import { checkRateLimit, shouldRateLimit } from '@/lib/utils/rate-limit';
+import { rateLimitResponse } from '@/lib/utils/api-helpers';
 
 const registerSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -18,9 +20,21 @@ function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    if (shouldRateLimit(request.nextUrl.pathname)) {
+      const rateLimitResult = await checkRateLimit(request);
+      if (!rateLimitResult.allowed) {
+        return rateLimitResponse(rateLimitResult);
+      }
+    }
+
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ message: 'Invalid JSON in request body.' }, { status: 400 });
+    }
     const validation = registerSchema.safeParse(body);
 
     if (!validation.success) {
@@ -150,13 +164,10 @@ export async function POST(request: Request) {
 
     const publicMessage = isConnectionError
       ? 'Registration is temporarily unavailable due to a database connection issue. Please check your connection and try again in a few moments.'
-      : err?.message || 'An unexpected error occurred. Please try again.';
+      : 'An unexpected error occurred. Please try again.';
 
     return NextResponse.json(
-      {
-        message: publicMessage,
-        error: process.env.NODE_ENV === 'development' && !isConnectionError ? (err as Error)?.stack : undefined,
-      },
+      { message: publicMessage },
       { status: isConnectionError ? 503 : 500 }
     );
   }

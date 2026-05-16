@@ -21,6 +21,10 @@ import { neon } from '@neondatabase/serverless';
 import * as bcrypt from 'bcryptjs';
 import * as dotenv from 'dotenv';
 import { randomUUID } from 'crypto';
+import { ETUNA_MENU_CATEGORIES, ETUNA_MENU_ITEMS } from '../lib/data/etuna-restaurant-menu-catalog';
+import { getMenuItemImageUrlForSeed } from '../lib/data/menu-item-image-urls';
+import { getRestaurantOpeningHoursJson } from '../lib/dining/restaurant-hours';
+import { buildInventorySeedFromCatalog } from '../lib/data/etuna-inventory-seed';
 
 // Load environment variables
 dotenv.config({ path: '.env.local' });
@@ -81,8 +85,8 @@ const PROPERTY = {
   name: 'Hotel Etuna',
   slug: 'hotel-etuna',
   type: 'hotel',
-  description: 'Hotel Etuna is a luxury guesthouse in the heart of Ongwediva, Namibia. Offering 5 room types, an outdoor pool, a celebrated on-site restaurant, and curated cultural tours, we embody the Oshiwambo meaning of our name — He takes care of us.',
-  address: '5544 Valley of the Leopard Street, Ongwediva, Oshana Region, Namibia',
+  description: 'Hotel Etuna is a luxury guesthouse in the heart of Ongwediva, Namibia. Offering 5 room types, an outdoor pool, and a celebrated on-site restaurant, we embody the Oshiwambo meaning of our name — He takes care of us.',
+  address: '5544 Valley Street, Ongwediva, Oshana Region, Namibia',
   city: 'Ongwediva',
   state: 'Oshana',
   country: 'Namibia',
@@ -154,10 +158,23 @@ const ROOMS = [
     id: randomUUID(),
     roomNumber: 'ET-501',
     roomType: 'Premier Room',
-    maxOccupancy: 6,
+    maxOccupancy: 4,
     baseRate: '2500.00',
-    description: 'Two bedrooms, two bathrooms, private lounge, balcony – the ultimate group/family experience.',
-    amenities: ['WiFi', 'Aircon', 'TV', 'Minibar', 'Coffee/Tea', 'Mosquito Net', 'Private Balcony', 'Lounge', '2 Bathrooms', 'Bathrobe'],
+    description:
+      'Private lounge, master bedroom, and twin room — flagship stay for up to 4 guests with mini fridge.',
+    amenities: [
+      'WiFi',
+      'Aircon',
+      'TV',
+      'Mini fridge',
+      'Minibar',
+      'Coffee/Tea',
+      'Mosquito Net',
+      'Private Balcony',
+      'Lounge',
+      '2 Bathrooms',
+      'Bathrobe',
+    ],
     status: 'available',
   },
 ];
@@ -168,49 +185,19 @@ const RESTAURANT = {
   description: 'Our on-site culinary gem serves traditional Namibian cuisine alongside international favourites. Locally sourced ingredients, buffet breakfast, and a private bar.',
   cuisineType: 'Namibian, International',
   capacity: 60,
-  openingHours: {
-    breakfast: { open: '06:30', close: '10:00' },
-    dinner: { open: '18:00', close: '22:00' },
-  },
+  openingHours: getRestaurantOpeningHoursJson(),
   contactPhone: '+264 65 231 177',
   status: 'active',
 };
 
-const MENU_CATEGORIES = [
-  { id: randomUUID(), name: 'Breakfast', description: 'Start your day right', displayOrder: 1 },
-  { id: randomUUID(), name: 'Starters', description: 'Light bites to begin', displayOrder: 2 },
-  { id: randomUUID(), name: 'Mains', description: 'Hearty traditional and international dishes', displayOrder: 3 },
-  { id: randomUUID(), name: 'Desserts', description: 'Sweet endings', displayOrder: 4 },
-  { id: randomUUID(), name: 'Drinks', description: 'Refreshments and beverages', displayOrder: 5 },
-];
+const MENU_CATEGORIES = ETUNA_MENU_CATEGORIES.map((category) => ({
+  id: randomUUID(),
+  name: category.name,
+  description: category.description,
+  displayOrder: category.displayOrder,
+}));
 
-const MENU_ITEMS = [
-  // Breakfast
-  { categoryName: 'Breakfast', name: 'Full English Breakfast', description: 'Eggs, bacon, sausage, toast, tomatoes, mushrooms', price: '85.00' },
-  { categoryName: 'Breakfast', name: 'Oshifima Porridge', description: 'Traditional Namibian maize porridge with milk', price: '55.00' },
-  { categoryName: 'Breakfast', name: 'Fruit & Yogurt Bowl', description: 'Fresh seasonal fruits with Greek yogurt and honey', price: '45.00' },
-  
-  // Starters
-  { categoryName: 'Starters', name: 'Soup of the Day', description: 'Chef\'s daily creation with fresh bread', price: '55.00' },
-  { categoryName: 'Starters', name: 'Zambezi Bream Ceviche', description: 'Fresh river fish marinated in citrus and herbs', price: '75.00' },
-  { categoryName: 'Starters', name: 'Vegetable Samosas', description: 'Crispy pastries filled with spiced vegetables', price: '50.00' },
-  
-  // Mains
-  { categoryName: 'Mains', name: 'Slow-cooked Oshifima with Spinach', description: 'Traditional maize meal with wild spinach and beef', price: '120.00' },
-  { categoryName: 'Mains', name: 'Grilled T-Bone Steak', description: '350g locally sourced beef with chips and salad', price: '180.00' },
-  { categoryName: 'Mains', name: 'Pan-Fried Kingklip', description: 'Fresh fish fillet with lemon butter sauce', price: '150.00' },
-  { categoryName: 'Mains', name: 'Vegetarian Potjie', description: 'Slow-cooked vegetable stew in cast iron pot', price: '110.00' },
-  
-  // Desserts
-  { categoryName: 'Desserts', name: 'Malva Pudding', description: 'Traditional South African sponge cake with custard', price: '60.00' },
-  { categoryName: 'Desserts', name: 'Amarula Crème Brûlée', description: 'Rich custard with caramelized sugar topping', price: '70.00' },
-  { categoryName: 'Desserts', name: 'Seasonal Fruit Platter', description: 'Fresh local fruits beautifully presented', price: '50.00' },
-  
-  // Drinks
-  { categoryName: 'Drinks', name: 'Namibian Windhoek Lager', description: 'Premium local beer (330ml)', price: '30.00' },
-  { categoryName: 'Drinks', name: 'South African Wines', description: 'Selection of red and white wines (per glass)', price: '45.00' },
-  { categoryName: 'Drinks', name: 'Fresh Juices', description: 'Orange, apple, or mixed tropical juice', price: '25.00' },
-];
+const MENU_ITEMS = ETUNA_MENU_ITEMS;
 
 const ADMIN_USER = {
   id: randomUUID(),
@@ -361,6 +348,7 @@ async function seedRooms() {
         )
         ON CONFLICT (property_id, room_number) DO UPDATE SET
           room_type = EXCLUDED.room_type,
+          max_occupancy = EXCLUDED.max_occupancy,
           base_rate = EXCLUDED.base_rate,
           amenities = EXCLUDED.amenities,
           updated_at = NOW()
@@ -393,6 +381,10 @@ async function seedRestaurant() {
     if (existingRestaurant.length > 0 && !isForce) {
       console.log('   ✓ Restaurant already exists');
       restaurantId = existingRestaurant[0].id;
+      await sql`
+        UPDATE restaurants SET opening_hours = ${JSON.stringify(getRestaurantOpeningHoursJson())}, updated_at = NOW()
+        WHERE id = ${restaurantId}
+      `;
     } else {
       if (existingRestaurant.length > 0) {
         restaurantId = existingRestaurant[0].id;
@@ -410,12 +402,18 @@ async function seedRestaurant() {
         ON CONFLICT (id) DO UPDATE SET
           name = EXCLUDED.name,
           description = EXCLUDED.description,
+          opening_hours = EXCLUDED.opening_hours,
           updated_at = NOW()
       `;
       
       console.log(`   ✓ Restaurant created: ${RESTAURANT.name}`);
     }
     
+    if (isForce) {
+      await sql`DELETE FROM cms_menu_items WHERE restaurant_id = ${restaurantId}`;
+      await sql`DELETE FROM menu_categories WHERE restaurant_id = ${restaurantId}`;
+    }
+
     // Seed menu categories
     const categoryMap = new Map();
     
@@ -462,23 +460,126 @@ async function seedRestaurant() {
       if (existingItem.length > 0 && !isForce) {
         continue;
       }
+
+      const imageUrl = getMenuItemImageUrlForSeed(item.name, item.categoryName);
+
+      if (existingItem.length > 0 && isForce) {
+        await sql`
+          UPDATE cms_menu_items SET
+            category_id = ${categoryId},
+            description = ${item.description},
+            price = ${item.price},
+            image_url = ${imageUrl},
+            updated_at = NOW()
+          WHERE id = ${existingItem[0].id}
+        `;
+        continue;
+      }
+
+      if (existingItem.length > 0 && !isForce) {
+        await sql`
+          UPDATE cms_menu_items SET
+            image_url = COALESCE(NULLIF(image_url, ''), ${imageUrl}),
+            updated_at = NOW()
+          WHERE id = ${existingItem[0].id} AND (image_url IS NULL OR image_url = '')
+        `;
+        continue;
+      }
       
       await sql`
         INSERT INTO cms_menu_items (
           id, restaurant_id, category_id, name, description,
-          price, currency, is_available, created_at, updated_at
+          price, currency, image_url, is_available, created_at, updated_at
         ) VALUES (
           ${randomUUID()}, ${restaurantId}, ${categoryId}, ${item.name},
-          ${item.description}, ${item.price}, 'NAD', true, NOW(), NOW()
+          ${item.description || null}, ${item.price}, 'NAD', ${imageUrl}, true, NOW(), NOW()
         )
-        ON CONFLICT DO NOTHING
       `;
     }
     
     console.log(`   ✓ ${MENU_ITEMS.length} menu items created`);
+
+    await seedInventoryForRestaurant(restaurantId);
   } catch (error) {
     console.error('   ❌ Error creating restaurant/menu:', error);
     throw error;
+  }
+}
+
+async function seedInventoryForRestaurant(restaurantId: string) {
+  const inventoryRows = buildInventorySeedFromCatalog();
+  if (inventoryRows.length === 0) return;
+
+  try {
+    const tableCheck = await sql`
+      SELECT 1 FROM information_schema.tables
+      WHERE table_schema = 'public' AND table_name = 'inventory_items'
+      LIMIT 1
+    `;
+    if (tableCheck.length === 0) {
+      console.warn('   ⚠️  inventory_items table missing — run database/drizzle/0011_fnb_inventory.sql first');
+      return;
+    }
+
+    let linked = 0;
+    for (const row of inventoryRows) {
+      const catalogItem = MENU_ITEMS.find((item) => item.inventorySku === row.sku);
+      if (!catalogItem) continue;
+
+      const menuRows = await sql`
+        SELECT id FROM cms_menu_items
+        WHERE restaurant_id = ${restaurantId} AND name = ${catalogItem.name}
+        LIMIT 1
+      `;
+      if (menuRows.length === 0) continue;
+      const menuItemId = menuRows[0].id;
+
+      const existingInv = await sql`
+        SELECT id FROM inventory_items
+        WHERE tenant_id = ${HUB_TENANT.id} AND sku = ${row.sku}
+        LIMIT 1
+      `;
+
+      let inventoryItemId = existingInv[0]?.id as string | undefined;
+      if (!inventoryItemId) {
+        inventoryItemId = randomUUID();
+        await sql`
+          INSERT INTO inventory_items (
+            id, tenant_id, property_id, restaurant_id, sku, name, unit, category,
+            quantity_on_hand, reorder_point, reorder_quantity, is_active, created_at, updated_at
+          ) VALUES (
+            ${inventoryItemId}, ${HUB_TENANT.id}, ${PROPERTY.id}, ${restaurantId},
+            ${row.sku}, ${row.name}, 'each', ${row.category},
+            ${row.initialOnHand}, ${row.reorderPoint}, ${row.reorderPoint * 2},
+            true, NOW(), NOW()
+          )
+        `;
+      } else if (isForce) {
+        await sql`
+          UPDATE inventory_items SET
+            name = ${row.name},
+            category = ${row.category},
+            reorder_point = ${row.reorderPoint},
+            updated_at = NOW()
+          WHERE id = ${inventoryItemId}
+        `;
+      }
+
+      await sql`
+        INSERT INTO menu_item_inventory_links (
+          id, menu_item_id, inventory_item_id, quantity_per_sale, created_at
+        ) VALUES (
+          ${randomUUID()}, ${menuItemId}, ${inventoryItemId}, 1, NOW()
+        )
+        ON CONFLICT (menu_item_id) DO UPDATE SET
+          inventory_item_id = EXCLUDED.inventory_item_id
+      `;
+      linked += 1;
+    }
+
+    console.log(`   ✓ ${linked} menu ↔ inventory SKU links`);
+  } catch (error) {
+    console.warn('   ⚠️  Inventory seed skipped:', error);
   }
 }
 

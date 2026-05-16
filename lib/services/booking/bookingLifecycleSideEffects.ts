@@ -12,8 +12,10 @@ import type { Booking } from '@/lib/db/schema';
 import { EmailService } from '@/lib/services/sofia/EmailService';
 import { EmailTemplateService } from '@/lib/services/sofia/EmailTemplateService';
 import { CrmOutreachService } from '@/lib/services/crm/CrmOutreachService';
+import { FolioService } from '@/lib/services/folio/FolioService';
 
 const emailService = new EmailService();
+const folioService = new FolioService();
 const bookingEmailTemplates = new EmailTemplateService();
 const outreach = new CrmOutreachService();
 
@@ -100,6 +102,7 @@ export function scheduleBookingCreatedEffects(input: {
       recipientName: guestName,
       propertyName,
       bookingReference: input.bookingReference,
+      bookingId: input.bookingId,
       checkInDate: input.checkInDate,
       checkOutDate: input.checkOutDate,
     });
@@ -161,6 +164,7 @@ export function scheduleBookingTransitionEffects(input: {
       const tpl = bookingEmailTemplates.generateCheckInConfirmationEmail({
         recipientName: guestName,
         propertyName,
+        bookingId: booking.id,
         checkInDate: String(booking.checkInDate),
       });
 
@@ -184,7 +188,56 @@ export function scheduleBookingTransitionEffects(input: {
       return;
     }
 
+    if (next === 'cancelled' && prev !== 'cancelled') {
+      const { guestEmail, guestName, propertyName } = await loadGuestAndPropertyEmails(
+        tenantId,
+        booking.guestId,
+        booking.propertyId
+      );
+      if (guestEmail) {
+        const tpl = bookingEmailTemplates.generateBookingCancellationEmail({
+          recipientName: guestName,
+          propertyName,
+          bookingReference: booking.bookingReference ?? booking.id.slice(0, 8),
+          bookingId: booking.id,
+        });
+
+        await emailService.sendEmail(tenantId, {
+          to: guestEmail,
+          subject: tpl.subject,
+          htmlContent: tpl.html,
+          textContent: tpl.text,
+          propertyId: booking.propertyId,
+          metadata: { emailKind: 'booking_cancelled' as const, bookingId: booking.id },
+        });
+
+        await outreachLog({
+          tenantId,
+          guestId: booking.guestId,
+          propertyId: booking.propertyId,
+          campaignKey: 'booking_cancelled_email',
+          subject: tpl.subject,
+          body: tpl.text,
+        });
+      }
+      return;
+    }
+
     if (next === 'checked_out' && prev !== 'checked_out') {
+      try {
+        const folio = await folioService.getFolio(booking.id);
+        if (folio.balanceDue > 0 && !folio.folioClosedAt) {
+          console.warn(
+            '[bookingLifecycleSideEffects] checked_out with open folio',
+            booking.id,
+            folio.balanceDue,
+            folio.currency
+          );
+        }
+      } catch (folioErr) {
+        console.error('[bookingLifecycleSideEffects] folio check on checkout:', folioErr);
+      }
+
       const { guestEmail, guestName, propertyName } = await loadGuestAndPropertyEmails(
         tenantId,
         booking.guestId,
@@ -201,6 +254,7 @@ export function scheduleBookingTransitionEffects(input: {
       const tpl = bookingEmailTemplates.generateFeedbackRequestEmail({
         recipientName: guestName,
         propertyName,
+        bookingId: booking.id,
         feedbackLink,
       });
 
@@ -279,6 +333,7 @@ export async function runCheckInReminderJob(): Promise<{ sent: number; skipped: 
     const tpl = bookingEmailTemplates.generatePreArrivalReminderEmail({
       recipientName: guestName,
       propertyName,
+      bookingId: b.id,
       checkInDate: dateStr,
       bookingReference: b.bookingReference ?? b.id.slice(0, 8),
     });
@@ -305,4 +360,57 @@ export async function runCheckInReminderJob(): Promise<{ sent: number; skipped: 
   }
 
   return { sent, skipped };
+}
+
+/** Fire-and-forget payment receipt after card, cash, or NamQR settlement. */
+export function schedulePaymentReceiptEmail(input: {
+  tenantId: string;
+  bookingId: string;
+  guestId: string;
+  propertyId: string | null;
+  amount: number;
+  currency?: string;
+  paymentMethod: string;
+  bookingReference?: string;
+}): void {
+  fire(async () => {
+    const { guestEmail, guestName, propertyName } = await loadGuestAndPropertyEmails(
+      input.tenantId,
+      input.guestId,
+      input.propertyId
+    );
+    if (!guestEmail) return;
+
+    const tpl = bookingEmailTemplates.generatePaymentReceiptEmail({
+      recipientName: guestName,
+      propertyName,
+      bookingReference: input.bookingReference,
+      bookingId: input.bookingId,
+      amount: input.amount.toFixed(2),
+      currency: input.currency ?? 'NAD',
+      paymentMethod: input.paymentMethod,
+    });
+
+    await emailService.sendEmail(input.tenantId, {
+      to: guestEmail,
+      subject: tpl.subject,
+      htmlContent: tpl.html,
+      textContent: tpl.text,
+      propertyId: input.propertyId ?? undefined,
+      metadata: {
+        emailKind: 'payment_receipt' as const,
+        bookingId: input.bookingId,
+        paymentMethod: input.paymentMethod,
+      },
+    });
+
+    await outreachLog({
+      tenantId: input.tenantId,
+      guestId: input.guestId,
+      propertyId: input.propertyId,
+      campaignKey: 'payment_receipt_email',
+      subject: tpl.subject,
+      body: tpl.text,
+    });
+  });
 }

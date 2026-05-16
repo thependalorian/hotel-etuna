@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     default: "Hotel Etuna – He Takes Care of Us",
     template: "%s | Hotel Etuna",
   },
-  description: "Welcome to Hotel Etuna in Ongwediva, Namibia. Experience authentic Namibian hospitality with 5 room types, on-site restaurant, pool, and curated tours. Your home away from home near the Ongwediva Trade Fair.",
+  description: "Welcome to Hotel Etuna in Ongwediva, Namibia. Experience authentic Namibian hospitality with 5 room types, on-site restaurant, and pool. Your home away from home near the Ongwediva Trade Fair.",
   keywords: [
     "Hotel Etuna",
     "Ongwediva hotel",
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     url: "https://hoteletuna.com",
     siteName: "Hotel Etuna",
     title: "Hotel Etuna – He Takes Care of Us",
-    description: "Experience authentic Namibian hospitality in Ongwediva. 5 room types, on-site restaurant, pool, and curated tours.",
+    description: "Experience authentic Namibian hospitality in Ongwediva. 5 room types, on-site restaurant, and pool.",
     images: [
       {
         url: "/images/hotel-etuna-og.jpg",
@@ -97,17 +97,17 @@ export default function RootLayout({
       >
         <ServiceWorkerRegistration />
         <OfflineBanner />
-        <Suspense fallback={null}>
-          <PostHogProvider>
-            <StackProviderWrapper>
-              <SessionProviderWrapper>
+        <SessionProviderWrapper>
+          <Suspense fallback={null}>
+            <PostHogProvider>
+              <StackProviderWrapper>
                 <AuthGateProvider>
                   <RootErrorBoundary>{children}</RootErrorBoundary>
                 </AuthGateProvider>
-              </SessionProviderWrapper>
-            </StackProviderWrapper>
-          </PostHogProvider>
-        </Suspense>
+              </StackProviderWrapper>
+            </PostHogProvider>
+          </Suspense>
+        </SessionProviderWrapper>
         <Toaster />
       </body>
     </html>

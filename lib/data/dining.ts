@@ -1,47 +1,49 @@
 /**
- * Shared Data Access Layer — Dining/Restaurant
- * 
- * Purpose: Single source of truth for restaurant & menu queries
+ * Shared Data Access Layer — Dining/Restaurant (live Neon DB only).
  * Location: lib/data/dining.ts
- * 
- * @version 1.1.0
- * @since April 28, 2026
  */
 
 import { db } from '@/lib/db';
 import { restaurants, cmsMenuItems, menuCategories } from '@/lib/db/schema';
 import { eq, and, inArray, asc } from 'drizzle-orm';
 import { cache } from 'react';
+import { resolvePublicHubProperty } from '@/lib/utils/public-property';
 
-const DEFAULT_PROPERTY_ID = process.env.DEFAULT_PROPERTY_ID!;
+async function resolveHubRestaurant() {
+  const defaultPropertyId = process.env.DEFAULT_PROPERTY_ID?.trim();
 
-/**
- * Get Hotel Etuna restaurant details
- */
-export const getHubRestaurant = cache(async () => {
-  try {
-    const [restaurant] = await db
+  if (defaultPropertyId) {
+    const [fromEnv] = await db
       .select()
       .from(restaurants)
-      .where(eq(restaurants.propertyId, DEFAULT_PROPERTY_ID))
+      .where(eq(restaurants.propertyId, defaultPropertyId))
       .limit(1);
+    if (fromEnv) return { restaurant: fromEnv, propertyId: defaultPropertyId };
+  }
 
-    return restaurant || null;
+  const { property } = await resolvePublicHubProperty();
+  const [fromHub] = await db
+    .select()
+    .from(restaurants)
+    .where(eq(restaurants.propertyId, property.id))
+    .limit(1);
+  return { restaurant: fromHub ?? null, propertyId: property.id };
+}
+
+export const getHubRestaurant = cache(async () => {
+  try {
+    const { restaurant } = await resolveHubRestaurant();
+    return restaurant;
   } catch (error) {
     console.error('[getHubRestaurant] Error:', error);
     return null;
   }
 });
 
-/**
- * Get available menu items (simple version)
- */
 export const getMenuItems = cache(async (limit?: number) => {
   try {
-    const restaurant = await getHubRestaurant();
-    if (!restaurant) {
-      return [];
-    }
+    const { restaurant } = await resolveHubRestaurant();
+    if (!restaurant) return [];
 
     const base = db
       .select()
@@ -54,87 +56,108 @@ export const getMenuItems = cache(async (limit?: number) => {
       )
       .orderBy(asc(cmsMenuItems.displayOrder), asc(cmsMenuItems.name));
 
-    const items = limit != null ? await base.limit(limit) : await base;
-    return items;
+    return limit != null ? await base.limit(limit) : await base;
   } catch (error) {
     console.error('[getMenuItems] Error:', error);
     return [];
   }
 });
 
-/**
- * Get complete menu with categories
- * Returns restaurant, categories, and items organized by category
- */
+async function loadMenuForRestaurantId(restaurantId: string) {
+  const categoryRows = await db
+    .select({
+      id: menuCategories.id,
+      name: menuCategories.name,
+      description: menuCategories.description,
+      displayOrder: menuCategories.displayOrder,
+    })
+    .from(menuCategories)
+    .where(
+      and(eq(menuCategories.restaurantId, restaurantId), eq(menuCategories.isActive, true)),
+    )
+    .orderBy(asc(menuCategories.displayOrder), asc(menuCategories.name));
+
+  const categoryIds = categoryRows.map((c) => c.id);
+  const itemRows = categoryIds.length
+    ? await db
+        .select({
+          id: cmsMenuItems.id,
+          categoryId: cmsMenuItems.categoryId,
+          name: cmsMenuItems.name,
+          price: cmsMenuItems.price,
+          currency: cmsMenuItems.currency,
+          description: cmsMenuItems.description,
+          imageUrl: cmsMenuItems.imageUrl,
+          dietaryTags: cmsMenuItems.dietaryTags,
+          isAvailable: cmsMenuItems.isAvailable,
+        })
+        .from(cmsMenuItems)
+        .where(
+          and(
+            inArray(cmsMenuItems.categoryId, categoryIds),
+            eq(cmsMenuItems.isAvailable, true),
+          ),
+        )
+        .orderBy(asc(cmsMenuItems.displayOrder), asc(cmsMenuItems.name))
+    : [];
+
+  const itemsByCategory = new Map<string, typeof itemRows>();
+  for (const item of itemRows) {
+    const key = item.categoryId ?? '';
+    if (!itemsByCategory.has(key)) {
+      itemsByCategory.set(key, []);
+    }
+    itemsByCategory.get(key)?.push(item);
+  }
+
+  return { categories: categoryRows, itemsByCategory };
+}
+
+export const getCompleteMenuForProperty = cache(async (propertyId: string) => {
+  try {
+    const [restaurant] = await db
+      .select()
+      .from(restaurants)
+      .where(eq(restaurants.propertyId, propertyId))
+      .limit(1);
+
+    if (!restaurant) {
+      return { restaurant: null, propertyId, categories: [], itemsByCategory: new Map() };
+    }
+
+    const menu = await loadMenuForRestaurantId(restaurant.id);
+    return { restaurant, propertyId, ...menu };
+  } catch (error) {
+    console.error('[getCompleteMenuForProperty] Error:', error);
+    return { restaurant: null, propertyId, categories: [], itemsByCategory: new Map() };
+  }
+});
+
 export const getCompleteMenu = cache(async () => {
   try {
-    // Get restaurant
-    const restaurant = await getHubRestaurant();
+    const { restaurant, propertyId } = await resolveHubRestaurant();
     if (!restaurant) {
       return {
         restaurant: null,
+        propertyId,
         categories: [],
         itemsByCategory: new Map(),
       };
     }
 
-    // Get categories
-    const categoryRows = await db
-      .select({
-        id: menuCategories.id,
-        name: menuCategories.name,
-        displayOrder: menuCategories.displayOrder,
-      })
-      .from(menuCategories)
-      .where(eq(menuCategories.restaurantId, restaurant.id))
-      .orderBy(asc(menuCategories.displayOrder), asc(menuCategories.name));
-
-    // Get menu items
-    const categoryIds = categoryRows.map((c) => c.id);
-    const itemRows = categoryIds.length
-      ? await db
-          .select({
-            id: cmsMenuItems.id,
-            categoryId: cmsMenuItems.categoryId,
-            name: cmsMenuItems.name,
-            price: cmsMenuItems.price,
-            currency: cmsMenuItems.currency,
-            description: cmsMenuItems.description,
-            isAvailable: cmsMenuItems.isAvailable,
-          })
-          .from(cmsMenuItems)
-          .where(inArray(cmsMenuItems.categoryId, categoryIds))
-          .orderBy(asc(cmsMenuItems.displayOrder), asc(cmsMenuItems.name))
-      : [];
-
-    // Organize items by category
-    const itemsByCategory = new Map<string, typeof itemRows>();
-    for (const item of itemRows) {
-      const key = item.categoryId ?? '';
-      if (!itemsByCategory.has(key)) {
-        itemsByCategory.set(key, []);
-      }
-      itemsByCategory.get(key)?.push(item);
-    }
-
-    return {
-      restaurant,
-      categories: categoryRows,
-      itemsByCategory,
-    };
+    const menu = await loadMenuForRestaurantId(restaurant.id);
+    return { restaurant, propertyId, ...menu };
   } catch (error) {
     console.error('[getCompleteMenu] Error:', error);
     return {
       restaurant: null,
+      propertyId: process.env.DEFAULT_PROPERTY_ID ?? '',
       categories: [],
       itemsByCategory: new Map(),
     };
   }
 });
 
-/**
- * Type exports
- */
 export type Restaurant = Awaited<ReturnType<typeof getHubRestaurant>>;
-export type MenuItem = Awaited<ReturnType<typeof getMenuItems>>[0];
+export type MenuItem = Awaited<ReturnType<typeof getMenuItems>>[number];
 export type CompleteMenu = Awaited<ReturnType<typeof getCompleteMenu>>;

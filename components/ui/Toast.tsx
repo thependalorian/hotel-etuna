@@ -1,3 +1,63 @@
+/**
+ * Toast Component
+ * 
+ * Purpose: Accessible notification/toast system using Radix UI Toast primitive
+ * Location: /components/ui/Toast.tsx
+ * 
+ * Features:
+ * - 4 semantic variants: success, error, info, warning
+ * - Auto-dismiss with configurable duration
+ * - Swipe to dismiss gesture
+ * - Stacked notifications (top-right viewport)
+ * - Icon indicators for each variant
+ * - Optional action buttons
+ * - Keyboard dismissible (ESC)
+ * 
+ * Components:
+ * - ToastProvider: Root provider (wrap app)
+ * - ToastViewport: Container for toasts
+ * - Toast: Individual toast notification
+ * - ToastTitle: Title text
+ * - ToastDescription: Description text
+ * - ToastAction: Action button
+ * - ToastClose: Close button
+ * 
+ * Variants:
+ * - success: Green with checkmark (confirmations)
+ * - error: Red with X (errors, failures)
+ * - info: Blue with info icon (neutral information)
+ * - warning: Yellow with warning icon (warnings, cautions)
+ * 
+ * Design System:
+ * - Rounded: 2xl (16px)
+ * - Shadow: nude-strong
+ * - Padding: 5 (20px)
+ * - Max width: 420px
+ * - Animations: fade-in, fade-out, slide-out
+ * 
+ * Accessibility:
+ * - role="alert" for errors (assertive)
+ * - role="status" for other types (polite)
+ * - aria-live regions for screen reader announcements
+ * - aria-atomic for complete announcement
+ * - Keyboard accessible close button
+ * 
+ * Usage:
+ * ```tsx
+ * import { useToast } from "@/components/ui/use-toast"
+ * 
+ * const { toast } = useToast()
+ * 
+ * toast({
+ *   variant: "success",
+ *   title: "Success!",
+ *   description: "Your changes have been saved.",
+ * })
+ * ```
+ * 
+ * @module Toast
+ */
+
 "use client";
 
 import * as React from "react";

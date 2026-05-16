@@ -37,7 +37,13 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Only hub tenant can invite partners' }, { status: 403 });
       }
 
-      const body = await request.json();
+      let body: unknown;
+      try {
+        body = await request.json();
+      } catch {
+        return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 });
+      }
+
       const parsed = inviteSchema.safeParse(body);
       if (!parsed.success) {
         return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
@@ -82,6 +88,6 @@ export async function POST(req: NextRequest) {
         },
       });
     },
-    { requireRole: ['admin', 'owner', 'manager'] }
+    { requireRole: ['admin', 'owner', 'manager'], rateLimit: true }
   );
 }

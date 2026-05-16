@@ -25,7 +25,14 @@
 import { db, namqrCodes, eq } from '@/lib/db';
 import crypto from 'crypto';
 import QRCode from 'qrcode';
-import { buildNamQrTlv, calculateNamQrCrc } from '@/lib/services/qr/namqr-core';
+import { buildNamQrTlv, encodeNamQrPayloadV5 } from '@/lib/services/qr/namqr-core';
+import {
+  buildNamQrPayeePresentedPayload,
+  generateNref,
+  validateNamQrPayload,
+} from '@/lib/compliance/namqr/nrtc-payload';
+import { NAMQR_STANDARDS } from '@/lib/compliance/namqr/standards';
+import { HOTEL_ETUNA_SETTLEMENT } from '@/lib/platform/settlement-accounts';
 
 // ============================================================================
 // TYPES
@@ -146,8 +153,15 @@ export class NamQRService {
       ? this.generateTokenVaultId() 
       : undefined;
 
-    // Build QR payload
-    const qrPayload = this.buildQRPayload(request, qrReference, tokenVaultId);
+    const qrPayload =
+      request.paymentStream === 'NRTC'
+        ? this.buildNrtcPayload(request, qrReference)
+        : this.buildQRPayload(request, qrReference, tokenVaultId);
+
+    const standardsCheck = validateNamQrPayload(qrPayload);
+    if (!standardsCheck.valid) {
+      throw new Error(`NAMQR_STANDARDS: ${standardsCheck.errors.join('; ')}`);
+    }
 
     // Generate QR code image
     const qrImageUrl = await this.generateQRImage(qrPayload);
@@ -315,122 +329,46 @@ export class NamQRService {
    * Format: Tag-Length-Value (TLV)
    * Example: 00020101... (tag 00, length 02, value 01)
    */
+  /** BoN NamQR v5.0 — Nedbank / NRTC payee-presented (tag 17). */
+  private static buildNrtcPayload(
+    request: NamQRGenerateRequest,
+    qrReference: string
+  ): string {
+    return buildNamQrPayeePresentedPayload({
+      dynamic: request.qrType !== 'static',
+      merchantName:
+        request.merchantName ?? request.payeeName ?? HOTEL_ETUNA_SETTLEMENT.legalName,
+      merchantCity: request.merchantCity ?? 'Ongwediva',
+      merchantCategoryCode:
+        request.merchantCategoryCode ?? NAMQR_STANDARDS.mccHotel,
+      amount: request.amount,
+      nref: qrReference,
+      payeeIdentifier: request.payeeAccountNumber ?? request.payeeIdentifier,
+      purposeLabel: 'Hotel Etuna guest payment',
+    });
+  }
+
   private static buildQRPayload(
     request: NamQRGenerateRequest,
     qrReference: string,
     tokenVaultId?: string
   ): string {
-    let payload = '';
-
-    // 00: Payload Format Indicator (always "01")
-    payload += this.buildTLV(NAMQR_TAGS.PAYLOAD_FORMAT_INDICATOR, '01');
-
-    // 01: Point of Initiation Method
-    const initiationMethod = request.qrType === 'static' ? '11' : '12';
-    payload += this.buildTLV(NAMQR_TAGS.POINT_OF_INITIATION_METHOD, initiationMethod);
-
-    // 26: Merchant Account Information (Payee details)
-    const merchantAccountInfo = this.buildMerchantAccountInfo(request);
-    payload += this.buildTLV(NAMQR_TAGS.MERCHANT_ACCOUNT_INFO, merchantAccountInfo);
-
-    // 52: Merchant Category Code (MCC)
-    if (request.merchantCategoryCode) {
-      payload += this.buildTLV(NAMQR_TAGS.MERCHANT_CATEGORY_CODE, request.merchantCategoryCode);
-    }
-
-    // 53: Transaction Currency (NAD = 516)
-    const currencyCode = '516'; // ISO 4217 code for NAD
-    payload += this.buildTLV(NAMQR_TAGS.TRANSACTION_CURRENCY, currencyCode);
-
-    // 54: Transaction Amount (for dynamic QR)
-    if (request.amount) {
-      const amountStr = request.amount.toFixed(2);
-      payload += this.buildTLV(NAMQR_TAGS.TRANSACTION_AMOUNT, amountStr);
-    }
-
-    // 58: Country Code (NA for Namibia)
-    payload += this.buildTLV(NAMQR_TAGS.COUNTRY_CODE, 'NA');
-
-    // 59: Merchant Name
-    payload += this.buildTLV(NAMQR_TAGS.MERCHANT_NAME, request.merchantName || request.payeeName);
-
-    // 60: Merchant City
-    if (request.merchantCity) {
-      payload += this.buildTLV(NAMQR_TAGS.MERCHANT_CITY, request.merchantCity);
-    }
-
-    // 61: Postal Code
-    if (request.merchantPostalCode) {
-      payload += this.buildTLV(NAMQR_TAGS.POSTAL_CODE, request.merchantPostalCode);
-    }
-
-    // 62: Additional Data (reference, purpose)
-    const additionalData = this.buildAdditionalData(qrReference);
-    payload += this.buildTLV(NAMQR_TAGS.ADDITIONAL_DATA, additionalData);
-
-    // 65: Token Vault ID (NamQR specific)
-    if (tokenVaultId) {
-      payload += this.buildTLV(NAMQR_TAGS.TOKEN_VAULT_ID, tokenVaultId);
-    }
-
-    // 66: Discount Percentage (NamQR v5.0)
-    if (request.discountPercentage) {
-      payload += this.buildTLV(NAMQR_TAGS.DISCOUNT, request.discountPercentage.toFixed(2));
-    }
-
-    // 67: Cashback Percentage (NamQR v5.0)
-    if (request.cashbackPercentage) {
-      payload += this.buildTLV(NAMQR_TAGS.CASHBACK, request.cashbackPercentage.toFixed(2));
-    }
-
-    // 63: CRC (Cyclic Redundancy Check) - MUST be last
-    const crc = this.calculateCRC(payload + NAMQR_TAGS.CRC + '04');
-    payload += this.buildTLV(NAMQR_TAGS.CRC, crc);
-
-    return payload;
-  }
-
-  /**
-   * Build Merchant Account Information (Tag 26)
-   * Contains payee identifier and account details
-   */
-  private static buildMerchantAccountInfo(request: NamQRGenerateRequest): string {
-    let merchantInfo = '';
-
-    // Sub-tag 00: Global Unique Identifier (RID)
-    merchantInfo += this.buildTLV('00', 'com.buffr.namqr');
-
-    // Sub-tag 01: Payee Identifier
-    merchantInfo += this.buildTLV('01', request.payeeIdentifier);
-
-    // Sub-tag 02: Account Type
-    merchantInfo += this.buildTLV('02', request.payeeAccountType);
-
-    // Sub-tag 03: Merchant ID (if applicable)
-    if (request.merchantId) {
-      merchantInfo += this.buildTLV('03', request.merchantId);
-    }
-
-    return merchantInfo;
-  }
-
-  /**
-   * Build Additional Data (Tag 62)
-   * Contains NREF and transaction purpose
-   */
-  private static buildAdditionalData(qrReference: string): string {
-    let additionalData = '';
-
-    // Sub-tag 01: Bill Number / Reference
-    additionalData += this.buildTLV('01', qrReference); // NREF
-
-    // Sub-tag 05: Reference Label
-    additionalData += this.buildTLV('05', `BUFFR-${qrReference}`);
-
-    // Sub-tag 08: Purpose of Transaction
-    additionalData += this.buildTLV('08', 'Payment via Hotel Etuna');
-
-    return additionalData;
+    return encodeNamQrPayloadV5({
+      presentationMode: request.qrType === 'static' ? 'static' : 'dynamic',
+      merchantName: request.merchantName || request.payeeName,
+      merchantCity: request.merchantCity ?? 'Ongwediva',
+      merchantCategoryCode: request.merchantCategoryCode ?? NAMQR_STANDARDS.mccHotel,
+      amount: request.amount,
+      referenceLabel: qrReference,
+      payeeIdentifier: request.payeeIdentifier,
+      payeeAccountType: request.payeeAccountType,
+      merchantId: request.merchantId,
+      tokenVaultId,
+      postalCode: request.merchantPostalCode,
+      purpose: 'Payment via Hotel Etuna',
+      discountPercent: request.discountPercentage,
+      cashbackPercent: request.cashbackPercentage,
+    });
   }
 
   /**
@@ -442,17 +380,6 @@ export class NamQRService {
    */
   private static buildTLV(tag: string, value: string): string {
     return buildNamQrTlv(tag, value);
-  }
-
-  /**
-   * Calculate CRC16-CCITT checksum
-   * EMVCo requirement for QR code integrity
-   * 
-   * @param payload - QR payload without CRC
-   * @returns 4-character hex CRC
-   */
-  private static calculateCRC(payload: string): string {
-    return calculateNamQrCrc(payload);
   }
 
   /**
@@ -644,16 +571,8 @@ export class NamQRService {
    * @returns 8-character alphanumeric reference
    */
   private static async generateNREF(): Promise<string> {
-    // Generate random 8-character alphanumeric string
-    const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclude similar chars (I, O, 0, 1)
-    let nref = '';
+    const nref = generateNref();
 
-    for (let i = 0; i < 8; i++) {
-      const randomIndex = crypto.randomInt(0, characters.length);
-      nref += characters[randomIndex];
-    }
-
-    // Check uniqueness
     const existing = await db
       .select()
       .from(namqrCodes)
@@ -661,7 +580,6 @@ export class NamQRService {
       .limit(1);
 
     if (existing && existing.length > 0) {
-      // Collision, try again (very rare)
       return this.generateNREF();
     }
 
@@ -710,7 +628,7 @@ export class NamQRService {
 // ============================================================================
 
 export const NAMQR_CONSTANTS = {
-  VERSION: '5.0',
+  VERSION: NAMQR_STANDARDS.version,
   CURRENCY_CODE: '516', // ISO 4217 for NAD
   COUNTRY_CODE: 'NA',
   MAX_CONSENT_DAYS: 180, // Per BoN standards

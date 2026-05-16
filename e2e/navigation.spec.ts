@@ -32,7 +32,6 @@ test.describe('Navigation', () => {
       '/rooms/executive-suite',
       '/rooms/premier-room',
       '/dining',
-      '/tours',
       '/about',
       '/contact',
       '/partners',

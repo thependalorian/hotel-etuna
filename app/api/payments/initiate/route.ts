@@ -27,7 +27,7 @@ import { PsdFraudGate } from '@/lib/services/fraud/FraudDetectionService';
 import { EncryptionService } from '@/lib/services/security/EncryptionService';
 import { logSecurityIncident } from '@/lib/services/security/SecurityIncidentService';
 import { recordAuditTrail } from '@/lib/compliance/record-audit';
-import { AdumoEnterpriseService } from '@/lib/services/payment/AdumoEnterpriseService';
+import { adumoVirtualIsConfigured } from '@/lib/config/adumo';
 import { entityId, entityIdOptional } from '@/lib/validation/entity-ids';
 import { z } from 'zod';
 
@@ -252,62 +252,17 @@ export async function POST(req: NextRequest) {
     const paymentId = crypto.randomUUID();
     const transactionRef = `PAY-${Date.now()}-${paymentId.substring(0, 8).toUpperCase()}`;
 
-    // Adumo Enterprise integration is enabled when ADUMO_* env vars are present.
-    let processorResult:
-      | {
-          provider: 'adumo';
-          transactionId: string;
-          threeDSecureAuthRequired: boolean;
-          threeDSecureProvider?: string;
-          acsUrl?: string;
-          acsPayload?: string;
-          acsMD?: string;
-          profileUid?: string;
-        }
-      | {
-          provider: 'internal_fallback';
-          reason: string;
-        };
-
-    const ipAddress =
-      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-      req.headers.get('x-real-ip') ||
-      '0.0.0.0';
-    const userAgent = req.headers.get('user-agent') || 'unknown';
-
-    if (AdumoEnterpriseService.isConfigured() && paymentData.paymentType === 'payment') {
-      const adumoInitiate = await AdumoEnterpriseService.initiate({
-        value: paymentData.amount,
-        merchantReference: transactionRef,
-        ipAddress,
-        userAgent,
-        card: paymentData.card,
-      });
-
-      processorResult = {
-        provider: 'adumo',
-        transactionId: adumoInitiate.transactionId,
-        threeDSecureAuthRequired: adumoInitiate.threeDSecureAuthRequired,
-        threeDSecureProvider: adumoInitiate.threeDSecureProvider,
-        acsUrl: adumoInitiate.acsUrl,
-        acsPayload: adumoInitiate.acsPayload,
-        acsMD: adumoInitiate.acsMD,
-        profileUid: adumoInitiate.profileUid,
-      };
-    } else {
-      processorResult = {
-        provider: 'internal_fallback',
-        reason: 'Adumo not configured or payment type is not card payment.',
-      };
-    }
+    const processorResult = {
+      provider: adumoVirtualIsConfigured() ? 'adumo_virtual' : 'internal_fallback',
+      reason: adumoVirtualIsConfigured()
+        ? 'Use POST /api/payments/virtual/initiate for hosted card checkout.'
+        : 'Adumo Virtual not configured (ADUMO_JWT_SECRET, merchant/application IDs).',
+    };
 
     const paymentResult = {
       paymentId,
       transactionRef,
-      status:
-        processorResult.provider === 'adumo' && processorResult.threeDSecureAuthRequired
-          ? '3ds_required'
-          : 'processing',
+      status: 'processing',
       amount: paymentData.amount,
       currency: paymentData.currency,
       recipientId: paymentData.recipientId,
@@ -416,12 +371,17 @@ export async function POST(req: NextRequest) {
 // ============================================================================
 
 export async function OPTIONS() {
+  const allowedOrigin = process.env.NODE_ENV === 'production'
+    ? (process.env.NEXT_PUBLIC_SITE_URL || 'https://hoteletuna.com')
+    : 'http://localhost:3000';
+
   return new NextResponse(null, {
     status: 204,
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': allowedOrigin,
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-2FA-Method, X-2FA-Code, X-User-Id, X-Tenant-Id, X-Device-Id',
+      'Access-Control-Allow-Credentials': 'true',
     },
   });
 }

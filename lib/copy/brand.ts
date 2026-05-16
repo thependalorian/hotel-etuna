@@ -1,0 +1,51 @@
+/**
+ * Brand copy spine — single source for tagline, voice, and forbidden phrases.
+ * Location: lib/copy/brand.ts
+ * Source: docs/REBRAND_QUESTIONNAIRE_AND_LANDSCAPE.md
+ */
+
+export const brand = {
+  name: 'Hotel Etuna',
+  tagline: 'He takes care of us',
+  taglineTitleCase: 'He Takes Care of Us',
+  meaning:
+    'In Oshiwambo, Etuna means "He takes care of us" — protection, stewardship, and communal well-being.',
+  leadLine:
+    'Hotel Etuna — where "He takes care of us" is how we host you.',
+  secondaryLines: {
+    placeAndTable: "Ongwediva's table — sleep, meet, dine at Hotel Etuna.",
+    category: 'Premium guesthouse. Hotel service.',
+  },
+  address: '5544 Valley Street, Ongwediva, Namibia',
+  phones: '+264 65 231 177 | +264 81 802 4833',
+  email: 'info@hoteletuna.com',
+  /** Staff + transactional footers: `lib/email/hotel-etuna-email-signature.ts` */
+  proofPoints: {
+    tradeFair: 'About 500 metres from the Ongwediva Trade Fair Centre',
+    shuttle: 'Airport shuttle available — N$250 flat (on request)',
+    checkIn: 'Check-in from 14:00 · Check-out by 11:00',
+    loyalty: '100 loyalty points = N$50 folio credit (earn 1 point per N$10 settled)',
+    roomService: 'Room service target: 30 minutes when checked in',
+  },
+  roomTiersFrom: 'From N$850 per night',
+  voice: {
+    use: [
+      'cared-for',
+      'refined',
+      'memorable dining',
+      'confidently hosted',
+      'northern Namibian table',
+      'event-ready',
+    ],
+    avoid: [
+      'only luxury in the north',
+      'free forever',
+      'hospitality management platform',
+      'enterprise-grade platform',
+      'no credit card required',
+      'setup in 5 minutes',
+    ],
+  },
+} as const;
+
+export const forbiddenGuestPhrases = brand.voice.avoid;

@@ -1,3 +1,48 @@
+/**
+ * Textarea Component
+ * 
+ * Purpose: Multi-line text input with label and error states
+ * Location: /components/ui/Textarea.tsx
+ * 
+ * Features:
+ * - Optional label with required indicator
+ * - Error state with error message
+ * - Vertical resize capability
+ * - Hover, focus, and disabled states
+ * - Full ARIA attribute support
+ * 
+ * Design System:
+ * - Min height: 120px (5 rows default)
+ * - Rounded: xl (12px)
+ * - Border: nude-200 (default), semantic-error (error state)
+ * - Focus ring: 2px with offset
+ * - Transitions: 200ms duration
+ * 
+ * Accessibility:
+ * - Proper label association via htmlFor
+ * - Required indicator with aria-label
+ * - Error announcements via role="alert"
+ * - Auto-generated IDs for a11y
+ * - aria-invalid and aria-describedby support
+ * 
+ * Props:
+ * - label?: Label text above textarea
+ * - error?: Error message
+ * - All standard textarea attributes (rows, cols, maxLength, etc.)
+ * 
+ * Usage:
+ * ```tsx
+ * <Textarea 
+ *   label="Description" 
+ *   rows={8}
+ *   error={errors.description}
+ *   required
+ * />
+ * ```
+ * 
+ * @module Textarea
+ */
+
 import * as React from "react";
 import { cn } from "@/lib/utils/cn";
 

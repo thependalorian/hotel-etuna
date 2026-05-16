@@ -23,6 +23,7 @@ import { CrmGraphMemoryService } from '@/lib/services/crm/CrmGraphMemoryService'
 import { scheduleCrmMemoryAfterSofiaTurn } from '@/lib/services/crm/CrmMemoryBridge';
 import { RAGSearchService, type RagSearchChunk } from '@/lib/services/documents/RAGSearchService';
 import { LLMProviderRouter, type LlmChatMessage } from '@/lib/services/ai/LLMProviderRouter';
+import { FolioService } from '@/lib/services/folio/FolioService';
 
 export class SofiaConciergeService {
   private knowledgeBase: KnowledgeBaseService;
@@ -166,7 +167,7 @@ export class SofiaConciergeService {
         assistantMessage: finalResponse,
       });
 
-      const intent = this.extractIntent(finalResponse);
+      const intent = this.resolveIntent(request.message, finalResponse);
       const entities = this.extractEntities(finalResponse);
       const suggestions = await this.generateSuggestions(intent, entities, request.context);
       const actions = await this.determineActions(intent, entities, request.context);
@@ -329,6 +330,23 @@ export class SofiaConciergeService {
           if (bookingRow.checkInDate && bookingRow.checkOutDate) {
             contextString += `Dates: ${bookingRow.checkInDate} to ${bookingRow.checkOutDate}\n`;
           }
+
+          if (bookingRow.status === 'checked_in') {
+            try {
+              const folioService = new FolioService();
+              const folio = await folioService.getFolio(bookingRow.id);
+              contextString += `Folio balance due: ${folio.currency} ${folio.balanceDue.toFixed(2)}\n`;
+              contextString += `Folio closed: ${folio.folioClosedAt ? 'yes' : 'no'}\n`;
+              if (folio.balanceDue > 0) {
+                contextString +=
+                  'Guest can settle folio or order room service at /guest/stays/' +
+                  bookingRow.id +
+                  '\n';
+              }
+            } catch (folioErr) {
+              console.error('[SofiaConciergeService] folio context:', folioErr);
+            }
+          }
         }
       }
 
@@ -446,11 +464,13 @@ export class SofiaConciergeService {
     context: string,
     history: Array<{ role: 'user' | 'assistant'; content: string; timestamp: Date }>
   ): string {
-    return `You are Sofia, an AI concierge for Hotel Etuna hospitality management platform in Namibia. 
+    return `You are Sofia, the AI concierge for Hotel Etuna, a premium luxury guesthouse in Ongwediva, Namibia.
 ABOUT HOTEL ETUNA:
-- Hotel Etuna is an enterprise-grade hospitality management platform for Namibian properties
-- The platform is 100% free forever for core features
-- We provide Property Management System (PMS), AI Concierge, CMS, Booking Engine, Restaurant Management, CRM, and Analytics
+- Hotel Etuna is located at 5544 Valley Street, Ongwediva, Namibia
+- We offer five room tiers: Standard, Luxury, Family, Executive Suite, and Premier
+- Room rates start from N$850 per night, with fair seasonal packages and direct booking support
+- Check-in starts at 14:00 and check-out is by 11:00
+- Key guest amenities include free WiFi, outdoor pool, free parking, on-site restaurant, and 24-hour security
 - Support is available 24/7 via Sofia AI at concierge@hoteletuna.com
 - We operate in Namibia and use NAD (Namibian Dollar) currency
 
@@ -507,31 +527,59 @@ Current user message: ${message}`;
     return "I'm here to help with your hospitality needs! I can assist with hotel bookings, restaurant reservations, and information about our facilities. Could you please let me know more specifically what you'd like help with?";
   }
 
-  private extractIntent(response: string): string {
-    const lowerResponse = response.toLowerCase();
+  /**
+   * Prefer explicit signals in the guest message; fall back to assistant wording.
+   */
+  private resolveIntent(userMessage: string, assistantResponse: string): string {
+    const fromUser = this.extractIntent(userMessage);
+    const fromAssistant = this.extractIntent(assistantResponse);
 
-    if (lowerResponse.includes('book') || lowerResponse.includes('reservation')) {
-      if (lowerResponse.includes('room') || lowerResponse.includes('stay')) {
+    if (fromUser !== 'general_inquiry') {
+      return fromUser;
+    }
+    return fromAssistant;
+  }
+
+  private extractIntent(text: string): string {
+    const lower = text.toLowerCase();
+
+    if (/\b(rate|rates|price|prices|cost|pricing)\b/.test(lower)) {
+      return 'pricing_inquiry';
+    }
+
+    const wantsBooking =
+      /\b(book|reserve|reservation)\b/.test(lower) ||
+      lower.includes('table for') ||
+      (lower.includes('table') && (lower.includes('dinner') || lower.includes('lunch')));
+
+    if (wantsBooking) {
+      if (lower.includes('room') || lower.includes('stay') || lower.includes('hotel room')) {
         return 'booking_room';
-      } else if (lowerResponse.includes('restaurant') || lowerResponse.includes('table')) {
+      }
+      if (
+        lower.includes('restaurant') ||
+        lower.includes('table') ||
+        lower.includes('dinner') ||
+        lower.includes('lunch')
+      ) {
         return 'booking_restaurant';
       }
       return 'booking_general';
     }
 
-    if (lowerResponse.includes('amenities') || lowerResponse.includes('facilities')) {
+    if (lower.includes('amenities') || lower.includes('facilities')) {
       return 'amenities_inquiry';
     }
 
-    if (lowerResponse.includes('menu') || lowerResponse.includes('food')) {
+    if (lower.includes('menu') || lower.includes('food')) {
       return 'menu_inquiry';
     }
 
-    if (lowerResponse.includes('price') || lowerResponse.includes('cost') || lowerResponse.includes('rate')) {
-      return 'pricing_inquiry';
+    if (lower.includes('cancellation') || lower.includes('policy')) {
+      return 'booking_general';
     }
 
-    if (lowerResponse.includes('help') || lowerResponse.includes('assist')) {
+    if (lower.includes('help') || lower.includes('assist')) {
       return 'general_help';
     }
 
@@ -747,15 +795,34 @@ Current user message: ${message}`;
         body = `Thank you for contacting ${propertyName}!\n\n${aiResponse.response}\n\nWe're here to help with any questions you may have.`;
     }
 
-    // Generate HTML and text templates
+    let recipientName: string | undefined;
+    if (context.guestId) {
+      try {
+        const [guest] = await db
+          .select({ firstName: guests.firstName, lastName: guests.lastName })
+          .from(guests)
+          .where(and(eq(guests.id, context.guestId), eq(guests.tenantId, context.tenantId)))
+          .limit(1);
+        if (guest) {
+          recipientName = [guest.firstName, guest.lastName].filter(Boolean).join(' ').trim() || undefined;
+        }
+      } catch {
+        recipientName = undefined;
+      }
+    }
+
+    const bodyHtml = `<p>${body.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</p>`;
+
     const htmlContent = this.emailTemplateGenerator.generateHtmlTemplate({
       subject,
-      body,
+      body: bodyHtml,
+      recipientName,
     });
 
     const textContent = this.emailTemplateGenerator.generateTextTemplate({
       subject,
       body,
+      recipientName,
     });
 
     return {

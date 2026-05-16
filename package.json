@@ -3,12 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/clean-dev-cache.mjs && next dev --webpack",
+    "dev:fresh": "rm -rf .next && next dev --webpack",
+    "dev:turbo": "node scripts/clean-dev-cache.mjs && next dev --turbopack",
     "build": "next build",
     "postinstall": "echo 'Run db:generate if needed'",
     "start": "next start",
     "lint": "eslint",
     "verify:production": "npx tsc --noEmit && vitest run && npm run build",
+    "security:preflight": "tsx scripts/security/run-preflight.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
@@ -16,11 +19,16 @@
     "test:seed": "tsx tests/seed/seed-data.ts",
     "test:seed:working": "tsx tests/seed/working-seed.ts",
     "seed:partners": "tsx scripts/seed-partners.ts",
+    "seed:menu-images": "tsx scripts/seed-menu-images.ts",
+    "seed:menu-images:force": "tsx scripts/seed-menu-images.ts --force",
+    "validate:menu-images": "tsx scripts/validate-menu-images.ts",
+    "seed:menu-images:full": "tsx scripts/seed-menu-images.ts --force && tsx scripts/validate-menu-images.ts",
     "test:api": "tsx scripts/test-api-crud-operations.ts",
     "test:api:crud": "tsx scripts/test-all-crud-operations.ts",
     "test:setup:restaurant": "tsx scripts/setup-test-restaurant.ts",
-    "test:db": "tsx scripts/verify-db.ts",
+    "test:db": "tsx scripts/db/verify-db.ts",
     "test:db:rls": "tsx scripts/db/verify-tenant-rls.ts",
+    "test:db:migrations": "tsx scripts/db/verify-neon-migrations.ts",
     "test:smoke": "npm run test:db && vitest run --config vitest.smoke.config.ts",
     "test:smoke:journeys": "tsx scripts/smoke-user-journeys.ts",
     "test:llm:keys": "bash scripts/test-llm-keys.sh",
@@ -38,6 +46,8 @@
     "db:audit:neon": "tsx scripts/db/audit-neon-baseline.ts",
     "rag:seed": "tsx scripts/ingest-hotel-etuna-knowledge.ts",
     "rag:seed:dry": "tsx scripts/ingest-hotel-etuna-knowledge.ts --dry",
+    "env:check": "node scripts/check-env-local.mjs",
+    "env:sync": "node scripts/sync-env-local.mjs && node scripts/check-env-local.mjs",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "supabase:status": "supabase status"
@@ -112,5 +122,9 @@
     "uuid": "^13.0.0",
     "vitest": "^4.0.16",
     "yaml": "^2.8.3"
+  },
+  "overrides": {
+    "fast-xml-parser": ">=5.7.0",
+    "protobufjs": ">=7.5.5"
   }
 }

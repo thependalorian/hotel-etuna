@@ -1,3 +1,64 @@
+/**
+ * Form Component System
+ * 
+ * Purpose: React Hook Form integration with Radix UI primitives
+ * Location: /components/ui/Form.tsx
+ * 
+ * Features:
+ * - Built on react-hook-form for robust form state management
+ * - Automatic field validation and error display
+ * - ARIA attribute management for accessibility
+ * - Composable form field components
+ * - Type-safe with TypeScript generics
+ * 
+ * Components:
+ * - Form: Root provider (wraps form with FormProvider)
+ * - FormField: Field controller with validation
+ * - FormItem: Container for field components
+ * - FormLabel: Accessible label with error styling
+ * - FormControl: Input wrapper with ARIA attributes
+ * - FormDescription: Helper text below field
+ * - FormMessage: Error message display
+ * 
+ * Design System:
+ * - Spacing: space-y-2 for field grouping (Gestalt proximity)
+ * - Error state: Automatic error color styling
+ * - Typography: Semantic text sizes
+ * 
+ * Accessibility:
+ * - Automatic ID generation for associations
+ * - aria-describedby for descriptions and errors
+ * - aria-invalid for error states
+ * - Proper label-input association
+ * - Screen reader error announcements
+ * 
+ * Usage:
+ * ```tsx
+ * const form = useForm<FormData>({
+ *   resolver: zodResolver(schema),
+ * })
+ * 
+ * <Form {...form}>
+ *   <FormField
+ *     control={form.control}
+ *     name="email"
+ *     render={({ field }) => (
+ *       <FormItem>
+ *         <FormLabel>Email</FormLabel>
+ *         <FormControl>
+ *           <Input type="email" {...field} />
+ *         </FormControl>
+ *         <FormDescription>Your email address</FormDescription>
+ *         <FormMessage />
+ *       </FormItem>
+ *     )}
+ *   />
+ * </Form>
+ * ```
+ * 
+ * @module Form
+ */
+
 "use client"
 
 import * as React from "react"

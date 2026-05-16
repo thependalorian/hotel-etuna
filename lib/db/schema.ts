@@ -124,6 +124,20 @@ export const orderStatusEnum = pgEnum('order_status', [
   'cancelled',
 ]);
 
+export const bookingChargeTypeEnum = pgEnum('booking_charge_type', [
+  'room',
+  'fnb',
+  'tax',
+  'adjustment',
+  'payment',
+]);
+
+export const bookingChargeStatusEnum = pgEnum('booking_charge_status', [
+  'open',
+  'settled',
+  'refunded',
+]);
+
 export const aiConversationChannelEnum = pgEnum('ai_conversation_channel', [
   'web',
   'whatsapp',
@@ -448,6 +462,7 @@ export const bookings = pgTable('bookings', {
   cancellationPolicy: varchar('cancellation_policy', { length: 100 }),
   aiProcessed: boolean('ai_processed').default(false),
   aiConfidenceScore: decimal('ai_confidence_score', { precision: 3, scale: 2 }),
+  folioClosedAt: timestamp('folio_closed_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (table) => ({
@@ -471,6 +486,30 @@ export const bookingRooms = pgTable('booking_rooms', {
   bookingIdx: index('idx_booking_rooms_booking_id').on(table.bookingId),
   roomIdx: index('idx_booking_rooms_room_id').on(table.roomId),
 }));
+
+/** Per-stay folio lines (room rate, F&B, tax, payments) — not the same as guest_profiles (loyalty). */
+export const bookingCharges = pgTable('booking_charges', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  bookingId: uuid('booking_id').references(() => bookings.id, { onDelete: 'cascade' }).notNull(),
+  chargeType: bookingChargeTypeEnum('charge_type').notNull(),
+  description: text('description').notNull(),
+  amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+  currency: varchar('currency', { length: 3 }).default('NAD'),
+  status: bookingChargeStatusEnum('status').notNull().default('open'),
+  referenceId: uuid('reference_id'),
+  createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  settledAt: timestamp('settled_at', { withTimezone: true }),
+}, (table) => ({
+  bookingIdx: index('idx_booking_charges_booking_id').on(table.bookingId),
+  statusIdx: index('idx_booking_charges_status').on(table.status),
+  typeIdx: index('idx_booking_charges_type').on(table.chargeType),
+  tenantIdx: index('idx_booking_charges_tenant_id').on(table.tenantId),
+}));
+
+export type BookingCharge = typeof bookingCharges.$inferSelect;
+export type NewBookingCharge = typeof bookingCharges.$inferInsert;
 
 export const cashReconciliations = pgTable('cash_reconciliations', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -532,6 +571,144 @@ export const transactions = pgTable('transactions', {
   tenantIdx: index('idx_transactions_tenant_id').on(table.tenantId),
   bookingIdx: index('idx_transactions_booking_id').on(table.bookingId),
   statusIdx: index('idx_transactions_status').on(table.status),
+}));
+
+/** Adumo Virtual redirect sessions (merchant ref → booking) */
+export const paymentSessions = pgTable('payment_sessions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .references(() => tenants.id, { onDelete: 'cascade' })
+    .notNull(),
+  merchantReference: varchar('merchant_reference', { length: 255 }).notNull().unique(),
+  bookingId: uuid('booking_id')
+    .references(() => bookings.id, { onDelete: 'cascade' })
+    .notNull(),
+  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
+  purpose: varchar('purpose', { length: 50 }).notNull(),
+  beneficiary: varchar('beneficiary', { length: 20 }).default('property').notNull(),
+  status: varchar('status', { length: 50 }).default('pending').notNull(),
+  sessionData: jsonb('session_data'),
+  adumoTransactionIndex: varchar('adumo_transaction_index', { length: 255 }),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  bookingIdx: index('idx_payment_sessions_booking_id').on(table.bookingId),
+  expiresIdx: index('idx_payment_sessions_expires_at').on(table.expiresAt),
+}));
+
+/** Property / platform bank profiles for guest settlement vs Buffr invoicing */
+export const settlementAccounts = pgTable('settlement_accounts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }),
+  party: varchar('party', { length: 20 }).notNull(),
+  profileKey: varchar('profile_key', { length: 100 }).notNull().unique(),
+  legalName: varchar('legal_name', { length: 255 }).notNull(),
+  bankName: varchar('bank_name', { length: 255 }).notNull(),
+  accountNumber: varchar('account_number', { length: 50 }).notNull(),
+  branchCode: varchar('branch_code', { length: 20 }),
+  swiftCode: varchar('swift_code', { length: 20 }),
+  accountType: varchar('account_type', { length: 50 }),
+  registrationRef: varchar('registration_ref', { length: 100 }),
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  tenantIdx: index('idx_settlement_accounts_tenant').on(table.tenantId),
+  partyIdx: index('idx_settlement_accounts_party').on(table.party),
+}));
+
+export const platformFeeSchedules = pgTable('platform_fee_schedules', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .references(() => tenants.id, { onDelete: 'cascade' })
+    .notNull()
+    .unique(),
+  cardProcessingPercent: decimal('card_processing_percent', { precision: 6, scale: 3 })
+    .default('2.500')
+    .notNull(),
+  cardProcessingFixedNad: decimal('card_processing_fixed_nad', { precision: 10, scale: 2 })
+    .default('0')
+    .notNull(),
+  monthlySubscriptionNad: decimal('monthly_subscription_nad', { precision: 10, scale: 2 })
+    .default('0')
+    .notNull(),
+  effectiveFrom: date('effective_from').defaultNow().notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+});
+
+export const platformInvoices = pgTable('platform_invoices', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .references(() => tenants.id, { onDelete: 'cascade' })
+    .notNull(),
+  invoiceNumber: varchar('invoice_number', { length: 50 }).notNull(),
+  periodStart: date('period_start').notNull(),
+  periodEnd: date('period_end').notNull(),
+  status: varchar('status', { length: 20 }).default('draft').notNull(),
+  subtotal: decimal('subtotal', { precision: 12, scale: 2 }).default('0').notNull(),
+  vatRatePercent: decimal('vat_rate_percent', { precision: 5, scale: 2 }).default('0'),
+  vatAmount: decimal('vat_amount', { precision: 12, scale: 2 }).default('0'),
+  total: decimal('total', { precision: 12, scale: 2 }).default('0').notNull(),
+  currency: varchar('currency', { length: 3 }).default('NAD').notNull(),
+  supplierVatNumber: varchar('supplier_vat_number', { length: 50 }),
+  documentType: varchar('document_type', { length: 30 }).default('invoice'),
+  issuedAt: timestamp('issued_at', { withTimezone: true }),
+  paidAt: timestamp('paid_at', { withTimezone: true }),
+  paymentReference: varchar('payment_reference', { length: 255 }),
+  notes: text('notes'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  tenantStatusIdx: index('idx_platform_invoices_tenant_status').on(table.tenantId, table.status),
+  tenantInvoiceUnique: uniqueIndex('platform_invoices_tenant_number').on(
+    table.tenantId,
+    table.invoiceNumber
+  ),
+}));
+
+export const platformInvoiceLines = pgTable('platform_invoice_lines', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  invoiceId: uuid('invoice_id')
+    .references(() => platformInvoices.id, { onDelete: 'cascade' })
+    .notNull(),
+  lineType: varchar('line_type', { length: 30 }).notNull(),
+  description: text('description').notNull(),
+  quantity: decimal('quantity', { precision: 10, scale: 2 }).default('1').notNull(),
+  unitAmount: decimal('unit_amount', { precision: 12, scale: 2 }).notNull(),
+  amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  invoiceIdx: index('idx_platform_invoice_lines_invoice').on(table.invoiceId),
+}));
+
+export const platformFeeAccruals = pgTable('platform_fee_accruals', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .references(() => tenants.id, { onDelete: 'cascade' })
+    .notNull(),
+  bookingId: uuid('booking_id').references(() => bookings.id, { onDelete: 'set null' }),
+  transactionId: uuid('transaction_id').references(() => transactions.id, { onDelete: 'set null' }),
+  merchantReference: varchar('merchant_reference', { length: 255 }),
+  gatewayTransactionId: varchar('gateway_transaction_id', { length: 255 }),
+  purpose: varchar('purpose', { length: 50 }).notNull(),
+  grossAmount: decimal('gross_amount', { precision: 12, scale: 2 }).notNull(),
+  feeAmount: decimal('fee_amount', { precision: 12, scale: 2 }).notNull(),
+  currency: varchar('currency', { length: 3 }).default('NAD').notNull(),
+  periodMonth: varchar('period_month', { length: 7 }).notNull(),
+  status: varchar('status', { length: 20 }).default('accrued').notNull(),
+  invoiceId: uuid('invoice_id').references(() => platformInvoices.id, { onDelete: 'set null' }),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  tenantPeriodIdx: index('idx_platform_fee_accruals_tenant_period').on(
+    table.tenantId,
+    table.periodMonth,
+    table.status
+  ),
+  invoiceIdx: index('idx_platform_fee_accruals_invoice').on(table.invoiceId),
 }));
 
 export const trustAccounts = pgTable('trust_accounts', {
@@ -795,6 +972,102 @@ export const restaurantOrderItems = pgTable('restaurant_order_items', {
 
 export type RestaurantOrderItem = typeof restaurantOrderItems.$inferSelect;
 export type NewRestaurantOrderItem = typeof restaurantOrderItems.$inferInsert;
+
+// ============================================================================
+// F&B INVENTORY (stock control — one SKU per sellable menu line where linked)
+// ============================================================================
+
+export const inventoryItems = pgTable(
+  'inventory_items',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .references(() => tenants.id, { onDelete: 'cascade' })
+      .notNull(),
+    propertyId: uuid('property_id').references(() => properties.id, { onDelete: 'cascade' }),
+    restaurantId: uuid('restaurant_id').references(() => restaurants.id, { onDelete: 'cascade' }),
+    sku: varchar('sku', { length: 64 }).notNull(),
+    name: varchar('name', { length: 255 }).notNull(),
+    unit: varchar('unit', { length: 32 }).default('each').notNull(),
+    category: varchar('category', { length: 64 }),
+    quantityOnHand: decimal('quantity_on_hand', { precision: 12, scale: 3 }).default('0').notNull(),
+    reorderPoint: decimal('reorder_point', { precision: 12, scale: 3 }).default('12').notNull(),
+    reorderQuantity: decimal('reorder_quantity', { precision: 12, scale: 3 }).default('24'),
+    isActive: boolean('is_active').default(true).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+  },
+  (table) => ({
+    tenantSkuIdx: uniqueIndex('idx_inventory_items_tenant_sku').on(table.tenantId, table.sku),
+    restaurantIdx: index('idx_inventory_items_restaurant_id').on(table.restaurantId),
+  }),
+);
+
+export const menuItemInventoryLinks = pgTable(
+  'menu_item_inventory_links',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    menuItemId: uuid('menu_item_id')
+      .references(() => cmsMenuItems.id, { onDelete: 'cascade' })
+      .notNull(),
+    inventoryItemId: uuid('inventory_item_id')
+      .references(() => inventoryItems.id, { onDelete: 'cascade' })
+      .notNull(),
+    quantityPerSale: decimal('quantity_per_sale', { precision: 12, scale: 3 }).default('1').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  },
+  (table) => ({
+    menuItemIdx: uniqueIndex('idx_menu_item_inventory_links_menu_item').on(table.menuItemId),
+    inventoryIdx: index('idx_menu_item_inventory_links_inventory').on(table.inventoryItemId),
+  }),
+);
+
+export const stockMovements = pgTable(
+  'stock_movements',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    inventoryItemId: uuid('inventory_item_id')
+      .references(() => inventoryItems.id, { onDelete: 'cascade' })
+      .notNull(),
+    movementType: varchar('movement_type', { length: 32 }).notNull(),
+    quantityDelta: decimal('quantity_delta', { precision: 12, scale: 3 }).notNull(),
+    quantityAfter: decimal('quantity_after', { precision: 12, scale: 3 }).notNull(),
+    referenceType: varchar('reference_type', { length: 64 }),
+    referenceId: uuid('reference_id'),
+    notes: text('notes'),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  },
+  (table) => ({
+    inventoryIdx: index('idx_stock_movements_inventory_item_id').on(table.inventoryItemId),
+    createdAtIdx: index('idx_stock_movements_created_at').on(table.createdAt),
+  }),
+);
+
+export const stockAlerts = pgTable(
+  'stock_alerts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    inventoryItemId: uuid('inventory_item_id')
+      .references(() => inventoryItems.id, { onDelete: 'cascade' })
+      .notNull(),
+    alertType: varchar('alert_type', { length: 32 }).notNull(),
+    status: varchar('status', { length: 32 }).default('open').notNull(),
+    quantityAtAlert: decimal('quantity_at_alert', { precision: 12, scale: 3 }).notNull(),
+    acknowledgedAt: timestamp('acknowledged_at', { withTimezone: true }),
+    acknowledgedBy: uuid('acknowledged_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  },
+  (table) => ({
+    inventoryStatusIdx: index('idx_stock_alerts_inventory_status').on(table.inventoryItemId, table.status),
+  }),
+);
+
+export type InventoryItem = typeof inventoryItems.$inferSelect;
+export type NewInventoryItem = typeof inventoryItems.$inferInsert;
+export type MenuItemInventoryLink = typeof menuItemInventoryLinks.$inferSelect;
+export type StockMovement = typeof stockMovements.$inferSelect;
+export type StockAlert = typeof stockAlerts.$inferSelect;
 
 // ============================================================================
 // CRM SYSTEM
@@ -1289,6 +1562,8 @@ export type CmsMedia = typeof cmsMedia.$inferSelect;
 export type Restaurant = typeof restaurants.$inferSelect;
 export type NewRestaurant = typeof restaurants.$inferInsert;
 
+export type PaymentSession = typeof paymentSessions.$inferSelect;
+export type NewPaymentSession = typeof paymentSessions.$inferInsert;
 export type Transaction = typeof transactions.$inferSelect;
 export type NewTransaction = typeof transactions.$inferInsert;
 

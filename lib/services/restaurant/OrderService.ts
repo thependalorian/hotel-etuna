@@ -58,6 +58,9 @@ export class OrderService {
         return [order];
       });
 
+      const { inventoryService } = await import('@/lib/services/inventory/InventoryService');
+      await inventoryService.deductForOrder(newOrder.id);
+
       return newOrder;
     } catch (error) {
       throw handleServiceError(error, 'Error creating order');

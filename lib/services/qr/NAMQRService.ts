@@ -8,19 +8,12 @@ import { db } from '@/lib/db';
 import { properties, rooms, roomQrCodes } from '@/lib/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
-import { buildNamQrTlv } from '@/lib/services/qr/namqr-core';
-
-interface NamQrPayload {
-  version: string;
-  merchantName: string;
-  merchantCity: string;
-  merchantCategoryCode: string;
-  transactionCurrency: string;
-  transactionAmount?: number;
-  countryCode: string;
-  referenceId: string;
-  terminalId?: string;
-}
+import {
+  buildNamQrPayeePresentedPayload,
+  generateNref,
+  validateNamQrPayload,
+} from '@/lib/compliance/namqr/nrtc-payload';
+import { NAMQR_STANDARDS } from '@/lib/compliance/namqr/standards';
 
 export class NamQrService {
   async generateHospitalityQr(data: {
@@ -39,19 +32,24 @@ export class NamQrService {
 
     if (!property) throw new Error('Property not found');
 
-    const payload: NamQrPayload = {
-      version: '5.0',
-      merchantName: property.name,
-      merchantCity: property.city ?? 'Windhoek',
-      merchantCategoryCode: property.type?.toLowerCase() === 'hotel' ? '7011' : '5812',
-      transactionCurrency: 'NAD',
-      transactionAmount: data.amount,
-      countryCode: 'NA',
-      referenceId: data.reference,
-      terminalId: data.tableNumber ?? data.roomNumber ?? 'FRONT_DESK',
-    };
-
-    const qrString = this.encodeNamQr(payload);
+    const mcc =
+      property.type?.toLowerCase() === 'hotel'
+        ? NAMQR_STANDARDS.mccHotel
+        : NAMQR_STANDARDS.mccRestaurant;
+    const nref = generateNref();
+    const qrString = buildNamQrPayeePresentedPayload({
+      dynamic: data.amount != null && data.amount > 0,
+      merchantName: property.name.slice(0, 25),
+      merchantCity: (property.city ?? 'Ongwediva').slice(0, 15),
+      merchantCategoryCode: mcc,
+      amount: data.amount,
+      nref,
+      purposeLabel: `${data.type} ${data.reference}`.slice(0, 25),
+    });
+    const validation = validateNamQrPayload(qrString);
+    if (!validation.valid) {
+      throw new Error(`NamQR validation failed: ${validation.errors.join('; ')}`);
+    }
     const qrCodeUrl = `https://buffr.host/qr/${uuidv4()}`;
 
     if (!data.roomNumber) {
@@ -89,7 +87,8 @@ export class NamQrService {
     return {
       qrCode: qrString,
       url: qrRecord.qrCodeUrl,
-      payload,
+      nref,
+      validation,
     };
   }
 
@@ -97,6 +96,19 @@ export class NamQrService {
    * Deep links and image URL for restaurant table QR (stored on restaurant_tables).
    * Encodes `qr` so dashboard /guest flows can resolve via TableService.getTableByQrCode.
    */
+  /**
+   * Guest room-service entry: scan → /guest/room?code=… → public API resolves stay.
+   */
+  buildRoomServiceQrUrls(qrLookupCode: string): { qrCodeUrl: string; qrCodeImageUrl: string } {
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://hoteletuna.com').replace(
+      /\/$/,
+      ''
+    );
+    const qrCodeUrl = `${appUrl}/guest/room?code=${encodeURIComponent(qrLookupCode)}`;
+    const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrCodeUrl)}`;
+    return { qrCodeUrl, qrCodeImageUrl };
+  }
+
   buildRestaurantTableQrUrls(qrLookupCode: string): { qrCodeUrl: string; qrCodeImageUrl: string } {
     const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://hoteletuna.com').replace(
       /\/$/,
@@ -105,23 +117,6 @@ export class NamQrService {
     const qrCodeUrl = `${appUrl}/restaurant/tables?qr=${encodeURIComponent(qrLookupCode)}`;
     const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrCodeUrl)}`;
     return { qrCodeUrl, qrCodeImageUrl };
-  }
-
-  private encodeNamQr(payload: NamQrPayload): string {
-    const additionalData = buildNamQrTlv('01', payload.referenceId);
-    const parts = [
-      buildNamQrTlv('00', payload.version),
-      buildNamQrTlv('52', payload.merchantCategoryCode),
-      buildNamQrTlv('53', '516'),
-      payload.transactionAmount
-        ? buildNamQrTlv('54', payload.transactionAmount.toString())
-        : '',
-      buildNamQrTlv('58', payload.countryCode),
-      buildNamQrTlv('59', payload.merchantName),
-      buildNamQrTlv('60', payload.merchantCity),
-      buildNamQrTlv('62', additionalData),
-    ];
-    return parts.join('');
   }
 
   private async getRoomId(propertyId: string, roomNumber: string): Promise<string | undefined> {
@@ -161,7 +156,7 @@ export class NamQrService {
     entityIds: string[],
     qrType?: string
   ) {
-    const results: Array<{ entityId: string; qrCode?: string; url?: string; payload?: NamQrPayload; error?: string }> = [];
+    const results: Array<{ entityId: string; qrCode?: string; url?: string; nref?: string; error?: string }> = [];
     for (const entityId of entityIds) {
       try {
         const qr = await this.generateQRCode({

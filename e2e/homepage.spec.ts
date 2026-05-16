@@ -74,8 +74,9 @@ test.describe('Homepage', () => {
 
     await expect(page.getByRole('heading', { name: /etuna restaurant/i })).toBeVisible();
     await expect(page.getByText(/hotel etuna restaurant/i)).toHaveCount(0);
-    await expect(page.getByText(/breakfast:\s*06:30/i)).toBeVisible();
-    await expect(page.getByText(/breakfast:\s*6:00/i)).toHaveCount(0);
+    await expect(page.getByText(/breakfast:\s*07:00/i)).toBeVisible();
+    await expect(page.getByText(/lunch, dinner & bar:\s*10:00/i)).toBeVisible();
+    await expect(page.getByText(/breakfast:\s*06:30/i)).toHaveCount(0);
   });
 
   test('should show corrected partner content', async ({ page }) => {
@@ -129,7 +130,6 @@ test.describe('Homepage', () => {
     const header = page.getByRole('navigation', { name: 'Main navigation' });
     await expect(header.getByRole('link', { name: 'Rooms' })).toBeVisible();
     await expect(header.getByRole('link', { name: 'Dining' })).toBeVisible();
-    await expect(header.getByRole('link', { name: 'Tours' })).toBeVisible();
     await expect(header.getByRole('link', { name: 'About' })).toBeVisible();
     await expect(header.getByRole('link', { name: 'Contact' })).toBeVisible();
 

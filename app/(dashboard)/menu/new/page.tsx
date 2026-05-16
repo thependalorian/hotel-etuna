@@ -42,6 +42,7 @@ export default function NewMenuItemPage() {
     name: '',
     description: '',
     price: '',
+    imageUrl: '',
     category: '',
     isAvailable: true,
     dietary: '',

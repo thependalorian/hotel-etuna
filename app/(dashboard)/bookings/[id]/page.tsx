@@ -26,6 +26,7 @@ import {
   BookingCashPaymentSection,
   type BookingCashRow,
 } from '@/components/features/bookings/BookingCashPaymentSection';
+import { BookingFolioSection } from '@/components/features/bookings/BookingFolioSection';
 import { Card } from '@/components/ui/Card';
 import PageHeader from '@/components/shared/PageHeader';
 import { Calendar, MapPin, User, Mail, Phone } from 'lucide-react';
@@ -225,6 +226,8 @@ const BookingDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
                 endpoint={`/api/bookings/${booking.id}/status`}
               />
             </Card>
+
+            <BookingFolioSection bookingId={booking.id} bookingStatus={booking.status} />
 
             <BookingCashPaymentSection
               booking={booking as unknown as BookingCashRow}

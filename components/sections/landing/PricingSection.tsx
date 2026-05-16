@@ -1,14 +1,13 @@
 /**
  * Pricing Section Component
  * 
- * Purpose: Landing page section displaying transparent pricing with free and premium features
+ * Purpose: Landing page section displaying room tiers and direct booking options
  * Location: /components/sections/landing/PricingSection.tsx
  * 
  * Features:
- * - Two-column layout: Free Forever plan and Premium Add-Ons
- * - Clear separation of free vs premium features
- * - Primary CTA button for free plan
- * - Contact CTA for premium information
+ * - Premium room tiers from N$850
+ * - Fair package highlights
+ * - Direct booking call-to-action
  * 
  * Design System:
  * - Uses semantic tokens: text-base-content, bg-base-100
@@ -27,28 +26,20 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
 
-const freeFeatures = [
-  'Property & room management',
-  'Booking & reservation system',
-  'Basic Sofia AI (chat/email)',
-  'Content management system',
-  'Basic analytics dashboard',
-  'Guest relationship management',
-  'Staff management',
-  'Menu & restaurant management',
+const roomTiers = [
+  'Standard - from N$850/night',
+  'Luxury - enhanced comfort and design',
+  'Family - spacious layout for group stays',
+  'Executive Suite - premium business and leisure comfort',
+  'Premier - signature top-tier experience',
 ];
 
-const premiumFeatures = [
-  'Payment processing',
-  'Advanced business intelligence',
-  'Marketing automation',
-  'Loyalty & rewards programs',
-  'Advanced automations',
-  'Voice AI & WhatsApp integration',
-  'Channel manager integrations',
-  'Enterprise features',
-  'White-label solutions',
-  'Dedicated account management',
+const packageHighlights = [
+  'Seasonal fair packages',
+  'Breakfast-inclusive options',
+  'Airport shuttle available on request (paid)',
+  'Support for business and family travel',
+  'Direct booking assistance from our team',
 ];
 
 export default function PricingSection() {
@@ -57,90 +48,60 @@ export default function PricingSection() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-bold font-display mb-6 text-balance">
-            Simple, Transparent Pricing
+            Stay With Us
           </h2>
           <p className="text-xl text-base-content/90 max-w-2xl mx-auto">
-            Get started with our complete platform—no credit card required. Core features included. Premium add-ons available when you need advanced capabilities.
+            Discover premium accommodation at Hotel Etuna in Ongwediva, with room tiers from N$850 and fair,
+            flexible packages for every stay.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Free Plan */}
-          <div className="card bg-base-100 shadow-2xl border-2 border-primary/20">
-            <div className="card-body p-8 text-center">
-              <div className="mb-6">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-nude-600 to-nude-500 mb-4 shadow-lg">
-                  <span className="text-3xl font-bold text-white">H</span>
-                </div>
-                <h3 className="text-3xl font-bold font-display mb-3">Free Forever</h3>
-                <div className="text-4xl font-bold text-primary mb-1">N$0</div>
-                <p className="text-base-content/80 text-sm">per month, forever</p>
+        <div className="card bg-base-100 shadow-2xl border-2 border-primary/20 max-w-4xl mx-auto">
+          <div className="card-body p-8 md:p-10">
+            <div className="mb-8 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-nude-600 to-nude-500 mb-4 shadow-lg">
+                <Sparkles className="w-6 h-6 text-white" />
               </div>
+              <h3 className="text-3xl font-bold font-display mb-3">Premium Room Tiers</h3>
+              <p className="text-base-content/80">Rates start from N$850 per night (subject to season and availability).</p>
+            </div>
 
-              <div className="space-y-3 mb-6 text-left">
-                <p className="text-sm font-semibold text-base-content mb-3 text-center">Included Free:</p>
-                {freeFeatures.map((feature, index) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+              <div className="space-y-3">
+                <p className="text-sm font-semibold text-base-content">Room Options</p>
+                {roomTiers.map((tier, index) => (
                   <div key={index} className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-base-content/80">{feature}</span>
+                    <span className="text-sm text-base-content/90">{tier}</span>
                   </div>
                 ))}
               </div>
 
-              <div className="pt-6 border-t border-base-300">
-                <Link href="/register">
-                  <Button 
-                    variant="primary" 
-                    size="lg"
-                    className="min-h-[56px] px-8 text-lg font-bold shadow-nude-primary hover:shadow-nude-strong w-full"
-                  >
-                    Get Started Free
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </Link>
-                <p className="text-xs text-base-content/80 mt-3">
-                  No credit card required • Start immediately
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Premium Add-Ons */}
-          <div className="card bg-base-100 shadow-xl border-2 border-base-300">
-            <div className="card-body p-8">
-              <div className="mb-6 text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-nude-500 to-nude-600 mb-4 shadow-lg">
-                  <Sparkles className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-3xl font-bold font-display mb-2">Premium Add-Ons</h3>
-                <p className="text-base-content/90 text-sm">Available when you need them</p>
-              </div>
-
-              <div className="space-y-3 mb-6 text-left">
-                <p className="text-sm font-semibold text-base-content mb-3 text-center">Coming Soon:</p>
-                {premiumFeatures.map((feature, index) => (
+              <div className="space-y-3">
+                <p className="text-sm font-semibold text-base-content">Fair Packages</p>
+                {packageHighlights.map((item, index) => (
                   <div key={index} className="flex items-start gap-2">
                     <Sparkles className="w-4 h-4 text-nude-500 flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-base-content/90">{feature}</span>
+                    <span className="text-sm text-base-content/90">{item}</span>
                   </div>
                 ))}
               </div>
+            </div>
 
-              <div className="pt-6 border-t border-base-300 text-center">
-                <p className="text-sm text-base-content/80 mb-4">
-                  Premium features will be available as optional add-ons. Core platform remains free forever.
-                </p>
-                <Link href="/register">
-                  <Button 
-                    variant="outline" 
-                    size="lg"
-                    className="min-h-[56px] px-8 text-lg font-semibold w-full"
-                  >
-                    Get Started
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </Link>
-              </div>
+            <div className="pt-6 border-t border-base-300 text-center">
+              <Link href="/contact">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="min-h-[56px] px-8 text-lg font-bold shadow-nude-primary hover:shadow-nude-strong"
+                >
+                  Book Directly
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </Link>
+              <p className="text-xs text-base-content/80 mt-3">
+                Prefer assistance? Contact our team for tailored stay recommendations.
+              </p>
             </div>
           </div>
         </div>

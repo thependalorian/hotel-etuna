@@ -1,3 +1,51 @@
+/**
+ * Input Component
+ * 
+ * Purpose: Accessible form input field with label, helper text, and error states
+ * Location: /components/ui/Input.tsx
+ * 
+ * Features:
+ * - Optional label with required indicator
+ * - Helper text for guidance
+ * - Error state with error message
+ * - Hover, focus, and disabled states
+ * - File input support
+ * - Full ARIA attribute support
+ * 
+ * Design System:
+ * - Height: 44px (h-11) - Follows Fitt's Law
+ * - Rounded: xl (12px)
+ * - Border: nude-200 (default), semantic-error (error state)
+ * - Focus ring: 2px with offset
+ * - Transitions: 200ms duration
+ * 
+ * Accessibility:
+ * - Proper label association via htmlFor
+ * - Required indicator with aria-label
+ * - Error announcements via role="alert"
+ * - Helper text connected via aria-describedby
+ * - Auto-generated IDs for a11y
+ * 
+ * Props:
+ * - label?: Label text above input
+ * - helperText?: Guidance text below input
+ * - error?: Error message (replaces helperText)
+ * - All standard input attributes
+ * 
+ * Usage:
+ * ```tsx
+ * <Input 
+ *   label="Email" 
+ *   type="email"
+ *   helperText="We'll never share your email"
+ *   error={errors.email}
+ *   required
+ * />
+ * ```
+ * 
+ * @module Input
+ */
+
 import * as React from "react";
 import { cn } from "@/lib/utils/cn";
 

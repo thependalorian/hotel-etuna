@@ -88,9 +88,11 @@ describe('Compliance & fraud DB smoke', () => {
         NOW(),
         'Smoke preliminary report summary for compliance validation.'
       )
-      RETURNING id, psd12_compliant
+      RETURNING id, bon_status
     `;
-    expect((bon as { id: string }[])[0]?.id).toBeTruthy();
+    const bonRow = (bon as { id: string; bon_status: string }[])[0];
+    expect(bonRow?.id).toBeTruthy();
+    expect(bonRow?.bon_status).toBeTruthy();
 
     await sql`DELETE FROM bon_incident_reports WHERE incident_id = ${incidentId}`;
     await sql`DELETE FROM cybersecurity_incidents WHERE id = ${incidentId}`;
@@ -108,11 +110,12 @@ describe('Compliance & fraud DB smoke', () => {
     await sql`
       INSERT INTO audit_trail (
         tenant_id,
-        actor_user_id,
+        user_id,
         action,
         resource_type,
         resource_id,
-        changes,
+        old_values,
+        new_values,
         ip_address
       )
       VALUES (
@@ -121,7 +124,8 @@ describe('Compliance & fraud DB smoke', () => {
         'update',
         'guest',
         ${guestId},
-        ${JSON.stringify({ marketing_consent: { from: false, to: true } })},
+        ${JSON.stringify({ marketing_consent: false })},
+        ${JSON.stringify({ marketing_consent: true })},
         ${'127.0.0.1'}
       )
     `;

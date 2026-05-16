@@ -23,6 +23,19 @@ export const RATE_LIMITS = {
   // Authentication endpoints - stricter limits
   '/api/auth/login': { requests: 5, window: '15 m' },
   '/api/auth/register': { requests: 3, window: '15 m' },
+  '/api/auth/forgot-password': { requests: 3, window: '1 h' },
+
+  // Payments & guest orders — abuse protection (Security Prompt Pack §8)
+  '/api/payments/virtual': { requests: 5, window: '1 m' },
+  '/api/payments/adumo': { requests: 5, window: '1 m' },
+  '/api/payments/initiate': { requests: 5, window: '1 m' },
+  '/api/guest/stays': { requests: 30, window: '1 m' },
+
+  // Sofia / AI — cost control
+  '/api/sofia/chat': { requests: 20, window: '1 m' },
+  '/api/public/sofia/chat': { requests: 15, window: '1 m' },
+  '/api/admin/partners/invite': { requests: 5, window: '1 h' },
+  '/api/admin/partners/claim-invite': { requests: 10, window: '1 h' },
   
   // Booking endpoints - moderate limits
   '/api/bookings': { requests: 20, window: '1 m' },

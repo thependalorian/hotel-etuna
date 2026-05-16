@@ -1,4 +1,5 @@
 -- Phase 2: Cash payments + reconciliation hardening
+-- Note: 0008_reconcile_neon_baseline.sql repeats this DDL idempotently for Neon; prefer 0008 on production apply.
 
 ALTER TABLE bookings
   ADD COLUMN IF NOT EXISTS payment_method varchar(50) DEFAULT 'card',

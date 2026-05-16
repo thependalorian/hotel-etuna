@@ -22,11 +22,13 @@ import { db } from '@/lib/db';
 import { auditTrail, bookings } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
+import { FolioService } from '@/lib/services/folio/FolioService';
+import { schedulePaymentReceiptEmail } from '@/lib/services/booking/bookingLifecycleSideEffects';
 
 const markAsPaidSchema = z.object({
   amountTendered: z.number().positive('Amount tendered must be positive'),
   changeGiven: z.number().min(0, 'Change cannot be negative'),
-  notes: z.string().optional(),
+  notes: z.string().max(500, 'Notes must be at most 500 characters').optional(),
 });
 
 /**
@@ -82,6 +84,14 @@ export async function PATCH(
       return NextResponse.json(
         { error: 'Booking not found' },
         { status: 404 }
+      );
+    }
+
+    const sessionTenantId = session.user.tenantId as string | undefined;
+    if (!sessionTenantId || booking.tenantId !== sessionTenantId) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403 }
       );
     }
 
@@ -156,6 +166,25 @@ export async function PATCH(
       .from(bookings)
       .where(eq(bookings.id, id))
       .limit(1);
+
+    if (updatedBooking) {
+      const folioService = new FolioService();
+      await folioService.ensureRoomChargeForBooking(updatedBooking);
+    }
+
+    if (updatedBooking?.guestId) {
+      const paidTotal = Number.parseFloat(String(updatedBooking.totalAmount ?? amountTendered));
+      schedulePaymentReceiptEmail({
+        tenantId: booking.tenantId,
+        bookingId: id,
+        guestId: updatedBooking.guestId,
+        propertyId: updatedBooking.propertyId,
+        amount: Number.isFinite(paidTotal) ? paidTotal : amountTendered,
+        currency: 'NAD',
+        paymentMethod: 'cash',
+        bookingReference: updatedBooking.bookingReference ?? undefined,
+      });
+    }
 
     // 11. Persist audit trail for payment update
     await db.insert(auditTrail).values({

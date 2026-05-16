@@ -157,7 +157,7 @@ describe('Security Headers Configuration', () => {
 
 describe('API Security', () => {
   it('should have rate limiting middleware', () => {
-    const middlewarePath = path.join(process.cwd(), 'middleware.ts');
+    const middlewarePath = path.join(process.cwd(), 'proxy.ts');
 
     try {
       const content = readFileSync(middlewarePath, 'utf-8');
@@ -213,15 +213,16 @@ describe('Data Security', () => {
   });
 
   it('should sanitize user input', () => {
-    // EmailTemplateGenerator should sanitize HTML
     const templatePath = path.join(
       process.cwd(),
       'lib/services/sofia/EmailTemplateGenerator.ts'
     );
-    const content = readFileSync(templatePath, 'utf-8');
+    const sharedSanitizePath = path.join(process.cwd(), 'lib/utils/sanitize-html.ts');
+    const templateContent = readFileSync(templatePath, 'utf-8');
+    const sharedContent = readFileSync(sharedSanitizePath, 'utf-8');
 
-    expect(content).toContain('sanitizeHtml');
-    expect(content).toContain('DOMPurify');
+    expect(templateContent).toContain('DOMPurify.sanitize');
+    expect(sharedContent).toContain('export function sanitizeHtml');
   });
 
   it('should validate API inputs', () => {

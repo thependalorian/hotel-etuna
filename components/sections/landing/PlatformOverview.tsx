@@ -26,6 +26,8 @@ import { BarChart3, FileText, Bot, Mail, Phone, MessageSquare, CheckCircle2, Hom
 import { ImagePlaceholder } from '@/components/ui';
 import FeatureCard from './cards/FeatureCard';
 import SofiaChatDemo from './cards/SofiaChatDemo';
+import { brand } from '@/lib/copy/brand';
+import { publicCopy } from '@/lib/copy/public';
 
 const coreFeatures = [
   {
@@ -52,8 +54,8 @@ const coreFeatures = [
     description: 'Comprehensive property management for every type of accommodation business—from vacation rentals to AirBnB and guest houses.',
     features: [
       'Vacation Rentals: Self check-in, cleaning management, guest communication, dynamic pricing',
-      'AirBnB & Lodges: Multiple restaurants, activities management, spa services, tour bookings',
-      'Guest Houses: Breakfast management, housekeeping, local tours, personal service'
+      'AirBnB & Lodges: Multiple restaurants, activities management, spa services, event spaces',
+      'Guest Houses: Breakfast management, housekeeping, guest services, personal service'
     ],
   },
   {
@@ -84,11 +86,11 @@ export default function PlatformOverview({ id }: PlatformOverviewProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Heading */}
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold font-display mb-6 text-balance">
-            More Than Just AI—Complete Hospitality Management
+          <h2 className="text-4xl md:text-5xl font-bold font-display mb-6 text-balance text-terracotta-900">
+            {publicCopy.home.story.heading}
           </h2>
-          <p className="text-xl text-base-content/90 max-w-2xl mx-auto">
-            Unlike phone-only solutions, Hotel Etuna provides everything you need in one integrated platform. No external PMS required. No fragmented systems. Everything works together seamlessly.
+          <p className="text-xl text-terracotta-800 max-w-2xl mx-auto">
+            {publicCopy.home.story.body}
           </p>
         </div>
 
@@ -96,7 +98,7 @@ export default function PlatformOverview({ id }: PlatformOverviewProps) {
         <div className="mb-16">
           <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-2xl border-4 border-base-200">
             <ImagePlaceholder
-              src="/images/buffr/dashboard_booking.jpeg"
+              src="/images/hospitality/hero_hotel_lobby.jpeg"
               alt="Hotel Etuna Dashboard"
               fill
               className="object-cover"
@@ -113,8 +115,8 @@ export default function PlatformOverview({ id }: PlatformOverviewProps) {
             <h3 className="text-3xl md:text-4xl font-bold font-display mb-4 text-balance">
               Meet Your AI Concierge
             </h3>
-            <p className="text-xl text-base-content/90 max-w-2xl mx-auto">
-              Sofia handles all guest inquiries 24/7—whether they come through chat, email, or phone. She captures guest information, responds instantly, sends quotations and confirmations via email, and converts inquiries into bookings automatically.
+            <p className="text-xl text-terracotta-800 max-w-2xl mx-auto">
+              Sofia is your {brand.name} concierge — ask about rooms, dining, and local tips before and during your stay.
             </p>
           </div>
 

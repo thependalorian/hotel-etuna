@@ -1,3 +1,35 @@
+/**
+ * Alert Component
+ * 
+ * Purpose: Accessible alert/notification component for important messages
+ * Location: /components/ui/Alert.tsx
+ * 
+ * Features:
+ * - Default and destructive variants
+ * - ARIA role="alert" for screen readers
+ * - Supports icons and structured content
+ * - Alert title and description sub-components
+ * 
+ * Variants:
+ * - default: Neutral informational alert
+ * - destructive: Error or critical warning alert
+ * 
+ * Accessibility:
+ * - Semantic role="alert" for announcements
+ * - Proper heading hierarchy with AlertTitle
+ * - Icon support with proper positioning
+ * 
+ * Usage:
+ * ```tsx
+ * <Alert variant="destructive">
+ *   <AlertTitle>Error</AlertTitle>
+ *   <AlertDescription>Something went wrong.</AlertDescription>
+ * </Alert>
+ * ```
+ * 
+ * @module Alert
+ */
+
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 

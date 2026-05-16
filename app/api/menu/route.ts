@@ -32,7 +32,8 @@ const createMenuItemSchema = z.object({
   price: z.number().min(0),
   category: z.string().min(1, 'Category is required'),
   propertyId: entityId(),
-  property_id: entityIdOptional(), // Support both formats
+  property_id: entityIdOptional(),
+  imageUrl: z.union([z.string().url(), z.literal('')]).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -67,7 +68,8 @@ export async function POST(request: NextRequest) {
           description: validation.data.description,
           category: validation.data.category,
           price: validation.data.price,
-          propertyId: validation.data.propertyId || (validation.data as any).property_id,
+          propertyId: validation.data.propertyId || (validation.data as { property_id?: string }).property_id,
+          imageUrl: validation.data.imageUrl?.trim() || null,
         };
         const newMenuItem = await menuService.createMenuItem(
           user.tenantId,

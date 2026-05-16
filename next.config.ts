@@ -1,4 +1,9 @@
 import type { NextConfig } from "next";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+/** Always resolve from hotel-etuna (not parent monorepo / home git root). */
+const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
   async rewrites() {
@@ -26,6 +31,14 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '**.vercel-storage.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'upload.wikimedia.org',
+      },
     ],
   },
 
@@ -34,7 +47,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   turbopack: {
-    root: process.cwd(),
+    root: projectRoot,
   },
 
   // Environment Variables

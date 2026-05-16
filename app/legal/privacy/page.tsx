@@ -31,7 +31,9 @@ export default function PrivacyPolicyPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
             <p>
-              Hotel Etuna ("we", "us", "our") is committed to protecting your privacy and personal data. This Privacy Policy explains how we collect, use, store, and protect your personal information when you use our hospitality management platform ("Platform").
+              Hotel Etuna ("we", "us", "our") is committed to protecting your privacy and personal data. This Privacy
+              Policy explains how we collect, use, store, and protect your personal information when you visit our
+              website, make a reservation, stay with us, or interact with our guest and operator services.
             </p>
             <p>
               This policy complies with:
@@ -52,25 +54,26 @@ export default function PrivacyPolicyPage() {
             </p>
             <p>
               <strong>Hotel Etuna</strong><br />
-              Email: privacy@buffrhost.com<br />
-              Address: Windhoek, Namibia
+              Email: info@hoteletuna.com<br />
+              Phone: +264 65 231 177<br />
+              Address: 5544 Valley Street, Ongwediva, Namibia
             </p>
           </section>
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">3. Information We Collect</h2>
             
-            <h3 className="text-xl font-semibold mb-3">3.1 Account Information</h3>
-            <p>When you register, we collect:</p>
+            <h3 className="text-xl font-semibold mb-3">3.1 Reservation and Contact Information</h3>
+            <p>When you make an inquiry or booking, we collect:</p>
             <ul>
               <li>Name and contact information (email, phone)</li>
-              <li>Business information (property name, address)</li>
-              <li>Account credentials (encrypted passwords)</li>
+              <li>Booking details (dates, room preference, occupancy, special requests)</li>
+              <li>Identity information needed for check-in and compliance</li>
               <li>Payment information (processed securely through third-party providers)</li>
             </ul>
 
-            <h3 className="text-xl font-semibold mb-3 mt-6">3.2 Guest Data</h3>
-            <p>As a property manager, you may collect and store guest information through the Platform:</p>
+            <h3 className="text-xl font-semibold mb-3 mt-6">3.2 Guest Stay Data</h3>
+            <p>During your relationship with Hotel Etuna, we may process:</p>
             <ul>
               <li>Guest names and contact details</li>
               <li>Booking and reservation information</li>
@@ -79,7 +82,8 @@ export default function PrivacyPolicyPage() {
               <li>Communication history</li>
             </ul>
             <p>
-              <strong>Important:</strong> You are responsible for ensuring you have lawful basis and consent to collect guest data in accordance with applicable data protection laws.
+              <strong>Important:</strong> If you use operator-facing tools on behalf of another guest or organization,
+              you are responsible for collecting and sharing data lawfully.
             </p>
 
             <h3 className="text-xl font-semibold mb-3 mt-6">3.3 Usage Data</h3>
@@ -103,10 +107,10 @@ export default function PrivacyPolicyPage() {
             
             <h3 className="text-xl font-semibold mb-3">4.1 Service Provision</h3>
             <ul>
-              <li>To provide and maintain the Platform</li>
+              <li>To provide and maintain hotel booking and guest services</li>
               <li>To process bookings and reservations</li>
               <li>To enable AI concierge services (Sofia AI)</li>
-              <li>To manage your account and properties</li>
+              <li>To coordinate guest operations and property service delivery</li>
             </ul>
 
             <h3 className="text-xl font-semibold mb-3 mt-6">4.2 Legal Basis (GDPR)</h3>
@@ -123,13 +127,13 @@ export default function PrivacyPolicyPage() {
               <li>To send service-related notifications</li>
               <li>To respond to your inquiries</li>
               <li>To provide customer support</li>
-              <li>To send important updates about the Platform</li>
+              <li>To send important updates about bookings, stays, and policy changes</li>
             </ul>
 
             <h3 className="text-xl font-semibold mb-3 mt-6">4.4 Analytics and Improvement</h3>
             <ul>
-              <li>To analyze Platform usage and performance</li>
-              <li>To improve our services and features</li>
+              <li>To analyze website and service usage patterns</li>
+              <li>To improve guest experience and operational reliability</li>
               <li>To detect and prevent fraud or abuse</li>
             </ul>
           </section>
@@ -180,13 +184,14 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-2xl font-semibold mb-4">7. Data Retention</h2>
             <p>We retain your data only as long as necessary:</p>
             <ul>
-              <li><strong>Account Data:</strong> While your account is active, plus 30 days after deletion</li>
-              <li><strong>Guest Data:</strong> As determined by your data retention policies (you control this)</li>
+              <li><strong>Reservation Data:</strong> For the duration of booking management and required follow-up periods</li>
+              <li><strong>Guest Data:</strong> As needed to deliver services and comply with legal obligations</li>
               <li><strong>Legal Requirements:</strong> As required by applicable laws</li>
               <li><strong>Analytics Data:</strong> Aggregated and anonymized data may be retained longer</li>
             </ul>
             <p>
-              Upon account deletion, we will delete or anonymize your personal data within 30 days, except where retention is required by law.
+              When data is no longer required, we delete or anonymize it within a reasonable period, except where
+              retention is required by law.
             </p>
           </section>
 
@@ -216,7 +221,7 @@ export default function PrivacyPolicyPage() {
             <p>Where processing is based on consent, you can withdraw it at any time.</p>
 
             <p className="mt-4">
-              To exercise these rights, contact us at <strong>privacy@buffrhost.com</strong>. We will respond within 30 days (or as required by applicable law).
+              To exercise these rights, contact us at <strong>info@hoteletuna.com</strong>. We will respond within 30 days (or as required by applicable law).
             </p>
           </section>
 
@@ -238,7 +243,9 @@ export default function PrivacyPolicyPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">10. Children's Privacy</h2>
             <p>
-              Our Platform is not intended for individuals under 18 years of age. We do not knowingly collect personal data from children. If you believe we have collected data from a child, please contact us immediately.
+              Our website and services are not intended for independent use by individuals under 18 years of age. We do
+              not knowingly collect personal data from children without lawful basis. If you believe we have collected
+              such data in error, please contact us immediately.
             </p>
           </section>
 
@@ -266,7 +273,7 @@ export default function PrivacyPolicyPage() {
               <li>Updated "Last Updated" date</li>
             </ul>
             <p>
-              Continued use of the Platform after changes constitutes acceptance of the updated policy.
+              Continued use of our website and hotel services after changes constitutes acceptance of the updated policy.
             </p>
           </section>
 
@@ -278,8 +285,9 @@ export default function PrivacyPolicyPage() {
             <p>
               <strong>Data Protection Officer</strong><br />
               Hotel Etuna<br />
-              Email: privacy@buffrhost.com<br />
-              Address: Windhoek, Namibia
+              Email: info@hoteletuna.com<br />
+              Phone: +264 65 231 177<br />
+              Address: 5544 Valley Street, Ongwediva, Namibia
             </p>
             <p>
               For GDPR-related inquiries, you also have the right to lodge a complaint with your local data protection authority.

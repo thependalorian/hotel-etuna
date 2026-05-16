@@ -34,17 +34,22 @@ import { LandingBookingWidget } from '@/components/sections/landing/LandingBooki
 import { Button } from '@/components/ui/Button';
 import { slugify } from '@/lib/utils/slugify';
 import Footer from '@/components/shared/Footer';
-import { Calendar, Check, Compass, MapPin, Sparkles, Star, Utensils } from 'lucide-react';
+import { Calendar, Check, MapPin, Sparkles, Star, Utensils } from 'lucide-react';
+import { publicCopy } from '@/lib/copy/public';
+import { restaurantHoursLabels } from '@/lib/dining/restaurant-hours';
+import { formatMenuPrice } from '@/lib/dining/menu-display';
 
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Hotel Etuna - He Takes Care of Us',
-  description: 'Welcome to Hotel Etuna in Ongwediva, Namibia. Experience authentic Namibian hospitality.',
+  title: publicCopy.home.meta.title,
+  description: publicCopy.home.meta.description,
 };
 
 type OpeningHours = {
   breakfast?: string | { open?: string; close?: string };
+  service?: string | { open?: string; close?: string };
+  bar?: string | { open?: string; close?: string };
   lunch?: string | { open?: string; close?: string };
   dinner?: string | { open?: string; close?: string };
 };
@@ -202,7 +207,12 @@ export default async function LandingPage() {
             createdAt: cmsMenuItems.createdAt,
           })
           .from(cmsMenuItems)
-          .where(inArray(cmsMenuItems.categoryId, categoryIds))
+          .where(
+            and(
+              inArray(cmsMenuItems.categoryId, categoryIds),
+              eq(cmsMenuItems.isAvailable, true),
+            ),
+          )
           .orderBy(asc(cmsMenuItems.displayOrder), desc(cmsMenuItems.createdAt))
       : [];
 
@@ -265,21 +275,21 @@ export default async function LandingPage() {
           <div className="absolute inset-0 bg-linear-to-b from-terracotta-900/60 via-terracotta-900/40 to-nude-900/60 z-10" />
           <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/images/hospitality/hero_hotel_lobby.jpeg')" }} />
           <div className="relative z-20 container mx-auto px-4 text-center text-white">
-            <h1 className="font-display text-5xl md:text-7xl font-bold mb-6">He Takes Care of Us</h1>
+            <h1 className="font-display text-5xl md:text-7xl font-bold mb-6">{publicCopy.home.hero.title}</h1>
             <p className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto opacity-95">
-              Welcome to {hubTenant?.name ?? 'Hotel Etuna'} - your home in the heart of Ongwediva
+              {publicCopy.home.hero.subtitle.replace('Hotel Etuna', hubTenant?.name ?? 'Hotel Etuna')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="xl" className="bg-khaki-600 hover:bg-rustic">
+              <Button asChild size="xl">
                 <Link href="#booking">
                   <Calendar className="w-5 h-5" />
-                  Book Your Stay
+                  {publicCopy.ctas.bookStay}
                 </Link>
               </Button>
               <Button asChild size="xl" variant="outline" className="border-white text-white hover:bg-white/20">
                 <Link href="#story">
                   <Sparkles className="w-5 h-5" />
-                  Explore
+                  {publicCopy.ctas.explore}
                 </Link>
               </Button>
             </div>
@@ -289,10 +299,9 @@ export default async function LandingPage() {
         <section id="story" className="py-20 bg-nude-50">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto text-center">
-              <h2 className="font-display text-4xl md:text-5xl font-bold text-terracotta-900 mb-6">More than a hotel - a Namibian welcome</h2>
+              <h2 className="font-display text-4xl md:text-5xl font-bold text-terracotta-900 mb-6">{publicCopy.home.story.heading}</h2>
               <p className="text-lg text-terracotta-800 mb-8 leading-relaxed">
-                <span className="font-display text-2xl text-khaki-600">"Etuna"</span> means <span className="font-semibold">"He takes care of us"</span> in Oshiwambo.
-                We currently offer {roomRows.length} room types, a refreshing pool, authentic on-site restaurant, and curated tours.
+                {publicCopy.home.story.body}
               </p>
             </div>
           </div>
@@ -326,7 +335,7 @@ export default async function LandingPage() {
                       {isAuthenticated ? (
                         <p className="text-khaki-600 font-semibold mb-1">{formatCurrency(amount, currency)}</p>
                       ) : (
-                        <p className="text-khaki-600 font-semibold mb-1">Sign in to view prices</p>
+                        <p className="text-khaki-600 font-semibold mb-1">{publicCopy.gated.viewPrices}</p>
                       )}
                       <p className="text-sm text-terracotta-800 mb-4">Up to {room.maxOccupancy ?? 2} guests</p>
                       <ul className="space-y-2 mb-4">
@@ -338,7 +347,7 @@ export default async function LandingPage() {
                         ))}
                       </ul>
                       <div className="text-khaki-600 font-semibold group-hover:text-khaki-700 flex items-center gap-2">
-                        {isAuthenticated ? 'View Details' : 'Sign up to see prices'}
+                        {isAuthenticated ? publicCopy.ctas.viewDetails : publicCopy.gated.viewPricesAndBook}
                         <span className="group-hover:translate-x-1 transition-transform">→</span>
                       </div>
                     </div>
@@ -358,25 +367,24 @@ export default async function LandingPage() {
                   {restaurant?.description ?? 'Our on-site restaurant serves authentic Namibian cuisine alongside international favorites.'}
                 </p>
                 <ul className="space-y-3 mb-8">
-                  <li className="flex items-center gap-3 text-terracotta-800"><div className="w-2 h-2 rounded-full bg-sage" />Breakfast: {formatOpeningSlot(openingHours.breakfast, '06:30 - 10:00')}</li>
-                  <li className="flex items-center gap-3 text-terracotta-800"><div className="w-2 h-2 rounded-full bg-sage" />Dinner: {formatOpeningSlot(openingHours.dinner, '18:00 - 22:00')}</li>
-                  {categoryRows.slice(0, 2).map((category) => (
+                  <li className="flex items-center gap-3 text-terracotta-800"><div className="w-2 h-2 rounded-full bg-sage" />Breakfast: {formatOpeningSlot(openingHours.breakfast, restaurantHoursLabels.breakfast)}</li>
+                  <li className="flex items-center gap-3 text-terracotta-800"><div className="w-2 h-2 rounded-full bg-sage" />Lunch, dinner & bar: {formatOpeningSlot(openingHours.service ?? openingHours.bar ?? openingHours.dinner, restaurantHoursLabels.lunchDinner)}</li>
+                  {categoryRows.slice(0, 3).map((category) => (
                     <li key={category.id} className="text-terracotta-800">
                       <div className="font-semibold">{category.name}</div>
                       <div className="text-sm">
                         {(menuByCategory.get(category.id) ?? []).slice(0, 2).map((item) => {
                           const price = Number(item.price);
-                          const label = Number.isNaN(price) ? 'Price on request' : `${item.currency ?? 'NAD'} ${price.toLocaleString()}`;
-                          return isAuthenticated ? `${item.name} (${label})` : item.name;
+                          return `${item.name} (${formatMenuPrice(price, item.currency ?? 'NAD')})`;
                         }).join(' • ') || 'No items yet'}
                       </div>
                     </li>
                   ))}
                 </ul>
                 <Button asChild size="lg">
-                  <Link href={isAuthenticated ? '/dining' : '/login?redirect=/dining'}>
+                  <Link href="/dining#menu">
                     <Utensils className="w-5 h-5" />
-                    {isAuthenticated ? 'View Full Menu' : 'Sign in to order online'}
+                    View full menu & prices
                   </Link>
                 </Button>
               </div>
@@ -392,28 +400,6 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        <section id="tours" className="py-20 bg-white">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="font-display text-4xl md:text-5xl font-bold text-terracotta-900 mb-4">Explore Ongwediva & Beyond</h2>
-              <p className="text-lg text-terracotta-800 max-w-2xl mx-auto">Discover the cultural richness and natural beauty of Northern Namibia with our curated tours.</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                { name: 'Cultural Heritage Tour', description: 'Visit traditional villages and meet local artisans.', icon: Compass, duration: 'Half Day' },
-                { name: 'Nature & Wildlife', description: 'Explore nearby reserves and scenic landscapes.', icon: Sparkles, duration: 'Full Day' },
-                { name: 'City & Market Tour', description: 'Experience Ongwediva markets and city highlights.', icon: MapPin, duration: '3-4 Hours' },
-              ].map((tour) => (
-                <div key={tour.name} className="bg-nude-50 rounded-2xl p-8 hover:shadow-card transition-shadow">
-                  <div className="w-12 h-12 bg-sage/20 rounded-full flex items-center justify-center mb-4"><tour.icon className="w-6 h-6 text-sage" /></div>
-                  <h3 className="font-display text-2xl font-bold text-terracotta-900 mb-3">{tour.name}</h3>
-                  <p className="text-terracotta-800 mb-4">{tour.description}</p>
-                  <div className="text-sm text-khaki-600 font-semibold">{tour.duration}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
 
         <section className="py-20 bg-nude-50">
           <div className="container mx-auto px-4">
@@ -472,7 +458,10 @@ export default async function LandingPage() {
         <section id="partners" className="py-20 bg-nude-50">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
-              <h2 className="font-display text-4xl md:text-5xl font-bold text-terracotta-900 mb-4">More Lodging in Windhoek Area</h2>
+              <h2 className="font-display text-4xl md:text-5xl font-bold text-terracotta-900 mb-4">
+                {publicCopy.home.partners.heading}
+              </h2>
+              <p className="text-lg text-terracotta-800 max-w-2xl mx-auto">{publicCopy.home.partners.subtitle}</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
               {partners.map((partner) => (

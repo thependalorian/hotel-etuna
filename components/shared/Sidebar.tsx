@@ -29,8 +29,11 @@ import {
   LifeBuoy,
   AlertTriangle,
   ClipboardCheck,
+  QrCode,
+  Banknote,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { HotelEtunaLogo } from '@/components/brand/HotelEtunaLogo';
 import { useSession } from "next-auth/react";
 
 interface NavItem {
@@ -45,6 +48,8 @@ const navItems: NavItem[] = [
   { href: "/properties", label: "Properties", icon: Building2, section: "Operations" },
   { href: "/rooms", label: "Rooms", icon: BedDouble, section: "Operations" },
   { href: "/bookings", label: "Bookings", icon: Calendar, section: "Operations" },
+  { href: "/payments/desk", label: "Payments desk", icon: QrCode, section: "Operations" },
+  { href: "/payments/reconciliation", label: "Cash reconciliation", icon: Banknote, section: "Operations" },
   { href: "/restaurant/orders", label: "Restaurant orders", icon: UtensilsCrossed, section: "Operations" },
   { href: "/restaurant/menu", label: "Restaurant menu", icon: BookOpenCheck, section: "Operations" },
   { href: "/crm/guests", label: "Guest CRM", icon: Users, section: "Experience" },
@@ -53,6 +58,7 @@ const navItems: NavItem[] = [
   { href: "/sofia/email", label: "Sofia email", icon: LifeBuoy, section: "Experience" },
   { href: "/staff", label: "Staff", icon: ClipboardCheck, section: "Risk" },
   { href: "/compliance/kyc", label: "KYC / KYB", icon: Shield, section: "Risk" },
+  { href: "/compliance/soc2", label: "SOC 2 readiness", icon: Shield, section: "Risk" },
   { href: "/fraud", label: "Fraud alerts", icon: AlertTriangle, section: "Risk" },
   { href: "/analytics", label: "Analytics", icon: BarChart3, section: "Admin" },
   { href: "/admin/platform/support", label: "Support", icon: LifeBuoy, section: "Admin" },
@@ -128,18 +134,10 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose }: SidebarProps) => {
         )}
       >
         <div className="flex items-center justify-between border-b border-nude-200 p-4 md:p-6">
-          <Link href="/dashboard" className="group flex flex-1 items-center gap-3">
-            <div className="relative">
-              <div className="absolute inset-0 rounded-full bg-linear-to-br from-khaki-600 to-khaki-700 opacity-25 blur-md transition-opacity group-hover:opacity-40" />
-              <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-khaki-600 text-sm font-bold text-white shadow-md transition-transform duration-normal group-hover:scale-105">
-                HE
-              </div>
-            </div>
-            <div>
-              <div className="font-display text-xl font-bold text-terracotta-900">Hotel Etuna</div>
-              <div className="text-xs font-medium text-terracotta-800">Ongwediva, Namibia</div>
-            </div>
-          </Link>
+          <div className="group flex flex-1 flex-col gap-1">
+            <HotelEtunaLogo size="sm" href="/dashboard" />
+            <p className="text-xs font-medium text-terracotta-800 pl-1">Ongwediva, Namibia</p>
+          </div>
           <button
             type="button"
             onClick={() => {

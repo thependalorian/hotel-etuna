@@ -9,9 +9,9 @@
 
 **Forked from:** Buffr Host v1.0.0  
 **Version:** 2.0.0 (Hotel Etuna Hub-and-Spoke)  
-**Last Updated:** April 29, 2026
+**Last Updated:** May 16, 2026
 
-**Production:** Deployed on **Vercel** (`hoteletuna.com`). See **`docs/project/PRODUCTION_DEPLOYMENT_CHECKLIST.md`**, **`docs/reports/PRODUCTION_SMOKE_TEST.md`**, and **`docs/project/TASK.md`**. Automated tests: **Vitest `334 / 334` passed** (`npm run test`); Playwright E2E: **`npm run test:e2e`**. Sofia **Qdrant vector ingestion** remains **deferred** (Voyage rate limits) until a scheduled maintenance window.
+**Production:** Deployed on **Vercel** (`hoteletuna.com`). **Canonical docs:** [`docs/project/PRD.md`](docs/project/PRD.md) · [`PLANNING.md`](docs/project/PLANNING.md) · [`TASK.md`](docs/project/TASK.md) (testing, deployment, smoke). Automated tests: **Vitest `334 / 334` passed** (`npm run test`); Playwright E2E: **`npm run test:e2e`**. Sofia **Qdrant ingestion** deferred (Voyage rate limits).
 
 ---
 
@@ -35,7 +35,7 @@ Built on a hub-and-spoke multi-tenant architecture with exclusive AI capabilitie
 | **Property Management** | Rooms, bookings, availability calendars, dynamic pricing |
 | **Restaurant** | Menu management, orders, table reservations |
 | **Guest CRM** | Profiles, preferences, loyalty tiers, marketing consent (PSD-4 compliant) |
-| **Tours & Activities** | Cultural tours, nature excursions, shuttle service |
+| **Guest services** | Airport shuttle, pool, on-site restaurant |
 | **Email Automation** | Booking confirmations, check-in reminders, post-stay follow-ups |
 | **Staff Management** | Roles, permissions, audit logging |
 | **Compliance** | PSD-12, PSD-4, ETA 2019 (Bank of Namibia) |
@@ -58,7 +58,7 @@ Built on a hub-and-spoke multi-tenant architecture with exclusive AI capabilitie
 ┌─────────────────────────────────────┐
 │   Hotel Etuna (Hub Tenant)         │
 │   - Sofia AI (exclusive)            │
-│   - PMS, CRM, Restaurant, Tours     │
+│   - PMS, CRM, Restaurant            │
 │   - Partner Management               │
 │   - Commission Reporting             │
 └───────────────┬─────────────────────┘
@@ -108,6 +108,7 @@ Built on a hub-and-spoke multi-tenant architecture with exclusive AI capabilitie
 | `properties` | Hotel properties and partner listings |
 | `rooms` | Room inventory and rates |
 | `bookings` | Reservations with commission tracking |
+| `booking_charges` | Per-stay folio lines (room, F&B, payments) |
 | `guests` | Guest profiles (hub CRM only) |
 | `ai_conversations` | Sofia AI chat history (hub only) |
 | `menu_items` | Restaurant menu (hub only) |
@@ -234,13 +235,9 @@ hotel-etuna/
 │   ├── e2e/                 # Playwright E2E tests
 │   └── workflows/           # CI/CD workflow tests
 ├── docs/project/PRD.md      # Product requirements (canonical)
-├── docs/project/PLANNING.md # Architecture & ops notes
-├── docs/project/TASK.md     # Phase checklist
-├── docs/project/IMPLEMENTATION_PLAN.md
-├── docs/project/PRODUCTION_DEPLOYMENT_CHECKLIST.md
-├── docs/TESTING_GUIDE.md              # QA & smoke procedures
-├── docs/reports/PRODUCTION_SMOKE_TEST.md
-└── docs/reports/MIGRATION_SUMMARY.md
+├── docs/project/PLANNING.md # Architecture & phases (canonical)
+├── docs/project/TASK.md     # Testing, deployment, checklists (canonical)
+└── docs/REBRAND_QUESTIONNAIRE_AND_LANDSCAPE.md  # Brand strategy (full)
 ```
 
 ---
@@ -464,13 +461,12 @@ npm run test:e2e:ui
 
 | Document | Purpose |
 |----------|---------|
-| `docs/project/PRD.md` | Product requirements |
-| `docs/project/PLANNING.md` | Architecture, local dev, ingestion notes |
-| `docs/project/TASK.md` | Phase checklist |
-| `docs/project/IMPLEMENTATION_PLAN.md` | Technical sequence & verification |
-| `docs/TESTING_GUIDE.md` | Landing page & review approval testing |
-| `docs/reports/FINAL_PRODUCTION_STATUS.md` | Executive production snapshot |
-| `docs/reports/MIGRATION_SUMMARY.md` | Buffr Host → Hotel Etuna migration |
+| [`docs/project/PRD.md`](docs/project/PRD.md) | Product requirements, design, appendices |
+| [`docs/project/PLANNING.md`](docs/project/PLANNING.md) | Architecture, phases, folio, dev hygiene |
+| [`docs/project/TASK.md`](docs/project/TASK.md) | Smoke tests, deployment checklist, open work |
+| [`docs/REBRAND_QUESTIONNAIRE_AND_LANDSCAPE.md`](docs/REBRAND_QUESTIONNAIRE_AND_LANDSCAPE.md) | Full brand & market strategy |
+
+Scattered reports and legacy checklists were consolidated and **removed** (May 2026). Edit only the triad above.
 
 **Quick local setup:** See **Local Development & Knowledge Ingestion** in `docs/project/PLANNING.md`.
 
@@ -487,7 +483,7 @@ Built for Hotel Etuna in Ongwediva, Namibia.
 ## Contact
 
 **Hotel Etuna**  
-5544 Valley of the Leopard Street  
+5544 Valley Street  
 Ongwediva, Namibia  
 Phone: +264 65 231 177  
 Email: info@hoteletuna.com  

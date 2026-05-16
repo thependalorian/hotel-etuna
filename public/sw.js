@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hotel-etuna-v2';
+const CACHE_NAME = 'hotel-etuna-v3';
 const APP_SHELL = ['/offline', '/manifest.json'];
 const BOOKING_QUEUE_DB = 'hotel-etuna-offline-db';
 const BOOKING_STORE = 'bookingQueue';

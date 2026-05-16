@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 
 export default function ServiceWorkerRegistration() {
   useEffect(() => {
+    if (process.env.NODE_ENV !== 'production') return;
     if (!('serviceWorker' in navigator)) return;
     // Emergency production safeguard:
     // clear older SW controllers/caches that can serve stale App Router payloads.
