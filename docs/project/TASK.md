@@ -1,7 +1,7 @@
 # Hotel Etuna — Task & Production Tracker
 
 **Status:** **Production Live** — core platform complete; RAG upsert remains (`npm audit --audit-level=critical`: **0 critical**)  
-**Last Updated:** May 16, 2026 (room photo tours: PRD §3.1.2, PLANNING, TASK; browser-validated `/rooms`)  
+**Last Updated:** May 16, 2026 (Vercel prod deploy + env sync; room photo tours PRD §3.1.2)  
 **Production URL:** https://hoteletuna.com
 
 ---
