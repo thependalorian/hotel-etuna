@@ -1,5 +1,5 @@
 /**
- * Bridges Sofia conversations into graph memory + optional Mem0
+ * Bridges Sofia conversations into graph memory + Neon guest facts (+ optional Mem0)
  *
  * Purpose: Fire-and-forget after each saved turn; no user latency impact.
  * Location: lib/services/crm/CrmMemoryBridge.ts
@@ -7,6 +7,7 @@
 
 import { mem0AddTurn, mem0UserId, isMem0Configured } from '@/lib/integrations/mem0';
 import { CrmGraphMemoryService } from '@/lib/services/crm/CrmGraphMemoryService';
+import { extractGuestFactsFromTurn } from '@/lib/services/crm/SofiaGuestFactExtractor';
 
 const graph = new CrmGraphMemoryService();
 
@@ -32,6 +33,18 @@ export function scheduleCrmMemoryAfterSofiaTurn(input: {
           dstId: propertyId,
           relationType: 'engaged_with',
           metadata: { sessionId },
+        });
+      }
+
+      const extracted = await extractGuestFactsFromTurn(userMessage);
+      for (const fact of extracted) {
+        if (fact.confidence < 0.5) continue;
+        await graph.addGuestFactIfNew({
+          tenantId,
+          guestId,
+          factText: fact.factText,
+          source: 'sofia',
+          sessionId,
         });
       }
 

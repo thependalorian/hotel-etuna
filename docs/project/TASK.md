@@ -1,7 +1,7 @@
 # Hotel Etuna — Task & Production Tracker
 
 **Status:** **Production Live** — core platform complete; RAG upsert remains (`npm audit --audit-level=critical`: **0 critical**)  
-**Last Updated:** May 17, 2026 (CI/CD production gate + Vercel Git connect)  
+**Last Updated:** May 17, 2026 (§3.1.1 dining menu: single-page 2×3 grid)  
 **Production URL:** https://www.hoteletuna.com (Vercel — auto-deploy from `main` via GitHub integration)
 
 ---
@@ -25,7 +25,7 @@ npm run verify:production # tsc + test:ci + next build
 npm run test:all         # same as test:ci (alias intent; use test:ci in CI)
 ```
 
-**Vercel:** Project `buffr/hotel-etuna` connected to `github.com/thependalorian/hotel-etuna` — pushes to `main` trigger production builds. CLI deploy: `vercel deploy --prod --yes`.
+**Vercel:** Project `buffr/hotel-etuna` connected to `github.com/thependalorian/hotel-etuna` — pushes to `main` trigger production builds. CLI deploy: `vercel deploy --prod --yes`. **Secrets:** `npm run env:push-vercel` (from `.env.local`; sets production `ADUMO_*` redirect/webhook URLs). **DB:** `npm run test:db:migrations` — includes `0018` `dining_reservations`, `0019` Adumo dining link.
 
 **Project tree (regenerate):**
 
@@ -38,6 +38,75 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 
 ---
 
+## Compliance & regulatory verification (May 17, 2026)
+
+**PRD §3.7** · **Docs:** `docs/compliance/README.md`, `NAMIBIA_REGULATORY_FRAMEWORK.md`, `AML_FICA_COMPLIANCE_PROGRAM.md`, `INCIDENT_RESPONSE_PLAN.md`, `docs/SECURITY_PROMPT_PACK.md`, `docs/project/SOC2_IMPLEMENTATION_PLAN.md` · **BoN corpus:** `mba-agent/documents/mba-agent/regulatory/namibia/` (PRD Appendix F).
+
+### Pre-release (payments / compliance)
+
+- [ ] Counsel confirms **merchant + SaaS** posture (not unlicensed PSP / e-money)
+- [ ] Guest Adumo settlement → **Etuna Nedbank** (`lib/platform/settlement-accounts.ts`)
+- [x] `npm run security:preflight` — **12/12 pass**, 0 critical npm audit (May 17, 2026 → `compliance/evidence/security/preflight-2026-05-17.json`)
+- [ ] Security Prompt Pack **§14** Master Review (manual) on release branch
+- [x] `npm run test:db:migrations` — **18/18** (incl. `0016` fraud rules + `0017` ai_conversations index; May 17, 2026)
+- [ ] `npm run test:ci` — full gate before production deploy (~15 min)
+- [ ] NamQR desk smoke: generate + confirm on staging
+- [ ] Review gap register **G-01–G-09** (`NAMIBIA_REGULATORY_FRAMEWORK.md` §6)
+
+### Code hygiene — DRY & Boy Scout (hotel-etuna, May 17, 2026)
+
+| Item | Path / action | Status |
+|------|----------------|--------|
+| Sofia single pipeline | `lib/services/ai/sofia-concierge-handler.ts` | ✅ |
+| SOC2 orchestrator | `lib/compliance/soc2/Soc2AuditOrchestrator.ts` | ✅ |
+| SOC2 catalog DRY | `nayaone-tsc-framework.ts` + `control-matrix.ts`; `control-catalog.ts` re-export | ✅ |
+| Tenant session helper | `requireTenantSessionUser` — settings, analytics, dashboard/activity, profile | ✅ |
+| Fraud tenant rules | `tenant-fraud-rules.ts` + migration `0016` | ✅ |
+| AI session index | `database/drizzle/0017_ai_conversations_tenant_session_idx.sql` | ✅ applied Neon May 17 |
+| Duplicate `getSessionUser` in API routes | grep `app/api` | ✅ none remaining |
+
+### Validation (DRY / Boy Scout — May 17, 2026)
+
+| Step | Result |
+|------|--------|
+| `npx tsc --noEmit` | ✅ pass |
+| `npx vitest run tests/unit/soc2-audit.test.ts tests/unit/soc2-control-matrix.test.ts tests/unit/soc2-audit-agents.test.ts` | ✅ 11/11 |
+| `npm run test:db:migrations` | ✅ **18/18** (incl. `0017` idx_ai_conversations_tenant_session) |
+
+### Engineering backlog (from regulatory review)
+
+- [x] **Fraud:** `lib/services/fraud/tenant-fraud-rules.ts` — `0016` rules on `PsdPaymentFraudGate` + `FraudDetectionService.evaluateRule`; tests `tests/unit/tenant-fraud-rules.test.ts`
+- [x] **Fail-closed:** `PsdFraudGate` blocks in production (or `FRAUD_GATE_FAIL_CLOSED=true`); dev → manual review
+- [ ] **Fraud (P2):** Add CNP / EFT-confirm rules from `nps_fraud_trend_report_10_years.md` to seed + admin UI
+- [ ] **G-04:** BoN incident API when credentials available
+- [ ] **G-05:** FIC STR export / goAML integration
+- [ ] **G-01 / G-06:** DSAR portal + cookie consent banner
+- [x] **G-08 (drafts):** 21 SOC 2 policies in `docs/compliance/policies/` (May 17, 2026)
+- [ ] **G-08 (sign-off):** Executive signatures → `compliance/evidence/policies/`
+- [ ] **G-09:** Vendor SOC 2 / PCI attestations (Vercel, Neon, Adumo)
+- [ ] **SOC 2 evidence:** Populate `compliance/evidence/`; run tabletop IR; align BCP RTO/RPO with SOC2 plan
+
+### Validation (fraud unification — May 17, 2026)
+
+| Step | Result |
+|------|--------|
+| `npx tsc --noEmit` | ✅ pass |
+| `npx vitest run tests/unit/tenant-fraud-rules.test.ts` | ✅ 4/4 |
+| `npm run test:db:migrations` | ✅ 18/18 |
+| `npm run security:preflight` | ✅ 12/12 → `compliance/evidence/security/preflight-2026-05-17.json` |
+
+### Automated checks
+
+| Check | Command |
+|-------|---------|
+| DB + migrations 0011–0017 | `npm run test:db:migrations` |
+| Compliance fraud smoke | `npm run test:smoke` |
+| SOC 2 agents (local) | `npx tsx scripts/soc2/collect-evidence.ts` |
+| SOC 2 workflow | `.github/workflows/soc2-evidence.yml` |
+| Security audit workflow | `.github/workflows/security-audit.yml` |
+
+---
+
 ## Verified Implementation Audit (May 16, 2026)
 
 **Method:** Repo inspection + commands (not agent markdown alone). Canonical record lives here; PRD §12 and PLANNING § Verified Audit mirror this table.
@@ -47,7 +116,7 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 | TypeScript | `npx tsc --noEmit` | ✅ Exit 0 |
 | RLS isolation | `npx tsx scripts/db/verify-tenant-rls.ts` | ✅ All checks passed |
 | DB baseline | `npm run test:db` | ✅ `scripts/db/verify-db.ts` — health, baseline tables, fraud rule count |
-| Operator SQL 0011–0016 | `npm run test:db:migrations` | ✅ **17/17** on Neon (incl. `0016_fraud_detection_rules_seed.sql`) |
+| Operator SQL 0011–0017 | `npm run test:db:migrations` | ✅ **18/18** on Neon (incl. `0016` fraud rules, `0017` ai_conversations index) |
 | Full automated gate | `npm run test:all` | ✅ `test:db` + Vitest (**393** passed, 2 skipped) + compliance smoke (**6/6**) |
 | API routes | `find app/api -name route.ts \| wc -l` | ✅ **136** handlers |
 | §4.7 API gaps | `bookings` GET, `menu/[itemId]`, `staff/[id]`, `staff/shifts` | ✅ Files present |
@@ -60,12 +129,12 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 | E2E specs | `e2e/*.spec.ts` | ✅ 7 files (incl. gated-pricing, public-components) |
 | Tours removed | `test ! -d app/tours`; `rg -i '/tours' app components lib proxy.ts` | ✅ No route or nav; `tours-guide.md` deleted |
 | Service duplicates | `lib/services/fraud`, `lib/services/menu` | ✅ Single implementation each |
-| Vitest (May 17) | `npx vitest run` | ✅ **393/395** (2 hub-seed tests skipped unless `RUN_HUB_SEED_VALIDATION=true`; `testTimeout` 90s for LLM/RAG) |
+| Vitest (May 17) | `npx vitest run` | ✅ **411 passed \| 2 skipped** (hub-seed optional; `testTimeout` 90s for LLM/RAG) |
 | Full verify | `npm run verify:production` | Re-run before deploy (`tsc` + **`test:ci`** + `build`) |
-| RAG ingest | `npx tsx scripts/ingest-hotel-etuna-knowledge.ts` | 🟡 Pending (Voyage rate limits) |
+| RAG ingest | `npm run rag:seed` (Qdrant Inference, 384d, batched) | ✅ Run when cluster URL + Inference enabled |
 | npm audit | `npm audit --audit-level=critical` | ✅ **0 critical** (`package.json` overrides: `fast-xml-parser`, `protobufjs`); moderate/high may remain — run `npm audit` to triage |
 
-**RAG config (operator):** `EMBEDDING_MODEL=voyage-3`, `EMBEDDING_DIMENSIONS=1024` (see `.env.example`). After ingest, verify Qdrant point count ≈24 at 1024 dimensions.
+**RAG config (operator):** Chat: `AI_PROVIDER_ORDER=deepseek,...`. Embeddings: `RAG_USE_QDRANT_INFERENCE=true`, `QDRANT_INFERENCE_MODEL=intfloat/multilingual-e5-small`, `QDRANT_INFERENCE_DIMENSIONS=384`. Ingest: `npm run rag:seed` (`@qdrant/js-client-rest`). **No Voyage** — vectors computed inside Qdrant.
 
 **Coding rules (sampled):** ~87% of 23 rules; `tsc` clean; rate limiting on sensitive routes; DaisyUI on UI components. Utility `.js` in `scripts/` and `public/sw.js` accepted exceptions.
 
@@ -96,7 +165,7 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 - [ ] **Executive review** — Present risk findings
 
 #### Week 4: Security Policies (Critical Path)
-- [ ] **Write 21 core policies** — Use templates in `docs/compliance/policies/`
+- [x] **Write 21 core policies** — `docs/compliance/policies/` (May 17, 2026); pending CEO sign-off
   - [x] Information Security Policy (DONE)
   - [ ] Access Control Policy
   - [ ] Acceptable Use Policy
@@ -199,7 +268,7 @@ For every new feature or significant code change:
 - [ ] **Final SOC 2 report** — CPA issues opinion
 
 ### High Priority — Platform Stability
-- [ ] **RAG ingestion** — Run `scripts/ingest-hotel-etuna-knowledge.ts` when Voyage API allows (**4 docs**; confirms `tours-guide` chunks purged from Qdrant)
+- [x] **RAG ingestion** — `npm run rag:seed` (**4 docs**, 27 chunks, Qdrant Inference 384d; purges stale tenant points)
 - [ ] **npm audit triage** — 0 critical at `--audit-level=critical` (verified May 16); review moderate/high via `npm audit` and document risk acceptance where needed
 
 ### Medium Priority
@@ -219,8 +288,8 @@ For every new feature or significant code change:
 - [x] Database-driven landing page
 - [x] Rooms section with real data
 - [x] Dining section with menu
-- [x] Digital menu book on `/dining` — full-menu `MenuBookFullMenu`, DB-only load, analytics guest favourites, `image_url` seed/validate scripts (PRD §3.1.1)
-- [x] Menu book layout — food 4/page (2×2 + thumbnails); drinks list without images; view-only public menu + CMS edit at `/menu/[itemId]/edit`
+- [x] Digital menu on `/dining` — `MenuBookFullMenu` + `MenuBookSinglePageViewer`, DB-only load, analytics guest favourites, `image_url` seed/validate scripts (PRD §3.1.1)
+- [x] Menu layout — single-page viewer (`MenuBookSinglePageViewer`), Previous/Next; food **6/page (2×3)** with name, description, price on tiles; drinks list; view-only public menu + CMS edit at `/menu/[itemId]/edit`
 - [x] Room photo tours on `/rooms` + `/rooms/[slug]` — `RoomPhotoTour`, filmstrip listing, included-amenities strip, browse-only banner, Premier 4 guests / 6 stops (`lib/rooms/room-display.ts`, PRD §3.1.2)
 - [x] Room tour gating — public: masked rates, **Take the tour** CTA, sign-in to book; signed-in: same tour + rates + `#booking` widget (PRD v2.8.0)
 - [x] `/rooms#tour` anchor on filmstrip; `lib/rooms/public-rate.ts` + availability API strips `baseRate` for guests
@@ -311,21 +380,21 @@ Apply in order on staging/production, then verify with `npm run test:db:migratio
 - [x] Auto-logout after inactivity
 - [x] Session renewal on activity
 
-### Phase 5: Sofia AI / RAG 🟡
+### Phase 5: Sofia AI / RAG ✅
 - [x] Sofia transactional email templates refreshed (`EmailTemplateService`, branded generator + Valley Street signature; no tours in copy)
 - [x] Email triggers: booking confirm/cancel/check-in/out/pre-arrival cron, payment receipt (Adumo + cash + **NamQR**), Sofia auto-reply
 - [x] Template/signature validation: `scripts/validate-sofia-email-templates.ts`; Vitest `tests/sofia/sofia-email.test.ts`, `tests/unit/email-signature.test.ts`
 - [x] Sofia intent: guest-message-first `resolveIntent()` in `SofiaConciergeService` + `tests/unit/sofia-intent-resolve.test.ts`
-- [x] Voyage embeddings client
+- [x] Qdrant Cloud Inference embeddings (`embeddings-rag.ts`, 384d e5-small)
 - [x] RAG services implementation
 - [x] Ingestion script (`scripts/ingest-hotel-etuna-knowledge.ts`)
-- [x] Semantic chunking (~9 chunks from **4** knowledge files; `tours-guide.md` removed)
-- [~] **Embedding & upsert to Qdrant** — DEFERRED (Voyage rate limits; config `voyage-3` + 1024 verified)
+- [x] Semantic chunking (27 chunks from **4** knowledge files; `tours-guide.md` removed)
+- [x] **Embedding & upsert to Qdrant** — `npm run rag:seed` via Qdrant Inference
 
 ### Phase 6: Testing ✅
 - [x] **Vitest:** 393/395 default run (hub seed validation optional via `RUN_HUB_SEED_VALIDATION=true`)
 - [x] **`npm run test:db`** — `scripts/db/verify-db.ts` (canonical)
-- [x] **`npm run test:db:migrations`** — 17 checks (`scripts/db/verify-neon-migrations.ts`)
+- [x] **`npm run test:db:migrations`** — 18 checks (`scripts/db/verify-neon-migrations.ts`, incl. `0017`)
 - [x] **`npm run test:smoke`** — DB verify + `tests/smoke/compliance-fraud-db.smoke.test.ts` (6 tests)
 - [x] **`npm run test:all`** / **`npm run test:ci`** — `test:db` + `test:db:migrations` + Vitest + smoke (CI + pre-merge gate)
 - [x] **`npm run verify:production`** — `tsc` + `test:ci` + `next build`
@@ -728,23 +797,16 @@ npm run test:all
 - [x] `EMAIL_PASSWORD` — Valid
 - [x] `QDRANT_URL` — Valid
 - [x] `QDRANT_API_KEY` — Valid
-- [x] `VOYAGE_API_KEY` — Valid
 - [x] `NEXT_PUBLIC_POSTHOG_KEY` — Valid
 
 #### RAG Configuration ✅
-- [x] `QDRANT_URL` — Valid (collection ready to create)
-- [x] `QDRANT_API_KEY` — Valid
-- [x] `VOYAGE_API_KEY` — Valid (rate limited, will reset)
-- [x] `EMBEDDING_MODEL` — `voyage-3` (1024 dimensions)
-- [x] `EMBEDDING_DIMENSIONS` — `1024` (matches model)
-- [x] `VOYAGE_BASE_URL` — Valid endpoint
-- [x] Configuration consistency verified via dry run
-
-#### Critical Issue 🔴
-- [x] **EMBEDDING_MODEL / EMBEDDING_DIMENSIONS Mismatch** — RESOLVED ✅
-  - Fixed: Using `voyage-3` (1024d) + `EMBEDDING_DIMENSIONS=1024`
-  - Verified: Dry run successful with correct dimensions
-  - Status: Ready for ingestion after rate limit reset
+- [x] `QDRANT_URL` / `QDRANT_API_KEY` — Valid
+- [x] `RAG_USE_QDRANT_INFERENCE=true` — Qdrant embeds at upsert/query (384d)
+- [x] `QDRANT_INFERENCE_MODEL=intfloat/multilingual-e5-small`
+- [x] `QDRANT_INFERENCE_DIMENSIONS=384`
+- [x] `DEEPSEEK_API_KEY` — Sofia chat (primary)
+- [x] `AI_PROVIDER_ORDER=deepseek,...` (not Anthropic-first)
+- [x] `npm run rag:seed` — 27 points upserted to `buffr_rag`
 
 #### Optional Placeholders (Non-Critical) ⚠️
 - [ ] `OPENAI_API_KEY` — Placeholder (not required)
@@ -790,17 +852,18 @@ NEON_AUTH_BASE_URL="[auth-url]"
 NEXT_PUBLIC_NEON_AUTH_URL="[auth-url]"
 NEON_AUTH_JWKS_URL="[jwks-url]"
 
-# LLM (when Sofia enabled)
-ANTHROPIC_API_KEY="[key]"
+# LLM (Sofia — DeepSeek primary)
+AI_PROVIDER_ORDER="deepseek,openai,anthropic,llm"
 DEEPSEEK_API_KEY="[key]"
-GROQ_API_KEY="[key]"
+DEEPSEEK_MODEL="deepseek-chat"
+GROQ_API_KEY="[key]"  # optional fallback
 
-# RAG (when Sofia enabled)
-VOYAGE_API_KEY="[key]"
+# RAG (Qdrant Cloud Inference — 384d; DeepSeek is chat-only)
 QDRANT_URL="[url]"
 QDRANT_API_KEY="[key]"
-EMBEDDING_MODEL="voyage-3"  # or voyage-3-large
-EMBEDDING_DIMENSIONS="1024"  # or 1536
+RAG_USE_QDRANT_INFERENCE="true"
+QDRANT_INFERENCE_MODEL="intfloat/multilingual-e5-small"
+QDRANT_INFERENCE_DIMENSIONS="384"
 RAG_ENABLED="true"
 
 # Email
@@ -847,7 +910,7 @@ NEXT_PUBLIC_POSTHOG_KEY="[key]"
 | Security | ✅ 100% | RLS verified, no leakage |
 | Testing | ✅ 100% | `npm run test:all` green; 393/395 Vitest + 6 compliance smoke |
 | Documentation | ✅ 100% | All docs updated |
-| Sofia AI | 🟡 85% | Code complete; RAG ingest blocked by Voyage 429 (embedding config resolved) |
+| Sofia AI | ✅ 95% | RAG ingested (Qdrant Inference 384d); Mem0 optional for guest long-term memory |
 
 ### Phase Rollup
 
@@ -861,7 +924,7 @@ NEXT_PUBLIC_POSTHOG_KEY="[key]"
 | Phase 2d — F&B inventory | 🚧 ~75% | `0011` + `InventoryService` in repo; Neon apply + low-stock QA pending |
 | Phase 3 — PWA / offline | ✅ 100% | Manifest, SW, offline routes |
 | Phase 4 — Session timeout | ✅ 100% | Auto-logout on inactivity |
-| Phase 5 — Sofia / RAG | 🟡 85% | Ingestion deferred (Voyage 429; `voyage-3` + 1024d config OK) |
+| Phase 5 — Sofia / RAG | ✅ 100% | Qdrant Inference 384d; 27 chunks ingested |
 | Phase 6 — Tests | ✅ 100% | `test:all` gate; 393/395 Vitest; E2E via Playwright (separate) |
 | Phase 7 — Docs | ✅ 100% | All project docs complete |
 
@@ -872,51 +935,20 @@ NEXT_PUBLIC_POSTHOG_KEY="[key]"
 | Public Website | ✅ Live | `/` |
 | Room Listings | ✅ Live | `/rooms` — filmstrip + photo tours; browse without login |
 | Room Detail Tour | ✅ Live | `/rooms/[slug]#tour` — `RoomPhotoTour`, gated booking card |
-| Restaurant Menu | ✅ Live | `/dining` — full menu book, all items, page-turn UX |
+| Restaurant Menu | ✅ Live | `/dining` — full menu, single-page UX (2×3 grid), Previous/Next |
 | Admin Dashboard | ✅ Live | `/dashboard` |
 | Partner Portal | ✅ Live | `/partner/dashboard` |
 | Booking System | ✅ Live | Create/manage bookings |
 | Cash Payments | ✅ Live | Mark paid + receipts |
 | Reconciliation | ✅ Live | Date filter + discrepancy |
 | Review Approval | ✅ Live | Toggle `is_public` in CRM |
-| Sofia AI Chat | 🟡 Partial | General responses only (no RAG) |
+| Sofia AI Chat | ✅ Live | RAG on when `RAG_ENABLED=true` + Qdrant configured |
 
 ### Known Issues & Blockers
 
-#### 🟡 IN PROGRESS: RAG Ingestion Waiting for Rate Limits
+#### RAG maintenance
 
-**Issue:** Knowledge base ingestion ready but blocked by Voyage AI rate limits
-
-**Status:**
-1. **Embedding Configuration** — ✅ RESOLVED
-   - `.env.local` correctly configured: `voyage-3` + `1024` dimensions
-   - `.env.example` updated with clear documentation
-   - Dry run verified: 24 chunks, 1024d embeddings
-   - Qdrant collection ready to create on first run
-
-2. **Voyage AI Rate Limits (429)** — ⏳ WAITING
-   - Free tier has aggressive limits
-   - Script hits 429 on embedding requests
-   - Retry logic: 8 attempts with exponential backoff + 45s delay
-   - **Solution:** Wait 15-30 minutes for rate limit reset
-
-**Impact:**
-- Sofia AI cannot answer Hotel Etuna-specific questions yet
-- RAG pipeline ready but not populated
-- Fallback to general LLM responses works
-
-**Next Steps:**
-```bash
-# Wait 15-30 minutes from last 429 error, then run:
-npx tsx scripts/ingest-hotel-etuna-knowledge.ts
-
-# Expected output:
-# - 24 chunks from 5 markdown files
-# - 24 embeddings generated (1024 dimensions)
-# - Collection created automatically
-# - Points upserted to Qdrant
-# - Sofia AI ready to answer Hotel Etuna questions
-```
+Re-run `npm run rag:seed` after editing `data/hotel-etuna-knowledge/*.md`. Conversations are **not** stored in Qdrant (see `PLANNING.md` § Sofia memory vs Ava) — only property knowledge in `buffr_rag`.
 
 **Verification After Ingestion:**
 ```bash

@@ -8,6 +8,7 @@
 import { and, desc, eq, or } from 'drizzle-orm';
 import { db, crmGraphEdges, crmGuestMemoryFacts } from '@/lib/db';
 import { mem0ListMemoriesForUser, mem0UserId, isMem0Configured } from '@/lib/integrations/mem0';
+import { factsAreSimilar } from '@/lib/services/crm/SofiaGuestFactExtractor';
 
 const MAX_FACTS = 15;
 const MAX_EDGES = 20;
@@ -47,6 +48,25 @@ export class CrmGraphMemoryService {
     } catch (e) {
       console.error('[CrmGraphMemoryService] ensureEdge', e);
     }
+  }
+
+  async hasSimilarFact(tenantId: string, guestId: string, factText: string): Promise<boolean> {
+    const existing = await this.listFactsForGuest(tenantId, guestId, MAX_FACTS);
+    return existing.some((f) => factsAreSimilar(f.factText, factText));
+  }
+
+  async addGuestFactIfNew(params: {
+    tenantId: string;
+    guestId: string;
+    factText: string;
+    source?: string;
+    sessionId?: string;
+    mem0MemoryId?: string;
+  }): Promise<string | null> {
+    if (await this.hasSimilarFact(params.tenantId, params.guestId, params.factText)) {
+      return null;
+    }
+    return this.addGuestFact(params);
   }
 
   async addGuestFact(params: {
@@ -106,7 +126,7 @@ export class CrmGraphMemoryService {
   async buildPromptAugmentation(
     tenantId: string,
     guestId: string | undefined,
-    _currentUserMessage: string
+    currentUserMessage: string
   ): Promise<string> {
     if (!guestId) return '';
 
@@ -117,11 +137,29 @@ export class CrmGraphMemoryService {
       .from(crmGuestMemoryFacts)
       .where(and(eq(crmGuestMemoryFacts.tenantId, tenantId), eq(crmGuestMemoryFacts.guestId, guestId)))
       .orderBy(desc(crmGuestMemoryFacts.createdAt))
-      .limit(MAX_FACTS);
+      .limit(MAX_FACTS * 2);
 
-    if (facts.length) {
+    const queryTokens = new Set(
+      currentUserMessage
+        .toLowerCase()
+        .split(/\W+/)
+        .filter((w) => w.length > 3)
+    );
+
+    const rankedFacts = [...facts].sort((a, b) => {
+      const score = (text: string) => {
+        const words = text.toLowerCase().split(/\W+/).filter((w) => w.length > 3);
+        if (!queryTokens.size) return 0;
+        return words.filter((w) => queryTokens.has(w)).length;
+      };
+      return score(b.factText) - score(a.factText);
+    });
+
+    const topFacts = rankedFacts.slice(0, MAX_FACTS);
+
+    if (topFacts.length) {
       parts.push('Recorded facts:\n');
-      for (const f of facts) {
+      for (const f of topFacts) {
         parts.push(`- (${f.source}) ${f.factText}\n`);
       }
     }

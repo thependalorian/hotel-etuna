@@ -9,7 +9,7 @@ import { createHmac, randomBytes } from 'crypto';
 import jwt from 'jsonwebtoken';
 import { adumoConfig } from '@/lib/config/adumo';
 
-export type AdumoVirtualPurpose = 'booking_deposit' | 'folio_settle';
+export type AdumoVirtualPurpose = 'booking_deposit' | 'folio_settle' | 'dining_deposit';
 
 export interface AdumoVirtualInitiateInput {
   amount: number;
@@ -49,6 +49,12 @@ export class AdumoVirtualService {
   static buildMerchantReference(bookingId: string): string {
     const compact = bookingId.replace(/-/g, '').slice(0, 12);
     const ref = `HE${compact}${Date.now().toString(36)}`;
+    return ref.slice(0, 38);
+  }
+
+  static buildDiningMerchantReference(reservationId: string): string {
+    const compact = reservationId.replace(/-/g, '').slice(0, 10);
+    const ref = `DR${compact}${Date.now().toString(36)}`;
     return ref.slice(0, 38);
   }
 

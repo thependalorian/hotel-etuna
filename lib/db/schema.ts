@@ -573,16 +573,16 @@ export const transactions = pgTable('transactions', {
   statusIdx: index('idx_transactions_status').on(table.status),
 }));
 
-/** Adumo Virtual redirect sessions (merchant ref → booking) */
+/** Adumo Virtual redirect sessions (merchant ref → booking or dining reservation) */
 export const paymentSessions = pgTable('payment_sessions', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id')
     .references(() => tenants.id, { onDelete: 'cascade' })
     .notNull(),
   merchantReference: varchar('merchant_reference', { length: 255 }).notNull().unique(),
-  bookingId: uuid('booking_id')
-    .references(() => bookings.id, { onDelete: 'cascade' })
-    .notNull(),
+  bookingId: uuid('booking_id').references(() => bookings.id, { onDelete: 'cascade' }),
+  /** Set when purpose is dining_deposit (FK enforced in migration 0019) */
+  diningReservationId: uuid('dining_reservation_id'),
   amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
   purpose: varchar('purpose', { length: 50 }).notNull(),
   beneficiary: varchar('beneficiary', { length: 20 }).default('property').notNull(),
@@ -594,6 +594,7 @@ export const paymentSessions = pgTable('payment_sessions', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (table) => ({
   bookingIdx: index('idx_payment_sessions_booking_id').on(table.bookingId),
+  diningIdx: index('idx_payment_sessions_dining_reservation_id').on(table.diningReservationId),
   expiresIdx: index('idx_payment_sessions_expires_at').on(table.expiresAt),
 }));
 
@@ -924,6 +925,48 @@ export const restaurantTables = pgTable('restaurant_tables', {
 export type RestaurantTable = typeof restaurantTables.$inferSelect;
 export type NewRestaurantTable = typeof restaurantTables.$inferInsert;
 
+/** Table reservations with deposit + booking code (Sofia / Enish-style flow) */
+export const diningReservations = pgTable(
+  'dining_reservations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .references(() => tenants.id, { onDelete: 'cascade' })
+      .notNull(),
+    restaurantId: uuid('restaurant_id')
+      .references(() => restaurants.id, { onDelete: 'cascade' })
+      .notNull(),
+    guestId: uuid('guest_id').references(() => guests.id, { onDelete: 'set null' }),
+    sessionId: varchar('session_id', { length: 255 }),
+    partySize: integer('party_size').notNull(),
+    reservationDate: varchar('reservation_date', { length: 10 }).notNull(),
+    reservationTime: varchar('reservation_time', { length: 8 }).notNull(),
+    depositCents: integer('deposit_cents').notNull(),
+    currency: varchar('currency', { length: 3 }).default('NAD').notNull(),
+    paymentSessionId: uuid('payment_session_id').references(() => paymentSessions.id, {
+      onDelete: 'set null',
+    }),
+    bookingCode: varchar('booking_code', { length: 12 }).notNull(),
+    otpHash: varchar('otp_hash', { length: 64 }),
+    otpExpiresAt: timestamp('otp_expires_at', { withTimezone: true }),
+    status: varchar('status', { length: 32 }).notNull().default('awaiting_deposit'),
+    metadata: jsonb('metadata').default(sql`'{}'`),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+  },
+  (table) => ({
+    tenantBookingCodeIdx: uniqueIndex('uq_dining_reservations_tenant_booking_code').on(
+      table.tenantId,
+      table.bookingCode
+    ),
+    guestIdx: index('idx_dining_reservations_guest').on(table.tenantId, table.guestId),
+    sessionIdx: index('idx_dining_reservations_session').on(table.tenantId, table.sessionId),
+  })
+);
+
+export type DiningReservation = typeof diningReservations.$inferSelect;
+export type NewDiningReservation = typeof diningReservations.$inferInsert;
+
 export const restaurantOrders = pgTable('restaurant_orders', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }),
@@ -1137,6 +1180,10 @@ export const aiConversations = pgTable('ai_conversations', {
   guestIdx: index('idx_ai_conversations_guest_id').on(table.guestId),
   propertyIdx: index('idx_ai_conversations_property_id').on(table.propertyId),
   sessionIdx: index('idx_ai_conversations_session_id').on(table.sessionId),
+  tenantSessionIdx: index('idx_ai_conversations_tenant_session').on(
+    table.tenantId,
+    table.sessionId
+  ),
 }));
 
 export const aiMessages = pgTable('ai_messages', {
@@ -1150,6 +1197,11 @@ export const aiMessages = pgTable('ai_messages', {
   conversationIdx: index('idx_ai_messages_conversation_id').on(table.conversationId),
   createdAtIdx: index('idx_ai_messages_created_at').on(table.createdAt),
 }));
+
+export type AiConversation = typeof aiConversations.$inferSelect;
+export type NewAiConversation = typeof aiConversations.$inferInsert;
+export type AiMessage = typeof aiMessages.$inferSelect;
+export type NewAiMessage = typeof aiMessages.$inferInsert;
 
 export const sofiaEmailLogs = pgTable('sofia_email_logs', {
   id: uuid('id').primaryKey().defaultRandom(),

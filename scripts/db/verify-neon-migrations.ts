@@ -1,5 +1,5 @@
 /**
- * Verify operator SQL migrations (0011–0016) are applied on Neon.
+ * Verify operator SQL migrations (0011–0017) are applied on Neon.
  *
  * Purpose: Read-only checks for payment, billing, inventory, and RLS posture.
  * Location: /scripts/db/verify-neon-migrations.ts
@@ -182,6 +182,45 @@ async function main() {
       name: '0016 fraud_detection_rules seed',
       ok: ruleCount > 0,
       detail: `${ruleCount} rows`,
+    });
+
+    const idx = await pool.query(
+      `SELECT 1 FROM pg_indexes
+       WHERE schemaname = 'public' AND tablename = 'ai_conversations'
+         AND indexname = 'idx_ai_conversations_tenant_session'`
+    );
+    results.push({
+      name: '0017 ai_conversations tenant+session index',
+      ok: idx.rows.length > 0,
+    });
+
+    const dining = await pool.query(
+      `SELECT 1 FROM information_schema.tables
+       WHERE table_schema = 'public' AND table_name = 'dining_reservations'`
+    );
+    results.push({
+      name: '0018 dining_reservations table',
+      ok: dining.rows.length > 0,
+    });
+
+    const diningPay = await pool.query(
+      `SELECT 1 FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'payment_sessions'
+         AND column_name = 'dining_reservation_id'`
+    );
+    results.push({
+      name: '0019 payment_sessions.dining_reservation_id',
+      ok: diningPay.rows.length > 0,
+    });
+
+    const noStripe = await pool.query(
+      `SELECT 1 FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'dining_reservations'
+         AND column_name = 'stripe_session_id'`
+    );
+    results.push({
+      name: '0019 dining_reservations stripe removed',
+      ok: noStripe.rows.length === 0,
     });
   } finally {
     await pool.end();

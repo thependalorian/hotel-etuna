@@ -67,9 +67,10 @@ const groups = {
   ],
   email_sender: ['EMAIL_SENDER_EMAIL', 'EMAIL_SENDER_NAME'],
   adumo_virtual: ['ADUMO_MERCHANT_UID', 'ADUMO_APPLICATION_UID', 'ADUMO_JWT_SECRET'],
+  restaurant_deposit: ['RESTAURANT_DEPOSIT_BASE_CENTS', 'RESTAURANT_DEPOSIT_PER_GUEST_CENTS'],
   ai_chat: ['DEEPSEEK_API_KEY', 'OPENAI_API_KEY', 'ANTHROPIC_API_KEY', 'GROQ_API_KEY', 'LLM_API_KEY'],
   cron_jobs: ['CRON_SECRET'],
-  sofia_rag: ['QDRANT_URL', 'QDRANT_API_KEY', 'VOYAGE_API_KEY'],
+  sofia_rag: ['QDRANT_URL', 'QDRANT_API_KEY', 'RAG_USE_QDRANT_INFERENCE'],
 };
 
 const recommended = [

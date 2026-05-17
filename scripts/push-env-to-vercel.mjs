@@ -1,8 +1,19 @@
 #!/usr/bin/env node
 /**
- * Push .env.local values to linked Vercel project (production + preview).
- * Skips placeholders; applies production URL overrides for auth/payments.
- * Run: node scripts/push-env-to-vercel.mjs
+ * Push .env.local values to the linked Vercel project (production + preview).
+ *
+ * - Skips placeholders and Vercel-managed runtime keys
+ * - Applies production URL overrides for auth, Adumo redirects, and webhooks
+ * - Namibia: Adumo Virtual only (no Stripe); includes Sofia CRM + dining deposit vars
+ *
+ * Prerequisites:
+ *   npm i -g vercel && vercel link   (from hotel-etuna/)
+ *   cp .env.example .env.local       (fill real values; never commit .env.local)
+ *
+ * Run:
+ *   npm run env:push-vercel
+ *   npm run env:push-vercel -- --dry-run
+ *
  * Location: scripts/push-env-to-vercel.mjs
  */
 
@@ -14,9 +25,11 @@ import { fileURLToPath } from 'url';
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const localPath = path.join(root, '.env.local');
 const PROD_URL = process.env.VERCEL_PRODUCTION_URL || 'https://hoteletuna.com';
+const DRY_RUN = process.argv.includes('--dry-run');
 
 const ENV_TARGETS = ['production', 'preview'];
 
+/** Applied when target === production (and some NEXT_PUBLIC_* on preview). */
 const PROD_OVERRIDES = {
   NEXTAUTH_URL: PROD_URL,
   NEXT_PUBLIC_SITE_URL: PROD_URL,
@@ -29,6 +42,17 @@ const PROD_OVERRIDES = {
 
 /** Keys managed by Vercel runtime — do not push from local. */
 const SKIP_KEYS = new Set(['VERCEL', 'VERCEL_ENV', 'VERCEL_URL', 'VERCEL_REGION']);
+
+/**
+ * Optional keys with safe defaults if missing from .env.local (non-secret).
+ * Secrets (ADUMO_JWT_SECRET, etc.) must still come from .env.local.
+ */
+const DEFAULTS_IF_MISSING = {
+  RESTAURANT_DEPOSIT_BASE_CENTS: '5000',
+  RESTAURANT_DEPOSIT_PER_GUEST_CENTS: '2500',
+  ADUMO_CURRENCY_CODE: 'NAD',
+  RAG_ENABLED: 'true',
+};
 
 const PLACEHOLDER =
   /^(your-|change-me|sk_test_|pk_test_|whsec_|xxx|placeholder|todo|<REPLACE|<YOUR_)/i;
@@ -100,10 +124,23 @@ if (!fs.existsSync(localPath)) {
 }
 
 const local = parseEnvFile(localPath);
+for (const [key, defaultVal] of Object.entries(DEFAULTS_IF_MISSING)) {
+  if (!local[key] || !String(local[key]).trim()) {
+    local[key] = defaultVal;
+  }
+}
+
 const entries = Object.entries(local).filter(([k, v]) => isUsable(k, v));
 
-console.log(`Pushing ${entries.length} variables to Vercel (${ENV_TARGETS.join(', ')})…`);
-console.log(`Production URL overrides use: ${PROD_URL}\n`);
+console.log(
+  DRY_RUN
+    ? `[dry-run] Would push ${entries.length} variables to Vercel (${ENV_TARGETS.join(', ')})…`
+    : `Pushing ${entries.length} variables to Vercel (${ENV_TARGETS.join(', ')})…`
+);
+console.log(`Production URL overrides use: ${PROD_URL}`);
+console.log(
+  'Namibia rails: ADUMO_* required for card; RESTAURANT_DEPOSIT_* for Sofia dining; MEM0_API_KEY optional.\n'
+);
 
 let ok = 0;
 let fail = 0;
@@ -120,6 +157,13 @@ for (const target of ENV_TARGETS) {
           ? PROD_OVERRIDES[key]
           : raw;
 
+    if (DRY_RUN) {
+      const action = remote.has(key) ? 'update' : 'add';
+      process.stdout.write(`  [dry-run] ${action} ${key}\n`);
+      ok += 1;
+      continue;
+    }
+
     try {
       const action = setRemote(key, value, target, remote.has(key));
       if (!remote.has(key)) remote.add(key);
@@ -134,3 +178,6 @@ for (const target of ENV_TARGETS) {
 
 console.log(`\nDone: ${ok} ok, ${fail} failed.`);
 if (fail > 0) process.exit(1);
+if (!DRY_RUN) {
+  console.log('\nRedeploy production for env changes: vercel --prod  (or push to main if CI deploys).');
+}

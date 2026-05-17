@@ -21,6 +21,11 @@ import { EmailService } from '@/lib/services/sofia/EmailService';
 import { SofiaEmailTemplateGenerator } from '@/lib/services/sofia/EmailTemplateGenerator';
 import { CrmGraphMemoryService } from '@/lib/services/crm/CrmGraphMemoryService';
 import { scheduleCrmMemoryAfterSofiaTurn } from '@/lib/services/crm/CrmMemoryBridge';
+import { SofiaConversationContextService } from '@/lib/services/sofia/SofiaConversationContextService';
+import {
+  RestaurantReservationFlowService,
+  type RestaurantReservationFlowStateWithOtp,
+} from '@/lib/services/sofia/RestaurantReservationFlowService';
 import { RAGSearchService, type RagSearchChunk } from '@/lib/services/documents/RAGSearchService';
 import { LLMProviderRouter, type LlmChatMessage } from '@/lib/services/ai/LLMProviderRouter';
 import { FolioService } from '@/lib/services/folio/FolioService';
@@ -33,6 +38,8 @@ export class SofiaConciergeService {
   private crmGraphMemory: CrmGraphMemoryService;
   private ragSearch: RAGSearchService;
   private llmRouter: LLMProviderRouter;
+  private conversationContext: SofiaConversationContextService;
+  private restaurantFlow: RestaurantReservationFlowService;
 
   constructor() {
     this.knowledgeBase = new KnowledgeBaseService();
@@ -42,12 +49,17 @@ export class SofiaConciergeService {
     this.crmGraphMemory = new CrmGraphMemoryService();
     this.ragSearch = new RAGSearchService();
     this.llmRouter = new LLMProviderRouter();
+    this.conversationContext = new SofiaConversationContextService();
+    this.restaurantFlow = new RestaurantReservationFlowService();
   }
 
   async processMessage(request: AIRequest, userRole: UserRole = 'guest'): Promise<AIResponse> {
     try {
       const channel: AIConversationChannel = request.channel ?? 'WEB';
-      const conversationHistory = await this.getConversationHistory(request.context.sessionId);
+      const conversationHistory = await this.getConversationHistory(
+        request.context.sessionId,
+        request.context.tenantId
+      );
       
       // Extract email from message if present
       const emailFromMessage = this.extractEmail(request.message);
@@ -168,6 +180,35 @@ export class SofiaConciergeService {
       });
 
       const intent = this.resolveIntent(request.message, finalResponse);
+      const flowState = await this.restaurantFlow.syncAfterTurn({
+        tenantId: request.context.tenantId,
+        sessionId: request.context.sessionId,
+        guestId: request.context.guestId,
+        propertyId: request.context.propertyId,
+        stayBookingId: request.context.bookingId,
+        userMessage: request.message,
+        intent,
+        guestEmail,
+      });
+      if (flowState?.bookingCode && guestEmail) {
+        const otp = (flowState as RestaurantReservationFlowStateWithOtp)._otpPlaintextForEmail;
+        const payPath = `/restaurant/reservation/pay?code=${encodeURIComponent(flowState.bookingCode)}`;
+        try {
+          await this.emailService.sendEmail(request.context.tenantId, {
+            to: guestEmail,
+            subject: `Restaurant reservation ${flowState.bookingCode}`,
+            htmlContent: `<p>Your table reservation is held pending deposit (pay securely via Adumo — card details stay on Adumo&apos;s page).</p>
+<p>Booking code: <strong>${flowState.bookingCode}</strong></p>
+<p>Party: ${flowState.partySize} · ${flowState.reservationDate} at ${flowState.reservationTime}</p>
+<p>Deposit: ${flowState.currency ?? 'NAD'} ${((flowState.depositCents ?? 0) / 100).toFixed(2)}</p>
+<p><a href="${payPath}">Pay deposit with card (Adumo)</a></p>
+${otp ? `<p>Cancellation OTP: <strong>${otp}</strong> (valid 24h)</p>` : ''}`,
+            textContent: `Booking ${flowState.bookingCode}. Deposit ${flowState.currency ?? 'NAD'} ${((flowState.depositCents ?? 0) / 100).toFixed(2)}. Pay at ${payPath}.${otp ? ` Cancel OTP: ${otp}` : ''}`,
+          });
+        } catch (emailErr) {
+          console.error('[SofiaConciergeService] restaurant reservation email:', emailErr);
+        }
+      }
       const entities = this.extractEntities(finalResponse);
       const suggestions = await this.generateSuggestions(intent, entities, request.context);
       const actions = await this.determineActions(intent, entities, request.context);
@@ -201,12 +242,12 @@ export class SofiaConciergeService {
     }
   }
 
-  private async getConversationHistory(sessionId: string) {
+  private async getConversationHistory(sessionId: string, tenantId: string) {
     try {
       const [conv] = await db
         .select({ id: aiConversations.id })
         .from(aiConversations)
-        .where(eq(aiConversations.sessionId, sessionId))
+        .where(and(eq(aiConversations.sessionId, sessionId), eq(aiConversations.tenantId, tenantId)))
         .limit(1);
       if (!conv) return [];
 
@@ -389,6 +430,12 @@ export class SofiaConciergeService {
         if (crmAug) {
           contextString += `\n${crmAug}\n`;
         }
+      }
+
+      const flowCtx = await this.conversationContext.getContext(context.tenantId, context.sessionId);
+      const flowPrompt = this.restaurantFlow.formatContextForPrompt(flowCtx);
+      if (flowPrompt) {
+        contextString += `\n${flowPrompt}\n`;
       }
 
       const ragQuery = userMessageForMemory?.trim();
@@ -921,6 +968,16 @@ Current user message: ${message}`;
             propertyId: context.propertyId,
           },
         });
+        if (entities.numbers && Array.isArray(entities.numbers)) {
+          actions.push({
+            type: 'restaurant_reservation_slots',
+            data: {
+              sessionId: context.sessionId,
+              partySize: (entities.numbers as number[])[0],
+              dates: entities.dates,
+            },
+          });
+        }
         break;
 
       case 'amenities_inquiry':

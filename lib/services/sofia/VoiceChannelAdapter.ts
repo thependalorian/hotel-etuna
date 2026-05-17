@@ -2,14 +2,14 @@
  * VoiceChannelAdapter
  *
  * Purpose: Normalize telephony webhooks into Sofia `PHONE` channel turns; persist `sofia_voice_sessions`
- * and link to `ai_conversations` / `ai_messages` via `SofiaConciergeService`.
+ * and link to `ai_conversations` / `ai_messages` via shared `processSofiaConciergeMessage`.
  * Location: /lib/services/sofia/VoiceChannelAdapter.ts
  */
 
 import { db } from '@/lib/db';
 import { aiConversations, sofiaVoiceSessions } from '@/lib/db/schema';
 import { and, eq } from 'drizzle-orm';
-import { SofiaConciergeService } from '@/lib/services/ai/SofiaConciergeService';
+import { processSofiaConciergeMessage } from '@/lib/services/ai/sofia-concierge-handler';
 import type { UserRole } from '@/lib/services/ai/DataFilterService';
 
 export type VoiceWebhookEventType =
@@ -38,7 +38,6 @@ export type VoiceWebhookResult =
   | { ok: false; error: string; status?: number };
 
 export class VoiceChannelAdapter {
-  private concierge = new SofiaConciergeService();
 
   static voiceSessionId(tenantId: string, externalCallId: string): string {
     return `voice:${tenantId}:${externalCallId}`;
@@ -165,15 +164,13 @@ export class VoiceChannelAdapter {
         return { ok: false, error: 'Missing text for transcript', status: 400 };
       }
 
-      const ai = await this.concierge.processMessage(
+      const ai = await processSofiaConciergeMessage(
         {
           message: text,
-          context: {
-            tenantId: payload.tenantId,
-            propertyId: payload.propertyId ?? undefined,
-            guestId: payload.guestId ?? undefined,
-            sessionId,
-          },
+          sessionId,
+          tenantId: payload.tenantId,
+          propertyId: payload.propertyId ?? undefined,
+          guestId: payload.guestId ?? undefined,
           channel: 'PHONE',
         },
         payload.role ?? 'guest'

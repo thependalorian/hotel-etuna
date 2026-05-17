@@ -1,7 +1,7 @@
 # Hotel Etuna — Production Planning
 
 **Last Updated:** May 17, 2026  
-**Program Status:** Phases 1–4 complete; Phase 5 (RAG ingest) pending operator run; Phases 6–7 complete (`npm run test:all` green per `TASK.md`)  
+**Program Status:** Phases 1–5 complete (RAG ingested via Qdrant Inference 384d); Phases 6–7 complete (`npm run test:all` green per `TASK.md`)  
 **Product scope:** Curated **tours** removed from public site and Sofia KB (PRD v2.7.2+). No `/tours` route; four markdown sources under `data/hotel-etuna-knowledge/`.
 
 ---
@@ -25,8 +25,8 @@ Ship Hotel Etuna to full daily-operations readiness on Vercel + Neon with:
 
 - **Database:** Neon PostgreSQL + Drizzle ORM (migrated from Supabase)
 - **Deployment:** Vercel (serverless Next.js 15)
-- **AI/RAG:** Voyage embeddings + Qdrant vector store
-- **LLM Router:** Anthropic (Claude) via Groq fallback
+- **AI/RAG:** Qdrant Cloud Inference (`intfloat/multilingual-e5-small`, **384d**) for knowledge retrieval; DeepSeek for chat only
+- **LLM Router:** DeepSeek primary (`AI_PROVIDER_ORDER=deepseek,openai,anthropic,llm`)
 - **Auth:** NextAuth.js with session-based authentication
 
 ### Tenant Architecture (Hub-and-Spoke Model)
@@ -87,7 +87,7 @@ Hotel Etuna (hub)
 **Manual off-platform payments (live):**
 - `ManualPaymentService`, `POST /api/payments/manual` (EFT, e-wallet, bank deposit on desk form)
 - NamQR bank-app confirm: `NamQrDeskPanel` only (avoids duplicate folio path vs manual form)
-- Operator verify after Neon SQL: `npm run test:db:migrations` (`scripts/db/verify-neon-migrations.ts`, checks **0011–0016**)
+- Operator verify after Neon SQL: `npm run test:db:migrations` (`scripts/db/verify-neon-migrations.ts`, checks **0011–0017**)
 - NamQR / manual folio settle triggers **payment receipt email** (`schedulePaymentReceiptEmail`, method `NamQR (bank app)`)
 - Pre-merge DB gate: `npm run test:db` (`scripts/db/verify-db.ts`)
 
@@ -160,7 +160,7 @@ Hotel Etuna (hub)
 | Principle | Hotel Etuna application |
 |-----------|-------------------------|
 | **KISS** | Monolith Next.js on Vercel + Neon; no premature microservices or message queues |
-| **DRY** | `proxy.ts` + `withApiAuth` for auth/tenant; `lib/copy/` for guest voice; Drizzle schema as single DDL source |
+| **DRY** | `proxy.ts` + `withApiAuth` + `requireTenantSessionUser`; Sofia/SOC2/fraud single paths above; `lib/copy/`; Drizzle schema as DDL source |
 | **Boy Scout** | When editing a route, add missing validation, logging, or tests in the same PR |
 | **Prefer duplication over wrong abstraction** | Hub CRM vs partner portal stay separate; do not force one "PropertyDashboard" for both |
 | **Ship stable** | Idempotent forward-only SQL migrations; never `DROP` audit/compliance tables |
@@ -256,6 +256,23 @@ Hotel Etuna (hub)
 - **No production mocks:** Graceful degradation (Sofia unavailable message), not fake RAG results.
 - **Security pack after AI features:** Run TASK.md § AI Security Prompt Pack when adding tools, ingest, or new guest-facing AI surfaces.
 
+### Namibia regulatory & compliance engineering (May 2026)
+
+**PRD:** §3.7 · **Index:** `docs/compliance/NAMIBIA_REGULATORY_FRAMEWORK.md` · **BoN sources:** `mba-agent/documents/mba-agent/regulatory/namibia/` (Appendix F in PRD).
+
+| Workstream | Implementation | Doc / gap |
+|------------|----------------|-----------|
+| **Merchant posture** | Adumo hosted card; NamQR desk + confirm; Etuna Nedbank settlement | PSP Guidance — avoid Buffr facilitator without PSD-1 |
+| **PSD-12** | `PsdPaymentFraudGate`, 2FA, `cybersecurity_incidents`, IRP | G-04 live BoN API |
+| **FICA / AML** | `aml_*`, STR APIs, KYC UI | G-05 FIC filing |
+| **Fraud DB** | `0016` seed + `tenant-fraud-rules.ts` → `PsdFraudGate` / analyze API | Production fail-closed; P2: NPS trend rules in seed |
+| **NamQR** | `lib/compliance/namqr/*`, tag 17 NRTC, tag 26 IPP | `namibia_qr_code_standards.md` |
+| **SOC 2** | `Soc2AuditOrchestrator`, `/compliance/soc2`, `soc2-evidence.yml` | G-08 policies 21/21 drafted; CEO sign-off + G-09 vendor packs |
+| **Security pack** | `npm run security:preflight` | §15 partly manual |
+| **Privacy** | Legal pages + program docs | G-01 DSAR; G-06 cookies |
+
+**Settlement rule:** Guest card revenue → property beneficiary; platform fee → Buffr invoice — never net-settle guest proceeds for Buffr fees without audit trail (PRD §3.4, Buffr SLA).
+
 ---
 
 ## Implementation Approach
@@ -275,7 +292,7 @@ Hotel Etuna (hub)
 - **System map (structure + RBAC + journeys):** PRD **§3.6** — canonical for roles, route/API matrices, J1–J7 flows; **§2.4** maps marketing personas to roles; file tree PRD **§4.6** (regenerated May 2026)
 - `lib/data/rooms.ts` as DRY source for room queries
 - Rustic brand token usage
-- **Digital menu book (`/dining`):** Neon-only `getCompleteMenu()` → `serializePublicMenu()` + `MenuPopularityService` → `PublicMenuBoard` / `MenuBookFullMenu` (single book; food 4-up grid + drink lists; view-only banner). CMS `/menu/[itemId]/edit`; scripts `seed:menu-images`, `validate:menu-images`, `seed:menu-images:full` — PRD §3.1.1
+- **Digital menu (`/dining`):** Neon-only `getCompleteMenu()` → `serializePublicMenu()` + `MenuPopularityService` → `PublicMenuBoard` / `MenuBookFullMenu` / `MenuBookSinglePageViewer` (one full-width page at a time, Previous/Next; food **2×3** grid with name/description/price on tiles; drink lists). View-only banner. CMS `/menu/[itemId]/edit`; scripts `seed:menu-images`, `validate:menu-images`, `seed:menu-images:full` — PRD §3.1.1
 - **Room photo tours (`/rooms`, `/rooms/[slug]`):** Same `RoomPhotoTour` for guests and signed-in users; rates masked on public cards (`RoomBookingCard`, filmstrip); sign-in required for `#booking` widget; `takeTheTour` CTA everywhere; `/rooms#tour` scroll target; `public-rate.ts` + availability API rate strip — PRD §3.1.2
 
 #### Phase 2 — Cash Ops ✅
@@ -295,22 +312,34 @@ Hotel Etuna (hub)
 - 8h absolute session max
 - Expired token redirect in middleware
 
-#### Phase 5 — Sofia Embeddings 🚧
-**Status:** Pending operator RAG ingest (script ready; Voyage/Qdrant upsert not run in prod)
+#### Phase 5 — Sofia RAG (Qdrant Inference) ✅
+**Status:** `npm run rag:seed` upserts 27 chunks (4 markdown files) via Qdrant Cloud Inference.
 
-**Tasks:**
-1. Update `scripts/ingest-hotel-etuna-knowledge.ts` to use Voyage embeddings
-2. Select model strategy:
-   - `voyage-3` (1024 dims) with collection recreation, OR
-   - `voyage-3-large` (1536 dims) to match existing collection
-3. Add robust config handling for missing keys and dimension mismatch
-4. Run ingestion and verify chunk indexing
-5. Execute prompt validation for Hotel Etuna FAQs
+**Stack:** Chat = **DeepSeek** (`AI_PROVIDER_ORDER=deepseek,...`). Embeddings = **Qdrant only** (`RAG_USE_QDRANT_INFERENCE=true`, `QDRANT_INFERENCE_MODEL=intfloat/multilingual-e5-small`, `QDRANT_INFERENCE_DIMENSIONS=384`). No external embedding API.
+
+**Operator:**
+```bash
+npm run test:db:migrations   # 18/18
+npm run rag:seed:dry
+npm run rag:seed             # optional --upsert-batch=4
+```
 
 **Troubleshooting:**
-- Voyage rate limits: wait and retry or use local embedding path
-- Dimension mismatch: requires recreating or migrating Qdrant collection
-- Sofia smoke test: Ask doc-specific questions (breakfast time, meaning of "Etuna")
+- Enable **Inference** on the Qdrant Cloud cluster (Console → Inference).
+- Dimension mismatch: collection must be **384d** — delete `buffr_rag` or set a new `RAG_QDRANT_COLLECTION` if it was created at 1024d.
+- Sofia smoke: "What does Etuna mean?" / breakfast hours (needs `RAG_ENABLED=true`).
+
+#### Sofia memory vs Ava (`ava-whatsapp-agent-course`)
+
+| Concern | Ava course agent | Hotel Etuna Sofia |
+|--------|------------------|-------------------|
+| **Conversation transcript** | SQLite `memory.db` (short-term) | Neon `ai_conversations` + `ai_messages` |
+| **Long-term semantic memory** | Qdrant collection `long_term_memory` (local `all-MiniLM-L6-v2` embeddings) | **Neon** `crm_guest_memory_facts` (primary) + `crm_graph_edges`; optional **Mem0** if `MEM0_API_KEY` — **not** in Qdrant |
+| **Property knowledge (RAG)** | N/A in course | Qdrant `buffr_rag` (384d, tenant-scoped), Cloud Inference at query time |
+| **Post-turn enrichment** | `MemoryManager` → vector store | `CrmMemoryBridge` → `SofiaGuestFactExtractor` → Neon facts + graph edges; Mem0 optional |
+| **Restaurant reservation deposit** | N/A | Adumo `dining_deposit` — `/restaurant/reservation/pay`, `dining_reservations`, folio line if `stay_booking_id` |
+
+Qdrant in Hotel Etuna is **knowledge-base retrieval only**, not a copy of Ava’s per-user long-term memory collection. Full chat history lives in PostgreSQL for audit, CRM, and session continuity.
 
 #### Phase 6 — Tests ✅
 **Status:** Complete per `TASK.md` (Vitest + `verify:production`; Playwright gated-pricing/public-components)
@@ -350,7 +379,7 @@ Every phase must pass:
 | NamQR v5 compliance | `lib/compliance/namqr/nrtc-payload.ts` (tag 17 NRTC desk), `standards.ts`; tag 26 IPP via `encodeNamQrPayloadV5` in `lib/services/qr/namqr-core.ts` |
 | NamQR desk API/UI | `app/api/payments/namqr/generate`, `confirm`, `app/(dashboard)/payments/desk/page.tsx`, `NamQrDeskPanel`, sidebar **Payments desk** |
 | Manual off-platform payments | `ManualPaymentService.ts`, `settleOffPlatformFolio.ts`, `app/api/payments/manual/route.ts`, `ManualPaymentForm` (EFT/e-wallet/deposit only) |
-| Neon migration verify | `scripts/db/verify-neon-migrations.ts` — `npm run test:db:migrations` (17 checks incl. `0016` fraud seed) |
+| Neon migration verify | `scripts/db/verify-neon-migrations.ts` — `npm run test:db:migrations` (18 checks incl. `0016` fraud seed, `0017` Sofia session index) |
 | DB baseline verify | `scripts/db/verify-db.ts` — `npm run test:db` |
 | Compliance smoke | `tests/smoke/compliance-fraud-db.smoke.test.ts` — `npm run test:smoke` or `npm run test:all` |
 | RLS post-0004 tables | `database/drizzle/0015_rls_inventory_payment_sessions.sql` |
@@ -669,10 +698,11 @@ ORDER BY tablename, indexname;
 > **Removed:** `tours-guide.md` (May 2026). Re-run ingest after deploy so Qdrant drops stale tour chunks.
 
 **Requirements:**
-- `QDRANT_URL` in `.env.local`
-- `VOYAGE_API_KEY` in `.env.local` (migrated from OpenAI)
-- `HUB_TENANT_ID` in `.env.local`
-- `EMBEDDING_MODEL` set to `voyage-3` or `voyage-3-large`
+- `QDRANT_URL`, `QDRANT_API_KEY`, `HUB_TENANT_ID`, `RAG_USE_QDRANT_INFERENCE=true` in `.env.local`
+- `QDRANT_INFERENCE_MODEL=intfloat/multilingual-e5-small`, `QDRANT_INFERENCE_DIMENSIONS=384`
+- Inference enabled on Qdrant Cloud cluster
+- `DEEPSEEK_API_KEY` — Sofia **chat** only
+- `AI_PROVIDER_ORDER=deepseek,openai,anthropic,llm` for Sofia replies
 
 ---
 
@@ -691,7 +721,7 @@ ORDER BY tablename, indexname;
 - [ ] RLS policies intact (run verification script)
 
 **Secrets Verification:**
-- [ ] Voyage/Qdrant keys in Vercel are current
+- [ ] Qdrant keys + `RAG_USE_QDRANT_INFERENCE` in Vercel are current
 - [ ] If credentials were exposed, rotate in-provider and update Vercel only
 - [ ] Never commit secrets to repository
 
@@ -709,10 +739,13 @@ Configure per environment (Production / Preview):
 | `DEFAULT_PROPERTY_ID` | Property UUID |
 | `QDRANT_URL` | Qdrant Cloud |
 | `QDRANT_API_KEY` | Scoped API key |
-| `VOYAGE_API_KEY` | Embeddings provider |
-| `EMBEDDING_MODEL` | e.g., `voyage-3` or `voyage-3-large` |
+| `DEEPSEEK_API_KEY` | Sofia chat (primary) |
+| `RAG_USE_QDRANT_INFERENCE` | `true` |
+| `QDRANT_INFERENCE_MODEL` | `intfloat/multilingual-e5-small` |
+| `QDRANT_INFERENCE_DIMENSIONS` | `384` |
+| `RAG_ENABLED` | `true` for Sofia KB retrieval |
 | `SMTP_*` | SMTP for transactional email |
-| `ANTHROPIC_API_KEY` / `GROQ_API_KEY` | As used by Sofia router |
+| `ANTHROPIC_API_KEY` | Optional LLM fallback only |
 
 **Security Notes:**
 - Do NOT paste keys into tickets or chat
@@ -741,8 +774,7 @@ Configure per environment (Production / Preview):
 ### Deferred Items (Tracked, Not Blocking)
 
 **Vector Ingestion:**
-- `scripts/ingest-hotel-etuna-knowledge.ts` not run against Voyage on free/low tier
-- Deferred due to 429 batch limits
+- Re-run `npm run rag:seed` after KB markdown changes (27 chunks / 4 files as of May 2026)
 - Ingestion is a maintenance-window task (Phase 5)
 
 **Partner features (live — remaining gaps only):**
@@ -815,8 +847,7 @@ Configure per environment (Production / Preview):
    - Hub/property UUIDs
    - Neon URLs (pooled + unpooled)
    - LLM keys (Anthropic, Groq)
-   - Qdrant URL + API key
-   - Voyage API key
+   - Qdrant URL + API key + `RAG_USE_QDRANT_INFERENCE=true` (384d)
    - SMTP credentials
    - NextAuth URL + secret
 3. Apply schema: `npm run db:push` (or migration workflow)
@@ -829,13 +860,13 @@ Configure per environment (Production / Preview):
    ```bash
    npx tsx scripts/ingest-hotel-etuna-knowledge.ts --dry
    ```
-   Run without `--dry` when keys and Qdrant dimensions match
+   Run without `--dry` when Qdrant Inference is enabled on the cluster
 6. Dev server: `npm run dev` → http://localhost:3000
 
 **Ingestion Troubleshooting:**
-- Voyage rate limits: wait and retry, or use local embedding path
-- Dimension mismatch: requires recreating or migrating Qdrant collection
-- Verify `EMBEDDING_MODEL` matches Qdrant collection dimensions
+- Enable Inference on Qdrant Cloud cluster
+- Dimension mismatch: collection must be **384d** — delete `buffr_rag` or use new `RAG_QDRANT_COLLECTION` if created at 1024d
+- Verify `QDRANT_INFERENCE_DIMENSIONS=384` matches collection
 
 **Sofia Smoke Test:**
 With `RAG_ENABLED=true`, ask doc-specific questions:
@@ -918,6 +949,31 @@ Code inspection and commands run against the repo (not agent reports alone). Det
 
 ---
 
+## Hotel Etuna — DRY & Boy Scout Roadmap (May 17, 2026)
+
+**Scope:** `hotel-etuna/` only — production PMS (~136 API routes, `app/api`, `lib/services`, `database/drizzle`, `docs/compliance`).
+
+| Area | Single source of truth | Status |
+|------|------------------------|--------|
+| Sofia concierge | `processSofiaConciergeMessage()` → `lib/services/ai/sofia-concierge-handler.ts` | ✅ |
+| Sofia HTTP | `lib/services/ai/sofia-api-handlers.ts` | ✅ |
+| SOC2 runtime | `Soc2AuditOrchestrator` + `control-matrix.ts` + `run-all-soc2-agents.ts` | ✅ |
+| SOC2 static catalog | `nayaone-tsc-framework.ts`; `control-catalog.ts` re-exports only | ✅ May 17 |
+| Fraud (tenant rules) | `lib/services/fraud/tenant-fraud-rules.ts` on `PsdPaymentFraudGate` | ✅ |
+| Tenant API auth | `requireTenantSessionUser()` in `lib/utils/api-helpers.ts` | ✅ |
+| DB schema | `lib/db/schema.ts` + forward SQL in `database/drizzle/` | ✅ |
+
+**Boy Scout backlog (in-repo):**
+
+- [x] Apply `0017_ai_conversations_tenant_session_idx.sql` on Neon → `npm run test:db:migrations` **18/18** (May 17, 2026)
+- [ ] G-08 executive policy sign-off → `compliance/evidence/policies/`
+- [ ] G-01 / G-06 DSAR + cookie consent
+- [ ] Full `npm run test:ci` before major release
+
+**Do not DRY:** hub CRM vs partner portal; folio ledger vs marketing profile; compliance policy markdown vs runtime control seeds (different audiences).
+
+---
+
 ## References & Archived Narratives
 
 **System design canon:**
@@ -952,4 +1008,4 @@ Code inspection and commands run against the repo (not agent reports alone). Det
 
 ---
 
-**Last verified:** May 17, 2026 (test pipeline + migrations 0011–0016 + compliance smoke)
+**Last verified:** May 17, 2026 (test pipeline + migrations 0011–0017 + DRY P0 + compliance smoke)

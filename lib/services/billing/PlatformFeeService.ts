@@ -32,11 +32,11 @@ const DEFAULT_SCHEDULE: PlatformFeeSchedule = {
 export interface CardPaymentCommercialContext {
   grossAmount: number;
   currency: string;
-  purpose: 'booking_deposit' | 'folio_settle';
+  purpose: 'booking_deposit' | 'folio_settle' | 'dining_deposit';
   merchantReference: string;
   gatewayTransactionId: string;
   tenantId: string;
-  bookingId: string;
+  bookingId?: string | null;
 }
 
 export interface PlatformFeeAccrual {

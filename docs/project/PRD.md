@@ -1,6 +1,6 @@
 # Hotel Etuna — Product Requirements Document (PRD)
 
-**Version:** 2.9.1  
+**Version:** 2.9.3  
 **Date:** May 17, 2026  
 **Auditor:** Product Team  
 **Status:** **In production** (Vercel + Neon). All core features complete. This is the consolidated single source of truth for all product requirements.  
@@ -128,7 +128,7 @@ Marketing personas in **§2.1** describe *who books and why*. The table below ma
 | Trade fair / conference attendee | **`guest`** | J2 → J3 → J4 | Same | `/guest` | Same as guest | Same |
 | Family / leisure traveller | **`guest`** | J2 → J3 → J4 | Same | `/guest` | Same as guest | Same |
 | International visitor | **`guest`** | J1 → J2 → J3 → J4 | Same | `/guest` | Public browse; after verify: book + in-stay hub | Rates/booking while anonymous |
-| Anonymous visitor (pre-account) | — | J1 | — | `/`, `/rooms`, `/dining` | Marketing, menu book, partner directory | Prices, complete booking, folio |
+| Anonymous visitor (pre-account) | — | J1 | — | `/`, `/rooms`, `/dining` | Marketing, digital menu, partner directory | Prices, complete booking, folio |
 | Front desk / F&B / ops | **`staff`** | J5 | Footer → `/login?redirect=/dashboard` | `/dashboard` | Bookings, check-in/out, restaurant, payments desk | `/api/guest/*` consumer APIs; cross-tenant data |
 | Hotel manager / owner | **`manager`** / **`owner`** | J5 | Footer staff login | `/dashboard`, `/settings`, `/payments/*` | All hub ops + reconciliation, VAT reports, staff | Partner tenants; platform console |
 | Partner lodge operator | **`partner_*`** (partner tenant) | J6 | Invite / partner login | `/partner/*` | Own properties, bookings, rates | Hub Sofia, hub CRM, `/api/guest/stays/*`, other tenants |
@@ -153,26 +153,26 @@ Marketing personas in **§2.1** describe *who books and why*. The table below ma
 | Domain | Requirements |
 |--------|----------------|
 | **PMS** | Complete property management for Hotel Etuna: 5 room types (Standard, Luxury, Family, Executive Suite, Premier), dynamic rates (editable via admin), availability calendar, online booking flow, booking lifecycle (confirmed → checked‑in → checked‑out → completed/cancelled). Hub admin can view all bookings (own + partners) for commission reporting. |
-| **Restaurant** | Etuna Restaurant: **12 menu categories**, **~110+ live items** in Neon (`menu_categories` + `cms_menu_items`; catalog `lib/data/etuna-restaurant-menu-catalog.ts` for seed/reference). **Public digital menu book** on `/dining` (§3.1.1). Table QR dine‑in, **in‑room room service** (checked‑in only) on **stay folio** (`booking_charges`), order lifecycle (pending → preparing → served). **Hours:** breakfast **07:00–10:00**; lunch, dinner & bar orders **10:00–22:00** (`lib/dining/restaurant-hours.ts`). **Signature dishes:** Full Breakfast, King Klip, Oxtail, Lamb Curry, Etuna Chicken Mushroom pizza. **F&B inventory:** SKU-level stock + low-stock alerts (`database/drizzle/0011_fnb_inventory.sql`, `lib/services/inventory/InventoryService.ts`). APIs: `GET /api/public/room-qr/[code]`, `GET/POST /api/guest/stays/[bookingId]/folio|orders|settle`. |
+| **Restaurant** | Etuna Restaurant: **12 menu categories**, **~110+ live items** in Neon (`menu_categories` + `cms_menu_items`; catalog `lib/data/etuna-restaurant-menu-catalog.ts` for seed/reference). **Public digital menu** on `/dining` (§3.1.1 — single-page, 2×3 food grid). Table QR dine‑in, **in‑room room service** (checked‑in only) on **stay folio** (`booking_charges`), order lifecycle (pending → preparing → served). **Hours:** breakfast **07:00–10:00**; lunch, dinner & bar orders **10:00–22:00** (`lib/dining/restaurant-hours.ts`). **Signature dishes:** Full Breakfast, King Klip, Oxtail, Lamb Curry, Etuna Chicken Mushroom pizza. **F&B inventory:** SKU-level stock + low-stock alerts (`database/drizzle/0011_fnb_inventory.sql`, `lib/services/inventory/InventoryService.ts`). APIs: `GET /api/public/room-qr/[code]`, `GET/POST /api/guest/stays/[bookingId]/folio|orders|settle`. |
 | **Guest CRM** | Comprehensive guest profiles, preferences, **CRM memory** (facts, relationship edges), contact history, marketing consent. **`guest_profiles`** holds **loyalty tier/points** (permanent); **`booking_charges`** holds **per‑stay folio** (room + F&B + settlement) — not duplicated. **Loyalty program:** Earn 1 point per N$10 spent on folio settlement; redeem 100 points = N$50 folio adjustment. `/api/crm/*` endpoints accessible by hub admin across all properties. |
 | **Staff & Dashboard** | Role‑based access for Hotel Etuna staff (owner, manager, front‑desk, housekeeping, kitchen). Audit logging for all sensitive actions. Staff dashboard is hub‑specific and includes partner management features. |
 | **Communications** | Sofia AI voice/web chat, WhatsApp webhook, support tickets. Email automation (booking confirmations, check‑in reminders, post‑stay thank you). **Hub tenant only** — partners do not have Sofia AI or email automation. |
 | **Support** | Platform support tickets for hotel staff and partners. Integrated issue tracker for bug reports, feature requests. Hub admin can view all support tickets. |
 | **Compliance & Risk** | Consumer rights / cyber incident lifecycles; **KYC/KYB for Hotel Etuna and all partners**. Court‑admissible audit themes. All regulatory requirements (PSD‑12, PSD‑4, ETA 2019) apply platform‑wide. |
-| **AI (Sofia)** | **Hub‑exclusive AI concierge** with knowledge base for Hotel Etuna only. RAG over Hotel Etuna property documents, guest preferences, CRM memory. **Knowledge base contains 4 documents** (hotel facts, room descriptions, restaurant menu, local area info), **~9 semantic chunks**, **OpenAI text-embedding-3-small (1536d)**, stored in **Qdrant vector database**. Human escalation for low confidence or policy keywords. **Partners do not have access to Sofia AI or any AI features.** Sofia enforces gated content: will not disclose prices or availability to unauthenticated users, instead prompts sign‑up. **Ingestion script: `scripts/ingest-hotel-etuna-knowledge.ts`** with semantic chunking (~800 chars, 100-char overlap), batch embedding generation, retry logic, and idempotent upserts. |
-| **Guest‑Facing Website** | Public homepage with hero, **room photo tours** (`/rooms`, `/rooms/[slug]` — §3.1.2), restaurant menu book (`/dining` — §3.1.1), photo gallery, contact page, **plus** a "Referral Partners" section showcasing partner properties. Fully branded with Hotel Etuna visual identity. **✅ Database‑driven** — all content pulled live from Neon DB. **✅ Review approval workflow** (`is_public` toggle in admin dashboard at `/crm/reviews` — filter by status, sort by date/rating, real-time optimistic UI updates). **✅ Gated content model** — prices/booking hidden until login; room tours and menu browse are public. **✅ ISR caching: 5-minute revalidation** for performance. **Contact details verified:** 5544 Valley Street, Ongwediva; +264 65 231 177; +264 81 802 4833; check-in 14:00, check-out 11:00. **All room slugs:** `standard-room`, `luxury-room`, `family-room`, `executive-suite`, `premier-room`. |
+| **AI (Sofia)** | **Hub‑exclusive AI concierge** with knowledge base for Hotel Etuna only. RAG over Hotel Etuna property documents, guest preferences, CRM memory. **Knowledge base contains 4 documents** (hotel facts, room descriptions, restaurant menu, local area info), **~27 semantic chunks**, **Qdrant Cloud Inference** (`intfloat/multilingual-e5-small`, **384d**), collection **`buffr_rag`**. Human escalation for low confidence or policy keywords. **Partners do not have access to Sofia AI or any AI features.** Sofia enforces gated content: will not disclose prices or availability to unauthenticated users, instead prompts sign‑up. **Ingestion:** `npm run rag:seed` — semantic chunking (~800 chars, 100-char overlap), Qdrant Inference upsert, tenant-scoped `buffr_rag`. **Conversations** persist in Neon (`ai_conversations` / `ai_messages`, tenant-scoped history). **Long-term guest memory:** Neon `crm_guest_memory_facts` + `crm_graph_edges` (auto-written after each turn via `SofiaGuestFactExtractor`); optional Mem0 mirror if `MEM0_API_KEY` set — **not** Ava-style `long_term_memory` in Qdrant. **Restaurant flow state:** `ai_conversations.context` JSONB + `dining_reservations`. |
+| **Guest‑Facing Website** | Public homepage with hero, **room photo tours** (`/rooms`, `/rooms/[slug]` — §3.1.2), restaurant digital menu (`/dining` — §3.1.1), photo gallery, contact page, **plus** a "Referral Partners" section showcasing partner properties. Fully branded with Hotel Etuna visual identity. **✅ Database‑driven** — all content pulled live from Neon DB. **✅ Review approval workflow** (`is_public` toggle in admin dashboard at `/crm/reviews` — filter by status, sort by date/rating, real-time optimistic UI updates). **✅ Gated content model** — prices/booking hidden until login; room tours and menu browse are public. **✅ ISR caching: 5-minute revalidation** for performance. **Contact details verified:** 5544 Valley Street, Ongwediva; +264 65 231 177; +264 81 802 4833; check-in 14:00, check-out 11:00. **All room slugs:** `standard-room`, `luxury-room`, `family-room`, `executive-suite`, `premier-room`. |
 | **Platform** | Hub‑and‑spoke multi‑tenancy with `tenant_type` distinction. Hub admin has elevated permissions. Domain: `hoteletuna.com` with partner subpages at `/partners/[slug]`. |
 
-#### 3.1.1 Public digital menu book (`/dining`)
+#### 3.1.1 Public digital menu (`/dining`)
 
 | Layer | Implementation |
 |-------|----------------|
 | **Data** | `getCompleteMenu()` (`lib/data/dining.ts`) loads **only** from Neon — no runtime catalog fallback. `serializePublicMenu()` (`lib/dining/serialize-public-menu.ts`) builds the client payload; `is_available = true` filter applied. |
 | **Images** | Dish photos from `cms_menu_items.image_url`. Seeded/validated via `npm run seed:menu-images` / `validate:menu-images` / `seed:menu-images:full` (`scripts/seed-menu-images.ts`, `lib/data/menu-item-image-urls.ts`, **480×360** thumbs; Unsplash + Wikimedia; `next.config.ts` remote patterns). |
 | **Guest favourites** | Top dishes from **order analytics (90 days)** — `MenuPopularityService` + `featuredMenuItemIds` passed into serializer (not hardcoded dish names). |
-| **UX** | `PublicMenuBoard` → optional **Guest favourites** horizontal strip, then **one full-menu book** (`MenuBookFullMenu`) with **all categories and items** in display order. **No category tabs, search bar, or dish-count helper** above the book. |
-| **Page turn** | `MenuPageTurner` — 3D spread turn (click corner, drag, ← →). Cover: full-menu title + section index on back. Content pages chunked per category (`lib/dining/menu-book-pagination.ts`): **food = 4 items per face (2×2 grid with thumbnails)**; **drinks = compact list (8 per face, no thumbnails)**. Tap tile → `MenuBookItemDetailDialog`. |
-| **Components** | `PublicMenuBoard`, `MenuBookFullMenu`, `MenuBookFullMenuCoverFace`, `MenuPageTurner`, `MenuBookItemsFace`, `MenuBookItemTile`, `MenuBookItemDetailDialog`, `MenuBookContinueFace`, `PublicMenuFeaturedCard`. Pagination/helpers: `lib/dining/menu-book-pagination.ts`. CMS form: `BasicInfoForm` (create + edit). |
+| **UX** | `PublicMenuBoard` → optional **Guest favourites** horizontal strip, then **single-page full menu** (`MenuBookFullMenu` → `MenuBookSinglePageViewer`) with **all categories and items** in display order. **No category tabs, search bar, or dish-count helper** above the menu. |
+| **Navigation** | **One full-width page at a time** with **Previous** / **Next** (keyboard ← →). Cover → section index → category pages. Chunking (`lib/dining/menu-book-pagination.ts`): **food = 6 items per page (2×3 grid)** with thumbnail + **name, description (when set), dietary tags, NAD price** on each tile; **drinks = compact list (8 per page, no thumbnails**, name + description + price). Tap tile → `MenuBookItemDetailDialog`. Legacy two-page 3D book (`MenuPageTurner`) retained in repo but **not used** on `/dining`. |
+| **Components** | `PublicMenuBoard`, `MenuBookFullMenu`, `MenuBookSinglePageViewer`, `MenuBookFullMenuCoverFace`, `MenuBookItemsFace`, `MenuBookItemTile`, `MenuBookItemDetailDialog`, `MenuBookContinueFace`, `PublicMenuFeaturedCard`. Pagination: `lib/dining/menu-book-pagination.ts` (`FOOD_GRID_ITEMS_PER_FACE = 6`). CMS: `BasicInfoForm` (create + edit). |
 | **CMS** | Staff edit name, description, price, `image_url`, availability at `/menu/[itemId]/edit` → `PATCH /api/menu/[itemId]` (`MenuService.updateMenuItem`). Restaurant menu UI links to same editor. |
 | **Ordering** | Public `/dining` is **view-only** (browse + prices). Banner + CTA: sign in to order (`publicCopy.gated.menuBrowseOnly`). Checked-in guests order via guest stay / folio flows (authenticated). |
 
@@ -335,7 +335,9 @@ Hotel Etuna uses **Namibia NPS-aligned rails** (no Stripe). **Card payments** us
 | Confirm | Validate JWT (`mref`, `amount`, `cuid`, `auid`, `result`) | `POST /api/payments/virtual/confirm` |
 | Webhook | Async notification | `POST /api/webhooks/adumo` |
 
-**Purposes:** `booking_deposit` (updates `bookings.payment_status`, `transactions`, `booking_charges` payment line) · `folio_settle` (calls `FolioService.settleFolio` with `gatewayTransactionId`).
+**Purposes:** `booking_deposit` (updates `bookings.payment_status`, `transactions`, `booking_charges` payment line) · `folio_settle` (calls `FolioService.settleFolio` with `gatewayTransactionId`) · `dining_deposit` (Sofia table reservation — `dining_reservations` + optional in-stay folio payment line when `metadata.stay_booking_id` is set).
+
+**Dining deposit (Sofia / Enish-style):** Guest email link → `/restaurant/reservation/pay?code=…` → `POST /api/restaurant/reservations/pay/initiate` → Adumo hosted page → `completeAdumoVirtualPayment` with `purpose: dining_deposit`. Cancel: `POST /api/restaurant/reservations/cancel` (booking code + OTP). Migrations: `0018_dining_reservations.sql`, `0019_dining_adumo_payment_sessions.sql`.
 
 **Env (test):** `ADUMO_BASE_URL=https://staging-apiv3.adumoonline.com`, `ADUMO_MERCHANT_UID`, `ADUMO_APPLICATION_UID`, `ADUMO_JWT_SECRET`, `ADUMO_REDIRECT_SUCCESS_URL`, `ADUMO_REDIRECT_FAIL_URL`, `ADUMO_WEBHOOK_URL`. Test Merchant UID / JWT secret per Adumo Virtual docs; 3DS Application UID `23ADADC0-DA2D-4DAC-A128-4845A5D71293`.
 
@@ -686,6 +688,77 @@ Full route list: **§4.7** and `app/api/**/route.ts`.
 
 ---
 
+### 3.7 Compliance, regulatory posture & SOC 2
+
+**Canonical docs (do not proliferate):** `docs/compliance/` (Namibia programs + policies), `docs/SECURITY_PROMPT_PACK.md`, `docs/project/SOC2_IMPLEMENTATION_PLAN.md`. **BoN source corpus (read-only reference):** `mba-agent/documents/mba-agent/regulatory/namibia/` — indexed in **Appendix F**.
+
+**Legal posture (product, not legal advice):** Hotel Etuna is a **hospitality merchant**; Buffr is **multi-tenant SaaS + platform billing**. Guest payments use **licensed rails** (Adumo Virtual hosted card, NamQR v5 + bank-app settlement, manual EFT/cash). **Not in scope for v1:** BoN-licensed PSP, e-money issuance, open-banking TPP/PIS, crypto.
+
+#### 3.7.1 Namibia regulatory matrix (summary)
+
+| Domain | Instrument | Regulator | Product / evidence | Gap ID |
+|--------|------------|-----------|------------------|--------|
+| NPS / payments | PSMA 2023; PSD-1 (2026); PSP Guidance Note | BoN | Adumo Virtual; NamQR; `lib/compliance/regulatory-context.ts` | G-03 (open banking P2) |
+| Cards (CNP) | PSD-4 | BoN | Hosted page — **SAQ A**; no PAN on origin | Counsel: domestic acquirer only |
+| EFT / QR | PSD-9; NamQR v5.0 (May 2025) | BoN | `lib/compliance/namqr/*`; `/api/payments/namqr/*`; `/payments/desk` | Desk confirm = ops reconcile, not switch settlement |
+| Cyber / ops | PSD-12 | BoN | `PsdPaymentFraudGate`, 2FA on pay ops, `cybersecurity_incidents`, IRP | G-04 (live BoN API) |
+| E-commerce | ETA 2019 | Courts / MIT | `audit_trail`, `consumer_rights_requests`, `app/legal/*` | G-01, G-06 |
+| AML/CFT | FICA 2012 | FIC | `aml_*`, `/api/compliance/aml/*`, `/compliance/kyc` | G-05 (no live goAML) |
+| Data protection | Draft Bill; Constitution Art. 13 | TBD | `DATA_PROTECTION_AND_PRIVACY_PROGRAM.md` | G-01 (DSAR portal) |
+| VAT | VAT Act 10 of 2000 | NamRA | `lib/platform/namibia-tax.ts`, `/reports/property-vat` | G-02 (e-invoicing) |
+| Tourism | NTB Act 21/2000 | NTB | `HOSPITALITY_AND_TOURISM_COMPLIANCE.md` | Ops certificates |
+| Voluntary attestation | SOC 2 TSC | CPA | `/compliance/soc2`, `Soc2AuditOrchestrator` | G-08, G-09 |
+
+Full matrix + gap register: **`docs/compliance/NAMIBIA_REGULATORY_FRAMEWORK.md` §3, §6**.
+
+**Buffr facilitator risk:** If Buffr **holds or routes** guest card settlements without PSD-1 authorisation, product crosses into **payment facilitator** territory (PSP Guidance §6.6.3). **Requirement:** guest card proceeds settle to **Hotel Etuna Nedbank** (`lib/platform/settlement-accounts.ts`); platform fees via **separate B2B invoice** (§3.4).
+
+#### 3.7.2 Payment & fraud controls (runtime truth)
+
+| Layer | What runs | Notes |
+|-------|-----------|-------|
+| **Card initiate** | `PsdFraudGate` on `POST /api/payments/initiate` | Built-in velocity/amount/device/geo + **`applyTenantFraudRules`** (`lib/services/fraud/tenant-fraud-rules.ts`) |
+| **DB rules (0016)** | `fraud_detection_rules` per tenant | Seed: velocity **5/h** → `review`, NAD **≥50k** → `block`, geo mismatch → `review`; **`conditions` JSON evaluated** |
+| **Analyze API** | `FraudDetectionService` class | `/api/fraud/analyze` — same `evaluateTenantFraudRule`; `block` / `decline` → declined |
+| **Fail mode** | Production / `FRAUD_GATE_FAIL_CLOSED=true` | Gate errors → **block** (not fail-open); dev → review |
+| **BoN fraud trends** | NPS report | **Backlog:** CNP repeat-failure + EFT-confirm dual-control rules in seed |
+
+**Implemented May 17, 2026:** Unified tenant rule evaluator; tests `tests/unit/tenant-fraud-rules.test.ts`.
+
+#### 3.7.3 SOC 2 Type II program (target Nov 2026)
+
+| Item | Status | Location |
+|------|--------|----------|
+| Plan & phases | ~45–58% readiness (formalization gap) | `docs/project/SOC2_IMPLEMENTATION_PLAN.md` |
+| Policies written | **21 / 21** (drafts; sign-off pending) | `docs/compliance/policies/` |
+| Evidence automation | Agents + export | `lib/compliance/soc2/*`, `GET /api/compliance/soc2`, `/compliance/soc2`, `/admin/platform/soc2` |
+| CLI evidence | | `npx tsx scripts/soc2/collect-evidence.ts` → `compliance/evidence/soc2/` |
+| IR / BCP | Docs ✅; tabletop **not run** | `INCIDENT_RESPONSE_PLAN.md`, `BUSINESS_CONTINUITY_PLAN.md` (RTO **4h** / RPO **1h** in BCP — align SOC2 plan tables) |
+| **Not audit-ready until** | Signed policies, vendor SOC/PCI packs, 6-month evidence, CPA | G-08, G-09 |
+
+#### 3.7.4 Security Prompt Pack & release gate
+
+| Artifact | Purpose |
+|----------|---------|
+| `docs/SECURITY_PROMPT_PACK.md` | §1–15 AI review prompts; §14 Master Review; §15 Deployment Pre-Flight |
+| `npm run security:preflight` | Automated subset (secrets, XSS helpers, rate limits, debug route, `npm audit`) → `compliance/evidence/security/preflight-*.json` |
+| `.cursor/rules/hotel-etuna-security-prompts.mdc` | Require §14 + preflight before production deploy |
+
+**CI:** `security-audit.yml` on `main`; full gate in `ci.yml` (`test:ci` + build). **Manual:** §14 + remaining §15 items (auth on all mutating routes, CORS lock, cookie flags).
+
+#### 3.7.5 Out of scope (regulatory)
+
+| Topic | Reason |
+|-------|--------|
+| PSD-3 e-money issuance | No guest NAD wallets |
+| PSD-6 / PSD-13 system operator | Not operating NPS switch |
+| Open Banking TPP (draft v1.0) | `ob_*` schema only; PIS roadmap G-03 |
+| NAMFISA microlending sandbox | Not a lender |
+| Virtual assets | No crypto payments |
+| Licensed PSP without counsel sign-off | Buffr must not facilitate instructions while holding guest funds |
+
+---
+
 ## 4. Technical Stack & Infrastructure
 
 ### 4.1 Core Technologies
@@ -703,7 +776,7 @@ Full route list: **§4.7** and `app/api/**/route.ts`.
 | **Vector DB** | Qdrant | Cloud/Self-hosted | Sofia AI knowledge base (`sofia_knowledge` collection) |
 | **Authentication** | Stack Auth + NextAuth.js | — | Stack Auth primary, NextAuth fallback |
 | **AI/LLM** | Multi-provider | — | DeepSeek → Anthropic → Groq (fallback chain) |
-| **Embeddings** | OpenAI | `text-embedding-3-small` | 1536 dimensions, batch processing |
+| **Embeddings** | Qdrant Cloud | `intfloat/multilingual-e5-small` | 384 dimensions, inference at upsert/query |
 | **Email** | Nodemailer | — | Namecheap PrivateEmail SMTP |
 | **Deployment** | Vercel | — | Auto-deploy from `main` branch |
 | **Domain** | `hoteletuna.com` | — | Vercel DNS, SSL auto-provisioned |
@@ -954,7 +1027,7 @@ ob_participants ← ob_consent_tokens ← ob_api_transactions
 | 0015 | RLS for `booking_charges`, F&B inventory, `payment_sessions`, `stock_movements` |
 | 0016 | Fraud detection rules seed (`0016_fraud_detection_rules_seed.sql`) |
 
-*Drizzle journal may only list 0000–0002; 0003–0016 applied via Neon/psql. Verify: `npm run test:db:migrations` (17 checks).*
+*Drizzle journal may only list 0000–0002; 0003–0017 applied via Neon/psql. Verify: `npm run test:db:migrations` (18 checks).*
 
 ### 4.3 API Architecture
 
@@ -1026,7 +1099,7 @@ Aligned with **`SYSTEM_DESIGN_MASTER_GUIDE.md`** (repo root, Part 3). Hotel Etun
 **Processing pipeline:**
 ```
 Markdown files → Semantic chunking (~800 chars, 100-char overlap)
-→ OpenAI embeddings (text-embedding-3-small, 1536d)
+→ Qdrant Cloud Inference (multilingual-e5-small, 384d)
 → Qdrant upsert (collection: sofia_knowledge, tenant_id filter)
 ```
 
@@ -1325,6 +1398,7 @@ Regenerated May 17, 2026 (`tree -L 3` from `hotel-etuna/`). **229 directories, 3
 |   |   |-- MenuBookItemDetailDialog.tsx
 |   |   |-- MenuBookItemTile.tsx
 |   |   |-- MenuBookItemsFace.tsx
+|   |   |-- MenuBookSinglePageViewer.tsx
 |   |   |-- MenuPageTurner.tsx
 |   |   |-- PublicMenuBoard.tsx
 |   |   `-- PublicMenuFeaturedCard.tsx
@@ -1547,9 +1621,8 @@ Regenerated May 17, 2026 (`tree -L 3` from `hotel-etuna/`). **229 directories, 3
 |   |   `-- useTenant.ts
 |   |-- integrations/
 |   |   |-- whatsapp/
-|   |   |-- embeddings-alternative.ts
-|   |   |-- embeddings-deepseek.ts
-|   |   |-- embeddings-voyage.ts
+|   |   |-- embeddings-rag.ts
+|   |   |-- qdrant-inference.ts
 |   |   |-- linear.ts
 |   |   |-- mem0.ts
 |   |   `-- qdrant.ts
@@ -1953,7 +2026,7 @@ Hotel Etuna uses a **gated content model** to:
 | **Landing (/)** | Hero, story, room **names & images** (no prices), dining overview (no prices), approved reviews, partner cards, footer. | Room prices, booking form (replaced with "Sign in to check"), menu prices. | "View Rooms" → `/rooms`<br>"Sign Up to See Prices" on room cards. |
 | **/rooms** | **Photo-tour filmstrip** — same **Take the tour** CTA for all visitors; no prices on cards. Signed-in banner explains rates on detail pages. | NAD rates, booking form. | Guests: sign-in banner. All: **Take the tour** → `/rooms/[slug]#tour`. |
 | **/rooms/[slug]** | **`RoomPhotoTour`** (identical UX signed-in or guest), description, highlights, amenities, capacity. | Guests: nightly rate, **`#booking`** widget. | Guests: **Sign in** on card + banner. Signed-in: rates + **Complete your booking** → `#booking`. |
-| **/dining** | Restaurant overview; **digital menu book** (all categories/items), dish photos, names, descriptions, **NAD prices**; guest favourites strip (analytics). Page-turn UX (click, drag, ← →). | In-page room-service ordering (folio) for guests not checked in. | "Sign In to Order Online" / reservation CTA in hours section. |
+| **/dining** | Restaurant overview; **digital menu** (all categories/items), dish photos, names, descriptions, **NAD prices** on tiles; guest favourites strip (analytics). **Single-page** UX: Previous / Next, 2×3 food grid per page. | In-page room-service ordering (folio) for guests not checked in. | "Sign In to Order Online" / reservation CTA in hours section. |
 | **/partners & /partners/[slug]** | Partner property info, images, descriptions, room types. | Partner prices, partner booking widget. | "Sign In to View Partner Rates & Book". |
 | **Sofia AI Chat** | Public visitors can ask general questions (e.g., "Do you have a pool?", "What time is check‑in?"). Sofia **must not** disclose room rates, availability, or take booking requests from unauthenticated users. | Prices, availability, booking. | Sofia replies: *"For pricing and availability, please sign up — it only takes a minute!"* |
 
@@ -2053,7 +2126,7 @@ UI: `GuestStaysList`, `GuestLoyaltySummary`, `GuestFolioPanel` (past-stay banner
 | **AuthGate Context** | React Context exposing `isAuthenticated` (from session). All price displays check this before rendering. |
 | **Landing Page** | Replace price lines with "Sign in to view prices". Hide booking widget, show "Sign in to check availability" card. |
 | **Room Pages** | Hide prices when `!isAuthenticated`. Replace booking button with "Sign In" CTA. |
-| **Dining Page** | Full menu book with prices on `/dining` (see §3.1.1). Reservation/order CTA uses `publicCopy.gated.orderOnline` when unauthenticated. Landing/home dining teasers may still hide prices per product policy. |
+| **Dining Page** | Full menu with prices on `/dining` — single-page viewer, 2×3 food grid (see §3.1.1). Reservation/order CTA uses `publicCopy.gated.orderOnline` when unauthenticated. Landing/home dining teasers may still hide prices per product policy. |
 | **Partner Pages** | Apply same gating: hide partner room prices, replace booking widget with sign‑in prompt. |
 | **Sofia AI** | System prompt: *"Never disclose prices or availability to unauthenticated users. Instead, invite them to sign up."* Chat widget visible to all, but responses change based on auth state. |
 | **Login Redirect** | After successful login, read `redirect` query param; else `getPostLoginRedirect(role)` (`lib/auth/roles.ts`). **Header** pre-sets `redirect=/guest`; **footer staff link** pre-sets `redirect=/dashboard`. Register → verify email → `/guest`. |
@@ -2084,12 +2157,18 @@ UI: `GuestStaysList`, `GuestLoyaltySummary`, `GuestFolioPanel` (past-stay banner
 
 ### 6.2 Security & Compliance
 
+**Program index:** **§3.7** (Namibia matrix, fraud dual-stack, SOC 2, Security Prompt Pack). **Docs:** `docs/compliance/`, `docs/SECURITY_PROMPT_PACK.md`, `docs/project/SOC2_IMPLEMENTATION_PLAN.md`.
+
 - **Authentication:** **NextAuth** (credentials) is the live path for guests, hotel staff, and Buffr platform admins. **Stack Auth** is optional: `lib/auth/stack-env.ts` skips SDK init when keys are missing or placeholders. **Platform admin UI** resolves the signed-in user via NextAuth when Stack is disabled (`getAuthenticatedEmail()` in `lib/auth/platform-admin.ts`). **Neon Auth** URLs may be provisioned in env for future use; do not duplicate conflicting `NEON_AUTH_*` hostnames. JWT/session includes `tenant_id` and `role` claims.
 - **Authorization:** RBAC: `owner`, `manager`, `admin`, `staff`, `super-admin` (Buffr platform). Middleware enforces tenant isolation; `super-admin` / `admin` (session role) bypass route lists for builder access. Hub‑only routes (`/api/sofia/*`, `/api/crm/*`, `/api/ai/*`) return 403 for partners. Platform routes: `isPlatformAdmin()` requires `@buffr.ai` email + role + flag/tenant rule (§3.3.2).
-- **Rate Limiting:** Aggressive limits on partner invite endpoint (5 requests/hour). Standard limits on public APIs (100 requests/minute per IP).
+- **Payments (Namibia):** Adumo Virtual (SAQ A); NamQR v5 desk flow; no Stripe; settlement to Etuna Nedbank for guest collections (§3.5, §3.7).
+- **Fraud:** **`PsdFraudGate`** on card initiate + **`tenant-fraud-rules`** evaluates migration **`0016`** rules; production fail-closed (§3.7.2).
+- **AML / incidents:** FICA program + internal STR workflow; BoN incident reporting via `BonIncidentReportingService` (**simulated** without `BON_API_KEY` — G-04).
+- **Rate Limiting:** Aggressive limits on partner invite endpoint (5 requests/hour). Standard limits on public APIs (100 requests/minute per IP). Redis required in production (`RATE_LIMIT_REDIS_REQUIRED`).
 - **Two‑Factor Authentication:** Required for all hub admin actions affecting payments, commissions, or partner management.
-- **Data Protection:** GDPR and POPIA compliant. Marketing consent flags enforced in CRM queries. Audit trail logs all sensitive operations with old/new values, user ID, IP, timestamp.
+- **Data Protection:** GDPR/POPIA **readiness** (draft Bill); DSAR portal and cookie banner gaps G-01, G-06. Marketing consent in CRM. `audit_trail` for sensitive ops.
 - **Session Management:** 8‑hour absolute session max, 30‑minute inactivity timeout (with 2‑minute warning toast), rolling session extension on activity.
+- **Release gate:** `npm run security:preflight` + Security Prompt Pack §14 before deploy; `npm run verify:production` in CI.
 
 ### 6.3 Branding & User Experience
 
@@ -2158,7 +2237,7 @@ Browser / CDN → Next.js ISR (public pages, 300s) → App (no shared in-memory 
 | Principle | Hotel Etuna rule |
 |-----------|------------------|
 | **KISS** | One hub tenant model; partners lightweight — no microservices split |
-| **DRY** | Shared middleware (`proxy.ts`, `withApiAuth`), `lib/copy/`, `lib/data/rooms.ts` — not duplicate auth per route |
+| **DRY** | `proxy.ts`, `withApiAuth`, `requireTenantSessionUser`; Sofia `sofia-concierge-handler`; SOC2 `control-matrix` + `nayaone-tsc-framework`; fraud `tenant-fraud-rules`; `lib/copy/`, `lib/data/rooms.ts` |
 | **Boy Scout** | Touching a route: add validation, tenant check, structured errors |
 | **Wrong abstraction** | Do not merge hub CRM with partner dashboard; folio ≠ guest marketing profile |
 | **Ship stable** | Prefer idempotent SQL migrations (`IF NOT EXISTS`) over `drizzle-kit push` on prod |
@@ -2437,7 +2516,7 @@ All sections are **database‑driven** (React Server Component with Drizzle ORM 
 - **LLM Provider Router:** DeepSeek → Anthropic → Groq (fallback chain)
 - **Knowledge Base:** 5 Hotel Etuna documents (facts, rooms, restaurant, local area)
 - **Chunking:** Semantic chunking with 800‑char target, 100‑char overlap
-- **Embeddings:** Voyage AI `voyage-3` (1024‑dim) or OpenAI `text‑embedding‑3‑small` (1536‑dim); fallback to Ollama or Hugging Face
+- **Embeddings:** Qdrant Cloud Inference — `intfloat/multilingual-e5-small` (**384‑dim**); vectors computed at upsert/query in Qdrant
 - **Multi‑Channel:** Web chat, email, WhatsApp, phone (all hub only)
 - **Human Escalation:** Low confidence (<0.55) or policy keywords trigger staff notification
 - **Gated Content Enforcement:** System prompt instructs Sofia to never disclose prices/availability to unauthenticated users, instead prompting sign‑up
@@ -2492,11 +2571,11 @@ Evidence: codebase inspection + `npx tsc --noEmit` (pass) + `npx tsx scripts/db/
 | **Cash + PWA + session** | Reconciliation, offline queue, 30m/8h timeout | Implemented per Phase 2–4 |
 | **Security hardening** | CORS domain-locked, debug auth 404 in prod, `sanitizeErrorDetails` | Code review May 16 |
 | **TypeScript** | Clean compile | `tsc` exit 0 |
-| **Digital menu (`/dining`)** | DB-only menu, full-menu book, analytics favourites, image seed/validate scripts | §3.1.1 |
+| **Digital menu (`/dining`)** | DB-only menu, single-page viewer (2×3 food grid), analytics favourites, image seed/validate scripts | §3.1.1 |
 | **Scripts hygiene** | Production scripts only under `scripts/`; obsolete archive removed May 2026 | `ls scripts` |
 | **E2E coverage** | 7 Playwright specs incl. `gated-pricing`, `public-components` | `e2e/*.spec.ts` |
 | **Automated test gate** | `npm run test:all` — `test:db` + Vitest (**393**/395, 2 skipped) + compliance smoke (6) | May 17, 2026 |
-| **Operator SQL** | Migrations **0011–0016** on Neon | `npm run test:db:migrations` — 17/17 |
+| **Operator SQL** | Migrations **0011–0017** on Neon | `npm run test:db:migrations` — 18/18 |
 | **NamQR receipt email** | Desk confirm + NamQR manual folio settle | `HospitalityNamQrPaymentService`, `ManualPaymentService` |
 | **Sofia intent** | Guest-message-first classification | `SofiaConciergeService.resolveIntent()` |
 
@@ -2504,7 +2583,7 @@ Evidence: codebase inspection + `npx tsc --noEmit` (pass) + `npx tsx scripts/db/
 
 | Item | Priority | Status |
 |------|----------|--------|
-| **RAG ingestion to Qdrant** | P0 | Config OK (`voyage-3` + 1024 per `.env.example`); run `scripts/ingest-hotel-etuna-knowledge.ts` when Voyage rate limits allow |
+| **RAG ingestion to Qdrant** | P0 | `npm run rag:seed` — Qdrant Inference 384d (`RAG_USE_QDRANT_INFERENCE=true`) |
 | **Production smoke** | P1 | Manual §0 on https://hoteletuna.com after each deploy |
 | **npm audit (transitive)** | P1 | **0 critical** at `npm audit --audit-level=critical` (overrides in `package.json` for `fast-xml-parser`, `protobufjs`); **17** total advisories — run `npm audit fix` for non-breaking updates before release |
 | **UI enhancements** | P2 | Extract `RoomCard`/`ReviewCard`; skeleton loaders; `globals.css` khaki focus rings |
@@ -2539,7 +2618,7 @@ Evidence: codebase inspection + `npx tsc --noEmit` (pass) + `npx tsx scripts/db/
 - ✅ All room, restaurant, partner data dynamic
 
 ### Phase 5: Sofia Embedding Migration 🟡
-- ✅ Voyage client + `EMBEDDING_MODEL=voyage-3` / `EMBEDDING_DIMENSIONS=1024` documented in `.env.example`
+- ✅ Qdrant Inference + `QDRANT_INFERENCE_DIMENSIONS=384` documented in `.env.example`
 - ⏳ Full Qdrant upsert — operator runs ingestion script (external rate limits)
 
 ### Phase 6: Testing & Launch Hardening ✅
@@ -2576,9 +2655,12 @@ Evidence: codebase inspection + `npx tsc --noEmit` (pass) + `npx tsx scripts/db/
 
 ### 14.4 Compliance & Audit
 
-- **Quarterly Compliance Review:** Verify PSD-12, PSD-4, ETA 2019 adherence.
-- **Annual Security Audit:** External penetration testing and vulnerability assessment.
-- **Partner Verification:** KYC/KYB documentation reviewed annually per Bank of Namibia requirements.
+- **Namibia framework review (quarterly):** `docs/compliance/NAMIBIA_REGULATORY_FRAMEWORK.md` + BoN corpus **Appendix F**; close gap register G-01–G-09.
+- **Payment / fraud:** Add NPS trend rules (CNP / EFT-confirm) to seed; Security Prompt Pack §14 master review before major release.
+- **SOC 2:** Policy sign-off (21), vendor attestations (`vendor-attestations/`), evidence under `compliance/evidence/`, tabletop IR per `INCIDENT_RESPONSE_PLAN.md`.
+- **Security Prompt Pack:** §14 on major releases; `npm run security:preflight`; archive JSON under `compliance/evidence/security/`.
+- **Annual external test:** Penetration test on payment and auth paths.
+- **Partner verification:** KYC/KYB documentation reviewed annually.
 
 ---
 
@@ -2664,6 +2746,36 @@ Public copy is aligned to seeded Neon data (no fictional amenities). Canonical f
 
 **Gated content verification (manual):** Incognito — prices hidden on `/`, `/rooms`, `/dining`, `/partners`; login preserves `?redirect=`; Sofia refuses rate/availability prompts without auth (see Section 3).
 
+### Appendix F: BoN / Namibia regulatory source corpus (`mba-agent`)
+
+Read-only reference for counsel and engineering (not duplicated in `hotel-etuna/docs/`). Map to product via **`docs/compliance/NAMIBIA_REGULATORY_FRAMEWORK.md`**.
+
+| File (under `mba-agent/documents/mba-agent/regulatory/namibia/`) | Topic |
+|------------------------------------------------------------------|--------|
+| `payment_system_management_act_act_14_of_2023.md` | PSMA umbrella |
+| `payment_system_notice_2025.md` | Licensed PSP capital/fees (partners, not merchant) |
+| `payment_systems_in_namibia.md` | NPS background |
+| `nps_strategy_2030.md` | National payment strategy |
+| `determination_on_the_licensing_and_authorisation_of_payment.md` | PSD-1 PSP licensing |
+| `guidance_note_on_the_payment_service_providers_regulated_by.md` | Merchant vs PSP boundaries |
+| `determination_on_issuing_of_electronic_money_in_namibia.md` | PSD-3 e-money (out of scope v1) |
+| `determination_on_the_conduct_of_card_transactions_within_the.md` | PSD-4 cards / CNP |
+| `determination_on_the_conduct_of_electronic_funds_transfer_tr.md` | PSD-9 EFT |
+| `determination_of_the_operational_and_cybersecurity_standards.md` | PSD-12 cyber/ops |
+| `determination_on_the_efficiency_of_the_national_payment_syst.md` | PSD-7 efficiency |
+| `determination_on_the_designation_of_systemically_important_s.md` | PSD-13 SIPS |
+| `determination_for_the_authorisation_of_payment_system_operat.md` | PSD-6 PSO |
+| `determination_on_the_imposition_of_administrative_penalties.md` | PSD-8 penalties |
+| `namibia_qr_code_standards.md` | NamQR v5.0 (May 2025) |
+| `namibia_open_banking_standards.md` | Open banking (draft / roadmap) |
+| `fintech_regulatory_framework_bon.md` | BoN innovation framework |
+| `namibia_digital_finance_ecosystem_assessment_and_strategy_fi.md` | Digital finance strategy |
+| `nps_fraud_trend_report_10_years.md` | Fraud typologies (CNP, phishing, etc.) |
+| `fic_nam.md` | FIC / AML context |
+| `electronic_transactions_act_4_of_2019.md` | ETA e-commerce / records |
+| `namfisa_regulatory_sandbox_guidance_note_for_microlending_co.md` | NAMFISA sandbox (N/A) |
+| `regulatory_research_notes.md` | Informal notes — not authority |
+
 ---
 
 ## 14. Documentation canon (May 2026)
@@ -2717,8 +2829,11 @@ Do not add new project `.md` files — extend **PRD**, **PLANNING**, or **TASK**
 | **2.8.5** | **2026-05-17** | **Product Team** | **§3.3.3** `users`↔`guests` link on register/verify; folio type enums; guest API `requireRole` + verified-email access; middleware redirect hardening; Tailwind khaki/terracotta ramps; guest UI semantic errors. |
 | **2.8.6** | **2026-05-17** | **Product Team** | **§3.3.4** production checklist; password policy + Turnstile; `schema-types.ts`; Redis fail-closed rate limits; dev-only auth logs; header **My stays** link. |
 | **2.9.0** | **2026-05-17** | **Product Team** | **§3.6** system map: full structure summary, seven user journeys (J1–J7), identity model (`users`↔`guests`), authorization layers, role can/cannot matrix, page + API access tables, implementation file index; §4.6 cross-ref. |
+| **2.9.1** | **2026-05-17** | **Product Team** | **§3.1.1** `/dining` menu UX: `MenuBookSinglePageViewer` (full-width one page, Previous/Next); food **2×3** (6/page) with name/description/price on tiles; `MenuPageTurner` unused on public dining. |
 | **2.9.1** | **2026-05-17** | **Product Team** | **§2.4** personas → roles → surfaces table aligned with §3.6; **§4.6** tree regenerated (229 dirs / 352 files), depth-4 `app/guest/` + `admin/platform/`, migrations `0000`–`0016`, current `scripts/`. |
+| **2.9.2** | **2026-05-17** | **Product / compliance** | **§3.7** Namibia regulatory matrix, fraud runtime vs `0016`, SOC 2 + Security Prompt Pack; **Appendix F** BoN corpus index; §6.2 / §14.4 aligned with `docs/compliance/*`. |
+| **2.9.3** | **2026-05-17** | **Engineering** | **Fraud:** `tenant-fraud-rules.ts` wires `0016` to `PsdFraudGate` + analyze API; production fail-closed; preflight 12/12 (May 17). |
 
 ---
 
-*This PRD (v2.9.1) is effective May 17, 2026 and supersedes all previous versions. It will be reviewed quarterly with Hotel Etuna management and updated as needed. All implementation teams must reference this document as the source of truth for product requirements, architecture decisions, and success metrics.*
+*This PRD (v2.9.3) is effective May 17, 2026 and supersedes all previous versions. It will be reviewed quarterly with Hotel Etuna management and updated as needed. All implementation teams must reference this document as the source of truth for product requirements, architecture decisions, and success metrics.*

@@ -21,6 +21,7 @@ import { adumoConfig } from '@/lib/config/adumo';
 import { PlatformFeeService } from '@/lib/services/billing/PlatformFeeService';
 import { PlatformBillingService } from '@/lib/services/billing/PlatformBillingService';
 import { schedulePaymentReceiptEmail } from '@/lib/services/booking/bookingLifecycleSideEffects';
+import { applyDiningAdumoDeposit } from '@/lib/services/payment/applyDiningAdumoDeposit';
 
 const folioService = new FolioService();
 
@@ -32,7 +33,11 @@ export interface CompleteAdumoVirtualInput {
 
 export async function completeAdumoVirtualPayment(
   input: CompleteAdumoVirtualInput
-): Promise<{ bookingId: string; alreadyProcessed: boolean }> {
+): Promise<{
+  bookingId?: string;
+  diningReservationId?: string;
+  alreadyProcessed: boolean;
+}> {
   if (!AdumoVirtualService.isPaymentSuccess(input.decoded.result)) {
     await db
       .update(paymentSessions)
@@ -52,7 +57,11 @@ export async function completeAdumoVirtualPayment(
   }
 
   if (session.status === 'success') {
-    return { bookingId: session.bookingId, alreadyProcessed: true };
+    return {
+      bookingId: session.bookingId ?? undefined,
+      diningReservationId: session.diningReservationId ?? undefined,
+      alreadyProcessed: true,
+    };
   }
 
   if (session.status !== 'pending') {
@@ -73,7 +82,7 @@ export async function completeAdumoVirtualPayment(
   const feeCtx = {
     grossAmount: sessionAmount,
     currency: adumoConfig.currencyCode,
-    purpose: session.purpose as 'booking_deposit' | 'folio_settle',
+    purpose: session.purpose as 'booking_deposit' | 'folio_settle' | 'dining_deposit',
     merchantReference: session.merchantReference,
     gatewayTransactionId: gatewayId,
     tenantId: session.tenantId,
@@ -84,7 +93,12 @@ export async function completeAdumoVirtualPayment(
   const commercial = PlatformFeeService.accrueCardProcessingFee(feeCtx, schedule);
   await billing.recordCardFeeAccrual(commercial, feeCtx);
 
-  if (session.purpose === 'folio_settle') {
+  if (session.purpose === 'dining_deposit') {
+    await applyDiningAdumoDeposit(session, gatewayId, sessionAmount, commercial.metadata);
+  } else if (session.purpose === 'folio_settle') {
+    if (!session.bookingId) {
+      throw new AppError(400, 'Folio payment requires a booking');
+    }
     await folioService.settleFolio(session.bookingId, {
       paymentMethod: 'card',
       amountPaid: sessionAmount,
@@ -92,6 +106,9 @@ export async function completeAdumoVirtualPayment(
       paymentMetadata: commercial.metadata,
     });
   } else {
+    if (!session.bookingId) {
+      throw new AppError(400, 'Booking deposit requires a booking');
+    }
     await applyBookingDeposit(session, gatewayId, sessionAmount, commercial.metadata);
   }
 
@@ -104,30 +121,36 @@ export async function completeAdumoVirtualPayment(
     })
     .where(eq(paymentSessions.id, session.id));
 
-  const [bookingRow] = await db
-    .select({
-      guestId: bookings.guestId,
-      propertyId: bookings.propertyId,
-      bookingReference: bookings.bookingReference,
-    })
-    .from(bookings)
-    .where(eq(bookings.id, session.bookingId))
-    .limit(1);
+  if (session.bookingId) {
+    const [bookingRow] = await db
+      .select({
+        guestId: bookings.guestId,
+        propertyId: bookings.propertyId,
+        bookingReference: bookings.bookingReference,
+      })
+      .from(bookings)
+      .where(eq(bookings.id, session.bookingId))
+      .limit(1);
 
-  if (bookingRow?.guestId) {
-    schedulePaymentReceiptEmail({
-      tenantId: session.tenantId,
-      bookingId: session.bookingId,
-      guestId: bookingRow.guestId,
-      propertyId: bookingRow.propertyId,
-      amount: sessionAmount,
-      currency: adumoConfig.currencyCode,
-      paymentMethod: 'card (Adumo)',
-      bookingReference: bookingRow.bookingReference ?? undefined,
-    });
+    if (bookingRow?.guestId) {
+      schedulePaymentReceiptEmail({
+        tenantId: session.tenantId,
+        bookingId: session.bookingId,
+        guestId: bookingRow.guestId,
+        propertyId: bookingRow.propertyId,
+        amount: sessionAmount,
+        currency: adumoConfig.currencyCode,
+        paymentMethod: 'card (Adumo)',
+        bookingReference: bookingRow.bookingReference ?? undefined,
+      });
+    }
   }
 
-  return { bookingId: session.bookingId, alreadyProcessed: false };
+  return {
+    bookingId: session.bookingId ?? undefined,
+    diningReservationId: session.diningReservationId ?? undefined,
+    alreadyProcessed: false,
+  };
 }
 
 async function applyBookingDeposit(
@@ -136,6 +159,11 @@ async function applyBookingDeposit(
   amount: number,
   paymentMetadata: Record<string, unknown>
 ): Promise<void> {
+  const bookingId = session.bookingId;
+  if (!bookingId) {
+    throw new AppError(400, 'Booking deposit session missing booking_id');
+  }
+
   const now = new Date();
   const txRef = `ADU-${gatewayId.slice(0, 24)}`;
 
@@ -147,11 +175,11 @@ async function applyBookingDeposit(
         paymentMethod: 'card',
         updatedAt: now,
       })
-      .where(eq(bookings.id, session.bookingId));
+      .where(eq(bookings.id, bookingId));
 
     await tx.insert(transactions).values({
       tenantId: session.tenantId,
-      bookingId: session.bookingId,
+      bookingId,
       transactionReference: txRef,
       type: 'booking_payment',
       amount: amount.toFixed(2),
@@ -169,7 +197,7 @@ async function applyBookingDeposit(
 
     await tx.insert(bookingCharges).values({
       tenantId: session.tenantId,
-      bookingId: session.bookingId,
+      bookingId,
       chargeType: 'payment',
       description: 'Card deposit (Adumo Virtual)',
       amount: (-amount).toFixed(2),

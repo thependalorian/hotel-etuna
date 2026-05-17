@@ -11,7 +11,7 @@
 **Version:** 2.0.0 (Hotel Etuna Hub-and-Spoke)  
 **Last Updated:** May 16, 2026
 
-**Production:** Deployed on **Vercel** (`hoteletuna.com`). **Canonical docs:** [`docs/project/PRD.md`](docs/project/PRD.md) · [`PLANNING.md`](docs/project/PLANNING.md) · [`TASK.md`](docs/project/TASK.md) (testing, deployment, smoke). Automated tests: **Vitest `334 / 334` passed** (`npm run test`); Playwright E2E: **`npm run test:e2e`**. Sofia **Qdrant ingestion** deferred (Voyage rate limits).
+**Production:** Deployed on **Vercel** (`hoteletuna.com`). **Canonical docs:** [`docs/project/PRD.md`](docs/project/PRD.md) · [`PLANNING.md`](docs/project/PLANNING.md) · [`TASK.md`](docs/project/TASK.md) (testing, deployment, smoke). Automated tests: **Vitest `334 / 334` passed** (`npm run test`); Playwright E2E: **`npm run test:e2e`**. Sofia RAG uses **Qdrant Cloud Inference** (`intfloat/multilingual-e5-small`, 384d); run `npm run rag:seed` after setting `QDRANT_*` in `.env.local`.
 
 ---
 
@@ -415,9 +415,16 @@ https://hoteletuna.com/partners/jayla-accommodation
 
 ### Vercel
 
-1. **Connect Repo:** Link GitHub repository to Vercel
-2. **Set Environment Variables:** Configure all `.env` variables in Vercel dashboard
-3. **Deploy:** Push to `main` branch triggers automatic deployment
+1. **Connect Repo:** Link GitHub repository to Vercel (`vercel link` from `hotel-etuna/`)
+2. **Environment variables:** Copy `.env.example` → `.env.local`, fill values locally, then push to Vercel:
+   ```bash
+   npm run env:check              # audit .env.local vs .env.example
+   npm run env:push-vercel:dry    # preview what will sync
+   npm run env:push-vercel        # sync production + preview (requires vercel CLI + link)
+   ```
+   Production overrides (applied by the script): `NEXTAUTH_URL`, `ADUMO_REDIRECT_*`, `ADUMO_WEBHOOK_URL` → `https://hoteletuna.com`. **Namibia:** card payments use **Adumo Virtual** (`ADUMO_*`), not Stripe. Sofia dining deposits use `RESTAURANT_DEPOSIT_BASE_CENTS` / `RESTAURANT_DEPOSIT_PER_GUEST_CENTS`.
+3. **Deploy:** Push to `main` triggers automatic deployment
+4. **DB migrations:** `npm run test:db:migrations` (includes `0018` dining_reservations, `0019` Adumo dining link)
 
 ### Database (Neon)
 

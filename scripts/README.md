@@ -36,6 +36,11 @@ These scripts are intended for production use and maintenance:
   - `verify-neon-migrations.ts` - Migration parity (`npm run test:db:migrations`)
   - `audit-neon-baseline.ts` - Neon baseline audit (`npm run db:audit:neon`)
 
+### Environment & Vercel
+- **`check-env-local.mjs`** — Audit `.env.local` vs `.env.example` (`npm run env:check`)
+- **`sync-env-local.mjs`** — Append missing keys from example (`npm run env:sync`)
+- **`push-env-to-vercel.mjs`** — Push `.env.local` secrets to linked Vercel project (`npm run env:push-vercel`). Applies production Adumo redirect/webhook URLs. **Never commit `.env.local` or `.env.vercel`.**
+
 ### Other production / ops scripts
 - **`provision-platform-admin.ts`** - Create Buffr platform admin users
 - **`security/run-preflight.ts`** - Pre-deploy security checks (`npm run security:preflight`)
@@ -60,13 +65,15 @@ Obsolete one-off debug/migration scripts were removed (May 2026); use Vitest/Pla
    npx tsx scripts/seed-partners.ts
    ```
 
-3. **RAG ingestion** requires additional environment variables:
+3. **RAG ingestion** requires Qdrant Cloud Inference (384d):
    ```bash
-   VOYAGE_API_KEY=...
-   QDRANT_URL=...
+   QDRANT_URL=https://your-cluster.us-west-2-0.aws.cloud.qdrant.io
    QDRANT_API_KEY=...
-   EMBEDDING_MODEL=voyage-3
-   EMBEDDING_DIMENSIONS=1024
+   RAG_USE_QDRANT_INFERENCE=true
+   QDRANT_INFERENCE_MODEL=intfloat/multilingual-e5-small
+   QDRANT_INFERENCE_DIMENSIONS=384
+   HUB_TENANT_ID=...
+   npm run rag:seed
    ```
 
 4. **Verification scripts** can be run anytime:

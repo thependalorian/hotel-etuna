@@ -6,6 +6,10 @@ interface ChatMessage {
   content: string;
 }
 
+/**
+ * Thin LLM smoke-test client only.
+ * Production chat MUST use `processSofiaConciergeMessage` / `/api/sofia/chat` / `/api/ai/concierge`.
+ */
 export class SofiaService {
   private llmRouter: LLMProviderRouter;
 
@@ -14,7 +18,7 @@ export class SofiaService {
   }
 
   /**
-   * Sends a message to Sofia through the configured multi-provider LLM router.
+   * Direct LLM call (no RAG, persistence, or role filtering) — tests and diagnostics only.
    */
   async chat(messages: ChatMessage[]): Promise<string> {
     try {

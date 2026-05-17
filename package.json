@@ -44,6 +44,8 @@
     "rag:seed:dry": "tsx scripts/ingest-hotel-etuna-knowledge.ts --dry",
     "env:check": "node scripts/check-env-local.mjs",
     "env:sync": "node scripts/sync-env-local.mjs && node scripts/check-env-local.mjs",
+    "env:push-vercel": "node scripts/push-env-to-vercel.mjs",
+    "env:push-vercel:dry": "node scripts/push-env-to-vercel.mjs --dry-run",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "supabase:status": "supabase status"
@@ -53,6 +55,7 @@
     "@langchain/core": "^0.3.40",
     "@langchain/langgraph": "^0.2.74",
     "@neondatabase/serverless": "^1.0.2",
+    "@qdrant/js-client-rest": "^1.18.0",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-select": "^2.2.2",

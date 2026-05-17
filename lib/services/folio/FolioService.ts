@@ -262,6 +262,10 @@ export class FolioService {
     }
   }
 
+  /**
+   * Card folio settlement uses Adumo Virtual (`purpose: folio_settle`) in Namibia — not Stripe.
+   * In-stay restaurant deposits linked via `dining_reservations.metadata.stay_booking_id` post a folio payment line on confirm.
+   */
   async settleFolio(
     bookingId: string,
     input: {
