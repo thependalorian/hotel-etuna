@@ -11,6 +11,7 @@ import { Check, Users } from 'lucide-react';
 import { authOptions } from '@/lib/auth/config';
 import { getRoomBySlug } from '@/lib/data/rooms';
 import { getPublicRoomDisplay } from '@/lib/rooms/room-display';
+import { formatPublicRoomRateLabel } from '@/lib/rooms/public-rate';
 import { LandingBookingWidget } from '@/components/sections/landing/LandingBookingWidget';
 import { resolvePublicHubProperty } from '@/lib/utils/public-property';
 import PublicHero from '@/components/shared/PublicHero';
@@ -18,6 +19,7 @@ import Footer from '@/components/shared/Footer';
 import NavigationHeader from '@/components/sections/landing/NavigationHeader';
 import RoomPhotoTour from '@/components/RoomPhotoTour';
 import RoomBookingCard from '@/components/RoomBookingCard';
+import PublicRoomTourSignInCard from '@/components/PublicRoomTourSignInCard';
 import PublicRoomsBrowseBanner from '@/components/PublicRoomsBrowseBanner';
 import PublicRoomsSignedInBanner from '@/components/PublicRoomsSignedInBanner';
 
@@ -66,9 +68,19 @@ export default async function RoomDetailPage({ params }: Props) {
 
       <main className="py-6 sm:py-8">
         <div className="container mx-auto px-4">
-          <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-3 lg:gap-8">
-            <div className="space-y-6 sm:space-y-8 lg:col-span-2">
+          <div
+            className={`mx-auto grid max-w-6xl gap-6 lg:gap-8 ${
+              isAuthenticated ? 'lg:grid-cols-3' : ''
+            }`}
+          >
+            <div
+              className={`space-y-6 sm:space-y-8 ${isAuthenticated ? 'lg:col-span-2' : ''}`}
+            >
               <RoomPhotoTour roomName={room.roomType} stops={display.tourStops} />
+
+              {!isAuthenticated ? (
+                <PublicRoomTourSignInCard slug={slug} display={display} />
+              ) : null}
 
               <div>
                 <div className="mb-4 flex flex-wrap items-center gap-4 text-sm text-terracotta-800">
@@ -115,14 +127,15 @@ export default async function RoomDetailPage({ params }: Props) {
               </div>
             </div>
 
-            <div className="lg:col-span-1">
-              <RoomBookingCard
-                room={room}
-                display={display}
-                slug={slug}
-                isAuthenticated={isAuthenticated}
-              />
-            </div>
+            {isAuthenticated ? (
+              <div className="lg:col-span-1">
+                <RoomBookingCard
+                  display={display}
+                  slug={slug}
+                  rateLabel={formatPublicRoomRateLabel(room, true)}
+                />
+              </div>
+            ) : null}
           </div>
         </div>
       </main>

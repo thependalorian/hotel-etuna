@@ -11,7 +11,9 @@
  * - Get platform admin permissions
  */
 
+import { getServerSession } from 'next-auth';
 import { getCurrentUser } from '@/lib/auth/stack-auth';
+import { authOptions } from '@/lib/auth/config';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db';
 import { eq } from 'drizzle-orm';
@@ -71,8 +73,20 @@ export function isSuperAdmin(user: PlatformAdminUserShape): boolean {
 }
 
 /**
- * Get current platform admin from Stack Auth + DB users table
- * Resolves Stack user by email to DB user row (for role/isPlatformAdmin/tenantId).
+ * Resolve signed-in email from Stack Auth (if configured) or NextAuth session.
+ */
+export async function getAuthenticatedEmail(): Promise<string | null> {
+  const stackUser = await getCurrentUser();
+  if (stackUser?.primaryEmail) {
+    return String(stackUser.primaryEmail);
+  }
+  const session = await getServerSession(authOptions);
+  const email = session?.user?.email;
+  return email ? String(email) : null;
+}
+
+/**
+ * Load platform admin from DB for the current session (Stack Auth or NextAuth).
  */
 export async function getCurrentPlatformAdmin(): Promise<{
   id: string;
@@ -83,11 +97,10 @@ export async function getCurrentPlatformAdmin(): Promise<{
   isPlatformAdmin: boolean | null;
   tenantId: string | null;
 } | null> {
-  const stackUser = await getCurrentUser();
-  if (!stackUser?.primaryEmail) {
+  const email = await getAuthenticatedEmail();
+  if (!email) {
     return null;
   }
-  const email = String(stackUser.primaryEmail);
   const rows = await db.select().from(users).where(eq(users.email, email)).limit(1);
   const dbUser = rows[0] ?? null;
   if (!dbUser || !isPlatformAdmin(dbUser)) {

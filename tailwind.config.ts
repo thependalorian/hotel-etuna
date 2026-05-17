@@ -31,12 +31,18 @@ const luxury = {
 
 /** Hotel Etuna brand accents */
 const khaki = {
+  50: "#faf6f0",
+  100: "#f3ebdc",
+  200: "#e8dcc4",
+  300: "#d9c9a8",
+  400: "#c9b38c",
   sand: "#c4a97d",
   600: "#b8955a",
   700: "#9a7d43",
 } as const;
 
 const terracotta = {
+  700: "#a85a38",
   800: "#8b4a2e",
   900: "#6d3722",
 } as const;

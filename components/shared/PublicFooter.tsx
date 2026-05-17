@@ -8,6 +8,10 @@ import Link from 'next/link';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import { HotelEtunaLogo } from '@/components/brand/HotelEtunaLogo';
 import { brand } from '@/lib/copy/brand';
+import { publicCopy } from '@/lib/copy/public';
+import { PublicAuthNav } from '@/components/shared/PublicAuthNav';
+
+const STAFF_LOGIN_HREF = '/login?redirect=/dashboard';
 
 type PublicFooterProps = {
   className?: string;
@@ -22,7 +26,7 @@ export default function PublicFooter({ className = '' }: PublicFooterProps) {
   return (
     <footer className={`bg-terracotta-900 text-nude-50 py-12 ${className}`}>
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
           <div>
             <div className="mb-4">
               <HotelEtunaLogo size="md" href="/" onDark />
@@ -59,6 +63,27 @@ export default function PublicFooter({ className = '' }: PublicFooterProps) {
                 </a>
               </li>
             </ul>
+          </div>
+
+          <div>
+            <h4 className={footerHeadingClass}>{publicCopy.footer.forTeamHeading}</h4>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <PublicAuthNav variant="footer" />
+              </li>
+              <li>
+                <Link
+                  href={STAFF_LOGIN_HREF}
+                  className={footerLinkClass}
+                  aria-label={publicCopy.nav.staffLoginAria}
+                >
+                  {publicCopy.footer.staffLogin}
+                </Link>
+              </li>
+            </ul>
+            <p className="mt-3 text-xs text-nude-200/90 leading-relaxed">
+              {publicCopy.footer.staffLoginHint}
+            </p>
           </div>
 
           <div>

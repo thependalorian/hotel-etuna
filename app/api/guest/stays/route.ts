@@ -4,11 +4,12 @@
  * Purpose: List active stays for the authenticated guest (by email).
  * Location: /app/api/guest/stays/route.ts
  *
- * GET response: { data: { activeStays, paymentDue } }
+ * GET response: { data: { activeStays, paymentDue, pastStays, loyalty } }
  */
 
 import { NextRequest } from 'next/server';
 import { withApiAuth, errorResponse, successResponse } from '@/lib/utils/api-helpers';
+import { GUEST_API_ROLES } from '@/lib/auth/roles';
 import { GuestStayService } from '@/lib/services/folio/GuestStayService';
 
 const guestStayService = new GuestStayService();
@@ -21,12 +22,14 @@ export async function GET(request: NextRequest) {
       if (!email) {
         return errorResponse('Authenticated email is required', 400, 'MISSING_EMAIL');
       }
-      const [activeStays, paymentDue] = await Promise.all([
+      const [activeStays, paymentDue, pastStays, loyalty] = await Promise.all([
         guestStayService.listStaysForGuestEmail(email),
         guestStayService.listPaymentDueForGuestEmail(email),
+        guestStayService.listPastStaysForGuestEmail(email),
+        guestStayService.getLoyaltySummaryForGuestEmail(email),
       ]);
-      return successResponse({ activeStays, paymentDue });
+      return successResponse({ activeStays, paymentDue, pastStays, loyalty });
     },
-    { rateLimit: true }
+    { rateLimit: true, requireRole: [...GUEST_API_ROLES] }
   );
 }

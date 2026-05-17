@@ -29,8 +29,8 @@ export default defineConfig({
         '**/prisma/',
       ],
     },
-    testTimeout: 30000, // 30 seconds for database operations
-    hookTimeout: 60000, // 60 seconds for setup/teardown
+    testTimeout: 90_000, // LLM/RAG + Neon integration tests can exceed 30s under load
+    hookTimeout: 120_000,
   },
   resolve: {
     alias: {

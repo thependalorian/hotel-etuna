@@ -1,30 +1,31 @@
+'use client';
+
 /**
- * Sticky price and booking card for room detail pages.
+ * Sticky price and booking card — signed-in guests only on public room tour pages.
  * Location: components/RoomBookingCard.tsx
  */
 
 import Link from 'next/link';
 import { Calendar, Refrigerator } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import { publicCopy } from '@/lib/copy/public';
-import type { HubRoom } from '@/lib/data/rooms';
 import type { PublicRoomDisplay } from '@/lib/rooms/room-display';
 
 type RoomBookingCardProps = {
-  room: HubRoom;
   display: PublicRoomDisplay;
   slug: string;
-  isAuthenticated: boolean;
+  /** Server hint; client session is authoritative for showing numeric rates. */
+  rateLabel: string;
 };
 
-export default function RoomBookingCard({
-  room,
-  display,
-  slug,
-  isAuthenticated,
-}: RoomBookingCardProps) {
-  const price = room.priceFrom;
-  const currency = room.currency ?? 'NAD';
+export default function RoomBookingCard({ display, slug, rateLabel }: RoomBookingCardProps) {
+  const { status } = useSession();
+  const showRates = status === 'authenticated';
+
+  if (!showRates) {
+    return null;
+  }
 
   return (
     <div className="rounded-2xl bg-white p-5 shadow-card sm:p-6 lg:sticky lg:top-24">
@@ -35,35 +36,17 @@ export default function RoomBookingCard({
 
       <div className="mb-6">
         <div className="mb-1 font-display text-2xl font-bold text-khaki-600 sm:text-3xl lg:text-4xl">
-          {isAuthenticated
-            ? price !== null && !Number.isNaN(Number(price))
-              ? `${currency} ${Number(price).toLocaleString()}`
-              : 'Price on request'
-            : publicCopy.gated.viewRates}
+          {rateLabel}
         </div>
         <p className="text-terracotta-800">per night · up to {display.displayOccupancy} guests</p>
       </div>
 
-      {isAuthenticated ? (
-        <Button asChild size="lg" className="mb-3 w-full min-h-11">
-          <Link href="#booking">
-            <Calendar className="h-5 w-5" aria-hidden />
-            {publicCopy.ctas.completeYourBooking}
-          </Link>
-        </Button>
-      ) : (
-        <div className="rounded-lg border border-khaki-600/30 bg-khaki-50 p-4">
-          <p className="mb-3 text-sm text-terracotta-900">{publicCopy.gated.roomAvailableSignIn}</p>
-          <div className="flex gap-2">
-            <Button asChild size="sm" className="min-h-11 flex-1">
-              <Link href={`/login?redirect=/rooms/${slug}`}>{publicCopy.ctas.signIn}</Link>
-            </Button>
-            <Button asChild size="sm" variant="outline" className="min-h-11 flex-1">
-              <Link href={`/register?redirect=/rooms/${slug}`}>{publicCopy.ctas.signUp}</Link>
-            </Button>
-          </div>
-        </div>
-      )}
+      <Button asChild size="lg" className="mb-3 w-full min-h-11">
+        <Link href="#booking">
+          <Calendar className="h-5 w-5" aria-hidden />
+          {publicCopy.ctas.completeYourBooking}
+        </Link>
+      </Button>
     </div>
   );
 }

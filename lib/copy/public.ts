@@ -71,6 +71,19 @@ export const publicCopy = {
     roomAvailableSignIn:
       'This room is available for your dates. Sign in or create an account to see rates and confirm booking.',
   },
+  nav: {
+    guestSignIn: 'Sign in',
+    guestSignInAria: 'Sign in to your guest account — bookings, stays, and folio',
+    signOut: 'Sign out',
+    signOutAria: 'Sign out of your account',
+    staffLogin: 'Staff login',
+    staffLoginAria: 'Hotel team sign-in — front desk, restaurant, and management',
+  },
+  footer: {
+    forTeamHeading: 'For our team',
+    staffLogin: 'Staff & platform login',
+    staffLoginHint: 'Front desk, housekeeping, restaurant, and Buffr admin',
+  },
   ctas: {
     bookStay: 'Book your stay',
     bookNow: 'Book now',

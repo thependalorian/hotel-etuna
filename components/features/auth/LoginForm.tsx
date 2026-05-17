@@ -11,18 +11,12 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/Alert";
 import { AlertTriangle } from 'lucide-react';
+import { getPostLoginRedirect } from '@/lib/auth/roles';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
   password: z.string().min(1, { message: 'Password is required.' }),
 });
-
-function sanitizeRedirectPath(value?: string): string {
-  if (!value || !value.startsWith('/')) return '/dashboard';
-  if (value.startsWith('//')) return '/dashboard';
-  if (value.startsWith('/api')) return '/dashboard';
-  return value;
-}
 
 export function LoginForm({ redirectTo }: { redirectTo?: string }) {
   const router = useRouter();
@@ -51,7 +45,10 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
       if (result?.error) {
         setError('Invalid email or password. Please try again.');
       } else if (result?.ok) {
-        router.push(sanitizeRedirectPath(redirectTo));
+        const sessionRes = await fetch('/api/auth/session');
+        const session = sessionRes.ok ? await sessionRes.json() : null;
+        const role = session?.user?.role as string | undefined;
+        router.push(getPostLoginRedirect(role, redirectTo));
       }
     } catch (e) {
       setError('An unexpected error occurred. Please try again later.');

@@ -24,11 +24,14 @@ import { checkRateLimit, shouldRateLimit } from './rate-limit';
 import { logUnauthorizedAccess, logRateLimitExceeded } from './security-logger';
 import { runWithTenantContext } from '@/lib/auth/tenant-context';
 import { stackServerApp } from '@/stack';
+import { isStackAuthServerConfigured } from '@/lib/auth/stack-env';
 import { db, users, tenants } from '@/lib/db';
 import { eq } from 'drizzle-orm';
 import { jwtVerify } from 'jose';
 import { jwks } from '@/lib/auth/jwks';
 import { z } from 'zod';
+import { isGuestConsumerRole } from '@/lib/auth/roles';
+import { isPlatformAdmin } from '@/lib/auth/platform-admin';
 
 type StackJwtPayload = {
   sub?: string;
@@ -103,9 +106,7 @@ export function sanitizeErrorDetails(details: unknown): unknown | undefined {
  */
 export async function getAuthenticatedUser(req?: NextRequest) {
   // Check Stack Auth first (if configured)
-  const stackAuthConfigured = stackServerApp && 
-                               process.env.NEXT_PUBLIC_STACK_PROJECT_ID && 
-                               process.env.STACK_SECRET_SERVER_KEY;
+  const stackAuthConfigured = Boolean(stackServerApp && isStackAuthServerConfigured());
   
   if (stackAuthConfigured && stackServerApp && req) {
     try {
@@ -267,7 +268,9 @@ export async function getAuthenticatedUser(req?: NextRequest) {
           const row = rows[0];
           const dbUser = row?.user;
           const tenant = row?.tenant;
-          if (dbUser && tenant) {
+          const guestOrPlatform =
+            isGuestConsumerRole(dbUser?.role) || (dbUser && isPlatformAdmin(dbUser));
+          if (dbUser && (tenant || guestOrPlatform)) {
             return {
               id: dbUser.id,
               email: dbUser.email,

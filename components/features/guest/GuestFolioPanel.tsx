@@ -14,6 +14,7 @@ import { AdumoVirtualPaymentForm } from '@/components/payments/AdumoVirtualPayme
 import { BookingDepositPayCard } from '@/components/payments/BookingDepositPayCard';
 import { FolioVatBreakdown } from '@/components/features/folio/FolioVatBreakdown';
 import type { FolioSummary } from '@/lib/types/folio';
+import { guestCopy } from '@/lib/copy/guest';
 
 type MenuItem = {
   id: string;
@@ -60,6 +61,7 @@ export function GuestFolioPanel({
   const [payWithCard, setPayWithCard] = useState(false);
 
   const canOrder = bookingStatus === 'checked_in';
+  const isPastStay = bookingStatus === 'checked_out';
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -196,7 +198,7 @@ export function GuestFolioPanel({
   if (error) {
     return (
       <Card variant="elevated" className="p-6 text-center">
-        <p className="text-error mb-4">{error}</p>
+        <p className="text-semantic-error-dark mb-4">{error}</p>
         <Button onClick={() => void load()}>Retry</Button>
       </Card>
     );
@@ -204,6 +206,14 @@ export function GuestFolioPanel({
 
   return (
     <div className="space-y-6">
+      {isPastStay && (
+        <div
+          className="rounded-xl border border-khaki-300 bg-khaki-50 px-4 py-3 text-sm text-nude-800"
+          role="status"
+        >
+          {guestCopy.folio.pastStayBanner}
+        </div>
+      )}
       <Card variant="elevated" className="p-6">
         <h2 className="font-display text-2xl font-bold text-nude-900 mb-2">
           Stay folio · {bookingReference}
@@ -394,7 +404,7 @@ export function GuestFolioPanel({
         </Card>
       )}
 
-      {!canOrder && (
+      {!canOrder && !isPastStay && (
         <p className="text-sm text-nude-600">
           Room service and folio payment are available once you are checked in.
         </p>

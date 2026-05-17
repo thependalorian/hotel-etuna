@@ -31,20 +31,18 @@ These scripts are intended for production use and maintenance:
 
 ### Database Management
 - **`db/`** - Database-related scripts
-  - `verify-tenant-rls.ts` - Verify RLS policies
-  - `verify-billing-security.ts` - Verify billing security
+  - `verify-db.ts` - Schema/table smoke checks (`npm run test:db`)
+  - `verify-tenant-rls.ts` - Verify RLS policies (`npm run test:db:rls`)
+  - `verify-neon-migrations.ts` - Migration parity (`npm run test:db:migrations`)
+  - `audit-neon-baseline.ts` - Neon baseline audit (`npm run db:audit:neon`)
 
-## Archived Scripts
+### Other production / ops scripts
+- **`provision-platform-admin.ts`** - Create Buffr platform admin users
+- **`security/run-preflight.ts`** - Pre-deploy security checks (`npm run security:preflight`)
+- **`seed-menu-images.ts`**, **`validate-menu-images.ts`** - Menu image pipeline
+- **`soc2/`**, **`compliance/`** - Evidence collection
 
-Ad-hoc debugging, testing, and migration scripts have been moved to `scripts/archive/`:
-
-- **Test scripts** - `test-*.ts`, `test-*.sh`, `test-routes.js`
-- **Debug scripts** - `debug-*.ts`
-- **Migration scripts** - `run-*-migration.ts`
-- **Setup scripts** - `setup-*.ts`
-- **One-time utilities** - Various db verification and creation scripts
-
-These are kept for reference but should not be used in production.
+Obsolete one-off debug/migration scripts were removed (May 2026); use Vitest/Playwright and `scripts/db/*` instead.
 
 ## Usage Guidelines
 
@@ -79,7 +77,6 @@ These are kept for reference but should not be used in production.
 
 ## Maintenance
 
-- Keep only production-ready scripts in root `scripts/`
-- Move ad-hoc/debug scripts to `scripts/archive/`
-- Document purpose and usage for all scripts
-- Remove obsolete scripts after 6 months in archive
+- Keep only production-ready scripts in `scripts/` (no archive folder)
+- Prefer Vitest (`tests/`) and Playwright (`e2e/`) over ad-hoc test scripts
+- Document purpose and usage for all scripts in this README

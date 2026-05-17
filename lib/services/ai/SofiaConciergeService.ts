@@ -528,14 +528,19 @@ Current user message: ${message}`;
   }
 
   /**
-   * Prefer explicit signals in the guest message; fall back to assistant wording.
+   * Prefer explicit signals in the guest message; fall back to assistant wording
+   * only when the guest message is vague (avoid topic drift from LLM replies).
    */
   private resolveIntent(userMessage: string, assistantResponse: string): string {
     const fromUser = this.extractIntent(userMessage);
-    const fromAssistant = this.extractIntent(assistantResponse);
-
     if (fromUser !== 'general_inquiry') {
       return fromUser;
+    }
+
+    const fromAssistant = this.extractIntent(assistantResponse);
+    const assistantTopicDrift = ['pricing_inquiry', 'menu_inquiry', 'amenities_inquiry'] as const;
+    if (assistantTopicDrift.includes(fromAssistant as (typeof assistantTopicDrift)[number])) {
+      return 'general_inquiry';
     }
     return fromAssistant;
   }

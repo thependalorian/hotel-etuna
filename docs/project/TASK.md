@@ -1,7 +1,7 @@
 # Hotel Etuna — Task & Production Tracker
 
 **Status:** **Production Live** — core platform complete; RAG upsert remains (`npm audit --audit-level=critical`: **0 critical**)  
-**Last Updated:** May 17, 2026 (room tour gating: masked public rates, same tour when signed in, docs PRD §3.1.2 v2.8.0)  
+**Last Updated:** May 17, 2026 (production hardening v2.8.6)  
 **Production URL:** https://www.hoteletuna.com (Vercel deploy `C5yP5uj1` — May 16, 2026; env via `node scripts/push-env-to-vercel.mjs`)
 
 ---
@@ -14,7 +14,9 @@
 |-------|-------------------|--------|
 | TypeScript | `npx tsc --noEmit` | ✅ Exit 0 |
 | RLS isolation | `npx tsx scripts/db/verify-tenant-rls.ts` | ✅ All checks passed |
-| Operator SQL 0011–0015 | `npm run test:db:migrations` | Run after Neon apply (read-only; fails if tables/RLS missing) |
+| DB baseline | `npm run test:db` | ✅ `scripts/db/verify-db.ts` — health, baseline tables, fraud rule count |
+| Operator SQL 0011–0016 | `npm run test:db:migrations` | ✅ **17/17** on Neon (incl. `0016_fraud_detection_rules_seed.sql`) |
+| Full automated gate | `npm run test:all` | ✅ `test:db` + Vitest (**393** passed, 2 skipped) + compliance smoke (**6/6**) |
 | API routes | `find app/api -name route.ts \| wc -l` | ✅ **136** handlers |
 | §4.7 API gaps | `bookings` GET, `menu/[itemId]`, `staff/[id]`, `staff/shifts` | ✅ Files present |
 | CORS | `rg Access-Control-Allow-Origin app/api` | ✅ `allowedOrigin` (no `*` in code) |
@@ -22,11 +24,11 @@
 | Prod errors | `lib/utils/api-helpers.ts` | ✅ `sanitizeErrorDetails` |
 | Public gated copy | `lib/copy/public.ts` → `gated` | ✅ Centralized strings |
 | Public colors | `rg text-gray- app` | ✅ No matches under `app/` |
-| Scripts archive | `scripts/archive/` | ✅ 33 files |
+| Scripts hygiene | `scripts/` (no archive) | ✅ obsolete archive removed May 2026 |
 | E2E specs | `e2e/*.spec.ts` | ✅ 7 files (incl. gated-pricing, public-components) |
 | Tours removed | `test ! -d app/tours`; `rg -i '/tours' app components lib proxy.ts` | ✅ No route or nav; `tours-guide.md` deleted |
 | Service duplicates | `lib/services/fraud`, `lib/services/menu` | ✅ Single implementation each |
-| Vitest (May 16) | `npx vitest run` | ✅ **342/342** default (2 hub-seed tests skipped unless `RUN_HUB_SEED_VALIDATION=true`) |
+| Vitest (May 17) | `npx vitest run` | ✅ **393/395** (2 hub-seed tests skipped unless `RUN_HUB_SEED_VALIDATION=true`; `testTimeout` 90s for LLM/RAG) |
 | Full verify | `npm run verify:production` | Re-run before deploy (tsc + vitest + build) |
 | RAG ingest | `npx tsx scripts/ingest-hotel-etuna-knowledge.ts` | 🟡 Pending (Voyage rate limits) |
 | npm audit | `npm audit --audit-level=critical` | ✅ **0 critical** (`package.json` overrides: `fast-xml-parser`, `protobufjs`); moderate/high may remain — run `npm audit` to triage |
@@ -189,6 +191,19 @@ For every new feature or significant code change:
 - [x] Menu book layout — food 4/page (2×2 + thumbnails); drinks list without images; view-only public menu + CMS edit at `/menu/[itemId]/edit`
 - [x] Room photo tours on `/rooms` + `/rooms/[slug]` — `RoomPhotoTour`, filmstrip listing, included-amenities strip, browse-only banner, Premier 4 guests / 6 stops (`lib/rooms/room-display.ts`, PRD §3.1.2)
 - [x] Room tour gating — public: masked rates, **Take the tour** CTA, sign-in to book; signed-in: same tour + rates + `#booking` widget (PRD v2.8.0)
+- [x] `/rooms#tour` anchor on filmstrip; `lib/rooms/public-rate.ts` + availability API strips `baseRate` for guests
+- [x] **Guest vs staff sign-in** — header **Sign in** → `/login?redirect=/guest`; footer **Staff & platform login** → `/login?redirect=/dashboard` (`NavigationHeader`, `PublicFooter`, `lib/copy/public.ts` — PRD §3.3.1)
+- [x] **Session-aware public nav** — `PublicAuthNav` shows **Sign out** + **My stay** / **Dashboard** / **Platform** when authenticated; `DevTestSessionBanner` for stale `@example.com` dev cookies (PRD §3.3.1)
+- [x] **Room detail guest CTA** — `PublicRoomTourSignInCard`; `RoomBookingCard` client-gated via `useSession` (PRD §3.1.2)
+- [x] **Buffr platform admin** — `getCurrentPlatformAdmin()` uses NextAuth when Stack disabled; `super-admin` full route access in `proxy.ts`; `scripts/provision-platform-admin.ts`; `george@buffr.ai` provisioned in Neon (PRD §3.3.2)
+- [x] **Guest hub (v2.8.4)** — `GET /api/guest/stays` returns `pastStays` + `loyalty`; `GuestStaysList` + `GuestLoyaltySummary`; past folio read-only; register as `guest` on hub tenant (`lib/utils/hub-tenant.ts`); `lib/auth/roles.ts` + role-aware `LoginForm`; `user`/`guest` proxy + `/profile` (PRD §3.3.3)
+- [x] `tests/unit/auth-roles.test.ts` — post-login paths + guest consumer roles
+- [x] **Schema + security (v2.8.5)** — `linkGuestAccount.ts`; verified-email login; `assertStayAccess` + `GUEST_API_ROLES`; proxy redirect + Stack RBAC; khaki/terracotta Tailwind ramps; guest UI semantic errors
+- [x] **Production (v2.8.6)** — `password.ts` (12+); Turnstile register; `schema-types.ts`; Redis fail-closed limits; `dev-log`; `GuestNavLink`; PRD §3.3.4 checklist; `.env.example` production vars
+- [x] **PRD system map (v2.9.0)** — `docs/project/PRD.md` **§3.6**: project structure, user journeys, access/authorization, role can/cannot; PLANNING cross-ref
+- [ ] **Pre-launch** — Set Vercel `RATE_LIMIT_REDIS_REQUIRED`, Turnstile keys, run `db:push` + smoke test register → verify → `/guest`
+- [x] Stack Auth guard — `lib/auth/stack-env.ts` disables SDK when keys are placeholders (`StackProviderWrapper`, `stack.ts`, `tests/unit/stack-env.test.ts`)
+- [x] `tests/unit/public-session-nav.test.ts` — account href labels + disposable test email detection
 - [x] `tests/unit/room-display.test.ts` — Premier occupancy, tour stops, mini-fridge strip
 - [x] Reviews section (approved only)
 - [x] Partners section
@@ -211,7 +226,8 @@ For every new feature or significant code change:
 - [x] `ManualPaymentService` + `POST /api/payments/manual` (EFT, e-wallet, bank deposit); NamQR folio path = generate/confirm only (desk panel — not manual form rail)
 - [x] `npm run test:db:migrations` → `scripts/db/verify-neon-migrations.ts`
 - [x] Unified folio settlement: `settleOffPlatformFolio.ts` → `FolioService` (manual + NamQR confirm)
-- [x] Unit tests `tests/unit/namqr-v5.test.ts`
+- [x] Payment receipt email on NamQR desk confirm + NamQR manual folio settle (`schedulePaymentReceiptEmail`, `NAMQR_RECEIPT_PAYMENT_METHOD`)
+- [x] Unit tests `tests/unit/namqr-v5.test.ts`, `tests/unit/namqr-receipt-trigger.test.ts`
 - [ ] Bank-file / NamClear auto-reconcile (future)
 - [ ] Guest self-scan NamQR on folio (future)
 
@@ -236,11 +252,12 @@ For every new feature or significant code change:
 
 ### Neon operator migrations (runbook — not in Drizzle journal past 0002)
 Apply in order on staging/production, then verify with `npm run test:db:migrations`:
-- [ ] `0011_fnb_inventory.sql` (if not already applied)
-- [ ] `0012_adumo_virtual_payment_sessions.sql`
-- [ ] `0013_platform_billing.sql`
-- [ ] `0014_platform_invoice_vat.sql`
-- [ ] `0015_rls_inventory_payment_sessions.sql` (RLS for inventory + payment_sessions)
+- [x] `0011_fnb_inventory.sql` — applied Neon May 2026
+- [x] `0012_adumo_virtual_payment_sessions.sql`
+- [x] `0013_platform_billing.sql`
+- [x] `0014_platform_invoice_vat.sql`
+- [x] `0015_rls_inventory_payment_sessions.sql` (RLS for inventory + payment_sessions)
+- [x] `0016_fraud_detection_rules_seed.sql` — idempotent fraud rules per tenant (smoke + `test:db` count)
 
 ### Phase 2d: F&B inventory 🚧
 - [x] Migration `database/drizzle/0011_fnb_inventory.sql` (inventory_items, menu links, movements, stock_alerts)
@@ -248,7 +265,7 @@ Apply in order on staging/production, then verify with `npm run test:db:migratio
 - [x] APIs `GET/PATCH /api/inventory/items`, `GET/PATCH /api/inventory/alerts`
 - [x] Seed data `lib/data/etuna-inventory-seed.ts`; order hooks in `OrderService.ts`
 - [x] RLS migration authored: `0015_rls_inventory_payment_sessions.sql`
-- [ ] Verify migration `0011` + `0015` applied on Neon (production/staging)
+- [x] Verify migration `0011` + `0015` applied on Neon (`npm run test:db:migrations` — May 2026)
 - [ ] Low-stock alerts QA — trigger below reorder point → alert visible → acknowledge/dismiss flow
 
 ### Phase 3: PWA / Offline ✅
@@ -264,7 +281,9 @@ Apply in order on staging/production, then verify with `npm run test:db:migratio
 
 ### Phase 5: Sofia AI / RAG 🟡
 - [x] Sofia transactional email templates refreshed (`EmailTemplateService`, branded generator + Valley Street signature; no tours in copy)
-- [x] Email triggers: booking confirm/cancel/check-in/out/pre-arrival cron, payment receipt (Adumo + cash), Sofia auto-reply
+- [x] Email triggers: booking confirm/cancel/check-in/out/pre-arrival cron, payment receipt (Adumo + cash + **NamQR**), Sofia auto-reply
+- [x] Template/signature validation: `scripts/validate-sofia-email-templates.ts`; Vitest `tests/sofia/sofia-email.test.ts`, `tests/unit/email-signature.test.ts`
+- [x] Sofia intent: guest-message-first `resolveIntent()` in `SofiaConciergeService` + `tests/unit/sofia-intent-resolve.test.ts`
 - [x] Voyage embeddings client
 - [x] RAG services implementation
 - [x] Ingestion script (`scripts/ingest-hotel-etuna-knowledge.ts`)
@@ -272,7 +291,11 @@ Apply in order on staging/production, then verify with `npm run test:db:migratio
 - [~] **Embedding & upsert to Qdrant** — DEFERRED (Voyage rate limits; config `voyage-3` + 1024 verified)
 
 ### Phase 6: Testing ✅
-- [x] **Vitest:** 342/342 default run (hub seed validation optional via `RUN_HUB_SEED_VALIDATION=true`)
+- [x] **Vitest:** 393/395 default run (hub seed validation optional via `RUN_HUB_SEED_VALIDATION=true`)
+- [x] **`npm run test:db`** — `scripts/db/verify-db.ts` (canonical)
+- [x] **`npm run test:db:migrations`** — 17 checks (`scripts/db/verify-neon-migrations.ts`)
+- [x] **`npm run test:smoke`** — DB verify + `tests/smoke/compliance-fraud-db.smoke.test.ts` (6 tests)
+- [x] **`npm run test:all`** — `test:db` + full Vitest + smoke (pre-merge gate)
 - [x] **npm run verify:production** — tsc + Vitest + next build
 - [x] **TypeScript compilation:** Zero errors
 - [x] **Production build:** Successful
@@ -332,7 +355,12 @@ Run this on **live production URL** after every deploy:
 ```bash
 npx tsc --noEmit
 npm run build
-npx vitest run --reporter=verbose
+npm run test:all          # test:db + vitest + compliance smoke (~15 min)
+# Or stepwise:
+npm run test:db
+npm run test:db:migrations
+npx vitest run
+npm run test:smoke
 # Playwright: npm run test:e2e (separate)
 ```
 
@@ -345,9 +373,16 @@ npm run dev
 # Visit http://localhost:3000
 # Test critical paths from smoke test above
 
-# Login as admin
+# Hotel hub admin (operations)
 # Email: manager@hoteletuna.com
-# Password: Test1234!
+# Password: Test1234!  (or ADMIN_PASSWORD from .env.local)
+
+# Buffr platform admin (cross-tenant /admin/platform)
+# Email: george@buffr.ai
+# Password: ADMIN_PASSWORD or Test1234! (set via provision script)
+# npx tsx scripts/provision-platform-admin.ts --email george@buffr.ai --link-hub
+
+# Sign out stale test sessions: header "Sign out" or DevTestSessionBanner (dev @example.com)
 
 # Test review approval at /crm/reviews
 ```
@@ -625,7 +660,11 @@ npm run build
 
 # Vitest
 npx vitest run
-# Expected: 342/342 passing (2 hub-seed tests skipped unless RUN_HUB_SEED_VALIDATION=true)
+# Expected: 393/395 passing (2 hub-seed tests skipped unless RUN_HUB_SEED_VALIDATION=true)
+
+# Full gate (DB + unit/integration + compliance smoke)
+npm run test:all
+# Expected: exit 0
 ```
 
 ### Database Schema Verification ✅
@@ -675,7 +714,7 @@ npx vitest run
 
 #### Optional Placeholders (Non-Critical) ⚠️
 - [ ] `OPENAI_API_KEY` — Placeholder (not required)
-- [ ] `NEXT_PUBLIC_STACK_*` — Placeholder (not using Stack Auth)
+- [x] `NEXT_PUBLIC_STACK_*` — Placeholders ignored at runtime (`lib/auth/stack-env.ts`); set real keys from Stack dashboard or rely on NextAuth + optional Neon Auth
 
 ### Deployment Checklist
 
@@ -772,7 +811,7 @@ NEXT_PUBLIC_POSTHOG_KEY="[key]"
 | Backend APIs | ✅ 100% | 136 API route handlers deployed |
 | Frontend | ✅ 100% | 61 pages compiled |
 | Security | ✅ 100% | RLS verified, no leakage |
-| Testing | ✅ 100% | 342/342 Vitest passing (default run) |
+| Testing | ✅ 100% | `npm run test:all` green; 393/395 Vitest + 6 compliance smoke |
 | Documentation | ✅ 100% | All docs updated |
 | Sofia AI | 🟡 85% | Code complete; RAG ingest blocked by Voyage 429 (embedding config resolved) |
 
@@ -789,7 +828,7 @@ NEXT_PUBLIC_POSTHOG_KEY="[key]"
 | Phase 3 — PWA / offline | ✅ 100% | Manifest, SW, offline routes |
 | Phase 4 — Session timeout | ✅ 100% | Auto-logout on inactivity |
 | Phase 5 — Sofia / RAG | 🟡 85% | Ingestion deferred (Voyage 429; `voyage-3` + 1024d config OK) |
-| Phase 6 — Tests | ✅ 100% | 342/342 Vitest; E2E via Playwright |
+| Phase 6 — Tests | ✅ 100% | `test:all` gate; 393/395 Vitest; E2E via Playwright (separate) |
 | Phase 7 — Docs | ✅ 100% | All project docs complete |
 
 ### What's Working Right Now
@@ -885,6 +924,7 @@ curl -H "api-key: $QDRANT_API_KEY" \
 - Created comprehensive `scripts/README.md` with usage documentation
 - Production scripts:
   - `seed-hotel-etuna.ts` - Main seeding
+  - `provision-platform-admin.ts` - Buffr `@buffr.ai` super-admin upsert
   - `seed-partners.ts` - Partner seeding
   - `ingest-hotel-etuna-knowledge.ts` - RAG ingestion
   - `verify-system-design.js` - System verification
@@ -899,7 +939,8 @@ curl -H "api-key: $QDRANT_API_KEY" \
 - **Rooms:** 5 types (Standard, Luxury, Family, Executive Suite, Premier)
 - **Restaurant:** Etuna Restaurant
 - **Menu:** 5 categories, 16 items
-- **Admin:** manager@hoteletuna.com / Test1234!
+- **Hotel admin:** manager@hoteletuna.com / `owner` / Test1234! (seed script)
+- **Buffr platform admin:** george@buffr.ai / `super-admin` / `is_platform_admin` — provision via `scripts/provision-platform-admin.ts` (password from `ADMIN_PASSWORD` env, not committed)
 
 #### Partner Tenants
 
@@ -1045,7 +1086,7 @@ export const revalidate = 60; // 1 minute
 - **Product:** `docs/project/PRD.md` (§6.6, §4.3.2, §11.5–11.6)
 - **Architecture:** `docs/project/PLANNING.md` (principles, caching, API, security)
 - **Implementation:** `PLANNING.md` § Implementation sequence
-- **Testing:** `TASK.md` § Production smoke
+- **Testing:** `TASK.md` § Production smoke, § Testing Procedures (`npm run test:all`, `test:db`, `test:db:migrations`)
 - **Migration / DB:** `PLANNING.md` § Database design
 - **Partner network:** `PRD.md` §2.2 · `PLANNING.md` § Partner hub-and-spoke
 - **Production status:** `TASK.md` § Production status

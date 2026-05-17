@@ -2,7 +2,21 @@ import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcryptjs from 'bcryptjs';
 import { db, users, tenants, properties } from '@/lib/db';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
+import { isGuestConsumerRole } from '@/lib/auth/roles';
+import { normalizeAccountEmail } from '@/lib/services/booking/linkGuestAccount';
+import { devError, devLog } from '@/lib/utils/dev-log';
+
+function isBuffrPlatformOperator(
+  email: string,
+  role: string | null | undefined,
+  isPlatformAdminFlag: boolean | null | undefined,
+): boolean {
+  if (isPlatformAdminFlag) return true;
+  if (!email.endsWith('@buffr.ai')) return false;
+  const r = role ?? '';
+  return r === 'admin' || r === 'super-admin';
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -12,16 +26,15 @@ export const authOptions: NextAuthOptions = {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials, req) {
-        console.log('[AUTH] Authorize called for email:', credentials?.email);
-
+      async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          console.error('[AUTH] Missing credentials');
+          devError('[AUTH] Missing credentials');
           return null;
         }
 
+        const email = normalizeAccountEmail(credentials.email);
+
         try {
-          console.log('[AUTH] Step 1: Finding user...');
           const rows = await db
             .select({
               user: users,
@@ -29,75 +42,80 @@ export const authOptions: NextAuthOptions = {
             })
             .from(users)
             .leftJoin(tenants, eq(users.tenantId, tenants.id))
-            .where(eq(users.email, credentials.email))
+            .where(sql`lower(${users.email}) = ${email}`)
             .limit(1);
 
           const row = rows[0];
           const user = row?.user;
 
           if (!user) {
-            console.error('[AUTH] User not found for email:', credentials.email);
+            devError('[AUTH] User not found');
             return null;
           }
 
           const tenant = row?.tenant ?? null;
 
-          console.log('[AUTH] Step 2: User found:', {
-            id: user.id,
-            email: user.email,
-            hasTenant: !!tenant,
-            tenantId: user.tenantId,
-          });
+          const isPlatformOperator = isBuffrPlatformOperator(
+            user.email,
+            user.role,
+            user.isPlatformAdmin,
+          );
 
-          if (!tenant) {
-            console.error('[AUTH] User has no tenant:', user.id);
+          const isGuestConsumer = isGuestConsumerRole(user.role);
+
+          if (!tenant && !isPlatformOperator && !isGuestConsumer) {
+            devError('[AUTH] User has no tenant');
             return null;
           }
 
-          console.log('[AUTH] Step 3: Comparing password...');
           const passwordMatch = await bcryptjs.compare(
             credentials.password,
             user.passwordHash
           );
 
           if (!passwordMatch) {
-            console.error('[AUTH] Password mismatch for email:', credentials.email);
+            devError('[AUTH] Password mismatch');
             return null;
           }
 
-          console.log('[AUTH] Step 4: Password matched!');
+          if (!user.emailVerified && user.emailVerificationOtp) {
+            devError('[AUTH] Email not verified');
+            return null;
+          }
 
-          console.log('[AUTH] Step 5: Updating last login timestamp...');
           await db
             .update(users)
             .set({ lastLoginAt: new Date() })
             .where(eq(users.id, user.id));
-          console.log('[AUTH] Last login timestamp updated');
-
           if (!user.emailVerified && !user.emailVerificationOtp) {
-            console.log('[AUTH] Step 6: Auto-verifying old account...');
             await db
               .update(users)
               .set({ emailVerified: true })
               .where(eq(users.id, user.id));
-            console.log('[AUTH] Old account verified');
           }
 
           let propertyId: string | undefined = undefined;
-          if (user.role === 'owner' && user.tenantId) {
-            console.log('[AUTH] Step 7: Finding property for owner...');
-            const propRows = await db
-              .select({ id: properties.id })
-              .from(properties)
-              .where(
-                and(
-                  eq(properties.ownerId, user.id),
-                  eq(properties.tenantId, user.tenantId)
+          if (user.tenantId && !isGuestConsumer) {
+            if (user.role === 'owner') {
+              const propRows = await db
+                .select({ id: properties.id })
+                .from(properties)
+                .where(
+                  and(
+                    eq(properties.ownerId, user.id),
+                    eq(properties.tenantId, user.tenantId)
+                  )
                 )
-              )
-              .limit(1);
-            propertyId = propRows[0]?.id ?? undefined;
-            console.log('[AUTH] Property found:', !!propRows[0]);
+                .limit(1);
+              propertyId = propRows[0]?.id ?? undefined;
+            } else if (isPlatformOperator) {
+              const propRows = await db
+                .select({ id: properties.id })
+                .from(properties)
+                .where(eq(properties.tenantId, user.tenantId))
+                .limit(1);
+              propertyId = propRows[0]?.id ?? undefined;
+            }
           }
 
           const authUser = {
@@ -109,22 +127,10 @@ export const authOptions: NextAuthOptions = {
             propertyId,
           };
 
-          console.log('[AUTH] ✅ Authentication successful! Returning user:', {
-            id: authUser.id,
-            email: authUser.email,
-            role: authUser.role,
-          });
-
+          devLog('[AUTH] Authentication successful', { role: authUser.role });
           return authUser;
         } catch (error: unknown) {
-          const err = error as Error;
-          console.error('[AUTH] ❌ Authentication error:', error);
-          console.error('[AUTH] Error details:', {
-            message: err?.message,
-            stack: err?.stack,
-            email: credentials?.email,
-            name: err?.name,
-          });
+          devError('[AUTH] Authentication error', error);
           return null;
         }
       },
@@ -141,11 +147,6 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        console.log('[AUTH] JWT callback - adding user to token:', {
-          id: user.id,
-          email: user.email,
-          role: user.role,
-        });
         token.id = user.id;
         token.email = user.email;
         token.role = user.role;
@@ -155,11 +156,6 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      console.log('[AUTH] Session callback - creating session:', {
-        hasToken: !!token,
-        tokenId: token?.id,
-        tokenEmail: token?.email,
-      });
       if (session.user) {
         session.user.id = token.id as string;
         session.user.email = token.email as string;

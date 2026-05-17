@@ -80,6 +80,7 @@ export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
     }
 
     setIsLoading(true);
+    const canViewRates = status === 'authenticated';
     try {
       const response = await fetch('/api/bookings/availability', {
         method: 'POST',
@@ -98,7 +99,15 @@ export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
         throw new Error(payload?.message || 'Unable to check availability');
       }
 
-      setResults(Array.isArray(payload) ? payload : payload?.data ?? []);
+      const rows = Array.isArray(payload) ? payload : payload?.data ?? [];
+      setResults(
+        canViewRates
+          ? rows
+          : rows.map((row: AvailabilityRoom) => {
+              const { baseRate: _removed, ...rest } = row;
+              return { ...rest, baseRate: null };
+            }),
+      );
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Unable to check availability');
     } finally {
@@ -152,8 +161,8 @@ export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
           {filteredResults.map((room) => (
             <div key={room.id} className="rounded-lg border border-nude-200 p-3 text-sm text-terracotta-800">
               {room.roomType} ({room.roomNumber}) · Max {room.maxOccupancy} guests
-              {isAuthenticated
-                ? ` · NAD ${room.baseRate ?? 'N/A'}`
+              {isAuthenticated && room.baseRate != null && room.baseRate !== ''
+                ? ` · NAD ${room.baseRate}`
                 : ` · ${publicCopy.gated.viewRates}`}
             </div>
           ))}

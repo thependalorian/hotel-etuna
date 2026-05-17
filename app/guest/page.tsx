@@ -17,9 +17,8 @@ export const metadata: Metadata = {
 export default function GuestStaysPage() {
   return (
     <div>
-      <h1 className="font-display text-3xl font-bold text-terracotta-900 mb-2">{guestCopy.hub.title}</h1>
-      <p className="text-nude-600 mb-2">{guestCopy.hub.description}</p>
-      <p className="text-sm text-nude-500 mb-8">{guestCopy.hub.loyaltyHint}</p>
+      <h1 className="buffr-page-title">{guestCopy.hub.title}</h1>
+      <p className="buffr-page-desc mb-8">{guestCopy.hub.description}</p>
       <GuestStaysList />
     </div>
   );

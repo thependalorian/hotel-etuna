@@ -26,6 +26,10 @@ import { normalizePathnameForRateLimit } from '@/lib/utils/api-url';
 import { extractSubdomain, validateTenant } from '@/lib/utils/tenant-validation';
 import { logUnauthorizedAccess, logRateLimitExceeded } from '@/lib/utils/security-logger';
 import { stackServerApp } from '@/stack';
+import { isStackAuthServerConfigured } from '@/lib/auth/stack-env';
+import { sanitizeRedirectPath } from '@/lib/auth/roles';
+import { db, users } from '@/lib/db';
+import { eq, sql } from 'drizzle-orm';
 
 // Public routes that don't require authentication
 const PUBLIC_ROUTES = [
@@ -144,8 +148,8 @@ function hasRouteAccess(pathname: string, role: string): boolean {
   // Normalize role to lowercase for comparison
   const normalizedRole = role?.toLowerCase() || '';
   
-  // Admin has access to everything
-  if (normalizedRole === 'admin') {
+  // Platform operators have access to everything (hub + platform console while building)
+  if (normalizedRole === 'admin' || normalizedRole === 'super-admin') {
     return true;
   }
   
@@ -159,16 +163,22 @@ function hasRouteAccess(pathname: string, role: string): boolean {
     }
   }
   
-  // Guest routes
-  if (normalizedRole === 'guest') {
+  // Guest consumer routes (traveller accounts)
+  if (normalizedRole === 'guest' || normalizedRole === 'user') {
     if (GUEST_ROUTES.some(route => pathname.startsWith(route))) {
       return true;
     }
+    if (pathname === '/profile' || pathname.startsWith('/profile/')) {
+      return true;
+    }
   }
-  
-  // Staff routes (limited access)
+
+  // Staff routes — operational dashboard (not legacy /staff-only paths)
   if (normalizedRole === 'staff') {
-    if (pathname.startsWith('/staff')) {
+    if (PROPERTY_OWNER_ROUTES.some((route) => pathname.startsWith(route))) {
+      return true;
+    }
+    if (GUEST_ROUTES.some((route) => pathname.startsWith(route))) {
       return true;
     }
   }
@@ -193,7 +203,16 @@ function hasRouteAccess(pathname: string, role: string): boolean {
 }
 
 async function handleApiRoutes(req: NextRequest, token: MiddlewareToken | null, pathname: string): Promise<NextResponse> {
+  req.headers.delete('x-2fa-verified');
+
   const role = (token?.role ?? '').toLowerCase();
+
+  if (pathname.startsWith('/api/guest') && !token?.id && !req.headers.get('x-user-id')) {
+    return NextResponse.json(
+      { error: { message: 'Unauthorized', code: 'UNAUTHORIZED' } },
+      { status: 401 },
+    );
+  }
 
   if (role.startsWith('partner') && HUB_ONLY_API_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
     return NextResponse.json({ error: 'Forbidden: hub-only endpoint' }, { status: 403 });
@@ -208,9 +227,7 @@ async function handleApiRoutes(req: NextRequest, token: MiddlewareToken | null, 
 
   // Check for Stack Auth session for API routes
   let stackAuthUser: StackAuthUser | null = null;
-  const stackAuthConfigured = stackServerApp && 
-                               process.env.NEXT_PUBLIC_STACK_PROJECT_ID && 
-                               process.env.STACK_SECRET_SERVER_KEY;
+  const stackAuthConfigured = Boolean(stackServerApp && isStackAuthServerConfigured());
   
   if (stackAuthConfigured && stackServerApp) {
     try {
@@ -256,9 +273,18 @@ async function handleApiRoutes(req: NextRequest, token: MiddlewareToken | null, 
         );
       }
     } catch (rateLimitError) {
-      // Rate limiting service unavailable - allow request through
-      // Log error but don't block request
       console.error('[Middleware] Rate limiting error:', rateLimitError);
+      if (process.env.NODE_ENV === 'production' || process.env.RATE_LIMIT_REDIS_REQUIRED === 'true') {
+        return NextResponse.json(
+          {
+            error: {
+              message: 'Service temporarily unavailable',
+              code: 'RATE_LIMIT_UNAVAILABLE',
+            },
+          },
+          { status: 503 },
+        );
+      }
     }
   }
   
@@ -301,8 +327,21 @@ function handleTenantContext(req: NextRequest, token: MiddlewareToken): NextResp
 
 function redirectToLogin(req: NextRequest): NextResponse {
   const url = new URL('/login', req.url);
-  url.searchParams.set('callbackUrl', encodeURI(req.url));
+  const pathWithQuery = `${req.nextUrl.pathname}${req.nextUrl.search}`;
+  const safe = sanitizeRedirectPath(pathWithQuery) ?? '/guest';
+  url.searchParams.set('redirect', safe);
   return NextResponse.redirect(url);
+}
+
+async function resolveDbRoleForEmail(email: string | null | undefined): Promise<string> {
+  if (!email) return '';
+  const normalized = email.trim().toLowerCase();
+  const rows = await db
+    .select({ role: users.role })
+    .from(users)
+    .where(sql`lower(${users.email}) = ${normalized}`)
+    .limit(1);
+  return (rows[0]?.role ?? '').toLowerCase();
 }
 
 function redirectToUnauthorized(req: NextRequest): NextResponse {
@@ -356,9 +395,7 @@ export default withAuth(
     
     // Check for Stack Auth session first (if Stack Auth is configured)
     let stackAuthUser = null;
-    const stackAuthConfigured = stackServerApp && 
-                                 process.env.NEXT_PUBLIC_STACK_PROJECT_ID && 
-                                 process.env.STACK_SECRET_SERVER_KEY;
+    const stackAuthConfigured = Boolean(stackServerApp && isStackAuthServerConfigured());
     
     if (stackAuthConfigured && stackServerApp) {
       try {
@@ -459,7 +496,10 @@ export default withAuth(
         }
         
         if (stackAuthUser) {
-          // Stack Auth user is authenticated - allow through
+          const stackRole = await resolveDbRoleForEmail(stackAuthUser.primaryEmail);
+          if (!hasRouteAccess(pathname, stackRole)) {
+            return redirectToUnauthorized(req);
+          }
           const response = NextResponse.next();
           addSecurityHeaders(response);
           return response;
@@ -610,9 +650,7 @@ export default withAuth(
         // For API routes, allow Stack Auth access tokens to pass through
         // The main middleware will verify the token
         if (pathname.startsWith('/api')) {
-          const stackAuthConfigured = stackServerApp && 
-                                       process.env.NEXT_PUBLIC_STACK_PROJECT_ID && 
-                                       process.env.STACK_SECRET_SERVER_KEY;
+          const stackAuthConfigured = Boolean(stackServerApp && isStackAuthServerConfigured());
           
           if (stackAuthConfigured && stackServerApp) {
             // Check if we have Stack Auth session or access token
@@ -642,9 +680,7 @@ export default withAuth(
         }
         
         // Check Stack Auth session if configured (for non-API routes)
-        const stackAuthConfigured = stackServerApp && 
-                                     process.env.NEXT_PUBLIC_STACK_PROJECT_ID && 
-                                     process.env.STACK_SECRET_SERVER_KEY;
+        const stackAuthConfigured = Boolean(stackServerApp && isStackAuthServerConfigured());
         
         if (stackAuthConfigured && stackServerApp) {
           try {

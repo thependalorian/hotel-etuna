@@ -1,12 +1,23 @@
 export type BookingChargeType = 'room' | 'fnb' | 'tax' | 'adjustment' | 'payment';
 
+export type BookingChargeStatus = 'open' | 'settled' | 'refunded';
+
+export type BookingStatus =
+  | 'pending'
+  | 'confirmed'
+  | 'checked_in'
+  | 'checked_out'
+  | 'cancelled';
+
+export type LoyaltyTier = 'bronze' | 'silver' | 'gold' | 'platinum';
+
 export type FolioLineItem = {
   id: string;
   chargeType: BookingChargeType;
   description: string;
   amount: number;
   currency: string;
-  status: string;
+  status: BookingChargeStatus;
   referenceId: string | null;
   createdAt: Date | null;
   settledAt: Date | null;
@@ -40,7 +51,7 @@ export type FolioSummary = {
   /** Present when property is VAT-registered and open hospitality charges exist */
   vat?: FolioVatSummary | null;
   folioClosedAt: Date | null;
-  bookingStatus: string;
+  bookingStatus: BookingStatus | string;
   roomPaymentStatus: string | null;
 };
 
@@ -72,9 +83,36 @@ export type GuestPaymentDueSummary = {
   paymentStatus: string;
 };
 
+export type GuestPastStaySummary = {
+  bookingId: string;
+  bookingReference: string;
+  status: string;
+  checkInDate: string;
+  checkOutDate: string;
+  propertyId: string;
+  propertyName: string;
+  propertySlug: string | null;
+  roomNumbers: string[];
+  currency: string;
+};
+
+export type GuestLoyaltyHubSummary = {
+  loyaltyPoints: number;
+  loyaltyTier: LoyaltyTier | string;
+  profileCount: number;
+};
+
+/** Discriminated access shapes from GuestStayService.findGuestBookingAccess */
+export type GuestBookingAccess =
+  | GuestStaySummary
+  | GuestPaymentDueSummary
+  | GuestPastStaySummary;
+
 export type GuestStaysHubPayload = {
   activeStays: GuestStaySummary[];
   paymentDue: GuestPaymentDueSummary[];
+  pastStays: GuestPastStaySummary[];
+  loyalty: GuestLoyaltyHubSummary | null;
 };
 
 export type RoomServiceOrderItemInput = {

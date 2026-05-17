@@ -1,7 +1,7 @@
 # Hotel Etuna — Production Planning
 
-**Last Updated:** May 16, 2026  
-**Program Status:** Phases 1–4 complete; Phase 5 (RAG ingest) pending operator run; Phases 6–7 complete per `TASK.md`  
+**Last Updated:** May 17, 2026  
+**Program Status:** Phases 1–4 complete; Phase 5 (RAG ingest) pending operator run; Phases 6–7 complete (`npm run test:all` green per `TASK.md`)  
 **Product scope:** Curated **tours** removed from public site and Sofia KB (PRD v2.7.2+). No `/tours` route; four markdown sources under `data/hotel-etuna-knowledge/`.
 
 ---
@@ -87,7 +87,9 @@ Hotel Etuna (hub)
 **Manual off-platform payments (live):**
 - `ManualPaymentService`, `POST /api/payments/manual` (EFT, e-wallet, bank deposit on desk form)
 - NamQR bank-app confirm: `NamQrDeskPanel` only (avoids duplicate folio path vs manual form)
-- Operator verify after Neon SQL: `npm run test:db:migrations` (`scripts/db/verify-neon-migrations.ts`)
+- Operator verify after Neon SQL: `npm run test:db:migrations` (`scripts/db/verify-neon-migrations.ts`, checks **0011–0016**)
+- NamQR / manual folio settle triggers **payment receipt email** (`schedulePaymentReceiptEmail`, method `NamQR (bank app)`)
+- Pre-merge DB gate: `npm run test:db` (`scripts/db/verify-db.ts`)
 
 **Card — Adumo Virtual (hosted page, preferred):**
 - Guests pay on Adumo’s PCI page; we validate `_RESPONSE_TOKEN` JWT (signature + `mref` / `amount` / `cuid` / `auid`)
@@ -229,8 +231,8 @@ Hotel Etuna (hub)
 
 | Area | Model | Implementation |
 |------|-------|----------------|
-| **Authentication** | Session + JWT claims (`tenant_id`, `role`) | NextAuth / Stack Auth |
-| **Authorization** | RBAC + RLS | Roles: owner, manager, admin, staff; hub-only routes in `proxy.ts` |
+| **Authentication** | Session + JWT claims (`tenant_id`, `role`) | NextAuth (primary); Stack Auth optional; platform admin resolves via `getAuthenticatedEmail()` |
+| **Authorization** | RBAC + RLS | Roles: owner, manager, admin, staff, **super-admin** (Buffr); hub-only routes in `proxy.ts`; `isPlatformAdmin()` for `/admin/platform` |
 | **API security** | Rate limit, CORS, parameterized SQL, CSRF via SameSite cookies | Per PRD §6.2; verify in TASK |
 | **PII** | Guest email, phone, folio | GDPR/POPIA backlog; audit trail for sensitive ops |
 | **Transport** | HTTPS only on Vercel | HSTS via platform; secure cookies |
@@ -264,10 +266,17 @@ Hotel Etuna (hub)
 - DB-driven content for home, rooms, dining, partners
 - Shared `PublicHero` + `PublicFooter` components
 - Gated content and redirect-aware sign-in/up paths
+- **Auth entry split:** header → guest (`/login?redirect=/guest`); footer → staff (`/login?redirect=/dashboard`) — PRD §3.3.1
+- **Session-aware chrome:** `PublicAuthNav` + `lib/auth/public-session-nav.ts`; dev `DevTestSessionBanner` for leftover `@example.com` cookies
+- **Buffr platform admin:** NextAuth-backed `getCurrentPlatformAdmin()`; `provision-platform-admin.ts`; `@buffr.ai` + `super-admin` — PRD §3.3.2
+- **Guest hub:** `/guest` lists active stays, payment due, past stays, loyalty; traveller register → hub tenant + `guest` role; `linkGuestAccountForHubUser` on register/verify; `lib/auth/roles.ts` routing — PRD §3.3.3
+- **Guest security:** Consumer-only `/api/guest/*`; verified email + `is_signed_up` for stay access; no open redirect on middleware login — PRD §3.3.3
+- **Production:** Password policy, optional Turnstile, Redis rate limits (`RATE_LIMIT_REDIS_REQUIRED`), canonical types in `lib/db/schema-types.ts` — PRD §3.3.4
+- **System map (structure + RBAC + journeys):** PRD **§3.6** — canonical for roles, route/API matrices, J1–J7 flows; **§2.4** maps marketing personas to roles; file tree PRD **§4.6** (regenerated May 2026)
 - `lib/data/rooms.ts` as DRY source for room queries
 - Rustic brand token usage
 - **Digital menu book (`/dining`):** Neon-only `getCompleteMenu()` → `serializePublicMenu()` + `MenuPopularityService` → `PublicMenuBoard` / `MenuBookFullMenu` (single book; food 4-up grid + drink lists; view-only banner). CMS `/menu/[itemId]/edit`; scripts `seed:menu-images`, `validate:menu-images`, `seed:menu-images:full` — PRD §3.1.1
-- **Room photo tours (`/rooms`, `/rooms/[slug]`):** Same `RoomPhotoTour` for guests and signed-in users; rates masked on public cards (`RoomBookingCard`, filmstrip); sign-in required for `#booking` widget; `takeTheTour` CTA everywhere — PRD §3.1.2
+- **Room photo tours (`/rooms`, `/rooms/[slug]`):** Same `RoomPhotoTour` for guests and signed-in users; rates masked on public cards (`RoomBookingCard`, filmstrip); sign-in required for `#booking` widget; `takeTheTour` CTA everywhere; `/rooms#tour` scroll target; `public-rate.ts` + availability API rate strip — PRD §3.1.2
 
 #### Phase 2 — Cash Ops ✅
 - Migration `0007` for cash columns + reconciliation table
@@ -310,13 +319,13 @@ Hotel Etuna (hub)
 1. Playwright: gated pricing, `PublicHero`/`PublicFooter`, auth redirect behavior
 2. Integration coverage for review approval endpoints
 3. Sofia/email suite FK fixes
-4. Gates: `npx vitest run`, `npm run verify:production`, optional `npm run test:e2e`
+4. Gates: `npm run test:all` (or `test:db` + `vitest run` + `test:smoke`), `npm run verify:production`, optional `npm run test:e2e`
 
 #### Phase 7 — Cleanup/Docs ✅
 **Status:** Complete per `TASK.md`
 
 **Delivered:**
-1. Ad-hoc scripts archived under `scripts/archive/`
+1. Obsolete ad-hoc scripts removed; use `scripts/db/*`, Vitest, Playwright
 2. Planning docs consolidated (`docs/project/`)
 3. PRD, PLANNING.md, and TASK.md aligned (May 16, 2026)
 4. `SYSTEM_DESIGN_MASTER_GUIDE.md` reflected in PRD §6.6 / §4.3.2 / §11.5–11.6, PLANNING architecture sections, TASK security checklists
@@ -341,7 +350,9 @@ Every phase must pass:
 | NamQR v5 compliance | `lib/compliance/namqr/nrtc-payload.ts` (tag 17 NRTC desk), `standards.ts`; tag 26 IPP via `encodeNamQrPayloadV5` in `lib/services/qr/namqr-core.ts` |
 | NamQR desk API/UI | `app/api/payments/namqr/generate`, `confirm`, `app/(dashboard)/payments/desk/page.tsx`, `NamQrDeskPanel`, sidebar **Payments desk** |
 | Manual off-platform payments | `ManualPaymentService.ts`, `settleOffPlatformFolio.ts`, `app/api/payments/manual/route.ts`, `ManualPaymentForm` (EFT/e-wallet/deposit only) |
-| Neon migration verify | `scripts/db/verify-neon-migrations.ts` — `npm run test:db:migrations` |
+| Neon migration verify | `scripts/db/verify-neon-migrations.ts` — `npm run test:db:migrations` (17 checks incl. `0016` fraud seed) |
+| DB baseline verify | `scripts/db/verify-db.ts` — `npm run test:db` |
+| Compliance smoke | `tests/smoke/compliance-fraud-db.smoke.test.ts` — `npm run test:smoke` or `npm run test:all` |
 | RLS post-0004 tables | `database/drizzle/0015_rls_inventory_payment_sessions.sql` |
 | F&B inventory | `database/drizzle/0011_fnb_inventory.sql`, `lib/services/inventory/InventoryService.ts`, `app/api/inventory/*` |
 | Schema/migration | `lib/db/schema.ts`, `0007_cash_payments_and_reconciliation.sql` |
@@ -381,6 +392,9 @@ Every phase must pass:
 - `0010` - Booking charges RLS policies
 - `0011` - F&B inventory (SKUs, movements, low-stock alerts)
 - `0012` - Adumo Virtual `payment_sessions`
+- `0013`–`0014` - Platform billing + invoice VAT
+- `0015` - RLS for `booking_charges`, inventory, `payment_sessions`, `stock_movements`
+- `0016` - Fraud detection rules seed (`0016_fraud_detection_rules_seed.sql`)
 
 **Neon Schema Status:**
 - Migration journal shows entries `0000-0002` only
@@ -486,11 +500,11 @@ booking (stay)
 | Tests | `tests/integration/folio-guest-stay.test.ts` |
 
 **Recommended Next Implementations:**
-1. RLS on `booking_charges` (`0010_booking_charges_rls.sql`)
-2. Guest UI (`app/guest/stays/[bookingId]/page.tsx`)
-3. Room QR URLs via `NAMQRService`
+1. ~~RLS on `booking_charges`~~ — done (`0010` + `0015`)
+2. ~~Guest UI~~ — `app/guest/stays/[bookingId]/page.tsx` live
+3. ~~Room QR~~ — `GET /api/public/room-qr/[code]`
 4. Adumo on public `BookingForm` checkout deposit (folio + `BookingDepositPayCard` done — PSD-12)
-5. Booking create hook for automatic room charges
+5. Booking create hook for automatic room charges (verify coverage vs `ensureRoomChargeForBooking`)
 6. Partial settle support
 7. Sofia tool for `get_guest_folio`
 
@@ -633,7 +647,8 @@ ORDER BY tablename, indexname;
 - 136+ menu items in catalog; **live public menu** from `cms_menu_items` (~110+ available rows typical)
 - Menu dish thumbnails: `scripts/seed-menu-images.ts`, `scripts/validate-menu-images.ts`, `lib/data/menu-item-image-urls.ts` (480×360)
 - inventory SKUs linked when migration `0011` applied
-- 1 admin user (manager@hoteletuna.com / Test1234!)
+- 1 hotel admin user (manager@hoteletuna.com / `owner` / Test1234!)
+- Buffr platform admin: `scripts/provision-platform-admin.ts` (e.g. george@buffr.ai — not part of hub seed)
 
 **Features:**
 - Idempotent (checks for existing data)
@@ -864,7 +879,7 @@ Code inspection and commands run against the repo (not agent reports alone). Det
 | **Error sanitization** | No stack in prod | ✅ `sanitizeErrorDetails` in `lib/utils/api-helpers.ts` |
 | **RLS** | Tenant isolation | ✅ `verify-tenant-rls.ts` exit 0 |
 | **Public UI** | `lib/copy`, khaki CTAs | ✅ `publicCopy.gated`; no `text-gray-*` under `app/` |
-| **Scripts** | Archived | ✅ 33 files in `scripts/archive/` |
+| **Scripts** | Production only | ✅ `scripts/` + `scripts/db/`; archive deleted May 2026 |
 | **TypeScript** | Zero errors | ✅ `npx tsc --noEmit` exit 0 |
 | **API route count** | 92–117 | ✅ **136** `app/api/**/route.ts` (`find … \| wc -l`, May 16, 2026) |
 | **RAG ingest** | Ready | 🟡 Config documented; Qdrant upsert still manual |
@@ -927,6 +942,7 @@ Code inspection and commands run against the repo (not agent reports alone). Det
 
 **Testing Procedures:**
 - **`TASK.md`** § Production smoke (landing page + reviews)
+- **`TASK.md`** § Testing Procedures — `npm run test:all`, `test:db`, `test:db:migrations`, compliance smoke
 - **`TASK.md`** § Production status (SQL verification notes)
 
 **Planning Hierarchy:**
@@ -936,4 +952,4 @@ Code inspection and commands run against the repo (not agent reports alone). Det
 
 ---
 
-**Last verified:** May 16, 2026 (implementation audit + consolidation)
+**Last verified:** May 17, 2026 (test pipeline + migrations 0011–0016 + compliance smoke)

@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
+import { resolveHubTenantId } from '@/lib/utils/hub-tenant';
+import {
+  linkGuestAccountForHubUser,
+  normalizeAccountEmail,
+} from '@/lib/services/booking/linkGuestAccount';
 import * as z from 'zod';
 
 const verifySchema = z.object({
@@ -21,9 +26,14 @@ export async function POST(request: Request) {
       }, { status: 400 });
     }
 
-    const { email, otp } = validation.data;
+    const { otp } = validation.data;
+    const email = normalizeAccountEmail(validation.data.email);
 
-    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(sql`lower(${users.email}) = ${email}`)
+      .limit(1);
 
     if (!user) {
       return NextResponse.json({ message: 'User not found.' }, { status: 404 });
@@ -59,6 +69,14 @@ export async function POST(request: Request) {
         emailVerificationOtpExpiresAt: null,
       })
       .where(eq(users.id, user.id));
+
+    const hubTenantId = user.tenantId ?? (await resolveHubTenantId());
+    await linkGuestAccountForHubUser({
+      hubTenantId,
+      email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    });
 
     return NextResponse.json({
       message: 'Email verified successfully.',

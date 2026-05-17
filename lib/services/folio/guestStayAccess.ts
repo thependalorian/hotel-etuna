@@ -5,12 +5,13 @@
  * Location: /lib/services/folio/guestStayAccess.ts
  */
 
-import { db, bookings, guests } from '@/lib/db';
-import { eq } from 'drizzle-orm';
+import { db, bookings, guests, users } from '@/lib/db';
+import { eq, sql } from 'drizzle-orm';
 import { AppError } from '@/lib/utils/errors';
 import type { Booking, Guest } from '@/lib/db/schema';
+import { isGuestConsumerRole } from '@/lib/auth/roles';
 
-const STAFF_ROLES = new Set(['owner', 'manager', 'admin', 'staff']);
+const STAFF_ROLES = new Set(['owner', 'manager', 'admin', 'staff', 'super-admin']);
 
 export type BookingWithGuest = {
   booking: Booking;
@@ -63,6 +64,21 @@ export async function assertStayAccess(
   }
 
   if (email && guestEmail && email === guestEmail) {
+    const role = (user.role || '').toLowerCase();
+    if (isGuestConsumerRole(role)) {
+      const accountRows = await db
+        .select({ emailVerified: users.emailVerified })
+        .from(users)
+        .where(sql`lower(${users.email}) = ${email}`)
+        .limit(1);
+      const account = accountRows[0];
+      if (account && !account.emailVerified) {
+        throw new AppError(403, 'Verify your email to access this stay');
+      }
+      if (!ctx.guest.isSignedUp) {
+        throw new AppError(403, 'Complete registration to access this stay');
+      }
+    }
     return ctx;
   }
 

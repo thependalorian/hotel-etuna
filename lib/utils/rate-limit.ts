@@ -30,6 +30,7 @@ export const RATE_LIMITS = {
   '/api/payments/adumo': { requests: 5, window: '1 m' },
   '/api/payments/initiate': { requests: 5, window: '1 m' },
   '/api/guest/stays': { requests: 30, window: '1 m' },
+  '/api/guest/loyalty': { requests: 15, window: '1 m' },
 
   // Sofia / AI — cost control
   '/api/sofia/chat': { requests: 20, window: '1 m' },

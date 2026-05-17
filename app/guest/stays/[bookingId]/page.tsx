@@ -54,8 +54,9 @@ export default async function GuestStayDetailPage({ params }: PageProps) {
     'totalAmount' in access && typeof access.totalAmount === 'number'
       ? access.totalAmount
       : 0;
+  const paymentStatus = 'paymentStatus' in access ? access.paymentStatus : null;
   const depositDue =
-    access.paymentStatus === 'pending' && dueAmount > 0
+    paymentStatus === 'pending' && dueAmount > 0
       ? { amount: dueAmount, currency: access.currency }
       : undefined;
 

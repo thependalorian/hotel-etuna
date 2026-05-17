@@ -1,7 +1,7 @@
 # Hotel Etuna — Product Requirements Document (PRD)
 
-**Version:** 2.8.0  
-**Date:** May 16, 2026  
+**Version:** 2.9.1  
+**Date:** May 17, 2026  
 **Auditor:** Product Team  
 **Status:** **In production** (Vercel + Neon). All core features complete. This is the consolidated single source of truth for all product requirements.  
 **DRY:** Architecture and rationale live in **`PLANNING.md`**. Execution checklist lives in **`TASK.md`**. System design canon: **`SYSTEM_DESIGN_MASTER_GUIDE.md`** (repo root), inlined in PRD §6.6 / §4.3.2 / §11.5–11.6. All product features and requirements consolidated from scattered reports into this document.
@@ -118,6 +118,32 @@ Hotel Etuna is a **hub‑and‑spoke hospitality platform** built on the Buffr H
 
 **Primary OTAs:** Booking.com, Airbnb (for partner listings), Google Hotel Ads.
 
+### 2.4 Platform actors (personas → roles → product surfaces)
+
+Marketing personas in **§2.1** describe *who books and why*. The table below maps them to **system actors** in **§3.6** (RBAC, journeys, can/cannot).
+
+| Marketing persona (§2.1) | Typical system role | Primary journey | Sign-in entry | Home surface | Can do (summary) | Cannot do |
+|--------------------------|---------------------|-----------------|---------------|--------------|------------------|-----------|
+| Corporate / government traveller | **`guest`** | J2 → J3 → J4 | Header → `/login?redirect=/guest` | `/guest` | Register, book (gated rates), view own stays/folio, pay deposit, loyalty | Staff dashboard, Sofia admin, other guests’ data |
+| Trade fair / conference attendee | **`guest`** | J2 → J3 → J4 | Same | `/guest` | Same as guest | Same |
+| Family / leisure traveller | **`guest`** | J2 → J3 → J4 | Same | `/guest` | Same as guest | Same |
+| International visitor | **`guest`** | J1 → J2 → J3 → J4 | Same | `/guest` | Public browse; after verify: book + in-stay hub | Rates/booking while anonymous |
+| Anonymous visitor (pre-account) | — | J1 | — | `/`, `/rooms`, `/dining` | Marketing, menu book, partner directory | Prices, complete booking, folio |
+| Front desk / F&B / ops | **`staff`** | J5 | Footer → `/login?redirect=/dashboard` | `/dashboard` | Bookings, check-in/out, restaurant, payments desk | `/api/guest/*` consumer APIs; cross-tenant data |
+| Hotel manager / owner | **`manager`** / **`owner`** | J5 | Footer staff login | `/dashboard`, `/settings`, `/payments/*` | All hub ops + reconciliation, VAT reports, staff | Partner tenants; platform console |
+| Partner lodge operator | **`partner_*`** (partner tenant) | J6 | Invite / partner login | `/partner/*` | Own properties, bookings, rates | Hub Sofia, hub CRM, `/api/guest/stays/*`, other tenants |
+| Buffr platform operator | **`super-admin`** / **`admin`** | J7 | Footer staff login | `/admin/platform` | Cross-tenant users, tenants, properties, audit | N/A (platform scope) |
+
+**Identity rules (all guest personas):**
+
+- Login account: `users` with `role: guest` on **hub tenant** (`HUB_TENANT_ID`).
+- Stay visibility: `users.email` must match `guests.email` on the booking; email **verified** + `guests.is_signed_up`.
+- Legacy role **`user`** is treated like **`guest`** for routing and `/api/guest/*`.
+
+**Staff vs guest UX:** Travellers use the **header** sign-in and land on **`/guest`**. Hotel and Buffr operators use the **footer** staff login and land on **`/dashboard`** or **`/admin/platform`** (`lib/auth/roles.ts`, `PublicAuthNav`).
+
+**Anti-personas (§2.2)** remain out of product scope; they do not receive a dedicated role or surface.
+
 ---
 
 ## 3. Core Capabilities (In Scope)
@@ -157,12 +183,12 @@ Hotel Etuna is a **hub‑and‑spoke hospitality platform** built on the Buffr H
 | Layer | Implementation |
 |-------|----------------|
 | **Data** | `getHubRooms()` / `getRoomBySlug()` (`lib/data/rooms.ts`) — resolves hub property via **`resolvePublicHubProperty()`** (same as landing), then loads `rooms` excluding maintenance/out-of-order (case-insensitive). `export const dynamic = 'force-dynamic'` on `/rooms` pages. Public copy/tour stops: **`lib/rooms/room-display.ts`**. |
-| **Listing UX** | `/rooms`: `PublicRoomsBrowseBanner` (guests — rates masked, sign in to book), `PublicRoomsSignedInBanner` (signed-in — same tours, rates + booking on each detail page), `RoomsIncludedStrip`, **`RoomsFilmstrip`** (no prices on cards; **Take the tour** → `/rooms/[slug]#tour`; guests see “Rates hidden — sign in to view”). |
-| **Detail UX** | **Same `RoomPhotoTour` for everyone** (guests and signed-in). Guests: `RoomBookingCard` shows `publicCopy.gated.viewRates` (no NAD amounts); availability block hidden behind sign-in. Signed-in: live rates in card, **`LandingBookingWidget`** at `#booking`, CTA **Complete your booking** scrolls to widget. |
-| **Gating** | Public pages never render room `baseRate` in tour UI. Homepage room cards + filmstrip link to `#tour`; prices only after login (`getServerSession` on `/` and `/rooms`). Booking completion requires account. |
+| **Listing UX** | `/rooms` + **`#tour`** on filmstrip (`id="tour"`): `PublicRoomsBrowseBanner`, `PublicRoomsSignedInBanner`, `RoomsIncludedStrip`, **`RoomsFilmstrip`** (no prices on cards; **Take the tour** → `/rooms/[slug]#tour`; guests see “Rates hidden — sign in to view”). |
+| **Detail UX** | **Same `RoomPhotoTour` for everyone** (guests and signed-in). Guests: sidebar hidden; inline **`PublicRoomTourSignInCard`** under tour (no NAD typography). Signed-in: client **`RoomBookingCard`** (`useSession`) shows live rates + **`LandingBookingWidget`** at `#booking`; CTA **Complete your booking** scrolls to widget. |
+| **Gating** | Public pages never render room `baseRate` in tour UI. `formatPublicRoomRateLabel` + `lib/rooms/public-rate.ts` precompute card copy server-side; **`POST/GET /api/bookings/availability`** omits `baseRate` for unauthenticated callers. Homepage room cards + filmstrip link to `#tour`; prices only after login (`getServerSession` on `/` and `/rooms`). Booking completion requires account. |
 | **Premier** | Six stops: overview, lounge, master bedroom, twin room, bathroom, balcony. Sleeps **4** (private lounge + master + twin configuration). Seed: `scripts/seed-hotel-etuna.ts` — `max_occupancy = 4`, amenities include **Mini fridge**. |
 | **Images** | Prefer `rooms.images[]` when set; otherwise hospitality fallbacks under `/images/hospitality/*` per slug in `room-display.ts`. Replace with property photography via CMS/DB when available. |
-| **Components** | `RoomPhotoTour`, `RoomsFilmstrip`, `RoomsIncludedStrip`, `PublicRoomsBrowseBanner`, `RoomBookingCard`. |
+| **Components** | `RoomPhotoTour`, `RoomsFilmstrip`, `RoomsIncludedStrip`, `PublicRoomsBrowseBanner`, `PublicRoomTourSignInCard`, `RoomBookingCard`. |
 | **Tests** | `tests/unit/room-display.test.ts` — Premier occupancy override, six tour stops, included-amenities strip. |
 
 **Operator notes:** Re-run `npx tsx scripts/seed-hotel-etuna.ts` after occupancy/amenity seed changes so Neon `max_occupancy` updates on conflict.
@@ -401,6 +427,265 @@ See `docs/project/PLANNING.md` § Payment strategy → Platform commercial model
 
 ---
 
+### 3.6 System map — project structure, journeys & authorization
+
+**Canonical implementation:** `proxy.ts` (page RBAC), `lib/auth/roles.ts` (post-login routing), `lib/utils/api-helpers.ts` (`withApiAuth`), `lib/services/folio/guestStayAccess.ts` (stay-scoped data), Neon **RLS** (tenant isolation). **Marketing personas → roles:** §2.4; **structure detail:** §4.6; **API inventory:** §4.3.1, §4.7.
+
+#### 3.6.1 Platform mental model
+
+Hotel Etuna is one **Next.js 15** application on Vercel with three overlapping planes:
+
+| Plane | What it is | Who uses it |
+|-------|------------|-------------|
+| **Public marketing** | Unauthenticated pages (`/`, `/rooms`, `/dining`, `/partners`, …) | Everyone |
+| **Authenticated surfaces** | Role-gated UI routes + REST APIs | Guests, hub staff, partners, Buffr platform ops |
+| **Hub data plane** | Neon PostgreSQL + RLS (`tenant_id`) | All server writes |
+
+```mermaid
+flowchart TB
+  subgraph public [Public - no session]
+    Home["/"]
+    Rooms["/rooms /rooms/slug"]
+    Dining["/dining"]
+    PartnersPub["/partners"]
+  end
+
+  subgraph auth [Auth entry]
+    LoginGuest["/login?redirect=/guest"]
+    LoginStaff["/login?redirect=/dashboard"]
+    Register["/register → verify-email"]
+  end
+
+  subgraph guest [Guest consumer - role guest or user]
+    GuestHub["/guest"]
+    GuestStay["/guest/stays/id"]
+    GuestRoom["/guest/room QR"]
+  end
+
+  subgraph hub [Hub operations - owner manager staff]
+    Dash["/dashboard"]
+    Bookings["/bookings"]
+    CRM["/crm"]
+    Pay["/payments/*"]
+    Sofia["/sofia /ai"]
+  end
+
+  subgraph partner [Partner tenant]
+    PartDash["/partner/dashboard"]
+  end
+
+  subgraph platform [Buffr platform - admin super-admin]
+    Plat["/admin/platform/*"]
+  end
+
+  public --> auth
+  auth --> guest
+  auth --> hub
+  auth --> partner
+  auth --> platform
+```
+
+**Hub-and-spoke tenancy:** One **hub tenant** (Hotel Etuna) owns the flagship property, Sofia, CRM, and partner network. Each **partner tenant** is isolated: own properties/bookings, no hub AI/CRM APIs.
+
+#### 3.6.2 Identity model (accounts vs guests)
+
+| Store | Table | Purpose | Created when |
+|-------|-------|---------|--------------|
+| **Login account** | `users` | Password, role, `tenant_id`, email verification | Register (`role: guest` on hub tenant), staff invite, or `provision-platform-admin.ts` |
+| **CRM / booking guest** | `guests` | Reservation contact, loyalty, folio linkage | Booking created, or **linked on register/verify** via `linkGuestAccountForHubUser()` |
+| **Stay access rule** | — | Guest APIs match `users.email` ↔ `guests.email` (case-insensitive) | Not `users.id` FK today |
+
+**Implications:**
+
+- A traveller must **register with the same email as on the reservation** (or verify that email) to see stays on `/guest`.
+- Hub staff use **`/dashboard`** and `/api/bookings/*` — not `/api/guest/*` (consumer APIs require `guest`/`user` role).
+- Platform operators (`@buffr.ai`, `super-admin`/`admin`) use **`/admin/platform`**; middleware grants full route access while building.
+
+#### 3.6.3 Roles and default destinations
+
+| Role | Typical email | `users.tenant_id` | Default after login | Primary UI |
+|------|---------------|-------------------|---------------------|------------|
+| **`guest`** | Any (traveller) | Hub tenant | `/guest` | Guest hub |
+| **`user`** | Legacy consumer | Hub tenant | `/guest` | Guest hub (same as `guest`) |
+| **`staff`** | `@hoteletuna.com` | Hub tenant | `/dashboard` | Operations dashboard |
+| **`manager`** | `@hoteletuna.com` | Hub tenant | `/dashboard` | Operations + settings |
+| **`owner`** | `@hoteletuna.com` | Hub tenant | `/dashboard` | Full hub property admin |
+| **`admin`** | `@buffr.ai` | Hub or platform | `/admin/platform` | Platform console |
+| **`super-admin`** | `@buffr.ai` | Hub or null | `/admin/platform` | Platform console (full access) |
+| **`partner_*`** | Partner users | Partner tenant | `/dashboard` or `/partner/*` | Partner self-service |
+
+**Sign-in entry points (product UX):**
+
+| Surface | Link | Intended audience |
+|---------|------|-------------------|
+| Header **Sign in** | `/login?redirect=/guest` | Travellers |
+| Footer **Staff & platform login** | `/login?redirect=/dashboard` | Hotel team + Buffr |
+| Header when signed in | **My stay** / **Dashboard** / **Platform** + **Sign out** | `PublicAuthNav` + `lib/auth/public-session-nav.ts` |
+
+#### 3.6.4 Full repository structure (summary)
+
+| Path | Contents | Notes |
+|------|----------|-------|
+| **`app/`** | All routes and API handlers | App Router; see route table below |
+| **`app/(auth)/`** | `login`, `register`, `verify-email`, password reset | Shared credentials UI |
+| **`app/guest/`** | Guest hub + stay folio + room QR client | Consumer journey |
+| **`app/(dashboard)/`** | PMS, CRM, payments, restaurant, compliance, Sofia, fraud | Hub staff shell (`layout.tsx` sidebar) |
+| **`app/(dashboard)/admin/platform/`** | Buffr cross-tenant console | Tenants, users, properties, audit, SOC2 |
+| **`app/(partner)/`** | Partner dashboard | Limited nav vs hub |
+| **`app/api/`** | **136** `route.ts` handlers | REST; auth in §3.6.7 |
+| **`components/`** | `features/*`, `ui/*`, `shared/*`, `sections/landing/*` | DaisyUI + custom `Button`/`Card` |
+| **`lib/services/`** | Domain logic (booking, folio, crm, payment, sofia, …) | No business logic in page files |
+| **`lib/auth/`** | NextAuth config, roles, platform-admin, stack-env | Production: NextAuth when Stack placeholders |
+| **`lib/db/`** | Drizzle `schema.ts`, migrations, **`schema-types.ts`** (canonical types) | Use `schema-types` / `$inferSelect` only |
+| **`database/drizzle/`** | SQL migrations `0000`–`0016` | Applied on Neon production |
+| **`proxy.ts`** | Auth, RBAC, rate limits, tenant headers | Next.js 16 network boundary |
+| **`scripts/`** | Seeds, RAG ingest, `provision-platform-admin.ts`, verification | Operator tooling |
+| **`tests/`**, **`e2e/`** | Vitest + Playwright | `npm run test:all` gate |
+
+Regenerate depth-3 tree: `tree -I 'node_modules|.next|.git' -L 3` — full listing in **§4.6**.
+
+#### 3.6.5 User journeys (end-to-end)
+
+**J1 — Anonymous visitor (discover)**
+
+1. Lands on `/`, `/rooms`, `/dining`, `/partners`.
+2. Sees content; **room rates and booking widget hidden** until sign-in (§5).
+3. Sofia chat may answer general questions; **must not quote rates** when unauthenticated.
+4. CTA: header **Sign in** → register or login.
+
+**J2 — Traveller registration & verify**
+
+1. `/register` → `role: guest`, hub `tenant_id`, password policy (§3.3.4).
+2. Optional Cloudflare Turnstile when configured.
+3. Email OTP → `/verify-email` → `emailVerified` + `linkGuestAccountForHubUser()`.
+4. Login blocked until verified if OTP pending.
+5. Redirect to `/guest` (or safe `?redirect=`).
+
+**J3 — Traveller book & pay (gated)**
+
+1. Sign in → `/rooms/[slug]` shows rates + `#booking`.
+2. Booking via `/api/bookings` (session + hub tenant).
+3. Deposit: Adumo Virtual or cash per product rules.
+4. Confirmation email; guest row exists on booking.
+
+**J4 — In-stay guest (folio & room service)**
+
+1. Checked-in booking with matching email.
+2. `/guest` lists **active stays**, **payment due**, **past stays**, **loyalty**.
+3. `/guest/stays/[id]`: folio lines, room service menu, settle (cash/card), loyalty redeem.
+4. **Past stays:** read-only folio; no orders/settle.
+5. Room QR: `/guest/room` → `/api/public/room-qr/[code]` when checked in.
+
+**J5 — Hub staff (daily operations)**
+
+1. Footer/staff login → `/dashboard`.
+2. Bookings lifecycle: `/bookings`, check-in/out, folio on booking detail (staff APIs).
+3. Restaurant: `/restaurant/*`, menu CMS `/menu/*`.
+4. Payments desk: `/payments/desk`, reconciliation, NamQR, platform billing (owner/manager).
+5. CRM/Sofia: `/crm/*`, `/sofia/*` — **hub only**.
+
+**J6 — Partner operator**
+
+1. Invite/claim flow → partner `tenant_id`.
+2. `/partner/dashboard` or scoped `/dashboard` routes.
+3. Manage own properties/bookings; **403** on `/api/sofia/*`, `/api/crm/*`, `/api/guest/stays/*`.
+
+**J7 — Buffr platform operator**
+
+1. `@buffr.ai` account via `scripts/provision-platform-admin.ts`.
+2. `/admin/platform`: tenants, users, properties, support, audit, SOC2 views.
+3. Middleware: `admin` / `super-admin` → all routes allowed.
+
+#### 3.6.6 Authorization layers (defense in depth)
+
+| Layer | Mechanism | Enforces |
+|-------|-----------|----------|
+| **1. Edge** | `proxy.ts` | Public allowlist; session required elsewhere; `hasRouteAccess(role)` per path; partner block on hub API prefixes; safe login `redirect` |
+| **2. API handler** | `withApiAuth` + optional `requireRole` | Session; rate limits; tenant context for RLS |
+| **3. Stay scope** | `assertStayAccess()` | Guest email + verified account + `guests.is_signed_up`; staff same-tenant; platform staff roles |
+| **4. Database** | RLS policies | `tenant_id` from session; partners cannot read hub rows |
+| **5. Platform admin** | `getCurrentPlatformAdmin()` | `@buffr.ai` + role + `is_platform_admin` for `/admin/platform` layout |
+
+**Hub-only API prefixes (partners always 403):** `/api/sofia/*`, `/api/crm/*`, `/api/ai/*`, `/api/guest/stays/*`, `/api/guest/loyalty/*`.
+
+**Guest-only APIs:** `/api/guest/*` requires role `guest` or `user` (hub staff must use booking/folio staff paths).
+
+#### 3.6.7 What each role can and cannot do
+
+| Capability | guest / user | staff | manager / owner | partner | admin / super-admin |
+|------------|:------------:|:-----:|:-----------------:|:-------:|:-------------------:|
+| View public marketing | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Register as traveller | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Guest hub `/guest` | ✅ | ✅* | ✅* | ❌ | ✅* |
+| Book rooms (gated rates) | ✅ | ✅ | ✅ | ❌** | ✅ |
+| Own-stay folio via `/api/guest/*` | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Staff folio on booking (dashboard) | ❌ | ✅ | ✅ | ❌ | ✅ |
+| Hub dashboard `/dashboard` | ❌ | ✅ | ✅ | ✅*** | ✅ |
+| Sofia AI / hub CRM APIs | ❌ | ✅ | ✅ | ❌ | ✅ |
+| Partner property management | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Platform console `/admin/platform` | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Cross-tenant data (all tenants) | ❌ | ❌ | ❌ | ❌ | ✅**** |
+
+\*Staff/owner may open `/guest` routes in middleware for support, but **consumer guest APIs reject** non-`guest`/`user` roles.  
+\*\*Partners book through their own tenant scope, not the public Etuna booking widget.  
+\*\*\*Partner role: limited route set (see §3.6.8).  
+\*\*\*\*`super-admin` / platform `admin` via platform APIs and layout checks.
+
+**Explicit denials (product rules):**
+
+- **Unauthenticated:** No prices, no booking completion, no guest folio, no dashboard.
+- **Unverified email:** No login; no stay API access.
+- **Wrong email on account:** No stays on hub (no match to `guests.email`).
+- **Partner:** No Sofia, no hub CRM, no guest stay list APIs, no other tenants’ bookings (RLS).
+- **Guest:** No staff menu CMS, no reconciliation desk, no partner invite, no platform tenant admin.
+- **Sofia:** No rates/availability to anonymous users (prompt sign-up).
+
+#### 3.6.8 Page route access matrix (`proxy.ts`)
+
+| Route prefix | Public | guest / user | staff | manager / owner | partner | admin / super-admin |
+|--------------|:------:|:------------:|:-----:|:---------------:|:-------:|:-------------------:|
+| `/`, `/about`, `/contact`, `/legal/*` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `/rooms`, `/dining`, `/partners` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `/login`, `/register`, `/verify-email`, … | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `/guest`, `/guest/*` | ❌ | ✅ | ❌* | ❌* | ❌ | ✅ |
+| `/profile` | ❌ | ✅ | ❌ | ❌ | ✅ | ✅ |
+| `/dashboard`, `/bookings`, `/crm`, `/sofia`, `/payments`, … | ❌ | ❌ | ✅ | ✅ | ✅*** | ✅ |
+| `/partner/*` | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
+| `/admin/platform/*` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+
+\*Listed as allowed for owner/manager in code for support paths; prefer dashboard for ops.  
+\*\*\*Partner: `/dashboard`, `/bookings`, `/rooms`, `/settings`, `/profile`, `/properties`, `/partner` only.
+
+#### 3.6.9 API access matrix (summary)
+
+| API area | Auth | Roles | Tenant scope |
+|----------|------|-------|--------------|
+| `/api/auth/*`, `/api/public/*`, `/api/partners` | Public / session | All | Public or hub |
+| `/api/guest/*` | Session | **guest, user only** | Guest email match on stay |
+| `/api/bookings/*`, `/api/properties/*`, `/api/restaurant/*` | Session | Hub staff (+ platform) | Hub `tenant_id` (RLS) |
+| `/api/sofia/*`, `/api/crm/*`, `/api/ai/*` | Session | Hub staff; **not partners** | Hub only |
+| `/api/admin/platform/*` | Session | Platform admin | Cross-tenant (controlled) |
+| `/api/admin/partners/*` | Session | Hub admin | Hub |
+| `/api/webhooks/*` | Signature | Providers | N/A |
+| `/api/cron/*` | `CRON_SECRET` | Vercel cron | System |
+
+Full route list: **§4.7** and `app/api/**/route.ts`.
+
+#### 3.6.10 Key files (quick reference)
+
+| Concern | File |
+|---------|------|
+| Page RBAC | `proxy.ts` — `PUBLIC_ROUTES`, `GUEST_ROUTES`, `PROPERTY_OWNER_ROUTES`, `hasRouteAccess()` |
+| Post-login redirect | `lib/auth/roles.ts` — `getPostLoginRedirect()` |
+| Session | `lib/auth/config.ts` — NextAuth credentials |
+| Guest API guard | `lib/auth/roles.ts` — `GUEST_API_ROLES`; each `app/api/guest/**/route.ts` |
+| Stay authorization | `lib/services/folio/guestStayAccess.ts` |
+| Link register → CRM guest | `lib/services/booking/linkGuestAccount.ts` |
+| Public nav session | `components/shared/PublicAuthNav.tsx`, `GuestNavLink.tsx` |
+| Types (use in app code) | `lib/db/schema-types.ts`, `lib/types/folio.ts` |
+
+---
+
 ## 4. Technical Stack & Infrastructure
 
 ### 4.1 Core Technologies
@@ -427,7 +712,7 @@ See `docs/project/PLANNING.md` § Payment strategy → Platform commercial model
 
 **Source of truth:** `lib/db/schema.ts` (Drizzle ORM, Neon PostgreSQL).  
 **Migrations:** `database/drizzle/0000`–`0010`.  
-**Legacy (do not use for schema):** `lib/db/database.types.ts` (Supabase snapshot; missing `booking_charges`, AML, fraud, KYC, CRM, etc.).
+**Types:** `lib/db/schema-types.ts` + Drizzle `$inferSelect` from `schema.ts` (legacy `database.types.ts` removed May 2026).
 
 | Metric | Value |
 |--------|-------|
@@ -436,7 +721,7 @@ See `docs/project/PLANNING.md` § Payment strategy → Platform commercial model
 | RLS policies | Auto on all tables with `tenant_id` + special policies (see below) |
 | Views / triggers | None in migrations |
 
-**Regenerate types:** use Drizzle `$inferSelect` / `drizzle-kit`; not `database.types.ts`.
+**Regenerate types:** use Drizzle `$inferSelect` / `drizzle-kit`; export via `schema-types.ts` when needed.
 
 #### 4.2.1 Session variables (RLS)
 
@@ -666,8 +951,10 @@ ob_participants ← ob_consent_tokens ← ob_api_transactions
 | 0011 | F&B inventory SKUs, stock levels, low-stock alerts (`database/drizzle/0011_fnb_inventory.sql`) |
 | 0012 | Adumo Virtual `payment_sessions` |
 | 0013–0014 | Platform billing + invoice VAT |
+| 0015 | RLS for `booking_charges`, F&B inventory, `payment_sessions`, `stock_movements` |
+| 0016 | Fraud detection rules seed (`0016_fraud_detection_rules_seed.sql`) |
 
-*Drizzle journal may only list 0000–0002; 0003–0014 applied via Neon/psql.*
+*Drizzle journal may only list 0000–0002; 0003–0016 applied via Neon/psql. Verify: `npm run test:db:migrations` (17 checks).*
 
 ### 4.3 API Architecture
 
@@ -679,7 +966,7 @@ ob_participants ← ob_consent_tokens ← ob_api_transactions
 | **Public** | No session; whitelisted in `proxy.ts` |
 | **Session** | Stack Auth / NextAuth via `withApiAuth` |
 | **Role** | Session + owner \| manager \| admin |
-| **Platform admin** | `isPlatformAdmin()` |
+| **Platform admin** | `isPlatformAdmin()` + session email via **`getCurrentPlatformAdmin()`** (NextAuth when Stack Auth disabled) |
 | **Cron** | `Authorization: Bearer $CRON_SECRET` |
 | **Webhook** | Provider signature / verify token |
 | **2FA header** | `x-2fa-verified: true` for payment initiate/complete |
@@ -801,13 +1088,15 @@ NEXTAUTH_URL=https://hoteletuna.com
 
 ### 4.6 Repository structure
 
+**Product map (journeys, RBAC, can/cannot by role):** **§3.6** — use that section for onboarding and security reviews; this subsection is the generated file tree only.
+
 Generated from project root (`hotel-etuna/`) with:
 
 ```bash
 tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 --dirsfirst -F --charset ascii
 ```
 
-**Excluded:** `node_modules`, `.next`, `.git`, `coverage`, `playwright-report`, `test-results`, build artifacts. **Depth:** 3. **Counts at generation:** 193 directories, 283 files.
+**Excluded:** `node_modules`, `.next`, `.git`, `coverage`, `playwright-report`, `test-results`, build artifacts. **Depth:** 3 (plus depth-4 callouts for `app/guest/` and `admin/platform/` below). **Counts (May 17, 2026):** 229 directories, 352 files.
 
 #### Top-level map
 
@@ -816,12 +1105,12 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 | `app/` | Next.js App Router — public marketing, auth, guest hub, partner portal, dashboard, API routes |
 | `components/` | React UI — `features/` by domain, `ui/` primitives, `shared/` chrome, `brand/`, `sections/landing/` |
 | `lib/` | Server/client logic — `db/`, `services/`, `auth/`, `copy/`, `integrations/`, `utils/`, `types/` |
-| `database/drizzle/` | SQL migrations (`0000`–`0010`) + Drizzle meta |
+| `database/drizzle/` | SQL migrations (`0000`–`0016`) + Drizzle meta |
 | `data/hotel-etuna-knowledge/` | Sofia RAG source markdown (**4 files** — no `tours-guide.md`) |
 | `docs/project/` | **Canonical docs:** `PRD.md`, `PLANNING.md`, `TASK.md` |
 | `docs/REBRAND_QUESTIONNAIRE_AND_LANDSCAPE.md` | Full brand & market strategy |
 | `public/` | Static assets — `brand/`, `images/`, PWA `manifest.json`, `sw.js` |
-| `scripts/` | Seeds, ingestion, verification, dev cache (`clean-dev-cache.mjs`) |
+| `scripts/` | Seeds, RAG ingest, `db/*` verification, `provision-platform-admin.ts`, security preflight (no `archive/`) |
 | `tests/` | Vitest — `integration/`, `sofia/`, `workflows/`, `api/`, `unit/` |
 | `e2e/` | Playwright specs |
 | `proxy.ts` | Auth, RBAC, rate limit, tenant routing (Next.js 16 network boundary) |
@@ -831,13 +1120,14 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 
 | Group / area | Routes | Audience |
 |--------------|--------|----------|
-| `(auth)/` | `login`, `register`, `forgot-password`, `reset-password`, `verify-email` | Guests & staff sign-in |
-| Public pages | `/`, `/about`, `/contact`, `/dining`, `/rooms`, `/rooms/[slug]` | Marketing |
-| `guest/` | `/guest`, `/guest/stays/[bookingId]`, `/guest/room` | Checked-in guest folio & room service |
+| `(auth)/` | `login`, `register`, `forgot-password`, `reset-password`, `verify-email` | Shared NextAuth sign-in; entry via header (guest) or footer (staff) — §3.3.1 |
+| Public pages | `/`, `/about`, `/contact`, `/dining`, `/rooms`, `/rooms/[slug]` | Marketing (J1) |
+| **`guest/`** | `/guest`, `/guest/stays/[bookingId]`, `/guest/room` | **Guest hub (J4):** active/past stays, loyalty, folio, room QR — roles `guest`/`user` |
 | `partners/`, `public-properties/` | Partner directory & legacy public property URLs | Referral network |
-| `partner/` | Partner self-service dashboard | Partner tenants |
-| `(dashboard)/` | PMS, CRM, restaurant, compliance, Sofia, admin platform | Hub staff |
-| `api/` | REST handlers (`bookings`, `crm`, `guest`, `payments`, `sofia`, …) | Clients & integrations |
+| `partner/` | `/partner/dashboard`, bookings, rates, rooms | Partner tenants (J6) |
+| `(dashboard)/` | PMS, CRM, restaurant, payments, compliance, Sofia, reports | Hub staff (J5) — `staff`, `manager`, `owner` |
+| **`(dashboard)/admin/platform/`** | Tenants, users, properties, analytics, audit, SOC2, support, settings | **Buffr platform (J7)** — `admin`, `super-admin` |
+| `api/` | REST handlers (`bookings`, `crm`, `guest`, `payments`, `sofia`, `admin/platform`, …) | Clients & integrations |
 | `legal/` | Privacy, terms, cookies, security | Compliance pages |
 
 #### `lib/services/` (domain services)
@@ -854,7 +1144,47 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 | `cms/`, `documents/` | Content, RAG ingest, e-sign |
 | `analytics/`, `platform/` | Dashboard stats, support tickets |
 
+#### Key route subtrees (depth 4)
+
+Guest hub (`app/guest/`) — roles **guest** / **user** only (§3.6 J4):
+
+```
+app/guest/
+|-- room/
+|   |-- GuestRoomQrClient.tsx
+|   `-- page.tsx
+|-- stays/
+|   `-- [bookingId]/
+|       `-- page.tsx
+|-- layout.tsx
+`-- page.tsx
+```
+
+Buffr platform console (`app/(dashboard)/admin/platform/`) — roles **admin** / **super-admin** (§3.6 J7):
+
+```
+app/(dashboard)/admin/platform/
+|-- analytics/page.tsx
+|-- audit/page.tsx
+|-- properties/
+|   |-- [id]/page.tsx
+|   `-- page.tsx
+|-- settings/page.tsx
+|-- soc2/page.tsx
+|-- support/page.tsx
+|-- tenants/
+|   |-- [id]/page.tsx
+|   `-- page.tsx
+|-- users/
+|   |-- [id]/page.tsx
+|   `-- page.tsx
+|-- layout.tsx
+`-- page.tsx
+```
+
 #### Full tree (depth 3)
+
+Regenerated May 17, 2026 (`tree -L 3` from `hotel-etuna/`). **229 directories, 352 files.**
 
 ```
 ./
@@ -880,6 +1210,7 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 |   |   |-- payments/
 |   |   |-- profile/
 |   |   |-- properties/
+|   |   |-- reports/
 |   |   |-- restaurant/
 |   |   |-- settings/
 |   |   |-- sofia/
@@ -908,18 +1239,22 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 |   |   |-- fraud/
 |   |   |-- guest/
 |   |   |-- guests/
+|   |   |-- inventory/
 |   |   |-- menu/
 |   |   |-- partners/
 |   |   |-- payments/
+|   |   |-- platform/
 |   |   |-- properties/
 |   |   |-- public/
 |   |   |-- qr/
+|   |   |-- reports/
 |   |   |-- restaurant/
 |   |   |-- rooms/
 |   |   |-- settings/
 |   |   |-- sofia/
 |   |   |-- staff/
 |   |   |-- support/
+|   |   |-- tax/
 |   |   |-- user/
 |   |   `-- webhooks/
 |   |-- contact/
@@ -951,12 +1286,14 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 |   |-- partners/
 |   |   |-- [slug]/
 |   |   `-- page.tsx
+|   |-- payment/
+|   |   |-- failed/
+|   |   `-- success/
 |   |-- public-properties/
 |   |   |-- [slug]/
 |   |   `-- search/
 |   |-- rooms/
 |   |   |-- [slug]/
-|   |   `-- page.tsx
 |   |   `-- page.tsx
 |   |-- unauthorized/
 |   |   `-- page.tsx
@@ -968,6 +1305,9 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 |   |-- page-dynamic.tsx
 |   |-- page-static-backup.tsx
 |   `-- page.tsx
+|-- compliance/
+|   `-- evidence/
+|       `-- security/
 |-- components/
 |   |-- analytics/
 |   |   `-- PostHogPageView.tsx
@@ -978,28 +1318,47 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 |   |   |-- AMLDashboard.tsx
 |   |   |-- AlertDetailModal.tsx
 |   |   `-- PEPManagement.tsx
+|   |-- dining/
+|   |   |-- MenuBookContinueFace.tsx
+|   |   |-- MenuBookFullMenu.tsx
+|   |   |-- MenuBookFullMenuCoverFace.tsx
+|   |   |-- MenuBookItemDetailDialog.tsx
+|   |   |-- MenuBookItemTile.tsx
+|   |   |-- MenuBookItemsFace.tsx
+|   |   |-- MenuPageTurner.tsx
+|   |   |-- PublicMenuBoard.tsx
+|   |   `-- PublicMenuFeaturedCard.tsx
 |   |-- features/
+|   |   |-- accounting/
 |   |   |-- admin/
 |   |   |-- ai/
 |   |   |-- analytics/
 |   |   |-- auth/
+|   |   |-- billing/
 |   |   |-- booking/
 |   |   |-- bookings/
 |   |   |-- cms/
 |   |   |-- compliance/
 |   |   |-- crm/
 |   |   |-- dashboard/
+|   |   |-- folio/
 |   |   |-- fraud/
 |   |   |-- guest/
 |   |   |-- menu/
+|   |   |-- payments/
 |   |   |-- property/
 |   |   |-- restaurant/
 |   |   |-- rooms/
 |   |   |-- settings/
 |   |   |-- sofia/
-|   |   `-- staff/
+|   |   |-- staff/
+|   |   `-- tax/
 |   |-- partners/
 |   |   `-- PartnerAvailabilityWidget.tsx
+|   |-- payments/
+|   |   |-- AdumoPaymentReturn.tsx
+|   |   |-- AdumoVirtualPaymentForm.tsx
+|   |   `-- BookingDepositPayCard.tsx
 |   |-- providers/
 |   |   |-- AuthGateProvider.tsx
 |   |   |-- OfflineBanner.tsx
@@ -1011,16 +1370,19 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 |   |-- sections/
 |   |   `-- landing/
 |   |-- shared/
+|   |   |-- DevTestSessionBanner.tsx
 |   |   |-- EmptyState.tsx
 |   |   |-- ErrorBoundary.tsx
 |   |   |-- ErrorDisplay.tsx
 |   |   |-- Footer.tsx
+|   |   |-- GuestNavLink.tsx
 |   |   |-- Header.tsx
 |   |   |-- LoadingSpinner.tsx
 |   |   |-- MessageAlert.tsx
 |   |   |-- NotFoundState.tsx
 |   |   |-- NoticeState.tsx
 |   |   |-- PageHeader.tsx
+|   |   |-- PublicAuthNav.tsx
 |   |   |-- PublicFooter.tsx
 |   |   |-- PublicHero.tsx
 |   |   |-- Sidebar.tsx
@@ -1050,13 +1412,20 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 |   |-- ErrorBoundary.tsx
 |   |-- PlatformToastProvider.tsx
 |   |-- ProblemSolutionTabs.tsx
+|   |-- PublicRoomTourSignInCard.tsx
+|   |-- PublicRoomsBrowseBanner.tsx
+|   |-- PublicRoomsSignedInBanner.tsx
+|   |-- RoomBookingCard.tsx
+|   |-- RoomPhotoTour.tsx
+|   |-- RoomsFilmstrip.tsx
+|   |-- RoomsIncludedStrip.tsx
 |   `-- RootErrorBoundary.tsx
 |-- data/
 |   `-- hotel-etuna-knowledge/
 |       |-- hotel-etuna-facts.md
 |       |-- local-area.md
 |       |-- restaurant-menu.md
-|       |-- room-descriptions.md
+|       `-- room-descriptions.md
 |-- database/
 |   `-- drizzle/
 |       |-- meta/
@@ -1070,14 +1439,36 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 |       |-- 0007_cash_payments_and_reconciliation.sql
 |       |-- 0008_reconcile_neon_baseline.sql
 |       |-- 0009_booking_charges_folio.sql
-|       `-- 0010_booking_charges_rls.sql
+|       |-- 0010_booking_charges_rls.sql
+|       |-- 0011_fnb_inventory.sql
+|       |-- 0012_adumo_virtual_payment_sessions.sql
+|       |-- 0013_platform_billing.sql
+|       |-- 0014_platform_invoice_vat.sql
+|       |-- 0015_rls_inventory_payment_sessions.sql
+|       `-- 0016_fraud_detection_rules_seed.sql
 |-- docs/
+|   |-- compliance/
+|   |   |-- policies/
+|   |   |-- AML_FICA_COMPLIANCE_PROGRAM.md
+|   |   |-- BUSINESS_CONTINUITY_PLAN.md
+|   |   |-- CONTRACT_AND_COMMERCIAL_LAW_FRAMEWORK.md
+|   |   |-- DATA_PROTECTION_AND_PRIVACY_PROGRAM.md
+|   |   |-- HOSPITALITY_AND_TOURISM_COMPLIANCE.md
+|   |   |-- INCIDENT_RESPONSE_PLAN.md
+|   |   |-- NAMIBIA_REGULATORY_FRAMEWORK.md
+|   |   |-- README.md
+|   |   |-- SECURITY_PROMPT_PACK.md
+|   |   `-- TAX_AND_NAMRA_COMPLIANCE.md
 |   |-- project/
 |   |   |-- PLANNING.md
 |   |   |-- PRD.md
+|   |   |-- SOC2_IMPLEMENTATION_PLAN.md
+|   |   |-- SOC2_IMPLEMENTATION_SUMMARY.md
 |   |   `-- TASK.md
 |   |-- reports/
-|   `-- REBRAND_QUESTIONNAIRE_AND_LANDSCAPE.md
+|   |-- BUFFR_FINANCIAL_SERVICES_PROPOSAL_AND_SLA.md
+|   |-- REBRAND_QUESTIONNAIRE_AND_LANDSCAPE.md
+|   `-- SECURITY_PROMPT_PACK.md
 |-- e2e/
 |   |-- helpers/
 |   |   |-- db-otp.ts
@@ -1085,8 +1476,10 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 |   |-- auth-journey.spec.ts
 |   |-- authentication.spec.ts
 |   |-- design-system.spec.ts
+|   |-- gated-pricing.spec.ts
 |   |-- homepage.spec.ts
-|   `-- navigation.spec.ts
+|   |-- navigation.spec.ts
+|   `-- public-components.spec.ts
 |-- lib/
 |   |-- auth/
 |   |   |-- client.ts
@@ -1094,11 +1487,18 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 |   |   |-- jwks.ts
 |   |   |-- middleware.ts
 |   |   |-- platform-admin.ts
+|   |   |-- public-session-nav.ts
+|   |   |-- roles.ts
 |   |   |-- stack-auth.ts
-|   |   `-- tenant-context.ts
+|   |   |-- stack-env.ts
+|   |   |-- tenant-context.ts
+|   |   `-- verify-turnstile.ts
 |   |-- cache/
 |   |   `-- redis-rate-limit.ts
 |   |-- compliance/
+|   |   |-- namqr/
+|   |   |-- security-pack/
+|   |   |-- soc2/
 |   |   |-- audit-filters.ts
 |   |   |-- compliance-snapshot.ts
 |   |   |-- payments-by-rail.ts
@@ -1119,14 +1519,30 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 |   |   `-- email-inbox-monitor.ts
 |   |-- data/
 |   |   |-- dining.ts
+|   |   |-- etuna-inventory-seed.ts
+|   |   |-- etuna-restaurant-menu-catalog.ts
+|   |   |-- menu-image-thumb.ts
+|   |   |-- menu-item-image-kinds.ts
+|   |   |-- menu-item-image-urls.ts
 |   |   |-- partners.ts
 |   |   `-- rooms.ts
 |   |-- db/
 |   |   |-- connection.ts
-|   |   |-- database.types.ts
 |   |   |-- index.ts
 |   |   |-- rows.ts
+|   |   |-- schema-types.ts
 |   |   `-- schema.ts
+|   |-- dining/
+|   |   |-- menu-book-pagination.ts
+|   |   |-- menu-display.ts
+|   |   |-- menu-item-images.ts
+|   |   |-- restaurant-hours.ts
+|   |   `-- serialize-public-menu.ts
+|   |-- domain/
+|   |   `-- accounting/
+|   |-- email/
+|   |   |-- hotel-etuna-email-signature.ts
+|   |   `-- sofia-email-helpers.ts
 |   |-- hooks/
 |   |   `-- useTenant.ts
 |   |-- integrations/
@@ -1145,9 +1561,17 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 |   |-- payments/
 |   |   |-- namibia-payment-rails.ts
 |   |   `-- transaction-metadata.ts
+|   |-- platform/
+|   |   |-- namibia-tax.ts
+|   |   `-- settlement-accounts.ts
+|   |-- rooms/
+|   |   |-- public-rate.ts
+|   |   `-- room-display.ts
 |   |-- services/
+|   |   |-- accounting/
 |   |   |-- ai/
 |   |   |-- analytics/
+|   |   |-- billing/
 |   |   |-- booking/
 |   |   |-- calendar/
 |   |   |-- cms/
@@ -1156,6 +1580,7 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 |   |   |-- documents/
 |   |   |-- folio/
 |   |   |-- fraud/
+|   |   |-- inventory/
 |   |   |-- menu/
 |   |   |-- openbanking/
 |   |   |-- payment/
@@ -1167,6 +1592,7 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 |   |   |-- security/
 |   |   |-- sofia/
 |   |   |-- staff/
+|   |   |-- tax/
 |   |   `-- whatsapp/
 |   |-- types/
 |   |   |-- ai.ts
@@ -1185,17 +1611,21 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 |   |   |-- api-url.ts
 |   |   |-- cn.ts
 |   |   |-- date.ts
+|   |   |-- dev-log.ts
 |   |   |-- errors.ts
 |   |   |-- formatting.ts
+|   |   |-- hub-tenant.ts
 |   |   |-- public-property.ts
 |   |   |-- rate-limit.ts
+|   |   |-- sanitize-html.ts
 |   |   |-- security-logger.ts
 |   |   |-- slugify.ts
 |   |   |-- status-normalize.ts
 |   |   |-- tenant-validation.ts
 |   |   `-- validation.ts
 |   |-- validation/
-|   |   `-- entity-ids.ts
+|   |   |-- entity-ids.ts
+|   |   `-- password.ts
 |   |-- workflows/
 |   |   |-- domainTransitions.ts
 |   |   |-- genericLifecycleGraph.ts
@@ -1218,47 +1648,33 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 |   |-- manifest.json
 |   `-- sw.js
 |-- scripts/
+|   |-- compliance/
+|   |   `-- soc2-audit.ts
 |   |-- db/
 |   |   |-- audit-neon-baseline.ts
+|   |   |-- verify-db.ts
+|   |   |-- verify-neon-migrations.ts
 |   |   `-- verify-tenant-rls.ts
-|   |-- analyze-database-schema.ts
-|   |-- check-sofia-inbox-detailed.ts
-|   |-- check-sofia-inbox.ts
+|   |-- lib/
+|   |   `-- menu-images-db.ts
+|   |-- security/
+|   |   `-- run-preflight.ts
+|   |-- soc2/
+|   |   `-- collect-evidence.ts
+|   |-- README.md
+|   |-- check-env-local.mjs
 |   |-- clean-dev-cache.mjs
-|   |-- cleanup-dry-violations.sh*
-|   |-- create-sofia-email-logs-table.ts
-|   |-- create-test-user.ts
-|   |-- debug-auth.ts
-|   |-- debug-login.ts
 |   |-- ingest-hotel-etuna-knowledge.ts
-|   |-- migrate-user-to-stack-auth.ts
-|   |-- reset-schema.sh*
-|   |-- reset-test-user.ts
-|   |-- run-email-inbox-migration.ts
-|   |-- run-email-verification-migration.ts
-|   |-- run-is-enterprise-migration.ts
-|   |-- run-migration.js
-|   |-- run-qr-codes-migration.ts
-|   |-- run-resort-to-airbnb-migration.ts
+|   |-- print-email-signature.ts
+|   |-- provision-platform-admin.ts
+|   |-- push-env-to-vercel.mjs
 |   |-- seed-hotel-etuna.ts
+|   |-- seed-menu-images.ts
 |   |-- seed-partners.ts
-|   |-- setup-and-fetch-emails.ts
-|   |-- setup-test-restaurant.ts
-|   |-- smoke-user-journeys.ts
-|   |-- test-all-crud-operations.ts
-|   |-- test-api-crud-operations.ts
-|   |-- test-auth-endpoints.ts
-|   |-- test-auth-flow.ts
-|   |-- test-email.ts
-|   |-- test-image-helper.ts
-|   |-- test-llm-keys.sh
-|   |-- test-routes.js*
-|   |-- test-sofia-crud.ts
-|   |-- test-without-auth.ts
-|   |-- verify-api-endpoints.js*
-|   |-- verify-db.ts
-|   |-- verify-system-design.js*
-|   `-- verify-user.ts
+|   |-- sync-env-local.mjs
+|   |-- validate-menu-images.ts
+|   |-- validate-sofia-email-templates.ts
+|   `-- verify-system-design.js*
 |-- tests/
 |   |-- api/
 |   |   |-- dashboard.test.ts
@@ -1294,10 +1710,30 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 |   |   |-- sofia-email.test.ts
 |   |   `-- sofia-knowledge-base.test.ts
 |   |-- unit/
+|   |   |-- auth-roles.test.ts
+|   |   |-- email-signature.test.ts
 |   |   |-- guest-marketing-segment.test.ts
+|   |   |-- hospitality-accounting.test.ts
 |   |   |-- llm-provider-router.test.ts
+|   |   |-- menu-book-pagination.test.ts
+|   |   |-- menu-image-thumb.test.ts
+|   |   |-- namibia-hospitality-accounting.test.ts
+|   |   |-- namibia-property-vat.test.ts
+|   |   |-- namqr-receipt-trigger.test.ts
+|   |   |-- namqr-v5.test.ts
+|   |   |-- password-validation.test.ts
 |   |   |-- posthog-analytics.test.ts
-|   |   `-- rag-chunk.test.ts
+|   |   |-- public-rate.test.ts
+|   |   |-- public-session-nav.test.ts
+|   |   |-- rag-chunk.test.ts
+|   |   |-- room-display.test.ts
+|   |   |-- security-preflight.test.ts
+|   |   |-- settle-off-platform-folio.test.ts
+|   |   |-- soc2-audit-agents.test.ts
+|   |   |-- soc2-audit.test.ts
+|   |   |-- soc2-control-matrix.test.ts
+|   |   |-- sofia-intent-resolve.test.ts
+|   |   `-- stack-env.test.ts
 |   |-- utils/
 |   |   |-- auth-helpers.ts
 |   |   |-- db-schema-check.ts
@@ -1328,14 +1764,13 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 |-- tailwind.config.ts
 |-- test-sofia-email-send.ts
 |-- tsconfig.json
+|-- tsconfig.tsbuildinfo
 |-- vercel.json
 |-- vitest.config.ts
 `-- vitest.smoke.config.ts
 
-193 directories, 283 files
+229 directories, 352 files
 ```
-
-*Regenerate after major structural changes: increase `-L` or run `tree` on a single path (e.g. `app/api`, `lib/services`).*
 
 ### 4.7 API ↔ database ↔ frontend mapping
 
@@ -1526,11 +1961,90 @@ Hotel Etuna uses a **gated content model** to:
 
 **After login**, all prices, availability, and booking/ordering widgets become visible. The system redirects the user back to the page they were on before login (via a `redirect` query parameter).
 
-**Login Flow:**
-1. User clicks "Sign In to View Prices" on `/rooms`
-2. Redirects to `/login?redirect=/rooms`
-3. After successful auth, returns to `/rooms` with prices visible
-4. All booking widgets become active
+#### 3.3.1 Public navigation — guest vs staff entry points
+
+Marketing chrome separates **guest** and **hotel-team** sign-in so journeys stay obvious. **`PublicAuthNav`** (`components/shared/PublicAuthNav.tsx`) reads the NextAuth session and switches labels so signed-in users never still see a static **Sign in**.
+
+| Surface | Signed out | Signed in (by role) |
+|---------|------------|---------------------|
+| **`NavigationHeader`** | **Sign in** → `/login?redirect=/guest` | **My stay** → `/guest` (guest/user); **Dashboard** → `/dashboard` (owner/manager/staff); **Platform** → `/admin/platform` (Buffr `super-admin`/`admin`) + **Sign out** |
+| **`PublicFooter`** → *For our team* | Same session row as header + **Staff & platform login** → `/login?redirect=/dashboard` | **Sign out** + staff link still available |
+| **Header CTA** | Book now → `/rooms?book=1` | Unchanged |
+
+Helpers: `lib/auth/public-session-nav.ts` (`getSignedInAccountHref`, `getSignedInAccountLabel`). Copy: `lib/copy/public.ts` → `nav.signOut`, `nav.guestSignIn`, `footer.staffLogin`.
+
+**Dev-only:** `DevTestSessionBanner` warns when a leftover **`@example.com`** test cookie is still active (not automatic login) and offers one-click sign-out.
+
+**Same credentials page:** `/login` + `LoginForm` (NextAuth) serves all audiences; **RBAC** on `/dashboard`, `/admin/platform`, and `/api/*` enforces scope. Contextual copy on `/login` is guest-oriented (`lib/copy/auth.ts`); hotel team and Buffr operators use the footer **Staff & platform login** link.
+
+**User journeys (summary):**
+
+| Persona | Goal | Primary routes |
+|---------|------|----------------|
+| Public visitor | Browse tours, menu, partners | `/`, `/rooms`, `/dining`, `/partners` |
+| Guest (signed in) | Book, view rates, manage stay | `/guest`, `/guest/stays/[id]`, gated `/rooms` |
+| Hotel staff (`@hoteletuna.com`) | Operate property | `/dashboard/*`, `/payments/desk`, CRM, menu CMS |
+| Buffr platform admin (`@buffr.ai`) | Cross-tenant ops, compliance, tenants | `/admin/platform/*` |
+| Partner operator | Manage referral listing | `/partner/dashboard` (isolated nav) |
+
+#### 3.3.2 Buffr platform admin (`@buffr.ai`)
+
+| Requirement | Implementation |
+|-------------|----------------|
+| **Email domain** | Must end with `@buffr.ai` (`PLATFORM_ADMIN_EMAIL_DOMAIN` in `lib/auth/platform-admin.ts`) |
+| **Role** | `super-admin` or `admin` in `users.role` |
+| **Flag / tenant** | `is_platform_admin = true` **or** `tenant_id` null **or** platform tenant UUID `00000000-0000-0000-0000-000000000000` |
+| **Session resolution** | `getAuthenticatedEmail()` → Stack Auth if configured, else **NextAuth** `getServerSession` (production default while Stack keys are placeholders) |
+| **Login without hotel tenant** | `lib/auth/config.ts` allows Buffr operators to authenticate when `isPlatformAdmin` / `@buffr.ai` admin role even if tenant join is empty; hub `tenant_id` may be linked for PMS preview |
+| **Middleware** | `super-admin` and `admin` roles receive full protected-route access in `proxy.ts` (`hasRouteAccess`) |
+| **Provisioning** | `npx tsx scripts/provision-platform-admin.ts` — upsert operator (e.g. `george@buffr.ai`); `EMAIL=… PASSWORD=…` env vars; optional `--link-hub` for Hotel Etuna tenant context |
+
+**Seeded hotel admin (operations):** `manager@hoteletuna.com` / `owner` — not platform admin. **Buffr builder account:** provisioned separately; do not commit production passwords in docs.
+
+**Login flow (gated content):**
+1. User clicks "Sign in to view rates" on `/rooms/[slug]`
+2. Redirects to `/login?redirect=/rooms/standard-room` (or current slug)
+3. After successful auth, returns with prices + `#booking` widget active
+4. Header **Sign in** is for the **guest hub** (`/guest`), not staff dashboard
+
+#### 3.3.3 Guest hub (`/guest`)
+
+| Area | Behaviour |
+|------|-----------|
+| **Hub API** | `GET /api/guest/stays` → `{ activeStays, paymentDue, pastStays, loyalty }` (email match on `guests.email`) |
+| **Registration** | `POST /api/auth/register` creates `role: guest` on hub tenant (`resolveHubTenantId()` / `HUB_TENANT_ID`) — not a new owner tenant |
+| **Post-login routing** | `lib/auth/roles.ts` — guests/`user` → `/guest`; staff → `/dashboard`; Buffr → `/admin/platform`; `LoginForm` reads session after sign-in |
+| **RBAC** | `proxy.ts`: `guest` and legacy `user` roles access `/guest/*` and `/profile`; `staff` uses property-owner route set |
+| **Past stays** | `checked_out` or `checkOutDate < today`; folio read-only on `/guest/stays/[id]` |
+| **Loyalty** | Aggregated from `guest_profiles` on hub; redeem remains on active folio (`POST /api/guest/loyalty/redeem`) |
+
+UI: `GuestStaysList`, `GuestLoyaltySummary`, `GuestFolioPanel` (past-stay banner). Layout nav: **My stays**, **Account** (`/profile`).
+
+**Schema ↔ types alignment (v2.8.5):**
+
+| Layer | Rule |
+|-------|------|
+| `users` ↔ `guests` | Register/verify calls `linkGuestAccountForHubUser()` — same normalized email as stay APIs |
+| Folio types | `lib/types/folio.ts` — `BookingChargeStatus`, `BookingStatus`, `LoyaltyTier`, `GuestBookingAccess` |
+| Drizzle decimals | Services coerce `decimal` → `number` before API responses |
+| `schema-types.ts` | Re-export Drizzle-inferred types after `db:push` / new migrations |
+
+**Guest API security:** `requireRole: guest|user` on `/api/guest/*`; email match + `emailVerified` + `guests.is_signed_up` in `assertStayAccess`; middleware blocks unauthenticated `/api/guest`; login blocked until OTP verified; safe `redirect` param (no open `callbackUrl`).
+
+#### 3.3.4 Production deployment checklist (guest & auth)
+
+| Item | Production setting |
+|------|-------------------|
+| **Secrets** | `NEXTAUTH_SECRET`, `DATABASE_URL` (pooled Neon), `CRON_SECRET` on Vercel |
+| **Rate limits** | `REDIS_URL` + `RATE_LIMIT_REDIS_REQUIRED=true` (middleware returns 503 if Redis down) |
+| **Registration** | Password ≥12 chars + mixed case + number (`lib/validation/password.ts`); Turnstile keys optional locally, **required** when `TURNSTILE_SECRET_KEY` set |
+| **Email verify** | Users cannot log in until OTP verified (`lib/auth/config.ts`) |
+| **Hub tenant** | `HUB_TENANT_ID` matches seeded hub row in Neon |
+| **Types** | Use `@/lib/db/schema-types` / Drizzle infer from `schema.ts` |
+| **Staff folio** | Property ops use `/dashboard` booking APIs — not `/api/guest/*` (consumer-only) |
+| **Logging** | Auth verbose logs dev-only (`lib/utils/dev-log.ts`) |
+
+**Vercel env (minimum for guest launch):** `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `DATABASE_URL`, `HUB_TENANT_ID`, `NEXT_PUBLIC_SITE_URL`, Sofia/email vars for OTP, optional `NEXT_PUBLIC_TURNSTILE_SITE_KEY` + `TURNSTILE_SECRET_KEY`, `REDIS_URL` + `RATE_LIMIT_REDIS_REQUIRED`.
 
 ### 3.4 Implementation Requirements
 
@@ -1542,7 +2056,9 @@ Hotel Etuna uses a **gated content model** to:
 | **Dining Page** | Full menu book with prices on `/dining` (see §3.1.1). Reservation/order CTA uses `publicCopy.gated.orderOnline` when unauthenticated. Landing/home dining teasers may still hide prices per product policy. |
 | **Partner Pages** | Apply same gating: hide partner room prices, replace booking widget with sign‑in prompt. |
 | **Sofia AI** | System prompt: *"Never disclose prices or availability to unauthenticated users. Instead, invite them to sign up."* Chat widget visible to all, but responses change based on auth state. |
-| **Login Redirect** | After successful login, read `redirect` query param and return user to original page. Default to `/dashboard` if no redirect. |
+| **Login Redirect** | After successful login, read `redirect` query param; else `getPostLoginRedirect(role)` (`lib/auth/roles.ts`). **Header** pre-sets `redirect=/guest`; **footer staff link** pre-sets `redirect=/dashboard`. Register → verify email → `/guest`. |
+| **Public nav** | Session-aware header/footer via `PublicAuthNav` (§3.3.1); footer retains staff login link. |
+| **Platform admin** | `/admin/platform` layout uses `getCurrentPlatformAdmin()`; Buffr operators provisioned per §3.3.2. |
 
 ### 3.5 Verification Checklist
 
@@ -1550,7 +2066,11 @@ Hotel Etuna uses a **gated content model** to:
 - [x] Log in → all prices, booking, and ordering features appear
 - [x] Sofia chat responds with sign‑up invitation when asked about prices
 - [x] Login redirect works correctly from all pages
-- [x] Authenticated users see no "Sign in" CTAs (replaced with booking widgets)
+- [x] Header **Sign in** → `/login?redirect=/guest`; footer **Staff & platform login** → `/login?redirect=/dashboard`
+- [x] Authenticated users see **Sign out** + role link (**My stay** / **Dashboard** / **Platform**) in `NavigationHeader` / footer — not a static **Sign in**
+- [x] Room detail: guests see `PublicRoomTourSignInCard`; signed-in users see rates in `RoomBookingCard`
+- [x] Guest register creates `guest` role (not owner tenant); hub shows past stays + loyalty when email matches reservations
+- [x] Legacy `user` role can access `/guest` and `/profile`
 
 ---
 
@@ -1564,8 +2084,8 @@ Hotel Etuna uses a **gated content model** to:
 
 ### 6.2 Security & Compliance
 
-- **Authentication:** Stack Auth (or NextAuth) for all users. JWT tokens include `tenant_id` and `role` claims.
-- **Authorization:** RBAC: `owner`, `manager`, `admin`, `staff`. Middleware enforces tenant isolation. Hub‑only routes (`/api/sofia/*`, `/api/crm/*`, `/api/ai/*`) return 403 for partners.
+- **Authentication:** **NextAuth** (credentials) is the live path for guests, hotel staff, and Buffr platform admins. **Stack Auth** is optional: `lib/auth/stack-env.ts` skips SDK init when keys are missing or placeholders. **Platform admin UI** resolves the signed-in user via NextAuth when Stack is disabled (`getAuthenticatedEmail()` in `lib/auth/platform-admin.ts`). **Neon Auth** URLs may be provisioned in env for future use; do not duplicate conflicting `NEON_AUTH_*` hostnames. JWT/session includes `tenant_id` and `role` claims.
+- **Authorization:** RBAC: `owner`, `manager`, `admin`, `staff`, `super-admin` (Buffr platform). Middleware enforces tenant isolation; `super-admin` / `admin` (session role) bypass route lists for builder access. Hub‑only routes (`/api/sofia/*`, `/api/crm/*`, `/api/ai/*`) return 403 for partners. Platform routes: `isPlatformAdmin()` requires `@buffr.ai` email + role + flag/tenant rule (§3.3.2).
 - **Rate Limiting:** Aggressive limits on partner invite endpoint (5 requests/hour). Standard limits on public APIs (100 requests/minute per IP).
 - **Two‑Factor Authentication:** Required for all hub admin actions affecting payments, commissions, or partner management.
 - **Data Protection:** GDPR and POPIA compliant. Marketing consent flags enforced in CRM queries. Audit trail logs all sensitive operations with old/new values, user ID, IP, timestamp.
@@ -1848,8 +2368,8 @@ All sections are **database‑driven** (React Server Component with Drizzle ORM 
 
 **Documentation:**
 - Landing page structure: **§10** (this document)
-- Testing & smoke: **`TASK.md`** § Production smoke
-- Summary: **`TASK.md`** § Verified Implementation Audit (May 16, 2026)
+- Testing & smoke: **`TASK.md`** § Production smoke, § Testing Procedures (`npm run test:all`)
+- Summary: **`TASK.md`** § Verified Implementation Audit (May 17, 2026)
 
 ---
 
@@ -1958,9 +2478,9 @@ From master guide Part 2 — applied to this schema:
 
 ---
 
-## 12. Implementation Status (verified May 16, 2026)
+## 12. Implementation Status (verified May 17, 2026)
 
-Evidence: codebase inspection + `npx tsc --noEmit` (pass) + `npx tsx scripts/db/verify-tenant-rls.ts` (pass). Full checklist: **`TASK.md`** § Verified Implementation Audit.
+Evidence: codebase inspection + `npx tsc --noEmit` (pass) + `npx tsx scripts/db/verify-tenant-rls.ts` (pass) + `npm run test:all` (pass). Full checklist: **`TASK.md`** § Verified Implementation Audit.
 
 ### ✅ Complete (production)
 
@@ -1973,8 +2493,12 @@ Evidence: codebase inspection + `npx tsc --noEmit` (pass) + `npx tsx scripts/db/
 | **Security hardening** | CORS domain-locked, debug auth 404 in prod, `sanitizeErrorDetails` | Code review May 16 |
 | **TypeScript** | Clean compile | `tsc` exit 0 |
 | **Digital menu (`/dining`)** | DB-only menu, full-menu book, analytics favourites, image seed/validate scripts | §3.1.1 |
-| **Scripts hygiene** | 33 ad-hoc scripts under `scripts/archive/` | `ls scripts/archive` |
+| **Scripts hygiene** | Production scripts only under `scripts/`; obsolete archive removed May 2026 | `ls scripts` |
 | **E2E coverage** | 7 Playwright specs incl. `gated-pricing`, `public-components` | `e2e/*.spec.ts` |
+| **Automated test gate** | `npm run test:all` — `test:db` + Vitest (**393**/395, 2 skipped) + compliance smoke (6) | May 17, 2026 |
+| **Operator SQL** | Migrations **0011–0016** on Neon | `npm run test:db:migrations` — 17/17 |
+| **NamQR receipt email** | Desk confirm + NamQR manual folio settle | `HospitalityNamQrPaymentService`, `ManualPaymentService` |
+| **Sofia intent** | Guest-message-first classification | `SofiaConciergeService.resolveIntent()` |
 
 ### 🟡 In progress / operator action
 
@@ -2024,7 +2548,7 @@ Evidence: codebase inspection + `npx tsc --noEmit` (pass) + `npx tsx scripts/db/
 - ✅ Sofia email FK fixture fix (tenant-scoped test data)
 
 ### Phase 7: Cleanup & Documentation Lock ✅
-- ✅ Scripts archived (`scripts/archive/`, 33 files)
+- ✅ Obsolete scripts removed; production scripts in `scripts/` + `scripts/db/`
 - ✅ Canonical docs: PRD / PLANNING / TASK only (+ rebrand + README)
 - ✅ May 16 audit snapshots merged into §12 and TASK; redundant `docs/*_2026-05-16.md` removed
 
@@ -2185,7 +2709,16 @@ Do not add new project `.md` files — extend **PRD**, **PLANNING**, or **TASK**
 | **2.7.6** | **2026-05-16** | **Product Team** | Folio P0 marked in production; NamQR desk at `/payments/desk`; restaurant F&B inventory migration `0011`. |
 | **2.7.7** | **2026-05-16** | **Product Team** | **Doc drift fix:** §3.4 deployment verification table; NamQR compliance paths; API route count **136**; §12 npm audit **0 critical** with overrides; migration **0011** in §4.2.7. |
 | **2.7.8** | **2026-05-16** | **Product Team** | **§3.1.1** public digital menu book: DB-only load, `image_url` thumbs + seed scripts, analytics guest favourites, single full-menu `MenuBookFullMenu` (no category tabs/search); §5 `/dining` visibility aligned. |
+| **2.8.0** | **2026-05-17** | **Product Team** | **§3.1.2** public room photo tours: masked rates for guests, same `RoomPhotoTour` when signed in; Premier occupancy 4 + mini fridge seed. |
+| **2.8.1** | **2026-05-17** | **Product Team** | **Testing & compliance:** `test:db` / `test:all` gates; migrations **0015–0016**; compliance fraud DB smoke; NamQR payment receipt emails; Sofia `resolveIntent()`; Vitest **393**/395. |
+| **2.8.2** | **2026-05-17** | **Product Team** | **§3.3.1** guest vs staff sign-in (header `/guest`, footer `/dashboard`); §3.1.2 rate hardening (`public-rate.ts`, availability API); `/rooms#tour`; Stack placeholder guard (`stack-env.ts`). |
+| **2.8.3** | **2026-05-17** | **Product Team** | **§3.3.1** session-aware `PublicAuthNav` (Sign out + My stay/Dashboard/Platform); `DevTestSessionBanner` for stale `@example.com` dev sessions; **§3.3.2** Buffr platform admin (NextAuth resolution, `provision-platform-admin.ts`, `george@buffr.ai`); §3.1.2 `PublicRoomTourSignInCard` + client `RoomBookingCard`; `super-admin` middleware access. |
+| **2.8.4** | **2026-05-17** | **Product Team** | **§3.3.3** guest hub: past stays + loyalty on `GET /api/guest/stays`; guest registration on hub tenant; `lib/auth/roles.ts` post-login routing; `user`/`guest` proxy access; read-only past folio; `GuestLoyaltySummary` + account nav. |
+| **2.8.5** | **2026-05-17** | **Product Team** | **§3.3.3** `users`↔`guests` link on register/verify; folio type enums; guest API `requireRole` + verified-email access; middleware redirect hardening; Tailwind khaki/terracotta ramps; guest UI semantic errors. |
+| **2.8.6** | **2026-05-17** | **Product Team** | **§3.3.4** production checklist; password policy + Turnstile; `schema-types.ts`; Redis fail-closed rate limits; dev-only auth logs; header **My stays** link. |
+| **2.9.0** | **2026-05-17** | **Product Team** | **§3.6** system map: full structure summary, seven user journeys (J1–J7), identity model (`users`↔`guests`), authorization layers, role can/cannot matrix, page + API access tables, implementation file index; §4.6 cross-ref. |
+| **2.9.1** | **2026-05-17** | **Product Team** | **§2.4** personas → roles → surfaces table aligned with §3.6; **§4.6** tree regenerated (229 dirs / 352 files), depth-4 `app/guest/` + `admin/platform/`, migrations `0000`–`0016`, current `scripts/`. |
 
 ---
 
-*This PRD (v2.7.8) is effective May 16, 2026 and supersedes all previous versions. It will be reviewed quarterly with Hotel Etuna management and updated as needed. All implementation teams must reference this document as the source of truth for product requirements, architecture decisions, and success metrics.*
+*This PRD (v2.9.1) is effective May 17, 2026 and supersedes all previous versions. It will be reviewed quarterly with Hotel Etuna management and updated as needed. All implementation teams must reference this document as the source of truth for product requirements, architecture decisions, and success metrics.*

@@ -32,6 +32,8 @@ import { Button } from '@/components/ui/Button';
 import { HotelEtunaLogo } from '@/components/brand/HotelEtunaLogo';
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
+import { PublicAuthNav } from '@/components/shared/PublicAuthNav';
+import { GuestNavLink } from '@/components/shared/GuestNavLink';
 
 export default function NavigationHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -48,11 +50,12 @@ export default function NavigationHeader() {
             <Link href="/dining" className="text-sm font-medium text-base-content hover:text-primary transition-colors">Dining</Link>
             <Link href="/about" className="text-sm font-medium text-base-content hover:text-primary transition-colors">About</Link>
             <Link href="/contact" className="text-sm font-medium text-base-content hover:text-primary transition-colors">Contact</Link>
+            <GuestNavLink className="text-sm font-medium text-base-content hover:text-primary transition-colors" />
           </nav>
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
-            <Link href="/login" className="text-sm font-medium text-base-content hover:text-primary transition-colors">Sign In</Link>
+            <PublicAuthNav variant="header" />
             <Link href="/rooms?book=1">
               <Button variant="primary" size="default" className="min-h-[44px]">Book Now</Button>
             </Link>
@@ -95,7 +98,15 @@ export default function NavigationHeader() {
             <Link href="/dining" className="py-3 text-base font-medium text-base-content hover:text-primary transition-colors min-h-[44px] flex items-center" onClick={() => setMobileMenuOpen(false)}>Dining</Link>
             <Link href="/about" className="py-3 text-base font-medium text-base-content hover:text-primary transition-colors min-h-[44px] flex items-center" onClick={() => setMobileMenuOpen(false)}>About</Link>
             <Link href="/contact" className="py-3 text-base font-medium text-base-content hover:text-primary transition-colors min-h-[44px] flex items-center" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
-            <Link href="/login" className="py-3 text-base font-medium text-base-content hover:text-primary transition-colors min-h-[44px] flex items-center" onClick={() => setMobileMenuOpen(false)}>Sign In</Link>
+            <GuestNavLink
+              className="py-3 text-base font-medium text-base-content hover:text-primary transition-colors min-h-[44px] flex items-center"
+              onNavigate={() => setMobileMenuOpen(false)}
+            />
+            <PublicAuthNav
+              variant="header"
+              className="py-1"
+              onNavigate={() => setMobileMenuOpen(false)}
+            />
             <Link href="/rooms?book=1" className="block" onClick={() => setMobileMenuOpen(false)}>
               <Button variant="primary" size="lg" className="w-full min-h-12">Book Now</Button>
             </Link>

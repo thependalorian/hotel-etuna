@@ -46,15 +46,7 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # Environment & secrets — NEVER commit real values (see .env.example for templates)
-.env
-.env.local
-.env.*.local
-.env.vercel
-.env.development
-.env.production
-.env.test
-.env.backup*
-.env.*.backup*
+.env*
 !.env.example
 
 # vercel / deploy artifacts

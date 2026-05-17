@@ -15,6 +15,7 @@ import {
 } from '@/lib/utils/api-helpers';
 import { FolioService } from '@/lib/services/folio/FolioService';
 import { assertStayAccess } from '@/lib/services/folio/guestStayAccess';
+import { GUEST_API_ROLES } from '@/lib/auth/roles';
 import { entityId } from '@/lib/validation/entity-ids';
 
 const folioService = new FolioService();
@@ -35,6 +36,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       const folio = await folioService.getFolio(bookingId);
       return successResponse(folio);
     },
-    { rateLimit: true }
+    { rateLimit: true, requireRole: [...GUEST_API_ROLES] }
   );
 }

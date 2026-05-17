@@ -38,7 +38,7 @@ export default function RoomsFilmstrip({ rooms, isAuthenticated }: RoomsFilmstri
   }
 
   return (
-    <section className="py-12 sm:py-16" aria-label="Room types">
+    <section id="tour" className="scroll-mt-24 py-12 sm:py-16" aria-label="Room types">
       <div className="container mx-auto px-4">
         <p className="mx-auto mb-6 max-w-2xl text-center text-base text-terracotta-800 sm:mb-8 sm:text-lg">
           Explore each room through a photo tour — walk through the space before you book.

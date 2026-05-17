@@ -17,6 +17,7 @@ import { CustomerService } from '@/lib/services/crm/CustomerService';
 import { FolioService } from '@/lib/services/folio/FolioService';
 import { assertStayAccess } from '@/lib/services/folio/guestStayAccess';
 import { guestLoyaltyRedeemSchema } from '@/lib/utils/validation';
+import { GUEST_API_ROLES } from '@/lib/auth/roles';
 import { AppError } from '@/lib/utils/errors';
 
 const customerService = new CustomerService();
@@ -73,6 +74,6 @@ export async function POST(request: NextRequest) {
         throw error;
       }
     },
-    { rateLimit: true }
+    { rateLimit: true, requireRole: [...GUEST_API_ROLES] }
   );
 }

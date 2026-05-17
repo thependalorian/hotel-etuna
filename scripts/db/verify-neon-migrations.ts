@@ -1,5 +1,5 @@
 /**
- * Verify operator SQL migrations (0011–0015) are applied on Neon.
+ * Verify operator SQL migrations (0011–0016) are applied on Neon.
  *
  * Purpose: Read-only checks for payment, billing, inventory, and RLS posture.
  * Location: /scripts/db/verify-neon-migrations.ts

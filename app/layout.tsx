@@ -7,6 +7,7 @@ import { AuthGateProvider } from "@/components/providers/AuthGateProvider";
 import { RootErrorBoundary } from "@/components/RootErrorBoundary";
 import { PostHogProvider } from "@/components/providers/PostHogProvider";
 import OfflineBanner from "@/components/providers/OfflineBanner";
+import { DevTestSessionBanner } from "@/components/shared/DevTestSessionBanner";
 import ServiceWorkerRegistration from "@/components/providers/ServiceWorkerRegistration";
 import { Toaster } from "@/components/ui";
 import { Suspense } from "react";
@@ -98,6 +99,7 @@ export default function RootLayout({
         <ServiceWorkerRegistration />
         <OfflineBanner />
         <SessionProviderWrapper>
+          <DevTestSessionBanner />
           <Suspense fallback={null}>
             <PostHogProvider>
               <StackProviderWrapper>

@@ -10,16 +10,21 @@ import { Input } from '@/components/ui/Input';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/Form';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { apiUrl } from '@/lib/utils/api-url';
+import { passwordSchema, PASSWORD_MIN_LENGTH } from '@/lib/validation/password';
+import { TurnstileWidget } from '@/components/features/auth/TurnstileWidget';
+
+const turnstileRequired = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim());
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Invalid email address.' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+  password: passwordSchema,
 });
 
 export function RegisterForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -31,13 +36,20 @@ export function RegisterForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setError(null);
+    if (turnstileRequired && !turnstileToken) {
+      setError('Please complete the security check.');
+      return;
+    }
     try {
       const response = await fetch(apiUrl('/api/auth/register'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          ...values,
+          turnstileToken: turnstileToken ?? undefined,
+        }),
       });
 
       if (!response.ok) {
@@ -66,9 +78,9 @@ export function RegisterForm() {
         });
 
         if (loginResponse.ok) {
-          router.push('/dashboard');
+          router.push('/guest');
         } else {
-          router.push('/login?registered=true');
+          router.push('/login?registered=true&redirect=/guest');
         }
       }
 
@@ -141,12 +153,19 @@ export function RegisterForm() {
                   {...field} 
                 />
               </FormControl>
-              <FormDescription>Minimum 6 characters</FormDescription>
+              <FormDescription>
+                At least {PASSWORD_MIN_LENGTH} characters with upper, lower, and a number
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        
+
+        <TurnstileWidget
+          onToken={(token) => setTurnstileToken(token)}
+          onExpire={() => setTurnstileToken(null)}
+        />
+
         {/* CTA Button (Von Restorff - standout, Fitt's Law - proper sizing) */}
         <Button 
           type="submit" 
