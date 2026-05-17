@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { ManualPaymentForm } from '@/components/features/payments/ManualPaymentForm';
 import { NamQrDeskPanel } from '@/components/features/payments/NamQrDeskPanel';
+import { NamQrPendingQueue } from '@/components/features/payments/NamQrPendingQueue';
 
 export default function PaymentsDeskPage() {
   const [bookingId, setBookingId] = useState('');
@@ -43,6 +44,11 @@ export default function PaymentsDeskPage() {
         <p className="mt-2 text-xs text-base-content/60">
           Open a booking in Bookings, copy its ID, then record payment or tie NamQR to the stay.
         </p>
+      </Card>
+
+      <Card className="p-4 md:p-6">
+        <h2 className="mb-4 text-lg font-semibold">Guest NamQR — awaiting approval</h2>
+        <NamQrPendingQueue />
       </Card>
 
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">

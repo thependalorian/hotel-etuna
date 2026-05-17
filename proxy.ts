@@ -92,7 +92,7 @@ const PROPERTY_OWNER_ROUTES = [
 ];
 
 const HUB_ONLY_API_PREFIXES = ['/api/sofia', '/api/crm', '/api/ai', '/api/guest/stays', '/api/guest/loyalty'];
-const PAYMENT_2FA_ENDPOINTS = ['/api/payments/initiate', '/api/payments/complete'];
+const PAYMENT_2FA_ENDPOINTS = ['/api/payments/initiate'];
 
 type MiddlewareToken = {
   id?: string;

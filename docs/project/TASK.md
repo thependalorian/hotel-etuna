@@ -1,8 +1,53 @@
 # Hotel Etuna — Task & Production Tracker
 
 **Status:** **Production Live** — core platform complete; RAG upsert remains (`npm audit --audit-level=critical`: **0 critical**)  
-**Last Updated:** May 17, 2026 (§3.1.1 dining menu: single-page 2×3 grid)  
-**Production URL:** https://www.hoteletuna.com (Vercel — auto-deploy from `main` via GitHub integration)
+**Last Updated:** May 17, 2026 (PostHog + Playwright; responsive E2E; test run logged below)  
+**Production URL:** https://www.hoteletuna.com (canonical; apex `https://hoteletuna.com` should redirect — Vercel Domains)
+
+---
+
+## DNS & environment URLs (May 17, 2026)
+
+**Full reference:** `docs/project/PLANNING.md` § DNS, domains & environment URLs.
+
+| Check | Status / action |
+|-------|----------------|
+| Vercel project | `buffr/hotel-etuna` → **Settings → Domains** |
+| `www.hoteletuna.com` | `CNAME` → `cname.vercel-dns.com` |
+| `hoteletuna.com` (apex) | `A` `76.76.21.21` or apex `CNAME` per Vercel docs |
+| SSL | Vercel auto after DNS valid |
+| `.env.local` uses `localhost` | ✅ **Expected** for local dev only |
+| Production URL env on Vercel | `npm run env:push-vercel` → sets `NEXTAUTH_URL`, `NEXT_PUBLIC_APP_URL`, `ADUMO_*` to `https://www.hoteletuna.com` |
+| Adumo portal | `…/payment/success`, `…/payment/failed`, `…/api/webhooks/adumo` on **www** (see PLANNING § webhooks table) |
+| Meta WhatsApp | Callback `https://www.hoteletuna.com/api/webhooks/whatsapp` + `WHATSAPP_VERIFY_TOKEN` |
+| Sofia voice (if on) | `https://www.hoteletuna.com/api/sofia/voice/webhook` in provider dashboard |
+| PostHog | `NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com` on Vercel + local |
+
+**Verify after DNS change:**
+
+```bash
+dig www.hoteletuna.com +short
+dig hoteletuna.com +short
+curl -sI https://www.hoteletuna.com | head -5
+```
+
+---
+
+## Legacy inventory & cleanup (May 17, 2026)
+
+**Payments (May 17):** Removed Stripe env block, `AdumoEnterpriseService`, `/api/payments/3ds-callback`, `/api/payments/complete`. **Namibia card rail = Adumo Virtual only** (form POST → `initialisevirtual`, redirects, JWT webhook).
+
+| Category | Item | Action |
+|----------|------|--------|
+| **Compat routes** | `/privacy`, `/terms` → `/legal/*` | Keep |
+| **Compat API** | `/api/guests` → CRM | Keep until migrated |
+| **Compat RBAC** | Role `user` = `guest` | Keep |
+| **UI unused** | `MenuPageTurner.tsx` | **P2:** extract types, delete component |
+| **UI backup** | `page-static-backup.tsx` | **P2:** delete if unneeded |
+| **Infra** | Docker `legacy-pg` | Keep for local dev |
+| **Tech debt** | `getServerSession` vs `withApiAuth` | Migrate over time |
+
+**Adumo Virtual (production):** `ADUMO_*` + portal URLs on `https://www.hoteletuna.com` — success/fail redirects + `POST /api/webhooks/adumo`. Test cards: Visa `4000000000001091` (3DS app `23ADADC0-…`).
 
 ---
 
@@ -26,6 +71,51 @@ npm run test:all         # same as test:ci (alias intent; use test:ci in CI)
 ```
 
 **Vercel:** Project `buffr/hotel-etuna` connected to `github.com/thependalorian/hotel-etuna` — pushes to `main` trigger production builds. CLI deploy: `vercel deploy --prod --yes`. **Secrets:** `npm run env:push-vercel` (from `.env.local`; sets production `ADUMO_*` redirect/webhook URLs). **DB:** `npm run test:db:migrations` — includes `0018` `dining_reservations`, `0019` Adumo dining link.
+
+---
+
+## Analytics, responsive UI & E2E (May 17, 2026)
+
+### PostHog (product analytics)
+
+| Item | Path / version | Notes |
+|------|----------------|-------|
+| Browser SDK | `posthog-js` **^1.373.5** (dependency) | PostHog MCP SDK doctor: healthy on project **341765** |
+| React bindings | `@posthog/react` **^1.9.0** | `PostHogProvider` wraps app in `app/layout.tsx` |
+| Early init | `instrumentation-client.ts` | Next.js 16 client instrumentation |
+| Shared options | `lib/posthog-client-options.ts` | `defaults: '2026-01-30'` → SPA `history_change` pageviews |
+| Client helpers | `lib/posthog.ts` | `trackEvent`, `identifyUser`, feature flags |
+| Server capture | `lib/monitoring/posthog-server.ts` | `captureServerException` (API routes) |
+| Env | `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST` | Optional `POSTHOG_PROJECT_API_KEY` for server |
+
+Docs: [Next.js library](https://posthog.com/docs/libraries/next-js) · [SPA pageviews](https://posthog.com/tutorials/single-page-app-pageviews)
+
+### Playwright (E2E)
+
+| Item | Detail |
+|------|--------|
+| Package | `@playwright/test` **^1.60.0** |
+| Viewport projects | `chromium`, `mobile-chrome` (Pixel 5), `tablet` (iPad gen 7) — `playwright.config.ts` |
+| Specs | **8** files under `e2e/` (incl. `responsive-layout.spec.ts`) |
+| Scripts | `test:e2e`, `test:e2e:desktop`, `test:e2e:mobile`, `test:e2e:tablet`, `test:e2e:responsive`, `test:e2e:install:all` |
+
+`responsive-layout.spec.ts`: horizontal overflow on `/`, `/rooms`, `/dining`, `/contact`; mobile nav toggle (mobile project).
+
+### Test run (May 17, 2026 — after PostHog/Playwright update)
+
+| Step | Command | Result |
+|------|---------|--------|
+| DB health | `npm run test:db` | ✅ pass |
+| Migrations | `npm run test:db:migrations` | ✅ **21/21** |
+| Unit + integration | `npm test` (`vitest run`) | ✅ **427 passed**, 2 skipped (workflow YAML tests fixed) |
+| Compliance smoke | `npm run test:smoke` | ✅ **6/6** |
+| PostHog unit | `npx vitest run tests/unit/posthog-analytics.test.ts` | ✅ **4/4** |
+| Workflow YAML tests | `npx vitest run tests/workflows/` | ✅ **78/78** |
+| Full CI gate | `npm run test:ci` | ✅ `test:db` + migrations + Vitest + smoke (run locally ~15 min) |
+
+**Workflow tests (May 17):** `ci-workflow.test.ts` + `deploy-workflow.test.ts` aligned to `ci.yml` (`NODE_VERSION`, `needs: [lint-and-typecheck, test]`, `test:ci`, Codecov step) and `deploy.yml` (`workflow_run` after CI on `main`, current step names). `.vercel/project.json` assertions optional when not linked locally.
+
+**Playwright E2E:** not run in this gate (requires dev server on `:3010` or `PLAYWRIGHT_BASE_URL`). Operator: `npm run test:e2e:responsive` after `npm run dev -- -p 3010`.
 
 **Project tree (regenerate):**
 
@@ -126,11 +216,13 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 | Public gated copy | `lib/copy/public.ts` → `gated` | ✅ Centralized strings |
 | Public colors | `rg text-gray- app` | ✅ No matches under `app/` |
 | Scripts hygiene | `scripts/` (no archive) | ✅ obsolete archive removed May 2026 |
-| E2E specs | `e2e/*.spec.ts` | ✅ 7 files (incl. gated-pricing, public-components) |
+| E2E specs | `e2e/*.spec.ts` | ✅ **8** files (incl. `responsive-layout`, gated-pricing, public-components) |
 | Tours removed | `test ! -d app/tours`; `rg -i '/tours' app components lib proxy.ts` | ✅ No route or nav; `tours-guide.md` deleted |
 | Service duplicates | `lib/services/fraud`, `lib/services/menu` | ✅ Single implementation each |
-| Vitest (May 17) | `npx vitest run` | ✅ **411 passed \| 2 skipped** (hub-seed optional; `testTimeout` 90s for LLM/RAG) |
-| Full verify | `npm run verify:production` | Re-run before deploy (`tsc` + **`test:ci`** + `build`) |
+| Vitest (May 17) | `npx vitest run` | ✅ **427 passed \| 2 skipped** |
+| Workflow YAML | `tests/workflows/*.test.ts` | ✅ **78/78** |
+| PostHog unit | `tests/unit/posthog-analytics.test.ts` | ✅ **4/4** (defaults `2026-01-30`, server exception) |
+| Full verify | `npm run verify:production` | `tsc` + **`test:ci`** + `build` before deploy |
 | RAG ingest | `npm run rag:seed` (Qdrant Inference, 384d, batched) | ✅ Run when cluster URL + Inference enabled |
 | npm audit | `npm audit --audit-level=critical` | ✅ **0 critical** (`package.json` overrides: `fast-xml-parser`, `protobufjs`); moderate/high may remain — run `npm audit` to triage |
 
@@ -272,7 +364,7 @@ For every new feature or significant code change:
 - [ ] **npm audit triage** — 0 critical at `--audit-level=critical` (verified May 16); review moderate/high via `npm audit` and document risk acceptance where needed
 
 ### Medium Priority
-- [ ] **Production smoke** — §0 below on https://hoteletuna.com after each deploy
+- [ ] **Production smoke** — §0 below on https://www.hoteletuna.com after each deploy
 - [ ] **UI enhancements** — RoomCard/ReviewCard extraction; skeleton loaders; khaki focus rings in `globals.css`
 
 ### Low Priority
@@ -330,7 +422,7 @@ For every new feature or significant code change:
 - [x] Payment receipt email on NamQR desk confirm + NamQR manual folio settle (`schedulePaymentReceiptEmail`, `NAMQR_RECEIPT_PAYMENT_METHOD`)
 - [x] Unit tests `tests/unit/namqr-v5.test.ts`, `tests/unit/namqr-receipt-trigger.test.ts`
 - [ ] Bank-file / NamClear auto-reconcile (future)
-- [ ] Guest self-scan NamQR on folio (future)
+- [x] Guest NamQR on folio — Option B (QR + bank ref submit; staff approve at `/payments/desk`; migration `0020_namqr_pending_confirmations.sql`)
 
 ### Phase 2b: Adumo Virtual (card) 🚧
 - [x] `AdumoVirtualService`, `completeAdumoVirtualPayment`, `payment_sessions` migration
@@ -403,9 +495,10 @@ Apply in order on staging/production, then verify with `npm run test:db:migratio
 - [x] **TypeScript compilation:** Zero errors
 - [x] **Production build:** Successful
 - [x] **Playwright E2E:** 
-  - Core tests: navigation, homepage, design-system, authentication (5 files)
-  - New tests: gated-pricing, public-components (2 files)
-  - Optional: `npm run test:e2e`
+  - **8** specs: navigation, homepage, design-system, authentication, auth-journey, gated-pricing, public-components, **responsive-layout**
+  - Viewports: desktop + **mobile-chrome** + **tablet** (`playwright.config.ts`)
+  - Optional: `npm run test:e2e` / `test:e2e:responsive` (needs app on `:3010` or `PLAYWRIGHT_BASE_URL`)
+- [x] **PostHog:** `instrumentation-client.ts`, `@posthog/react`, `lib/posthog-client-options.ts` (`defaults: '2026-01-30'`); `posthog-js` **1.373.5**
 - [x] **Sofia Email FK Fix:** Resolved tenant_id foreign key constraint violation
 - [x] **Test Coverage Enhancements:**
   - Gated pricing behavior tests
@@ -464,7 +557,9 @@ npm run test:db
 npm run test:db:migrations
 npx vitest run
 npm run test:smoke
-# Playwright: npm run test:e2e (separate)
+# Playwright (separate; app on :3010 or PLAYWRIGHT_BASE_URL):
+npm run test:e2e:responsive   # overflow + mobile nav
+npm run test:e2e:mobile       # Pixel 5 project only
 ```
 
 ### Local Development Testing
@@ -612,7 +707,7 @@ psql $DATABASE_URL -c "ALTER DATABASE your_db SET log_statement = 'all';"
 | 6 | Injection (SQL, XSS, CSRF) | Drizzle routes, review text, CRM | Parameterized queries; escape/sanitize user HTML; SameSite cookies |
 | 7 | File uploads | Property images (Vercel Blob) | Type/size limits 5MB; no executable extensions |
 | 8 | Rate limiting | Login, partner invite, payments | Invite 5/hr; public 100/min/IP (PRD) |
-| 9 | HTTPS & headers | Vercel production | `https://hoteletuna.com` only; security headers via platform |
+| 9 | HTTPS & headers | Vercel production | `https://www.hoteletuna.com` (canonical); security headers via platform |
 | 10 | PII / privacy | `guests`, CRM, audit | Minimize fields; GDPR erasure backlog in Compliance |
 | 11 | Insecure defaults | `NODE_ENV=production` | No debug routes; CORS not `*` for credentialed APIs |
 | 12 | Dependencies | `package.json` | `npm audit` — no critical unfixed before release |

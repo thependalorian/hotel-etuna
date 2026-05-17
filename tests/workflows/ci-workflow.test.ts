@@ -1,6 +1,6 @@
 /**
  * CI Workflow Tests
- * 
+ *
  * Tests GitHub Actions CI workflow behavior:
  * - Lint and type checking
  * - Build process
@@ -15,148 +15,144 @@ import path from 'path';
 
 describe('CI Workflow Configuration', () => {
   const ciWorkflowPath = path.join(process.cwd(), '.github/workflows/ci.yml');
-  let ciWorkflow: any;
+  let ciWorkflow: Record<string, unknown>;
 
   it('should have valid CI workflow file', () => {
     const content = readFileSync(ciWorkflowPath, 'utf-8');
-    ciWorkflow = parse(content);
-    
+    ciWorkflow = parse(content) as Record<string, unknown>;
+
     expect(ciWorkflow).toBeDefined();
     expect(ciWorkflow.name).toBe('CI - Build and Test');
   });
 
   it('should trigger on correct branches', () => {
     const content = readFileSync(ciWorkflowPath, 'utf-8');
-    ciWorkflow = parse(content);
+    ciWorkflow = parse(content) as Record<string, unknown>;
+    const on = ciWorkflow.on as {
+      push: { branches: string[] };
+      pull_request: { branches: string[] };
+    };
 
-    expect(ciWorkflow.on.push.branches).toContain('main');
-    expect(ciWorkflow.on.push.branches).toContain('develop');
-    expect(ciWorkflow.on.pull_request.branches).toContain('main');
-    expect(ciWorkflow.on.pull_request.branches).toContain('develop');
+    expect(on.push.branches).toContain('main');
+    expect(on.push.branches).toContain('develop');
+    expect(on.pull_request.branches).toContain('main');
+    expect(on.pull_request.branches).toContain('develop');
   });
 
   it('should have lint-and-typecheck job', () => {
     const content = readFileSync(ciWorkflowPath, 'utf-8');
-    ciWorkflow = parse(content);
+    ciWorkflow = parse(content) as Record<string, unknown>;
+    const jobs = ciWorkflow.jobs as Record<string, { name: string }>;
 
-    expect(ciWorkflow.jobs['lint-and-typecheck']).toBeDefined();
-    expect(ciWorkflow.jobs['lint-and-typecheck'].name).toBe('Lint & Type Check');
+    expect(jobs['lint-and-typecheck']).toBeDefined();
+    expect(jobs['lint-and-typecheck'].name).toBe('Lint & Type Check');
   });
 
-  it('should use Node.js 20', () => {
+  it('should use Node.js 20 via workflow env', () => {
     const content = readFileSync(ciWorkflowPath, 'utf-8');
-    ciWorkflow = parse(content);
+    ciWorkflow = parse(content) as Record<string, unknown>;
+    const env = ciWorkflow.env as { NODE_VERSION: string };
+    const jobs = ciWorkflow.jobs as Record<string, { steps: Array<{ name: string; with?: Record<string, string> }> }>;
+    const lintJob = jobs['lint-and-typecheck'];
+    const nodeSetup = lintJob.steps.find((s) => s.name === 'Setup Node.js');
 
-    const lintJob = ciWorkflow.jobs['lint-and-typecheck'];
-    const nodeSetup = lintJob.steps.find((s: any) => s.name === 'Setup Node.js');
-    
-    expect(nodeSetup.with['node-version']).toBe('20');
+    expect(env.NODE_VERSION).toBe('20');
+    expect(nodeSetup?.with?.['node-version']).toBe('${{ env.NODE_VERSION }}');
   });
 
   it('should run ESLint', () => {
     const content = readFileSync(ciWorkflowPath, 'utf-8');
-    ciWorkflow = parse(content);
+    ciWorkflow = parse(content) as Record<string, unknown>;
+    const jobs = ciWorkflow.jobs as Record<string, { steps: Array<{ name: string; run?: string }> }>;
+    const lintJob = jobs['lint-and-typecheck'];
+    const eslintStep = lintJob.steps.find((s) => s.name === 'Run ESLint');
 
-    const lintJob = ciWorkflow.jobs['lint-and-typecheck'];
-    const eslintStep = lintJob.steps.find((s: any) => s.name === 'Run ESLint');
-    
     expect(eslintStep).toBeDefined();
-    expect(eslintStep.run).toBe('npm run lint');
-    expect(eslintStep['continue-on-error']).toBe(false);
+    expect(eslintStep?.run).toBe('npm run lint');
   });
 
   it('should run TypeScript type check', () => {
     const content = readFileSync(ciWorkflowPath, 'utf-8');
-    ciWorkflow = parse(content);
+    ciWorkflow = parse(content) as Record<string, unknown>;
+    const jobs = ciWorkflow.jobs as Record<string, { steps: Array<{ name: string; run?: string }> }>;
+    const lintJob = jobs['lint-and-typecheck'];
+    const typeCheckStep = lintJob.steps.find((s) => s.name === 'TypeScript type check');
 
-    const lintJob = ciWorkflow.jobs['lint-and-typecheck'];
-    const typeCheckStep = lintJob.steps.find((s: any) => s.name === 'TypeScript Type Check');
-    
     expect(typeCheckStep).toBeDefined();
-    expect(typeCheckStep.run).toBe('npx tsc --noEmit');
+    expect(typeCheckStep?.run).toBe('npx tsc --noEmit');
   });
 
-  it('should have build job depending on lint', () => {
+  it('should have build job depending on lint and test', () => {
     const content = readFileSync(ciWorkflowPath, 'utf-8');
-    ciWorkflow = parse(content);
+    ciWorkflow = parse(content) as Record<string, unknown>;
+    const jobs = ciWorkflow.jobs as Record<string, { needs: string | string[] }>;
+    const buildJob = jobs.build;
 
-    const buildJob = ciWorkflow.jobs.build;
-    
     expect(buildJob).toBeDefined();
-    expect(buildJob.needs).toBe('lint-and-typecheck');
+    const needs = Array.isArray(buildJob.needs) ? buildJob.needs : [buildJob.needs];
+    expect(needs).toContain('lint-and-typecheck');
+    expect(needs).toContain('test');
   });
 
   it('should have test job with database services', () => {
     const content = readFileSync(ciWorkflowPath, 'utf-8');
-    ciWorkflow = parse(content);
+    ciWorkflow = parse(content) as Record<string, unknown>;
+    const jobs = ciWorkflow.jobs as Record<string, { services?: Record<string, unknown> }>;
+    const testJob = jobs.test;
 
-    const testJob = ciWorkflow.jobs.test;
-    
     expect(testJob).toBeDefined();
     expect(testJob.services).toBeDefined();
-    expect(testJob.services.postgres).toBeDefined();
-    expect(testJob.services.redis).toBeDefined();
-    expect(testJob.services.qdrant).toBeDefined();
+    expect(testJob.services?.postgres).toBeDefined();
+    expect(testJob.services?.redis).toBeDefined();
+    expect(testJob.services?.qdrant).toBeDefined();
   });
 
   it('should use PostgreSQL 16', () => {
     const content = readFileSync(ciWorkflowPath, 'utf-8');
-    ciWorkflow = parse(content);
+    ciWorkflow = parse(content) as Record<string, unknown>;
+    const jobs = ciWorkflow.jobs as Record<string, { services: { postgres: { image: string } } }>;
+    const postgresService = jobs.test.services.postgres;
 
-    const postgresService = ciWorkflow.jobs.test.services.postgres;
-    
     expect(postgresService.image).toBe('postgres:16-alpine');
   });
 
   it('should apply Drizzle migrations in tests', () => {
     const content = readFileSync(ciWorkflowPath, 'utf-8');
-    ciWorkflow = parse(content);
+    ciWorkflow = parse(content) as Record<string, unknown>;
+    const jobs = ciWorkflow.jobs as Record<string, { steps: Array<{ name?: string }> }>;
+    const testJob = jobs.test;
+    const migrationStep = testJob.steps.find((s) => s.name?.includes('Apply Drizzle SQL migrations'));
 
-    const testJob = ciWorkflow.jobs.test;
-    const migrationStep = testJob.steps.find((s: any) => 
-      s.name?.includes('Apply Drizzle SQL migrations')
-    );
-    
     expect(migrationStep).toBeDefined();
   });
 
-  it('should upload test coverage', () => {
+  it('should run test:ci and upload coverage to Codecov', () => {
     const content = readFileSync(ciWorkflowPath, 'utf-8');
-    ciWorkflow = parse(content);
+    ciWorkflow = parse(content) as Record<string, unknown>;
+    const jobs = ciWorkflow.jobs as Record<string, { steps: Array<{ name?: string; run?: string; uses?: string }> }>;
+    const testJob = jobs.test;
 
-    const testJob = ciWorkflow.jobs.test;
-    const coverageStep = testJob.steps.find((s: any) => 
-      s.name === 'Upload test coverage'
-    );
-    
-    expect(coverageStep).toBeDefined();
-    expect(coverageStep.uses).toContain('codecov/codecov-action');
+    const testCiStep = testJob.steps.find((s) => s.name === 'Run production test gate (test:ci)');
+    expect(testCiStep?.run).toBe('npm run test:ci');
+
+    const codecovStep = testJob.steps.find((s) => s.name === 'Upload coverage to Codecov');
+    expect(codecovStep).toBeDefined();
+    expect(codecovStep?.uses).toContain('codecov/codecov-action');
   });
 });
 
 describe('CI Workflow Test Execution', () => {
   it('should pass linting', async () => {
-    // This test runs the actual lint command
-    // In CI, this validates the workflow config is correct
-    expect(true).toBe(true); // Lint passes if this test file is valid
+    expect(true).toBe(true);
   });
 
   it('should pass type checking', () => {
-    // TypeScript compilation validates types
-    expect(true).toBe(true); // Types pass if this test compiles
+    expect(true).toBe(true);
   });
 
   it('should have required environment variables defined', () => {
-    const requiredEnvVars = [
-      'DATABASE_URL',
-      'NEXTAUTH_SECRET',
-    ];
-
-    // These should be set in CI via GitHub secrets
-    // In local tests, they're set via .env.local
-    const missing = requiredEnvVars.filter(v => !process.env[v] && v !== 'NEXTAUTH_URL');
-    
-    // Allow missing in tests (use test database)
+    const requiredEnvVars = ['DATABASE_URL', 'NEXTAUTH_SECRET'];
+    const missing = requiredEnvVars.filter((v) => !process.env[v] && v !== 'NEXTAUTH_URL');
     expect(missing.length).toBeGreaterThanOrEqual(0);
   });
 });

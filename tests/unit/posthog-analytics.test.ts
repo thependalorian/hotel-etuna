@@ -57,7 +57,8 @@ describe('PostHog client analytics', () => {
       'ph_test_key',
       expect.objectContaining({
         api_host: 'https://us.i.posthog.com',
-        capture_pageview: true,
+        defaults: '2026-01-30',
+        person_profiles: 'identified_only',
       }),
     );
 

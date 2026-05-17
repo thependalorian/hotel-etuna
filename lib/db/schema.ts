@@ -1744,6 +1744,35 @@ export const namqrCodes = pgTable('namqr_codes', {
   activeIdx: index('idx_namqr_codes_is_active').on(table.isActive),
 }));
 
+/** Guest bank-app payment claims awaiting staff NamQR confirm (Option B). */
+export const namqrPendingConfirmations = pgTable('namqr_pending_confirmations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .references(() => tenants.id, { onDelete: 'cascade' })
+    .notNull(),
+  bookingId: uuid('booking_id')
+    .references(() => bookings.id, { onDelete: 'cascade' })
+    .notNull(),
+  guestId: uuid('guest_id').references(() => guests.id, { onDelete: 'set null' }),
+  qrReference: varchar('qr_reference', { length: 10 }),
+  amountClaimed: decimal('amount_claimed', { precision: 12, scale: 2 }).notNull(),
+  bankReference: varchar('bank_reference', { length: 64 }).notNull(),
+  status: varchar('status', { length: 20 }).default('pending').notNull(),
+  submittedByUserId: uuid('submitted_by_user_id').references(() => users.id, {
+    onDelete: 'set null',
+  }),
+  reviewedByUserId: uuid('reviewed_by_user_id').references(() => users.id, {
+    onDelete: 'set null',
+  }),
+  reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+  rejectionReason: text('rejection_reason'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  tenantStatusIdx: index('idx_namqr_pending_tenant_status').on(table.tenantId, table.status),
+  bookingStatusIdx: index('idx_namqr_pending_booking_status').on(table.bookingId, table.status),
+}));
+
 // API Transaction Log
 export const obApiTransactions = pgTable('ob_api_transactions', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -1829,6 +1858,8 @@ export type NewTrustAccountPsd3 = typeof trustAccountsPsd3.$inferInsert;
 
 export type NamqrCode = typeof namqrCodes.$inferSelect;
 export type NewNamqrCode = typeof namqrCodes.$inferInsert;
+export type NamqrPendingConfirmation = typeof namqrPendingConfirmations.$inferSelect;
+export type NewNamqrPendingConfirmation = typeof namqrPendingConfirmations.$inferInsert;
 
 export type ConsumerRightsRequest = typeof consumerRightsRequests.$inferSelect;
 export type NewConsumerRightsRequest = typeof consumerRightsRequests.$inferInsert;

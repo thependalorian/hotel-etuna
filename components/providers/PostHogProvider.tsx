@@ -2,41 +2,29 @@
 
 /**
  * PostHog Analytics Provider
- * 
- * Initializes PostHog analytics on the client side.
- * Wraps the entire application to enable product analytics,
- * feature flags, and session recording.
- * 
+ *
+ * Wraps the app with @posthog/react for hooks; init is handled by
+ * instrumentation-client.ts (SPA pageviews via defaults 2026-01-30).
+ *
  * Location: /components/providers/PostHogProvider.tsx
  */
 
 import { useEffect } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
-import { initPostHog, trackPageView } from '@/lib/posthog';
 import posthog from 'posthog-js';
+import { PostHogProvider as PHProvider } from '@posthog/react';
+import { getPostHogApiKey } from '@/lib/posthog-client-options';
+import { initPostHog } from '@/lib/posthog';
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const apiKey = getPostHogApiKey();
 
   useEffect(() => {
-    // Initialize PostHog
     initPostHog();
   }, []);
 
-  useEffect(() => {
-    // Track page views on route change
-    if (pathname && posthog) {
-      let url = window.origin + pathname;
-      if (searchParams && searchParams.toString()) {
-        url = url + `?${searchParams.toString()}`;
-      }
-      
-      posthog.capture('$pageview', {
-        $current_url: url,
-      });
-    }
-  }, [pathname, searchParams]);
+  if (!apiKey) {
+    return <>{children}</>;
+  }
 
-  return <>{children}</>;
+  return <PHProvider client={posthog}>{children}</PHProvider>;
 }

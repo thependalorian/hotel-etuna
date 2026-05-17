@@ -1,6 +1,8 @@
 /**
- * Adumo Online configuration — Virtual (hosted page) + Enterprise (server-side card API).
+ * Adumo Online Virtual — hosted payment page (form POST + JWT).
  * Location: lib/config/adumo.ts
+ *
+ * Namibia product uses Virtual only (initialisevirtual). 3DS runs on Adumo's page.
  */
 
 const stagingBase = 'https://staging-apiv3.adumoonline.com';
@@ -13,13 +15,9 @@ export const adumoConfig = {
   baseUrl,
   isLive,
 
-  /** Enterprise OAuth (optional — server-posted PAN path) */
   merchantUid: process.env.ADUMO_MERCHANT_UID || process.env.ADUMO_MERCHANT_ID || '',
   applicationUid: process.env.ADUMO_APPLICATION_UID || process.env.ADUMO_APPLICATION_ID || '',
-  clientId: process.env.ADUMO_CLIENT_ID || process.env.ADUMO_MERCHANT_UID || '',
-  clientSecret: process.env.ADUMO_CLIENT_SECRET || '',
 
-  /** Virtual hosted page (preferred for guest checkout — SAQ A) */
   virtualInitialiseUrl: `${baseUrl}/product/payment/v1/initialisevirtual`,
   jwtSecret: process.env.ADUMO_JWT_SECRET || '',
   currencyCode: process.env.ADUMO_CURRENCY_CODE || 'NAD',
@@ -33,11 +31,6 @@ export const adumoConfig = {
   webhookNotificationUrl:
     process.env.ADUMO_WEBHOOK_URL ||
     `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/webhooks/adumo`,
-
-  /** virtual | enterprise — default virtual when JWT secret is set */
-  paymentMode:
-    process.env.ADUMO_PAYMENT_MODE ||
-    (process.env.ADUMO_JWT_SECRET ? 'virtual' : 'enterprise'),
 };
 
 export function adumoVirtualIsConfigured(): boolean {

@@ -343,7 +343,7 @@ Hotel Etuna uses **Namibia NPS-aligned rails** (no Stripe). **Card payments** us
 
 **Code:** `lib/config/adumo.ts`, `lib/services/payment/AdumoVirtualService.ts`, `lib/services/payment/completeAdumoVirtualPayment.ts`, `payment_sessions` table (`database/drizzle/0012_adumo_virtual_payment_sessions.sql`).
 
-**Deprecated:** `AdumoEnterpriseService` (server-posted PAN) — not used for guest checkout.
+**Not in codebase:** Stripe, RealPay, Adumo Enterprise (server-posted PAN). Card checkout = Virtual only.
 
 #### 3.5.2 Flow matrix
 
@@ -542,7 +542,8 @@ flowchart TB
 | **`database/drizzle/`** | SQL migrations `0000`–`0016` | Applied on Neon production |
 | **`proxy.ts`** | Auth, RBAC, rate limits, tenant headers | Next.js 16 network boundary |
 | **`scripts/`** | Seeds, RAG ingest, `provision-platform-admin.ts`, verification | Operator tooling |
-| **`tests/`**, **`e2e/`** | Vitest + Playwright | `npm run test:all` gate |
+| **`tests/`**, **`e2e/`** | Vitest + Playwright (desktop / mobile / tablet projects) | `npm run test:ci`; E2E: `npm run test:e2e:responsive` |
+| **`instrumentation-client.ts`** | PostHog eager init | `defaults: '2026-01-30'` SPA pageviews |
 
 Regenerate depth-3 tree: `tree -I 'node_modules|.next|.git' -L 3` — full listing in **§4.6**.
 
@@ -779,7 +780,7 @@ Full matrix + gap register: **`docs/compliance/NAMIBIA_REGULATORY_FRAMEWORK.md` 
 | **Embeddings** | Qdrant Cloud | `intfloat/multilingual-e5-small` | 384 dimensions, inference at upsert/query |
 | **Email** | Nodemailer | — | Namecheap PrivateEmail SMTP |
 | **Deployment** | Vercel | — | Auto-deploy from `main` branch |
-| **Domain** | `hoteletuna.com` | — | Vercel DNS, SSL auto-provisioned |
+| **Domain** | `www.hoteletuna.com` (canonical), `hoteletuna.com` (apex redirect) | Vercel | DNS → `cname.vercel-dns.com`; SSL auto |
 
 ### 4.2 Database schema (authoritative)
 
@@ -1149,7 +1150,7 @@ SMTP_PASS=<smtp-password>
 
 # NextAuth fallback
 NEXTAUTH_SECRET=<secret>
-NEXTAUTH_URL=https://hoteletuna.com
+NEXTAUTH_URL=https://www.hoteletuna.com
 ```
 
 **Payment gateways (Namibia):** Adumo Virtual only — see `.env.example` (`ADUMO_JWT_SECRET`, `ADUMO_WEBHOOK_URL`, redirect URLs).
@@ -1383,7 +1384,7 @@ Regenerated May 17, 2026 (`tree -L 3` from `hotel-etuna/`). **229 directories, 3
 |       `-- security/
 |-- components/
 |   |-- analytics/
-|   |   `-- PostHogPageView.tsx
+|   |   `-- (pageviews via PostHog `defaults: 2026-01-30` — no separate pageview component)
 |   |-- brand/
 |   |   |-- HotelEtunaLogo.tsx
 |   |   `-- HotelEtunaMarkIcon.tsx
@@ -1436,7 +1437,7 @@ Regenerated May 17, 2026 (`tree -L 3` from `hotel-etuna/`). **229 directories, 3
 |   |-- providers/
 |   |   |-- AuthGateProvider.tsx
 |   |   |-- OfflineBanner.tsx
-|   |   |-- PostHogProvider.tsx
+|   |   |-- PostHogProvider.tsx          # @posthog/react PHProvider
 |   |   |-- ServiceWorkerRegistration.tsx
 |   |   |-- SessionProviderWrapper.tsx
 |   |   |-- SessionTimeoutWrapper.tsx
@@ -1553,7 +1554,8 @@ Regenerated May 17, 2026 (`tree -L 3` from `hotel-etuna/`). **229 directories, 3
 |   |-- gated-pricing.spec.ts
 |   |-- homepage.spec.ts
 |   |-- navigation.spec.ts
-|   `-- public-components.spec.ts
+|   |-- public-components.spec.ts
+|   `-- responsive-layout.spec.ts
 |-- lib/
 |   |-- auth/
 |   |   |-- client.ts
@@ -1706,6 +1708,7 @@ Regenerated May 17, 2026 (`tree -L 3` from `hotel-etuna/`). **229 directories, 3
 |   |   |-- hospitalityMarketingWorkflows.ts
 |   |   `-- kycKybGraph.ts
 |   |-- formatters.ts
+|   |-- posthog-client-options.ts   # shared init (defaults 2026-01-30)
 |   `-- posthog.ts
 |-- public/
 |   |-- brand/
@@ -1830,7 +1833,8 @@ Regenerated May 17, 2026 (`tree -L 3` from `hotel-etuna/`). **229 directories, 3
 |-- next.config.ts
 |-- package-lock.json
 |-- package.json
-|-- playwright.config.ts
+|-- instrumentation-client.ts      # PostHog eager client init
+|-- playwright.config.ts           # chromium + mobile-chrome + tablet
 |-- postcss.config.mjs
 |-- proxy.ts
 |-- stack.ts
@@ -1911,8 +1915,6 @@ Complete route inventory: `app/api/**/route.ts` (**136** handlers; verify: `find
 | API route | Methods | Auth | DB tables | Frontend |
 |-----------|---------|------|-----------|----------|
 | `/api/payments/initiate` | POST | 2FA header | `payment_security_audit`, `fraud_*`, `audit_trail` | Gateway / internal |
-| `/api/payments/complete` | GET | 2FA header | `bookings`, `properties`, `tenants` | Payment return URL |
-| `/api/payments/3ds-callback` | POST, GET | Callback | `bookings`, transactions | 3DS redirect |
 | `/api/payments/reconciliation` | GET, POST | Session | `cash_reconciliations`, `bookings` | `payments/reconciliation` |
 | `/api/payments/namqr/generate` | POST | Session (staff) | `namqr_codes` | `payments/desk`, booking folio |
 | `/api/payments/namqr/confirm` | POST | Session (staff) | `transactions`, `booking_charges`, `namqr_codes` | `payments/desk`, booking folio |
@@ -2189,9 +2191,17 @@ UI: `GuestStaysList`, `GuestLoyaltySummary`, `GuestFolioPanel` (past-stay banner
 
 ### 6.5 Deployability
 
-- **Hosting:** Vercel (Next.js App Router)
-- **Domain:** `hoteletuna.com` with Vercel DNS
-- **Environment Variables:** All secrets in Vercel project settings; `.env.local` for local development
+- **Hosting:** Vercel (Next.js App Router), project **`buffr/hotel-etuna`**
+- **Domains & DNS:**
+  - **Canonical:** `https://www.hoteletuna.com` (production alias)
+  - **Apex:** `hoteletuna.com` — configure in Vercel Domains; recommend redirect to `www`
+  - **DNS records (typical):** `www` → `CNAME` `cname.vercel-dns.com`; apex → `A` `76.76.21.21` or registrar-supported apex `CNAME` (see Vercel domain UI for exact values)
+  - **Previews:** `*.vercel.app` (no custom DNS)
+- **Environment variables:**
+  - **Local:** `.env.local` from `.env.example` — **`http://localhost:3000`** for `NEXTAUTH_URL`, `NEXT_PUBLIC_APP_URL`, and Adumo redirect URLs is intentional
+  - **Production:** Vercel project env only; push from local with URL overrides: `npm run env:push-vercel` (`scripts/push-env-to-vercel.mjs` → `https://www.hoteletuna.com`)
+  - **Do not** commit `.env.local`; do not paste localhost URLs into Vercel
+- **Detail:** `docs/project/PLANNING.md` § DNS, domains & environment URLs · `docs/project/TASK.md` § DNS checklist
 
 ### 6.6 System design standards (from master guide)
 
@@ -2559,7 +2569,7 @@ From master guide Part 2 — applied to this schema:
 
 ## 12. Implementation Status (verified May 17, 2026)
 
-Evidence: codebase inspection + `npx tsc --noEmit` (pass) + `npx tsx scripts/db/verify-tenant-rls.ts` (pass) + `npm run test:all` (pass). Full checklist: **`TASK.md`** § Verified Implementation Audit.
+Evidence: codebase inspection + `npx tsc --noEmit` (pass) + `npm run test:db` / `test:db:migrations` / smoke (pass) + Vitest **415/429** (12 workflow-test failures). Full checklist: **`TASK.md`** § Verified Implementation Audit + § Analytics, responsive UI & E2E.
 
 ### ✅ Complete (production)
 
@@ -2573,8 +2583,10 @@ Evidence: codebase inspection + `npx tsc --noEmit` (pass) + `npx tsx scripts/db/
 | **TypeScript** | Clean compile | `tsc` exit 0 |
 | **Digital menu (`/dining`)** | DB-only menu, single-page viewer (2×3 food grid), analytics favourites, image seed/validate scripts | §3.1.1 |
 | **Scripts hygiene** | Production scripts only under `scripts/`; obsolete archive removed May 2026 | `ls scripts` |
-| **E2E coverage** | 7 Playwright specs incl. `gated-pricing`, `public-components` | `e2e/*.spec.ts` |
-| **Automated test gate** | `npm run test:all` — `test:db` + Vitest (**393**/395, 2 skipped) + compliance smoke (6) | May 17, 2026 |
+| **E2E coverage** | **8** Playwright specs; `responsive-layout`; projects: chromium, mobile-chrome, tablet | `playwright.config.ts`, `e2e/*.spec.ts` |
+| **PostHog analytics** | `posthog-js` 1.373.5, `@posthog/react`, `instrumentation-client.ts`, server `posthog-server.ts` | `lib/posthog-client-options.ts`; unit tests 4/4 |
+| **Responsive UI** | Dashboard sidebar drawer, public hero/rooms/dining, menu book mobile grid | Deployed May 17 (`hoteletuna.com`) |
+| **Automated test gate** | `test:db` + migrations **21/21** + Vitest **427**/429 pass + smoke **6/6**; workflow tests **78/78** | May 17, 2026 — `npm run test:ci` |
 | **Operator SQL** | Migrations **0011–0017** on Neon | `npm run test:db:migrations` — 18/18 |
 | **NamQR receipt email** | Desk confirm + NamQR manual folio settle | `HospitalityNamQrPaymentService`, `ManualPaymentService` |
 | **Sofia intent** | Guest-message-first classification | `SofiaConciergeService.resolveIntent()` |
@@ -2622,8 +2634,9 @@ Evidence: codebase inspection + `npx tsc --noEmit` (pass) + `npx tsx scripts/db/
 - ⏳ Full Qdrant upsert — operator runs ingestion script (external rate limits)
 
 ### Phase 6: Testing & Launch Hardening ✅
-- ✅ Vitest suite (334 tests per last full run; re-verify: `npm run verify:production`)
-- ✅ Playwright: gated-pricing + public-components specs added
+- ✅ Vitest suite (**427** passed, 2 skipped); workflow YAML tests **78/78** aligned with `ci.yml` / `deploy.yml`
+- ✅ Playwright **1.60.0**: 8 specs; mobile + tablet projects; `responsive-layout.spec.ts`
+- ✅ PostHog: `@posthog/react`, `instrumentation-client.ts`, SPA defaults `2026-01-30`
 - ✅ Sofia email FK fixture fix (tenant-scoped test data)
 
 ### Phase 7: Cleanup & Documentation Lock ✅
@@ -2833,7 +2846,9 @@ Do not add new project `.md` files — extend **PRD**, **PLANNING**, or **TASK**
 | **2.9.1** | **2026-05-17** | **Product Team** | **§2.4** personas → roles → surfaces table aligned with §3.6; **§4.6** tree regenerated (229 dirs / 352 files), depth-4 `app/guest/` + `admin/platform/`, migrations `0000`–`0016`, current `scripts/`. |
 | **2.9.2** | **2026-05-17** | **Product / compliance** | **§3.7** Namibia regulatory matrix, fraud runtime vs `0016`, SOC 2 + Security Prompt Pack; **Appendix F** BoN corpus index; §6.2 / §14.4 aligned with `docs/compliance/*`. |
 | **2.9.3** | **2026-05-17** | **Engineering** | **Fraud:** `tenant-fraud-rules.ts` wires `0016` to `PsdFraudGate` + analyze API; production fail-closed; preflight 12/12 (May 17). |
+| **2.9.4** | **2026-05-17** | **Engineering** | **PostHog:** `instrumentation-client.ts`, `@posthog/react`, `defaults: 2026-01-30`. **Playwright:** 1.60.0, 3 viewport projects, `responsive-layout.spec.ts`. **Tests:** workflow YAML tests refreshed (`ci-workflow`, `deploy-workflow`); Vitest **427**/429; `test:ci` gate green. |
+| **2.9.5** | **2026-05-17** | **Engineering** | **§6.5** DNS + local vs production env: canonical `www.hoteletuna.com`, Vercel DNS table, `.env.local` localhost documented; `env:push-vercel` → `www`; `.env.example` comments. |
 
 ---
 
-*This PRD (v2.9.3) is effective May 17, 2026 and supersedes all previous versions. It will be reviewed quarterly with Hotel Etuna management and updated as needed. All implementation teams must reference this document as the source of truth for product requirements, architecture decisions, and success metrics.*
+*This PRD (v2.9.5) is effective May 17, 2026 and supersedes all previous versions. It will be reviewed quarterly with Hotel Etuna management and updated as needed. All implementation teams must reference this document as the source of truth for product requirements, architecture decisions, and success metrics.*

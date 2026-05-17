@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
         paymentsByRail: `/api/admin/platform/compliance/payments?days=${paymentWindowDays}`,
         regulatoryPackFolder: REGULATORY_PACK_FOLDER,
         note:
-          'In-app reporting: KPIs + paymentsByRail (metadata.rail / payment_gateway). PDF pack under Downloads. Namibia posture: no Stripe — paymentRails.stripeUsed.',
+          'In-app reporting: KPIs + paymentsByRail (metadata.rail / payment_gateway). PDF pack under Downloads. Namibia card rail: Adumo Virtual (paymentRails.cardRail).',
       },
       meta: {
         regulatoryNotes:

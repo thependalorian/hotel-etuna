@@ -28,7 +28,7 @@ import { EncryptionService } from '@/lib/services/security/EncryptionService';
 import { logSecurityIncident } from '@/lib/services/security/SecurityIncidentService';
 import { recordAuditTrail } from '@/lib/compliance/record-audit';
 import { adumoVirtualIsConfigured } from '@/lib/config/adumo';
-import { entityId, entityIdOptional } from '@/lib/validation/entity-ids';
+import { entityId } from '@/lib/validation/entity-ids';
 import { z } from 'zod';
 
 // ============================================================================
@@ -43,19 +43,6 @@ const paymentRequestSchema = z.object({
   reference: z.string().optional(),
   description: z.string().max(500).optional(),
   paymentType: z.enum(['transfer', 'payment', 'withdrawal']).default('payment'),
-  card: z
-    .object({
-      cardHolderFullName: z.string().min(2).max(120).optional(),
-      cardNumber: z.string().min(12).max(19).optional(),
-      expiryMonth: z.number().int().min(1).max(12).optional(),
-      expiryYear: z.number().int().min(new Date().getFullYear()).max(2100).optional(),
-      cvv: z.string().min(3).max(4).optional(),
-      saveCardDetails: z.boolean().optional(),
-      token: z.string().optional(),
-      profileUid: entityIdOptional(),
-      uci: z.string().optional(),
-    })
-    .optional(),
 });
 
 // ============================================================================

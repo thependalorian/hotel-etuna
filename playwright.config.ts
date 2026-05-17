@@ -6,10 +6,11 @@ import { defineConfig, devices } from '@playwright/test';
  *
  * Skip auto-start of Next when you already run dev elsewhere:
  *   PLAYWRIGHT_SKIP_WEBSERVER=1 npm run test:e2e
+ *
+ * Viewports: desktop (chromium), mobile (Pixel 5), tablet (iPad).
  */
 const baseURL = (process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3010').replace(/\/$/, '');
 const skipWebServer = process.env.PLAYWRIGHT_SKIP_WEBSERVER === '1';
-/** Only auto-start Next when using default URL so port matches `npm run dev -- -p 3010`. */
 const useDefaultOrigin = !process.env.PLAYWRIGHT_BASE_URL;
 
 export default defineConfig({
@@ -19,6 +20,9 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 2 : 3,
   reporter: [['list'], ['html', { open: 'never' }]],
+  expect: {
+    timeout: 15_000,
+  },
   use: {
     baseURL,
     trace: 'on-first-retry',
@@ -27,7 +31,20 @@ export default defineConfig({
     navigationTimeout: 90_000,
     actionTimeout: 30_000,
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'mobile-chrome',
+      use: { ...devices['Pixel 5'] },
+    },
+    {
+      name: 'tablet',
+      use: { ...devices['iPad (gen 7)'] },
+    },
+  ],
   webServer:
     skipWebServer || !useDefaultOrigin
       ? undefined

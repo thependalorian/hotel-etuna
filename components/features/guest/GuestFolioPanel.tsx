@@ -11,6 +11,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { AdumoVirtualPaymentForm } from '@/components/payments/AdumoVirtualPaymentForm';
+import { GuestNamQrPayPanel } from '@/components/features/guest/GuestNamQrPayPanel';
 import { BookingDepositPayCard } from '@/components/payments/BookingDepositPayCard';
 import { FolioVatBreakdown } from '@/components/features/folio/FolioVatBreakdown';
 import type { FolioSummary } from '@/lib/types/folio';
@@ -381,6 +382,11 @@ export function GuestFolioPanel({
               }}
             />
           )}
+          <GuestNamQrPayPanel
+            bookingId={bookingId}
+            balanceDue={folio.balanceDue}
+            onUpdated={() => void load()}
+          />
         </Card>
       )}
 

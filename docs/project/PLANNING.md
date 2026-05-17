@@ -1,7 +1,7 @@
 # Hotel Etuna — Production Planning
 
-**Last Updated:** May 17, 2026  
-**Program Status:** Phases 1–5 complete (RAG ingested via Qdrant Inference 384d); Phases 6–7 complete (`npm run test:all` green per `TASK.md`)  
+**Last Updated:** May 17, 2026 (DNS / production URLs; PostHog; Playwright E2E)  
+**Program Status:** Phases 1–5 complete (RAG ingested via Qdrant Inference 384d); Phases 6–7 complete; workflow YAML tests aligned with `ci.yml` / `deploy.yml` (May 17, 2026)  
 **Product scope:** Curated **tours** removed from public site and Sofia KB (PRD v2.7.2+). No `/tours` route; four markdown sources under `data/hotel-etuna-knowledge/`.
 
 ---
@@ -28,6 +28,88 @@ Ship Hotel Etuna to full daily-operations readiness on Vercel + Neon with:
 - **AI/RAG:** Qdrant Cloud Inference (`intfloat/multilingual-e5-small`, **384d**) for knowledge retrieval; DeepSeek for chat only
 - **LLM Router:** DeepSeek primary (`AI_PROVIDER_ORDER=deepseek,openai,anthropic,llm`)
 - **Auth:** NextAuth.js with session-based authentication
+- **Product analytics:** PostHog (`posthog-js` + `@posthog/react`, server via `posthog-node`)
+
+### Observability — PostHog (May 17, 2026)
+
+| Layer | Implementation |
+|-------|----------------|
+| **Client init** | `instrumentation-client.ts` + idempotent `initPostHog()` in `PostHogProvider` |
+| **SPA pageviews** | `defaults: '2026-01-30'` in `lib/posthog-client-options.ts` (history API; no duplicate manual `$pageview` on route change) |
+| **React context** | `@posthog/react` `PHProvider` in `components/providers/PostHogProvider.tsx` |
+| **Server errors** | `lib/monitoring/posthog-server.ts` — `captureServerException` |
+| **Env** | `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`; server may use `POSTHOG_PROJECT_API_KEY` |
+| **Tests** | `tests/unit/posthog-analytics.test.ts` (**4/4** May 17) |
+
+Reference: [PostHog Next.js docs](https://posthog.com/docs/libraries/next-js). Optional production improvement: [managed reverse proxy](https://posthog.com/docs/advanced/proxy/managed-reverse-proxy) on `hoteletuna.com` (not self-hosted rewrites — Vercel egress).
+
+### E2E — Playwright (May 17, 2026)
+
+| Item | Detail |
+|------|--------|
+| Version | `@playwright/test` **1.60.0** |
+| Projects | `chromium`, `mobile-chrome`, `tablet` |
+| Responsive suite | `e2e/responsive-layout.spec.ts` — overflow + mobile nav |
+| Run | `npm run test:e2e:responsive` (app on `http://127.0.0.1:3010` or set `PLAYWRIGHT_BASE_URL`) |
+
+### DNS, domains & environment URLs (May 17, 2026)
+
+**Registrar / DNS host:** Configure at your domain registrar (or Cloudflare) and attach domains in **Vercel → Project `hotel-etuna` (team `buffr`) → Settings → Domains**.
+
+| Host | Role | Typical DNS (Vercel) |
+|------|------|----------------------|
+| **`www.hoteletuna.com`** | **Canonical production** (primary alias after deploy) | `CNAME` → `cname.vercel-dns.com` |
+| **`hoteletuna.com`** (apex) | Redirect to `www` (recommended) or serve same app | `A` → `76.76.21.21` **or** `CNAME` → `cname.vercel-dns.com` (registrar-dependent) |
+| **\*.vercel.app** | Preview deployments | Managed by Vercel (no manual DNS) |
+
+**SSL:** Automatic via Vercel once DNS validates.
+
+**Email (transactional, not web DNS):** `info@hoteletuna.com`, `concierge@hoteletuna.com` — configure **MX / SPF / DKIM** at the mail host (e.g. Private Email per `.env.example` `SMTP_*`). Web app DNS does not send mail.
+
+#### Local `.env.local` vs production (Vercel)
+
+| Variable | Local development (`.env.local`) | Production (Vercel env) |
+|----------|-------------------------------|-------------------------|
+| `NEXTAUTH_URL` | `http://localhost:3000` | `https://www.hoteletuna.com` |
+| `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` | `https://www.hoteletuna.com` |
+| `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` | `https://www.hoteletuna.com` |
+| `ADUMO_REDIRECT_SUCCESS_URL` | `http://localhost:3000/payment/success` | `https://www.hoteletuna.com/payment/success` |
+| `ADUMO_REDIRECT_FAIL_URL` | `http://localhost:3000/payment/failed` | `https://www.hoteletuna.com/payment/failed` |
+| `ADUMO_WEBHOOK_URL` | `http://localhost:3000/api/webhooks/adumo` (or tunnel) | `https://www.hoteletuna.com/api/webhooks/adumo` |
+| `NEXT_PUBLIC_POSTHOG_HOST` | `https://us.i.posthog.com` | Same (US Cloud ingest) |
+| `DATABASE_URL` | Neon **dev** branch / local | Neon **production** branch (pooled) |
+
+**Important:** Keeping `localhost` in `.env.local` is correct for local dev. Production URLs must **not** be copied from `.env.local` into Vercel manually for auth/payments — use:
+
+```bash
+npm run env:push-vercel          # applies PROD_OVERRIDES in scripts/push-env-to-vercel.mjs
+npm run env:push-vercel:dry      # preview diff first
+```
+
+Override canonical origin without editing the script: `VERCEL_PRODUCTION_URL=https://www.hoteletuna.com npm run env:push-vercel`.
+
+**Adumo / webhooks:** Register production redirect and webhook URLs in the Adumo merchant portal using the **same host** as `NEXTAUTH_URL` (prefer `www`).
+
+**CORS / metadata:** App uses `NEXT_PUBLIC_APP_URL` for `metadataBase`, payment return URLs, and allowed origins — keep all three URL env vars aligned on production.
+
+#### Webhooks, redirects & third-party callbacks
+
+Use **`https://www.hoteletuna.com`** everywhere below in production (same host as `NEXTAUTH_URL`). Apex-only URLs work only if Vercel serves the app on apex without breaking SSL; prefer **www** and redirect apex → www.
+
+| Type | Production URL | Env / portal | Local dev |
+|------|----------------|--------------|-----------|
+| **NextAuth / session** | Origin = `NEXTAUTH_URL` | Vercel: set by `env:push-vercel` | `http://localhost:3000` |
+| **Adumo success redirect** | `/payment/success` | `ADUMO_REDIRECT_SUCCESS_URL` + **Adumo merchant portal** | `localhost:3000/payment/success` |
+| **Adumo fail redirect** | `/payment/failed` | `ADUMO_REDIRECT_FAIL_URL` + Adumo portal | `localhost:3000/payment/failed` |
+| **Adumo async webhook** | `POST /api/webhooks/adumo` | `ADUMO_WEBHOOK_URL` (JWT `notificationURL`) + Adumo portal; optional `ADUMO_WEBHOOK_HMAC_SECRET` | Tunnel (ngrok) or skip; localhost not reachable by Adumo |
+| **WhatsApp (Meta)** | `GET/POST /api/webhooks/whatsapp` | Meta App → Webhooks → Callback URL; verify token = `WHATSAPP_VERIFY_TOKEN`; sign with `META_APP_SECRET` | Tunnel required for inbound messages |
+| **Sofia voice provider** | `POST /api/sofia/voice/webhook` | Provider dashboard (when voice enabled) | Tunnel |
+| **Dining deposit pay link** | `/restaurant/reservation/pay?code=…` | Email links use `NEXT_PUBLIC_APP_URL` | localhost |
+| **App login redirects** | `/login?redirect=/guest` or `/dashboard` | Relative paths — no DNS; safe redirect rules in `proxy.ts` | Same |
+
+**`npm run env:push-vercel`** overwrites on **production** target only: `NEXTAUTH_URL`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_APP_URL`, `ADUMO_REDIRECT_*`, `ADUMO_WEBHOOK_URL` (see `scripts/push-env-to-vercel.mjs` `PROD_OVERRIDES`). It does **not** auto-set Meta/WhatsApp callback URLs — configure those manually in Meta using the production host.
+
+**Apex redirect:** If `https://hoteletuna.com` 301s to `www`, Adumo/Meta must still use the **final** HTTPS URL that receives `POST` webhooks (usually `www`). Do not register `localhost` or preview `*.vercel.app` URLs in Adumo production.
 
 ### Tenant Architecture (Hub-and-Spoke Model)
 
@@ -100,8 +182,7 @@ Hotel Etuna (hub)
 - Purposes: `booking_deposit`, `folio_settle` → `completeAdumoVirtualPayment.ts`
 - **Wired:** guest folio settle (`AdumoVirtualPaymentForm`, `BookingDepositPayCard` on stay/folio UI)
 - **Remaining gap:** public/admin `BookingForm` online checkout deposit (not folio)
-- **RealPay:** not in scope (no partner payout or EnDO product)
-- **Enterprise API** (`AdumoEnterpriseService`): deprecated for guest flows
+- **Card rail:** Adumo Virtual only (`initialisevirtual`, JWT, `_RESPONSE_TOKEN` + webhook). No Stripe, RealPay, or Enterprise PAN API in repo.
 - **Go-live:** live `ADUMO_*` credentials, Adumo portal payment page branding, one live test transaction
 
 **Audit Requirements:**
@@ -342,13 +423,14 @@ npm run rag:seed             # optional --upsert-batch=4
 Qdrant in Hotel Etuna is **knowledge-base retrieval only**, not a copy of Ava’s per-user long-term memory collection. Full chat history lives in PostgreSQL for audit, CRM, and session continuity.
 
 #### Phase 6 — Tests ✅
-**Status:** Complete per `TASK.md` (Vitest + `verify:production`; Playwright gated-pricing/public-components)
+**Status:** Complete per `TASK.md` (Vitest + smoke + PostHog unit); Playwright expanded May 17; workflow tests **78/78** pass
 
 **Delivered:**
-1. Playwright: gated pricing, `PublicHero`/`PublicFooter`, auth redirect behavior
-2. Integration coverage for review approval endpoints
-3. Sofia/email suite FK fixes
-4. Gates: `npm run test:all` (or `test:db` + `vitest run` + `test:smoke`), `npm run verify:production`, optional `npm run test:e2e`
+1. Playwright: gated pricing, public components, auth journeys, **responsive-layout**; **3 viewport projects** (desktop / mobile / tablet)
+2. PostHog: instrumentation + `@posthog/react` + shared client options (`defaults: '2026-01-30'`)
+3. Integration coverage for review approval endpoints
+4. Sofia/email suite FK fixes
+5. Gates: `npm run test:db` + `test:db:migrations` + `vitest run` + `test:smoke` ✅; `tests/workflows/*` **78/78**; optional `npm run test:e2e:*`
 
 #### Phase 7 — Cleanup/Docs ✅
 **Status:** Complete per `TASK.md`
@@ -713,7 +795,8 @@ ORDER BY tablename, indexname;
 **Build Verification:**
 - [ ] `npm run verify:production` passes (tsc → Vitest → next build)
 - [ ] Or manually: `npm run build` + `npx vitest run`
-- [ ] Playwright e2e tests: `npm run test:e2e` (separate from verify script)
+- [ ] Playwright E2E on CI: `npm run test:e2e:desktop` (optional job; needs webServer or staging `PLAYWRIGHT_BASE_URL`)
+- [x] Refresh `tests/workflows/ci-workflow.test.ts` + `deploy-workflow.test.ts` to match current GitHub Actions YAML (May 17, 2026)
 
 **Database Verification:**
 - [ ] Cash columns + `cash_reconciliations` verified via SQL checklist

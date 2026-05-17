@@ -1,7 +1,7 @@
 /**
  * Namibia payment rails — product policy and field conventions
  *
- * Purpose: Single source of truth for which rails Buffr Host targets in Namibia (no Stripe).
+ * Purpose: Single source of truth for Namibia payment rails (Adumo Virtual, NamQR, cash, EFT).
  * Location: lib/payments/namibia-payment-rails.ts
  *
  * Store on rows:
@@ -10,10 +10,7 @@
  * - `transactions.payment_gateway` — low-cardinality processor id (e.g. namqr, bank_eft, pos_acquirer)
  * - `transactions.metadata` — JSON e.g. { rail: 'eft', reference: '...', namqrRef: '...' }
  *
- * Stripe is intentionally out of scope for Namibia deployments; use local NPS-aligned rails.
  */
-
-export const STRIPE_SUPPORTED_IN_NAMIBIA = false as const;
 
 /** Values for `payment_methods.type` (varchar); keep lowercase stable */
 export const PaymentMethodType = {
@@ -72,7 +69,7 @@ export const NAMIBIA_PAYMENT_RAILS: NamibiaPaymentRailInfo[] = [
     methodType: PaymentMethodType.CARD,
     typicalGateway: PaymentGatewayLabel.ADUMO_VIRTUAL,
     notes:
-      'Inbound card: Adumo Virtual hosted page (JWT form POST) — SAQ A; optional Enterprise API for backoffice.',
+      'Inbound card: Adumo Virtual hosted page (JWT form POST to initialisevirtual) — SAQ A; 3DS on Adumo page.',
   },
   {
     key: 'ewallet',
@@ -111,7 +108,7 @@ export function getNamibiaPaymentRailsSummary() {
   return {
     market: 'Namibia' as const,
     defaultCurrency: 'NAD' as const,
-    stripeUsed: STRIPE_SUPPORTED_IN_NAMIBIA,
+    cardRail: 'adumo_virtual' as const,
     rails: NAMIBIA_PAYMENT_RAILS.map((r) => ({
       key: r.key,
       label: r.label,

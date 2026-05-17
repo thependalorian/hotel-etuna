@@ -39,7 +39,7 @@ interface ComplianceSnapshot {
 interface PaymentRailsSummary {
   market: string;
   defaultCurrency: string;
-  stripeUsed: boolean;
+  cardRail: string;
   rails: { key: string; label: string; paymentMethodType: string; paymentGatewayLabel: string }[];
 }
 
@@ -228,8 +228,8 @@ export default function PlatformDashboardOverview({
           {paymentRails && (
             <div className="mt-4 p-3 rounded-lg bg-base-200 text-sm">
               <p className="font-medium mb-1">
-                Namibia payment rails ({paymentRails.defaultCurrency}) — Stripe:{' '}
-                {paymentRails.stripeUsed ? 'on' : 'off'}
+                Namibia payment rails ({paymentRails.defaultCurrency}) — card:{' '}
+                {paymentRails.cardRail.replace(/_/g, ' ')}
               </p>
               <p className="text-base-content/80 mb-2">
                 Intended acceptance: {paymentRails.rails.map((r) => r.label).join(' · ')}.

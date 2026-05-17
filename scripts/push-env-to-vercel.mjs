@@ -26,7 +26,8 @@ import { fileURLToPath } from 'url';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const localPath = path.join(root, '.env.local');
-const PROD_URL = process.env.VERCEL_PRODUCTION_URL || 'https://hoteletuna.com';
+/** Canonical production origin (www). Override: VERCEL_PRODUCTION_URL=https://hoteletuna.com */
+const PROD_URL = process.env.VERCEL_PRODUCTION_URL || 'https://www.hoteletuna.com';
 const DRY_RUN = process.argv.includes('--dry-run');
 const NEW_ONLY = process.argv.includes('--new-only');
 const FORCE_RECREATE = process.argv.includes('--force');
