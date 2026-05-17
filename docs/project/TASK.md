@@ -1,8 +1,40 @@
 # Hotel Etuna — Task & Production Tracker
 
 **Status:** **Production Live** — core platform complete; RAG upsert remains (`npm audit --audit-level=critical`: **0 critical**)  
-**Last Updated:** May 17, 2026 (production hardening v2.8.6)  
-**Production URL:** https://www.hoteletuna.com (Vercel deploy `C5yP5uj1` — May 16, 2026; env via `node scripts/push-env-to-vercel.mjs`)
+**Last Updated:** May 17, 2026 (CI/CD production gate + Vercel Git connect)  
+**Production URL:** https://www.hoteletuna.com (Vercel — auto-deploy from `main` via GitHub integration)
+
+---
+
+## CI/CD & production gates (May 17, 2026)
+
+| Workflow | Trigger | What it runs |
+|----------|---------|----------------|
+| **`.github/workflows/ci.yml`** | Push/PR → `main`, `develop` | ESLint → `tsc` → **`npm run test:ci`** → `npm run build` |
+| **`.github/workflows/deploy.yml`** | After **CI** succeeds on `main`, or manual | `vercel build` + `vercel deploy --prebuilt --prod` (needs `VERCEL_*` secrets) |
+| **`.github/workflows/security-audit.yml`** | Weekly + push `main` | `security:preflight`, `npm audit` |
+| **`.github/workflows/database-migration.yml`** | Schema/migration path changes | `db:generate` + git diff on `database/drizzle/` |
+| **`.github/workflows/cron-verification.yml`** | Schedule | Cron route checks |
+| **`.github/workflows/soc2-evidence.yml`** | Schedule / manual | SOC2 evidence collection |
+
+**Local commands (match CI):**
+
+```bash
+npm run test:ci          # test:db + test:db:migrations + vitest + smoke
+npm run verify:production # tsc + test:ci + next build
+npm run test:all         # same as test:ci (alias intent; use test:ci in CI)
+```
+
+**Vercel:** Project `buffr/hotel-etuna` connected to `github.com/thependalorian/hotel-etuna` — pushes to `main` trigger production builds. CLI deploy: `vercel deploy --prod --yes`.
+
+**Project tree (regenerate):**
+
+```bash
+tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 --dirsfirst -F --charset ascii
+# May 17, 2026: 229 directories, 351 files — full map in PRD §4.6 (+ depth-4 guest/ platform)
+```
+
+**New unit tests (guest/auth):** `tests/unit/auth-roles.test.ts`, `password-validation.test.ts`, `public-session-nav.test.ts`, `public-rate.test.ts`, `stack-env.test.ts`.
 
 ---
 
@@ -29,7 +61,7 @@
 | Tours removed | `test ! -d app/tours`; `rg -i '/tours' app components lib proxy.ts` | ✅ No route or nav; `tours-guide.md` deleted |
 | Service duplicates | `lib/services/fraud`, `lib/services/menu` | ✅ Single implementation each |
 | Vitest (May 17) | `npx vitest run` | ✅ **393/395** (2 hub-seed tests skipped unless `RUN_HUB_SEED_VALIDATION=true`; `testTimeout` 90s for LLM/RAG) |
-| Full verify | `npm run verify:production` | Re-run before deploy (tsc + vitest + build) |
+| Full verify | `npm run verify:production` | Re-run before deploy (`tsc` + **`test:ci`** + `build`) |
 | RAG ingest | `npx tsx scripts/ingest-hotel-etuna-knowledge.ts` | 🟡 Pending (Voyage rate limits) |
 | npm audit | `npm audit --audit-level=critical` | ✅ **0 critical** (`package.json` overrides: `fast-xml-parser`, `protobufjs`); moderate/high may remain — run `npm audit` to triage |
 
@@ -295,8 +327,10 @@ Apply in order on staging/production, then verify with `npm run test:db:migratio
 - [x] **`npm run test:db`** — `scripts/db/verify-db.ts` (canonical)
 - [x] **`npm run test:db:migrations`** — 17 checks (`scripts/db/verify-neon-migrations.ts`)
 - [x] **`npm run test:smoke`** — DB verify + `tests/smoke/compliance-fraud-db.smoke.test.ts` (6 tests)
-- [x] **`npm run test:all`** — `test:db` + full Vitest + smoke (pre-merge gate)
-- [x] **npm run verify:production** — tsc + Vitest + next build
+- [x] **`npm run test:all`** / **`npm run test:ci`** — `test:db` + `test:db:migrations` + Vitest + smoke (CI + pre-merge gate)
+- [x] **`npm run verify:production`** — `tsc` + `test:ci` + `next build`
+- [x] **GitHub Actions** — `.github/workflows/ci.yml` runs full `test:ci`; `deploy.yml` after CI on `main`
+- [x] **Vercel Git** — `vercel git connect` → `thependalorian/hotel-etuna` (auto-deploy `main`)
 - [x] **TypeScript compilation:** Zero errors
 - [x] **Production build:** Successful
 - [x] **Playwright E2E:** 

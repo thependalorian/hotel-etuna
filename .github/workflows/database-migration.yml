@@ -44,3 +44,8 @@ jobs:
           echo "Checking if schema is in sync..."
           npm run db:generate
           git diff --exit-code -- database/drizzle
+
+      - name: List migration SQL files (0000–0016)
+        run: |
+          ls -1 database/drizzle/*.sql | wc -l
+          ls -1 database/drizzle/*.sql | tail -5
