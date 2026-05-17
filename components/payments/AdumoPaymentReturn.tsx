@@ -20,6 +20,15 @@ export function AdumoPaymentReturn({ mode }: AdumoPaymentReturnProps) {
   const router = useRouter();
   const [message, setMessage] = useState('Verifying payment…');
 
+  const diningCode =
+    searchParams.get('diningCode')?.trim().toUpperCase() ||
+    searchParams.get('Variable2')?.trim().toUpperCase() ||
+    null;
+
+  const diningRetryHref = diningCode
+    ? `/restaurant/reservation/pay?code=${encodeURIComponent(diningCode)}`
+    : null;
+
   useEffect(() => {
     const merchantReference =
       searchParams.get('_MERCHANTREFERENCE') ||
@@ -57,23 +66,37 @@ export function AdumoPaymentReturn({ mode }: AdumoPaymentReturnProps) {
           return;
         }
         setMessage('Payment successful. Thank you!');
+        if (diningCode) {
+          setTimeout(() => router.push('/dining'), 2500);
+          return;
+        }
         const target = bookingId ? `/guest/stays/${bookingId}` : '/guest';
         setTimeout(() => router.push(target), 2500);
       })
       .catch(() => {
         setMessage('Could not verify payment. Please contact reception with your booking reference.');
       });
-  }, [mode, searchParams, router]);
+  }, [mode, searchParams, router, diningCode]);
 
   return (
-    <div className="min-h-[50vh] flex flex-col items-center justify-center px-4 text-center gap-6">
-      <h1 className="font-display text-2xl text-terracotta-900">
+    <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4 py-8 text-center sm:gap-6">
+      <h1 className="font-display text-xl text-terracotta-900 sm:text-2xl">
         {mode === 'success' ? 'Payment' : 'Payment issue'}
       </h1>
-      <p className="text-terracotta-800 max-w-md">{message}</p>
-      <Link href="/guest" className="btn btn-primary">
-        Back to guest hub
-      </Link>
+      <p className="max-w-md text-sm text-terracotta-800 sm:text-base">{message}</p>
+      <div className="flex w-full max-w-xs flex-col gap-2 sm:max-w-sm sm:flex-row sm:justify-center">
+        {diningRetryHref ? (
+          <Link href={diningRetryHref} className="btn btn-primary btn-block min-h-11 sm:btn-wide">
+            Try payment again
+          </Link>
+        ) : null}
+        <Link
+          href={diningCode ? '/dining' : '/guest'}
+          className={`btn btn-outline btn-block min-h-11 sm:btn-wide ${diningRetryHref ? '' : 'btn-primary'}`}
+        >
+          {diningCode ? 'Back to dining' : 'Back to guest hub'}
+        </Link>
+      </div>
     </div>
   );
 }

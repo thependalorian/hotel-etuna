@@ -8,7 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { SofiaConciergeService } from '@/lib/services/ai/SofiaConciergeService';
+import { processSofiaConciergeMessage } from '@/lib/services/ai/sofia-concierge-handler';
 import { verifyMetaWebhookSignature } from '@/lib/integrations/whatsapp/meta-webhook-signature';
 import { sendWhatsAppTextMessage } from '@/lib/integrations/whatsapp/whatsapp-graph-api';
 import { getTenantWhatsappByPhoneNumberId } from '@/lib/services/whatsapp/tenantWhatsappLookup';
@@ -16,8 +16,6 @@ import { findGuestIdByWhatsappPhone } from '@/lib/services/whatsapp/findGuestByW
 import { checkRateLimit } from '@/lib/utils/rate-limit';
 
 export const dynamic = 'force-dynamic';
-
-const sofiaService = new SofiaConciergeService();
 
 type WhatsappWebhookPayload = {
   entry?: Array<{
@@ -130,15 +128,13 @@ export async function POST(request: NextRequest) {
     const sessionId = `wa:${routing.tenantId}:${waFrom}`;
     const guestId = await findGuestIdByWhatsappPhone(routing.tenantId, waFrom);
 
-    const aiResponse = await sofiaService.processMessage(
+    const aiResponse = await processSofiaConciergeMessage(
       {
         message: message.text.body,
-        context: {
-          tenantId: routing.tenantId,
-          propertyId: routing.defaultPropertyId ?? undefined,
-          sessionId,
-          guestId,
-        },
+        sessionId,
+        tenantId: routing.tenantId,
+        propertyId: routing.defaultPropertyId ?? undefined,
+        guestId,
         language: 'en',
         channel: 'WHATSAPP',
       },

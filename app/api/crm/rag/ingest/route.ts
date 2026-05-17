@@ -6,7 +6,7 @@
  * Response: `{ data: { upserted: number, collection: string } }` on success.
  * Location: app/api/crm/rag/ingest/route.ts
  *
- * Requires server env: QDRANT_URL, VOYAGE_API_KEY. Sofia still needs RAG_ENABLED=true for retrieval.
+ * Requires server env: QDRANT_URL, QDRANT_API_KEY, RAG_USE_QDRANT_INFERENCE=true. RAG_ENABLED=true for retrieval.
  */
 
 import { NextRequest } from 'next/server';
@@ -15,7 +15,7 @@ import { ragIngestBodySchema } from '@/lib/utils/validation';
 import { RagIngestService } from '@/lib/services/documents/RagIngestService';
 import { PropertyService } from '@/lib/services/property/PropertyService';
 import { isQdrantConfigured } from '@/lib/integrations/qdrant';
-import { isRagEmbeddingConfigured } from '@/lib/integrations/embeddings-voyage';
+import { isRagEmbeddingConfigured } from '@/lib/integrations/embeddings-rag';
 
 const ingestService = new RagIngestService();
 const propertyService = new PropertyService();
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       }
       if (!isRagEmbeddingConfigured()) {
         return errorResponse(
-          'Voyage embeddings are not configured (VOYAGE_API_KEY)',
+          'RAG embeddings not configured (set RAG_USE_QDRANT_INFERENCE=true with QDRANT_URL and QDRANT_API_KEY)',
           503,
           'RAG_EMBEDDINGS_UNAVAILABLE'
         );

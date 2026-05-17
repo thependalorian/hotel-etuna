@@ -45,7 +45,7 @@ export default function PaymentsDeskPage() {
         </p>
       </Card>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
         <Card className="p-4 md:p-6">
           <h2 className="mb-4 text-lg font-semibold">Generate NamQR</h2>
           <NamQrDeskPanel bookingId={bookingId || undefined} />

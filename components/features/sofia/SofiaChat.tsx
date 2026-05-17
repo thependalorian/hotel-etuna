@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * SofiaChat — staff dashboard widget using full concierge API (/api/sofia/chat).
+ * Location: /components/features/sofia/SofiaChat.tsx
+ */
+
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -8,10 +13,12 @@ import { SofiaAvatar } from '@/components/ui';
 import { cn } from '@/lib/utils/cn';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { apiUrl } from '@/lib/utils/api-url';
+import type { AIResponse } from '@/lib/types/ai';
 
 interface ChatMessage {
-  role: 'user' | 'assistant' | 'system';
+  role: 'user' | 'assistant';
   content: string;
+  suggestions?: string[];
 }
 
 export function SofiaChat() {
@@ -20,6 +27,9 @@ export function SofiaChat() {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [sessionId] = useState(
+    () => `dash_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -29,31 +39,39 @@ export function SofiaChat() {
   useEffect(scrollToBottom, [messages]);
 
   const sendMessage = async () => {
-    if (input.trim() === '') return;
+    if (input.trim() === '' || loading) return;
 
-    const newMessages: ChatMessage[] = [...messages, { role: 'user', content: input }];
-    setMessages(newMessages);
+    const userText = input.trim();
+    setMessages((prev) => [...prev, { role: 'user', content: userText }]);
     setInput('');
     setLoading(true);
 
     try {
       const response = await fetch(apiUrl('/api/sofia/chat'), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ messages: newMessages }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userText, sessionId }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         setMessages((prev) => [
           ...prev,
-          { role: 'assistant', content: `Error: ${errorData.message || 'Failed to get response.'}` },
+          {
+            role: 'assistant',
+            content: `Error: ${(errorData as { message?: string }).message || 'Failed to get response.'}`,
+          },
         ]);
       } else {
-        const data = await response.json();
-        setMessages((prev) => [...prev, { role: 'assistant', content: data.content }]);
+        const data = (await response.json()) as AIResponse;
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: data.response,
+            suggestions: data.suggestions,
+          },
+        ]);
       }
     } catch {
       setMessages((prev) => [...prev, { role: 'assistant', content: 'An unexpected error occurred.' }]);
@@ -63,7 +81,7 @@ export function SofiaChat() {
   };
 
   return (
-    <Card className="w-full max-w-2xl h-[700px] flex flex-col shadow-luxury-medium border-luxury-charlotte/20" variant="luxury">
+    <Card className="w-full max-w-2xl h-[min(700px,calc(100dvh-8rem))] flex flex-col shadow-luxury-medium border-luxury-charlotte/20" variant="luxury">
       {/* Header with AI Glow */}
       <CardHeader className="bg-gradient-to-r from-luxury-champagne/30 to-nude-100/30 border-b border-luxury-charlotte/30 backdrop-blur-sm">
         <div className="flex items-center gap-4">

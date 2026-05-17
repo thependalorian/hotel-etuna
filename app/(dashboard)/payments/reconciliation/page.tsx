@@ -147,7 +147,7 @@ export default function CashReconciliationPage() {
   const hasDiscrepancy = Math.abs(discrepancy) > 0.01;
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
+    <div className="max-w-6xl mx-auto px-4 py-6 sm:p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
@@ -236,7 +236,7 @@ export default function CashReconciliationPage() {
       {report && !isLoading && (
         <>
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card className="p-6">
               <div className="text-sm text-nude-600 font-medium mb-1">Total Bookings</div>
               <div className="text-3xl font-bold text-nude-900">{report.bookings.total}</div>

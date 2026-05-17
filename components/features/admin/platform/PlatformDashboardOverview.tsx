@@ -71,7 +71,7 @@ export default function PlatformDashboardOverview({
   return (
     <div className="space-y-6">
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Tenants Card */}
         <div className="rounded-lg border border-nude-200 bg-surface-elevated shadow-nude-soft hover:shadow-nude-medium transition-all duration-200 overflow-hidden">
           <div className="p-6">
@@ -167,7 +167,7 @@ export default function PlatformDashboardOverview({
           <p className="text-xs font-bold text-nude-700 uppercase tracking-wider mb-3">
             Consumer Protection &amp; Records
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="p-4 bg-nude-50 rounded-lg border border-nude-200">
               <div className="text-xs font-semibold text-nude-600 mb-2">Open Support</div>
               <div className="font-display text-3xl font-bold text-nude-900">{stats.compliance.openSupportTickets}</div>
@@ -188,7 +188,7 @@ export default function PlatformDashboardOverview({
           <p className="text-xs font-medium text-base-content/60 uppercase tracking-wide mt-6 mb-2">
             NamQR · Open banking · Fraud / payment signals
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="stat bg-base-200 rounded-lg">
               <div className="stat-title text-xs">Active NamQR codes</div>
               <div className="stat-value text-2xl">{stats.compliance.activeNamqrCodes}</div>
@@ -281,7 +281,7 @@ export default function PlatformDashboardOverview({
       <div className="rounded-lg border border-nude-200 bg-surface-elevated shadow-nude-soft">
         <div className="p-6">
           <h2 className="font-display text-2xl font-bold text-nude-900 mb-6">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link 
               href="/admin/platform/tenants"
               className="flex items-center justify-center gap-3 px-4 py-3 bg-white border-2 border-nude-200 text-nude-700 rounded-lg font-semibold text-sm hover:border-nude-400 hover:bg-nude-50 transition-all duration-200 min-h-[56px]"

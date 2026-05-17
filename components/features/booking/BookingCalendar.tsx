@@ -159,10 +159,10 @@ export default function BookingCalendar({
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <div className={cn('rounded-lg border border-nude-200 bg-surface-elevated shadow-nude-medium', className)}>
+    <div className={cn('rounded-lg border border-nude-200 bg-surface-elevated shadow-nude-medium min-w-0', className)}>
       <div className="p-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6 min-w-0">
           <h3 className="text-xl font-bold font-display text-nude-900 flex items-center gap-2">
             <CalendarIcon className="w-5 h-5 text-nude-600" />
             {monthName}

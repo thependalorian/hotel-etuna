@@ -11,24 +11,16 @@
  */
 
 import { NextResponse, NextRequest } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/utils/api-helpers';
+import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
 import { db, users, tenants } from '@/lib/db';
 import { eq } from 'drizzle-orm';
 import { AppError } from '@/lib/utils/errors';
 
 export const dynamic = 'force-dynamic';
 
-async function getSessionUser(req: NextRequest) {
-  const user = await getAuthenticatedUser(req);
-  if (!user || !user.id || !user.tenantId) {
-    throw new AppError(401, 'Unauthorized');
-  }
-  return user;
-}
-
 export async function GET(request: NextRequest) {
   try {
-    const user = await getSessionUser(request);
+    const user = await requireTenantSessionUser(request);
     const userId = user.id;
     const tenantId = user.tenantId as string;
 

@@ -82,7 +82,7 @@ export default function DashboardStatsCards({ stats }: DashboardStatsCardsProps)
           Key counts vs last month—scan once, then drill into detail from the sidebar.
         </p>
       </div>
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
       {statCards.map((stat, index) => {
         const Icon = stat.icon;
         const changeValue = stat.change >= 0 ? `+${stat.change.toFixed(1)}%` : `${stat.change.toFixed(1)}%`;

@@ -43,6 +43,10 @@ import {
 } from '@/lib/db/schema';
 import { eq, and, gte, lte, desc, sql, inArray } from 'drizzle-orm';
 import crypto from 'crypto';
+import {
+  evaluateTenantFraudRule,
+  type TenantRuleEvaluationContext,
+} from '@/lib/services/fraud/tenant-fraud-rules';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -654,39 +658,39 @@ export class FraudDetectionService {
     scores: FraudScore['scores']
   ): Promise<boolean> {
     try {
-      const conditions = rule.conditions as Record<string, unknown>;
+      const ctx: TenantRuleEvaluationContext = {
+        tenantId: this.tenantId,
+        userId: context.guestId,
+        amount: context.amount,
+        currency: context.currency,
+        billingCountry: context.location?.country,
+        propertyCountry:
+          typeof context.metadata?.propertyCountry === 'string'
+            ? context.metadata.propertyCountry
+            : 'NA',
+      };
+      const matched = await evaluateTenantFraudRule(rule, ctx);
+      if (matched) return true;
 
-      // Velocity rules
-      if (rule.ruleType === 'velocity') {
+      const ruleType = (rule.ruleType || '').toLowerCase();
+      if (ruleType === 'velocity') {
         return scores.velocity >= (Number(rule.thresholdValue) || 50);
       }
-
-      // Geographic rules
-      if (rule.ruleType === 'geographic') {
+      if (ruleType === 'geographic' || ruleType === 'geo') {
         return scores.geographic >= (Number(rule.thresholdValue) || 50);
       }
-
-      // Device rules
-      if (rule.ruleType === 'device') {
+      if (ruleType === 'device') {
         return scores.device >= (Number(rule.thresholdValue) || 50);
       }
-
-      // Amount rules
-      if (rule.ruleType === 'amount') {
+      if (ruleType === 'amount') {
         if (rule.thresholdOperator === 'gte') {
           return context.amount >= (Number(rule.thresholdValue) || 0);
         }
-        if (rule.thresholdOperator === 'lte') {
-          return context.amount <= (Number(rule.thresholdValue) || 0);
-        }
         return scores.amount >= (Number(rule.thresholdValue) || 50);
       }
-
-      // Behavioral rules
-      if (rule.ruleType === 'behavioral') {
+      if (ruleType === 'behavioral' || ruleType === 'behavior') {
         return scores.behavioral >= (Number(rule.thresholdValue) || 50);
       }
-
       return false;
     } catch (error) {
       console.error('[FraudDetectionService] Error evaluating rule:', error);
@@ -745,12 +749,13 @@ export class FraudDetectionService {
     let requiresManualReview = false;
     let decisionReason = '';
 
-    // Check for decline actions
-    const hasDeclineRule = ruleResults.some(
-      (r) => r.matched && r.rule.action === 'decline'
+    const hasBlockRule = ruleResults.some(
+      (r) =>
+        r.matched &&
+        ['decline', 'block'].includes((r.rule.action || '').toLowerCase()),
     );
 
-    if (hasDeclineRule || riskLevel === 'critical') {
+    if (hasBlockRule || riskLevel === 'critical') {
       decision = 'declined';
       decisionReason = 'High fraud risk detected - transaction declined';
     } else if (riskLevel === 'high') {

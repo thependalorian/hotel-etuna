@@ -55,10 +55,10 @@ export default async function DiningPage() {
           breadcrumbLabel="Dining"
         />
 
-        <section className="py-16 bg-white">
-          <div className="container mx-auto px-4">
+        <section className="py-12 bg-white sm:py-16">
+          <div className="container mx-auto px-4 sm:px-6">
             <div className="max-w-4xl mx-auto text-center">
-              <h2 className="font-display text-4xl font-bold text-terracotta-900 mb-6">
+              <h2 className="font-display text-3xl font-bold text-terracotta-900 mb-6 sm:text-4xl md:text-5xl">
                 {restaurant?.name ?? 'Our Restaurant'}
               </h2>
               <p className="text-lg text-terracotta-800 leading-relaxed mb-8">
@@ -96,13 +96,13 @@ export default async function DiningPage() {
         </section>
 
         <section className="py-16 bg-nude-50" id="menu">
-          <div className="container mx-auto px-4">
+          <div className="container mx-auto px-4 sm:px-6">
             <div className="max-w-6xl mx-auto">
               <div className="mb-12 text-center">
-                <h2 className="font-display text-4xl font-bold text-terracotta-900 mb-4">Our Menu</h2>
+                <h2 className="font-display text-3xl font-bold text-terracotta-900 mb-4 sm:text-4xl">Our Menu</h2>
                 <p className="mx-auto max-w-2xl text-lg text-terracotta-800">
-                  Turn through our full menu book — every dish with a photo. Tap any item for full details. All prices
-                  are in Namibian Dollars (N$) and match our live kitchen menu.
+                  Browse our full menu one page at a time — use Previous and Next below the book. Tap any dish for full
+                  details. All prices are in Namibian Dollars (N$) and match our live kitchen menu.
                 </p>
               </div>
 
@@ -111,11 +111,11 @@ export default async function DiningPage() {
           </div>
         </section>
 
-        <section className="py-16 bg-white">
-          <div className="container mx-auto px-4">
+        <section className="py-12 bg-white sm:py-16">
+          <div className="container mx-auto px-4 sm:px-6">
             <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <h2 className="font-display text-4xl font-bold text-terracotta-900 mb-6">Dining Experience</h2>
+                <h2 className="font-display text-3xl font-bold text-terracotta-900 mb-6 sm:text-4xl">Dining Experience</h2>
                 <div className="space-y-6">
                   <div>
                     <h3 className="font-semibold text-lg text-terracotta-900 mb-2">Indoor Dining</h3>

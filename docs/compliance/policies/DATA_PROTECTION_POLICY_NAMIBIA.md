@@ -57,7 +57,7 @@ This policy applies to:
 
 **Data Controller:** Hotel Etuna (determines purposes and means of processing)
 
-**Data Processor:** Third-party service providers (Vercel, Neon, Adumo, Voyage AI)
+**Data Processor:** Third-party service providers (Vercel, Neon, Adumo, Qdrant Cloud)
 
 ## 5. Data Protection Principles
 
@@ -245,7 +245,7 @@ Hotel Etuna maintains a register of all processing activities:
 - **Vercel (US):** Hosting infrastructure (SOC 2 certified)
 - **Neon (US/EU):** Database storage (SOC 2 certified, EU regions available)
 - **Anthropic (US):** LLM API (SOC 2 certified)
-- **Voyage AI (US):** Embeddings API
+- **Qdrant Cloud:** Vector store + inference embeddings for property knowledge (RAG)
 - **Qdrant (EU/Cloud):** Vector database
 
 **GDPR Compliance Mechanisms:**
@@ -272,7 +272,7 @@ Hotel Etuna maintains a register of all processing activities:
 - ✅ Neon: Standard DPA (SOC 2 certified)
 - ✅ Adumo: PCI-DSS certified, DPA for payment data
 - 🟡 Anthropic: API Terms (SOC 2 certified)
-- 🟡 Voyage AI: API Terms
+- 🟡 Qdrant Cloud: API Terms
 - 🟡 Qdrant Cloud: API Terms
 
 **Action:** Formal DPAs to be signed with all API providers by Week 8.
@@ -369,7 +369,7 @@ Hotel Etuna maintains a register of all processing activities:
 | **Neon** | Database | ✅ Yes | ✅ Yes | All structured data | US/EU |
 | **Adumo** | Payments | 🟡 PCI-DSS | ✅ Yes | Payment sessions (no card data) | Namibia/South Africa |
 | **Anthropic** | LLM API | ✅ Yes | 🟡 API Terms | Conversation context (ephemeral) | US |
-| **Voyage AI** | Embeddings | ❌ N/A | 🟡 API Terms | Knowledge base text | US |
+| **Qdrant Cloud** | RAG vectors + inference | ❌ N/A | 🟡 API Terms | Knowledge base text | EU/US (region per cluster) |
 | **Qdrant Cloud** | Vector DB | 🟡 ISO 27001 | 🟡 API Terms | Embeddings (no PII) | EU |
 
 ### 10.3 Annual Vendor Review

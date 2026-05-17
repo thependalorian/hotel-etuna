@@ -75,7 +75,7 @@ export function Soc2AuditDashboard() {
 
       {report && (
         <>
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card className="p-4 text-center">
               <p className="text-3xl font-bold text-nude-900">{report.overallScorePercent}%</p>
               <p className="text-xs text-nude-600">Readiness score</p>

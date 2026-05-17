@@ -41,35 +41,35 @@ export default function HeroSection() {
 function HeroContent() {
   return (
     <div className="text-white">
-      <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold font-display mb-6 text-balance leading-tight">
+      <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold font-display mb-6 text-balance leading-tight">
         {publicCopy.home.hero.title}
       </h1>
 
-      <p className="text-xl md:text-2xl mb-4 text-white/95 font-medium leading-relaxed">
+      <p className="text-lg sm:text-xl md:text-2xl mb-4 text-white/95 font-medium leading-relaxed">
         {publicCopy.home.hero.subtitle}
       </p>
 
       <p className="text-lg mb-8 text-white/90 max-w-xl">{brand.leadLine}</p>
 
-      <div className="flex flex-wrap gap-4 mb-8">
-        <Link href="/#booking">
-          <Button variant="primary" size="lg" className="min-h-[44px] px-8 text-lg">
+      <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 mb-8">
+        <Link href="/#booking" className="w-full sm:w-auto">
+          <Button variant="primary" size="lg" className="min-h-[44px] w-full sm:w-auto px-6 sm:px-8 text-base sm:text-lg">
             {publicCopy.ctas.bookStay}
             <ArrowRight className="w-5 h-5" />
           </Button>
         </Link>
-        <Link href="/rooms">
+        <Link href="/rooms" className="w-full sm:w-auto">
           <Button
             variant="outline"
             size="lg"
-            className="min-h-[44px] px-8 text-lg border-2 border-white/90 text-white hover:bg-white/20 hover:border-white"
+            className="min-h-[44px] w-full sm:w-auto px-6 sm:px-8 text-base sm:text-lg border-2 border-white/90 text-white hover:bg-white/20 hover:border-white"
           >
             {publicCopy.ctas.explore}
           </Button>
         </Link>
       </div>
 
-      <div className="flex flex-wrap items-center gap-6 text-sm text-white/95">
+      <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-xs sm:text-sm text-white/95">
         {publicCopy.trustIndicators.map((text) => (
           <TrustIndicator key={text} icon={CheckCircle2} text={text} />
         ))}

@@ -1,5 +1,5 @@
 /**
- * RAG retrieval smoke — mocks Voyage + Qdrant so CI does not need live keys.
+ * RAG retrieval smoke — mocks Qdrant inference so CI does not need live keys.
  *
  * Location: tests/sofia/rag-activation.test.ts
  */
@@ -7,14 +7,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { RAGSearchService } from '@/lib/services/documents/RAGSearchService';
 
-vi.mock('@/lib/integrations/embeddings-voyage', () => ({
-  embedTextForRag: vi.fn(async () => new Array(1024).fill(0.01)),
-  isRagEmbeddingConfigured: vi.fn(() => true),
-}));
-
-vi.mock('@/lib/integrations/qdrant', () => ({
-  isQdrantConfigured: vi.fn(() => true),
-  qdrantSearch: vi.fn(async () => [
+vi.mock('@/lib/integrations/qdrant-inference', () => ({
+  isQdrantInferenceEnabled: vi.fn(() => true),
+  qdrantInferenceQuery: vi.fn(async () => [
     {
       id: 'pt-1',
       score: 0.92,
@@ -25,6 +20,14 @@ vi.mock('@/lib/integrations/qdrant', () => ({
       },
     },
   ]),
+}));
+
+vi.mock('@/lib/integrations/embeddings-rag', () => ({
+  isRagEmbeddingConfigured: vi.fn(() => true),
+}));
+
+vi.mock('@/lib/integrations/qdrant', () => ({
+  isQdrantConfigured: vi.fn(() => true),
 }));
 
 describe('RAG activation (mocked infra)', () => {
@@ -46,8 +49,8 @@ describe('RAG activation (mocked infra)', () => {
   });
 
   it('filters out chunks for other tenants', async () => {
-    const { qdrantSearch } = await import('@/lib/integrations/qdrant');
-    vi.mocked(qdrantSearch).mockResolvedValueOnce([
+    const { qdrantInferenceQuery } = await import('@/lib/integrations/qdrant-inference');
+    vi.mocked(qdrantInferenceQuery).mockResolvedValueOnce([
       {
         id: 'x',
         score: 0.9,

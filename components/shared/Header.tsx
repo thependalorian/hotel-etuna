@@ -36,7 +36,8 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
         <div className="flex items-center gap-4 flex-1">
           {/* Mobile Menu Button */}
           <button
-            onClick={onMobileMenuToggle}
+            type="button"
+            onClick={() => onMobileMenuToggle?.()}
             className="lg:hidden p-2 rounded-lg hover:bg-nude-100 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
             aria-label="Toggle menu"
           >

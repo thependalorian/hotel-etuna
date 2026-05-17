@@ -156,7 +156,7 @@ export default function UserManagement({ users: initialUsers, userRole }: UserMa
   return (
     <div className="space-y-6">
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="stat bg-base-100 rounded-lg shadow">
           <div className="stat-title">Total Users</div>
           <div className="stat-value text-primary">{userCounts.total}</div>
@@ -375,9 +375,9 @@ export default function UserManagement({ users: initialUsers, userRole }: UserMa
       {/* User Detail Modal */}
       {showDetailModal && selectedUser && (
         <div className="modal modal-open">
-          <div className="modal-box max-w-2xl">
+          <div className="modal-box w-full max-w-lg mx-4 sm:mx-auto sm:max-w-2xl">
             <h3 className="font-bold text-lg mb-4">User Details</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Email</label>
                 <p className="text-base-content/70">{selectedUser.email}</p>

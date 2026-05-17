@@ -178,7 +178,7 @@ export default function GuestCrmMemoryPanel({ guestId }: { guestId: string }) {
 
           {insights && <GuestCrmMarketingSnapshot insights={insights} />}
 
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
             <GuestCrmFactsSection
               facts={bundle?.facts ?? []}
               factText={factText}

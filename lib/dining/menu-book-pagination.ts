@@ -7,8 +7,10 @@ import type { PublicMenuCategory, PublicMenuItem } from '@/lib/dining/menu-displ
 
 export type MenuBookLayout = 'grid' | 'list';
 
-/** Food pages always show four items in a 2×2 grid (one book face). */
-export const FOOD_GRID_ITEMS_PER_FACE = 4;
+/** Food pages: 2 columns × 3 rows per screen (single-page menu). */
+export const FOOD_GRID_COLUMNS = 2;
+export const FOOD_GRID_ROWS = 3;
+export const FOOD_GRID_ITEMS_PER_FACE = FOOD_GRID_COLUMNS * FOOD_GRID_ROWS;
 
 /** Drink / bar pages use a compact list (no thumbnails). */
 export const DRINK_LIST_ITEMS_PER_FACE = 8;

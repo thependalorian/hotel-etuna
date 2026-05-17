@@ -11,7 +11,7 @@
  */
 
 import { NextResponse, NextRequest } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/utils/api-helpers';
+import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
 import { db, bookings, properties, bookingRooms, rooms, restaurantOrders, restaurants } from '@/lib/db';
 import { eq, desc } from 'drizzle-orm';
 import { AppError } from '@/lib/utils/errors';
@@ -19,17 +19,9 @@ import { formatDistanceToNow } from 'date-fns';
 
 export const dynamic = 'force-dynamic';
 
-async function getSessionUser(req: NextRequest) {
-  const user = await getAuthenticatedUser(req);
-  if (!user || !user.tenantId) {
-    throw new AppError(401, 'Unauthorized');
-  }
-  return user;
-}
-
 export async function GET(request: NextRequest) {
   try {
-    const user = await getSessionUser(request);
+    const user = await requireTenantSessionUser(request);
     const tenantId = user.tenantId as string;
     const limit = parseInt(request.nextUrl.searchParams.get('limit') || '5');
 

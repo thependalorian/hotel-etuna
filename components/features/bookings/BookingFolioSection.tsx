@@ -92,7 +92,7 @@ export function BookingFolioSection({ bookingId, bookingStatus }: BookingFolioSe
 
       {!loading && folio && (
         <>
-          <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
             <div className="rounded-lg bg-nude-50 border border-nude-200 p-3">
               <p className="text-xs text-nude-600 uppercase">Balance due</p>
               <p className="text-xl font-bold text-nude-900">

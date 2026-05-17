@@ -29,6 +29,7 @@
 
 import { db, fraudRiskProfiles, fraudAlerts, fraudDeviceFingerprints, transactions } from '@/lib/db';
 import { eq, and, gte, sql } from 'drizzle-orm';
+import { applyTenantFraudRules } from '@/lib/services/fraud/tenant-fraud-rules';
 
 // ============================================================================
 // TYPES
@@ -209,15 +210,53 @@ export class PsdFraudGate {
         });
       }
 
+      let tenantRuleFlags = { blocked: false, requiresReview: false };
+      if (tenantId) {
+        const billingCountry =
+          typeof request.metadata?.billingCountry === 'string'
+            ? request.metadata.billingCountry
+            : request.location?.country;
+        const propertyCountry =
+          typeof request.metadata?.propertyCountry === 'string'
+            ? request.metadata.propertyCountry
+            : 'NA';
+        const tenantRules = await applyTenantFraudRules({
+          tenantId,
+          userId,
+          amount: transactionAmount,
+          currency: transactionCurrency,
+          billingCountry,
+          propertyCountry,
+        });
+        tenantRuleFlags = {
+          blocked: tenantRules.blocked,
+          requiresReview: tenantRules.requiresReview,
+        };
+        if (tenantRules.matchedRules.length > 0) {
+          riskScore = Math.min(100, riskScore + tenantRules.riskScoreDelta);
+          reasons.push(...tenantRules.reasons);
+          for (const name of tenantRules.matchedRules) {
+            alerts.push({
+              type: 'amount',
+              severity: tenantRules.blocked ? 'critical' : 'high',
+              message: `Rule matched: ${name}`,
+            });
+          }
+        }
+      }
+
       // Normalize risk score (0-100)
       riskScore = Math.min(100, Math.max(0, riskScore));
 
       // Determine risk level
       const riskLevel = this.getRiskLevel(riskScore);
 
-      // Determine if transaction should be blocked
-      const blocked = riskScore >= this.RISK_THRESHOLD_CRITICAL;
-      const requiresReview = riskScore >= this.RISK_THRESHOLD_HIGH && !blocked;
+      // Determine if transaction should be blocked / reviewed
+      let blocked =
+        riskScore >= this.RISK_THRESHOLD_CRITICAL || tenantRuleFlags.blocked;
+      let requiresReview =
+        (riskScore >= this.RISK_THRESHOLD_HIGH && !blocked) ||
+        (tenantRuleFlags.requiresReview && !blocked);
 
       // Log fraud alerts to database
       if (alerts.length > 0) {
@@ -237,17 +276,32 @@ export class PsdFraudGate {
         requiresReview,
       };
     } catch (error: unknown) {
-      console.error('[FraudDetectionService] Check transaction error:', error);
-      
-      // On error, allow transaction but log incident
+      console.error('[PsdFraudGate] Check transaction error:', error);
+
+      const failClosed =
+        process.env.NODE_ENV === 'production' ||
+        process.env.FRAUD_GATE_FAIL_CLOSED === 'true';
+
+      if (failClosed) {
+        return {
+          allowed: false,
+          riskScore: 100,
+          riskLevel: 'critical',
+          reasons: ['Fraud detection unavailable — transaction blocked'],
+          alerts: [],
+          blocked: true,
+          requiresReview: false,
+        };
+      }
+
       return {
         allowed: true,
-        riskScore: 0,
-        riskLevel: 'low',
-        reasons: ['Fraud detection service unavailable'],
+        riskScore: 50,
+        riskLevel: 'medium',
+        reasons: ['Fraud detection service unavailable — manual review'],
         alerts: [],
         blocked: false,
-        requiresReview: false,
+        requiresReview: true,
       };
     }
   }
@@ -657,5 +711,3 @@ export class PsdFraudGate {
   }
 }
 
-// Backward-compatible alias for existing imports; prefer PsdFraudGate for new code.
-export { PsdFraudGate as FraudDetectionService };

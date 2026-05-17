@@ -209,8 +209,9 @@ export default function CrmRagIngestPanel({ properties }: { properties: CrmRagIn
         </div>
 
         <p className="text-xs text-base-content/60">
-          Needs <code className="bg-base-200 px-1 rounded">QDRANT_URL</code> and{' '}
-          <code className="bg-base-200 px-1 rounded">VOYAGE_API_KEY</code> on the server.{' '}
+          Needs <code className="bg-base-200 px-1 rounded">QDRANT_URL</code>,{' '}
+          <code className="bg-base-200 px-1 rounded">QDRANT_API_KEY</code>, and{' '}
+          <code className="bg-base-200 px-1 rounded">RAG_USE_QDRANT_INFERENCE=true</code> on the server.{' '}
           <Link href="/crm" className="link link-primary">
             Back to CRM
           </Link>

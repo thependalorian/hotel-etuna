@@ -166,7 +166,7 @@ export default function TenantManagement({ tenants: initialTenants, userRole }: 
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="stat bg-base-100 rounded-lg shadow">
           <div className="stat-title">Total Tenants</div>
           <div className="stat-value text-primary">{tenantStats.total}</div>
@@ -252,7 +252,7 @@ export default function TenantManagement({ tenants: initialTenants, userRole }: 
           />
         )
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTenants.map((tenant) => (
             <div key={tenant.id} className="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow">
               <div className="card-body">
@@ -277,7 +277,7 @@ export default function TenantManagement({ tenants: initialTenants, userRole }: 
 
                 <div className="divider my-2"></div>
 
-                <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                   <div>
                     <span className="text-base-content/60">Properties</span>
                     <p className="font-semibold">{tenant.property_count || 0}</p>
@@ -340,9 +340,9 @@ export default function TenantManagement({ tenants: initialTenants, userRole }: 
       {/* Tenant Detail Modal */}
       {showDetailModal && selectedTenant && (
         <div className="modal modal-open">
-          <div className="modal-box max-w-2xl">
+          <div className="modal-box w-full max-w-lg mx-4 sm:mx-auto sm:max-w-2xl">
             <h3 className="font-bold text-lg mb-4">Tenant Details</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Name</label>
                 <p className="text-base-content/70">{selectedTenant.name}</p>

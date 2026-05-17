@@ -7,7 +7,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef, type ElementRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -21,7 +21,6 @@ import {
   User,
   Shield,
   Bot,
-  Menu,
   X,
   BedDouble,
   UtensilsCrossed,
@@ -74,8 +73,8 @@ interface SidebarProps {
 
 const Sidebar = ({ isMobileOpen = false, onMobileClose }: SidebarProps) => {
   const pathname = usePathname();
+  const asideRef = useRef<ElementRef<"aside">>(null);
   const { data: session } = useSession();
-  const [isOpen, setIsOpen] = useState(false);
   const role = String(session?.user?.role ?? '').toLowerCase();
   const isPartner = role.startsWith('partner');
 
@@ -92,45 +91,49 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose }: SidebarProps) => {
     : navItems;
 
   useEffect(() => {
-    if (pathname && (isOpen || isMobileOpen)) {
-      setIsOpen(false);
+    if (pathname && isMobileOpen) {
       onMobileClose?.();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+  }, [pathname, isMobileOpen, onMobileClose]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined' || typeof window === 'undefined') return;
+
+    const mq = window.matchMedia('(max-width: 1023px)');
+
+    const syncScrollLock = () => {
+      if (mq.matches && isMobileOpen) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = '';
+      }
+    };
+
+    syncScrollLock();
+    mq.addEventListener('change', syncScrollLock);
+
+    return () => {
+      mq.removeEventListener('change', syncScrollLock);
+      document.body.style.overflow = '';
+    };
+  }, [isMobileOpen]);
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 flex min-h-touch-mobile min-w-touch-mobile items-center justify-center rounded-lg border border-nude-200 bg-surface-elevated p-3 shadow-nude-medium transition-all duration-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nude-500 focus-visible:ring-offset-2"
-        aria-label="Toggle menu"
-        aria-expanded={isOpen}
-      >
-        {isOpen ? (
-          <X className="h-5 w-5 text-nude-800" aria-hidden />
-        ) : (
-          <Menu className="h-5 w-5 text-nude-800" aria-hidden />
-        )}
-      </button>
-
-      {(isOpen || isMobileOpen) && (
+      {isMobileOpen && (
         <div
           className="lg:hidden fixed inset-0 z-40 bg-nude-900/40 backdrop-blur-sm"
-          onClick={() => {
-            setIsOpen(false);
-            onMobileClose?.();
-          }}
+          onClick={() => onMobileClose?.()}
           aria-hidden
         />
       )}
 
       <aside
+        ref={asideRef}
         className={cn(
           "flex h-full w-64 flex-col border-r border-nude-200 bg-surface-sidebar text-nude-900 shadow-nude-soft",
           "fixed left-0 top-0 z-40 transition-transform duration-slow ease-out-expo lg:sticky",
-          isOpen || isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
         <div className="flex items-center justify-between border-b border-nude-200 p-4 md:p-6">
@@ -140,10 +143,7 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose }: SidebarProps) => {
           </div>
           <button
             type="button"
-            onClick={() => {
-              setIsOpen(false);
-              onMobileClose?.();
-            }}
+            onClick={() => onMobileClose?.()}
             className="flex min-h-touch-mobile min-w-touch-mobile items-center justify-center rounded-lg text-nude-700 transition-colors hover:bg-nude-200/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nude-500 focus-visible:ring-offset-2 lg:hidden"
             aria-label="Close menu"
           >

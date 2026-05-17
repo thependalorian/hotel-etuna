@@ -132,7 +132,7 @@ export function BookingReceipt({
         </div>
 
         {/* Booking Details */}
-        <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 text-sm">
           <div>
             <p className="text-nude-600 font-medium mb-1">Booking Reference:</p>
             <p className="text-nude-900 font-semibold">{booking.bookingReference}</p>

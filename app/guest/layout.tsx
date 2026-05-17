@@ -19,10 +19,10 @@ export default function GuestLayout({ children }: { children: React.ReactNode })
             className="flex flex-wrap items-center justify-end gap-4 mb-6 text-sm text-nude-600"
             aria-label="Guest navigation"
           >
-            <Link href="/guest" className="hover:text-terracotta-800 font-medium">
+            <Link href="/guest" className="inline-flex min-h-11 items-center hover:text-terracotta-800 font-medium">
               My stays
             </Link>
-            <Link href="/profile" className="hover:text-terracotta-800 font-medium">
+            <Link href="/profile" className="inline-flex min-h-11 items-center hover:text-terracotta-800 font-medium">
               Account
             </Link>
           </nav>

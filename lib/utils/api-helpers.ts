@@ -32,6 +32,7 @@ import { jwks } from '@/lib/auth/jwks';
 import { z } from 'zod';
 import { isGuestConsumerRole } from '@/lib/auth/roles';
 import { isPlatformAdmin } from '@/lib/auth/platform-admin';
+import { AppError } from '@/lib/utils/errors';
 
 type StackJwtPayload = {
   sub?: string;
@@ -331,6 +332,23 @@ export async function requireAuth(req?: NextRequest) {
   }
   
   return user;
+}
+
+/**
+ * Require authenticated user with tenant (and user id). Throws AppError 401.
+ * Prefer over per-route getSessionUser copies in tenant-scoped API handlers.
+ */
+export async function requireTenantSessionUser(req: NextRequest) {
+  const user = await getAuthenticatedUser(req);
+  if (!user?.id || !user.tenantId) {
+    throw new AppError(401, 'Unauthorized');
+  }
+  return {
+    ...user,
+    id: user.id,
+    tenantId: user.tenantId,
+    role: user.role ?? 'user',
+  };
 }
 
 /**

@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function PlatformBillingPage() {
   return (
-    <div className="max-w-5xl mx-auto p-6">
+    <div className="max-w-5xl mx-auto px-4 py-6 sm:p-6">
       <h1 className="font-display text-3xl font-bold text-nude-900 mb-2">Platform billing</h1>
       <p className="text-nude-600 mb-4">
         Guest card payments settle to Hotel Etuna. Buffr Financial Services invoices subscription

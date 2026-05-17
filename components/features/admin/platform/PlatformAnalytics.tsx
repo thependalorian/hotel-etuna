@@ -136,7 +136,7 @@ export default function PlatformAnalytics({ userRole }: PlatformAnalyticsProps) 
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="stat bg-base-100 rounded-lg shadow">
           <div className="stat-figure text-success">
             <DollarSign className="w-8 h-8" />

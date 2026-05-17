@@ -90,7 +90,7 @@ export default function PropertyManagement({ properties: initialProperties, user
   return (
     <div className="space-y-6">
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="stat bg-base-100 rounded-lg shadow">
           <div className="stat-title">Total Properties</div>
           <div className="stat-value text-primary">{propertyCounts.total}</div>
@@ -172,7 +172,7 @@ export default function PropertyManagement({ properties: initialProperties, user
           <p>No properties found</p>
         </div>
       ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProperties.map((property) => (
             <div key={property.id} className="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow">
               <figure className="relative h-48 bg-base-200">
@@ -323,9 +323,9 @@ export default function PropertyManagement({ properties: initialProperties, user
       {/* Property Detail Modal */}
       {showDetailModal && selectedProperty && (
         <div className="modal modal-open">
-          <div className="modal-box max-w-2xl">
+          <div className="modal-box w-full max-w-lg mx-4 sm:mx-auto sm:max-w-2xl">
             <h3 className="font-bold text-lg mb-4">{selectedProperty.name}</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Type</label>
                 <p className="text-base-content/70">{selectedProperty.property_type || 'N/A'}</p>

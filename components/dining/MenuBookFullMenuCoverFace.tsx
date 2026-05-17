@@ -32,7 +32,7 @@ export default function MenuBookFullMenuCoverFace({ menu, variant }: MenuBookFul
           <p className="text-sm font-semibold uppercase tracking-widest text-white/80">Etuna Restaurant</p>
           <h2 className="mt-2 font-display text-3xl font-bold md:text-4xl">Full menu</h2>
           <p className="mt-3 text-sm text-white/90">
-            {menu.itemCount} dishes · turn pages to browse everything
+            {menu.itemCount} dishes · use Next to browse the full menu
           </p>
         </div>
       </div>
@@ -52,7 +52,7 @@ export default function MenuBookFullMenuCoverFace({ menu, variant }: MenuBookFul
         ))}
       </ul>
       <p className="mt-4 shrink-0 text-xs text-terracotta-500">
-        Drag a page corner, click Next, or use arrow keys. Tap any dish for details.
+        Use Previous and Next to browse. Tap any dish for full details.
       </p>
     </div>
   );

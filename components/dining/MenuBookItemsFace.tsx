@@ -42,7 +42,7 @@ export default function MenuBookItemsFace({
 
   return (
     <>
-      <div className="flex h-full w-full min-h-0 flex-col overflow-hidden p-3 md:p-4">
+      <div className="flex h-full w-full min-h-0 flex-col overflow-hidden p-2 sm:p-3">
         <header className="mb-2 shrink-0 border-b border-terracotta-200/40 pb-2">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-khaki-700">
             {category.name}
@@ -59,7 +59,7 @@ export default function MenuBookItemsFace({
           className={cn(
             'min-h-0 flex-1 overflow-y-auto pr-1',
             layout === 'grid'
-              ? 'grid grid-cols-2 grid-rows-2 gap-2 md:gap-2.5'
+              ? 'grid auto-rows-fr grid-cols-1 grid-rows-none gap-1.5 sm:grid-cols-2 sm:grid-rows-3 sm:gap-2'
               : 'flex flex-col gap-0.5',
           )}
         >

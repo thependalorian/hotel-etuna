@@ -141,7 +141,7 @@ export function PlatformBillingPanel() {
           Guest card revenue targets the property account. Platform fees are invoiced monthly to
           Buffr Financial Services.
         </p>
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {profiles.map((p) => (
             <div
               key={p.profileKey}

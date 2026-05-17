@@ -1,20 +1,19 @@
 /**
  * RAGSearchService
  *
- * Purpose: Tenant-scoped document retrieval for Sofia via Qdrant + Voyage AI embeddings.
+ * Purpose: Tenant-scoped document retrieval for Sofia via Qdrant Cloud Inference.
  * Location: /lib/services/documents/RAGSearchService.ts
  *
- * Requires when RAG_ENABLED=true:
- * - QDRANT_URL
- * - VOYAGE_API_KEY (see lib/integrations/embeddings-voyage.ts)
- *
- * Points should be upserted with payload: { tenant_id, property_id?, text, source }
- * Collection: RAG_QDRANT_COLLECTION (default buffr_rag); vector size must match
- * embedTextForRag / ingestion (typically 1024 for voyage-3 or 1536 for voyage-3-large).
+ * Requires: RAG_ENABLED=true, QDRANT_URL, QDRANT_API_KEY, RAG_USE_QDRANT_INFERENCE=true
+ * Model default: intfloat/multilingual-e5-small (384 dimensions)
  */
 
-import { isQdrantConfigured, qdrantSearch } from '@/lib/integrations/qdrant';
-import { embedTextForRag, isRagEmbeddingConfigured } from '@/lib/integrations/embeddings-voyage';
+import { isQdrantConfigured } from '@/lib/integrations/qdrant';
+import {
+  isQdrantInferenceEnabled,
+  qdrantInferenceQuery,
+} from '@/lib/integrations/qdrant-inference';
+import { isRagEmbeddingConfigured } from '@/lib/integrations/embeddings-rag';
 
 export type RagSearchChunk = {
   id: string;
@@ -37,9 +36,6 @@ export class RAGSearchService {
     return process.env.RAG_ENABLED === 'true';
   }
 
-  /**
-   * Returns relevant chunks. No-op when disabled, Qdrant missing, or embeddings unavailable.
-   */
   async search(
     query: string,
     tenantId: string,
@@ -53,29 +49,27 @@ export class RAGSearchService {
       return [];
     }
     if (!isRagEmbeddingConfigured()) {
-      console.warn('[RAGSearchService] RAG_ENABLED=true but VOYAGE_API_KEY is not set (embeddings required).');
+      console.warn(
+        '[RAGSearchService] RAG_ENABLED=true but Qdrant inference is not configured (RAG_USE_QDRANT_INFERENCE=true + QDRANT_API_KEY).'
+      );
       return [];
     }
 
     const q = query.trim();
     if (!q) return [];
 
-    const vector = await embedTextForRag(q);
-    if (!vector?.length) {
-      return [];
-    }
-
     const limit = Math.min(options.limit ?? 8, 24);
     const collection = collectionName();
 
     try {
-      const raw = await qdrantSearch(collection, vector, limit * 3);
+      const raw = await qdrantInferenceQuery(collection, q, tenantId, limit);
+
       const chunks: RagSearchChunk[] = [];
       for (const hit of raw) {
         const p = hit.payload;
         if (!p || typeof p !== 'object') continue;
         const tid = p.tenant_id;
-        if (typeof tid !== 'string' || tid !== tenantId) continue;
+        if (typeof tid === 'string' && tid !== tenantId) continue;
         if (options.propertyId) {
           const pid = p.property_id;
           if (typeof pid === 'string' && pid !== options.propertyId) continue;

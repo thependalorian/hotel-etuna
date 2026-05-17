@@ -1,22 +1,21 @@
 /**
  * RagIngestService
  *
- * Purpose: Chunk, embed, and upsert tenant-scoped knowledge into Qdrant (pairs with RAGSearchService).
+ * Purpose: Chunk and upsert tenant-scoped knowledge into Qdrant (pairs with RAGSearchService).
  * Location: /lib/services/documents/RagIngestService.ts
  *
- * Payload shape per point: { tenant_id, text, source, property_id? }
- *
- * Embeddings: Voyage AI only (embedTextForRag) — keep dimensions aligned with the Qdrant collection.
+ * Embeddings: Qdrant Cloud Inference only (384d, intfloat/multilingual-e5-small by default).
  */
 
 import { randomUUID } from 'crypto';
+import { isQdrantConfigured } from '@/lib/integrations/qdrant';
 import {
-  ensureQdrantCollection,
-  isQdrantConfigured,
-  qdrantUpsert,
-  type QdrantPoint,
-} from '@/lib/integrations/qdrant';
-import { embedTextForRag, isRagEmbeddingConfigured } from '@/lib/integrations/embeddings-voyage';
+  ensureQdrantInferenceCollection,
+  isQdrantInferenceEnabled,
+  qdrantInferenceUpsert,
+  type QdrantInferencePoint,
+} from '@/lib/integrations/qdrant-inference';
+import { isRagEmbeddingConfigured } from '@/lib/integrations/embeddings-rag';
 import { splitTextIntoRagChunks } from '@/lib/services/documents/rag-chunk';
 
 export type RagIngestInput = {
@@ -39,15 +38,17 @@ function collectionName(): string {
 }
 
 export class RagIngestService {
-  /**
-   * Requires QDRANT_URL and VOYAGE_API_KEY. Does not require RAG_ENABLED (ingest is operational).
-   */
   async ingest(input: RagIngestInput): Promise<RagIngestResult> {
     if (!isQdrantConfigured()) {
       throw new Error('RAG ingest requires QDRANT_URL');
     }
     if (!isRagEmbeddingConfigured()) {
-      throw new Error('RAG ingest requires VOYAGE_API_KEY');
+      throw new Error(
+        'RAG ingest requires RAG_USE_QDRANT_INFERENCE=true with QDRANT_URL and QDRANT_API_KEY'
+      );
+    }
+    if (!isQdrantInferenceEnabled()) {
+      throw new Error('RAG_USE_QDRANT_INFERENCE must be true (Qdrant Cloud Inference only)');
     }
 
     const maxChars = input.chunkMaxChars ?? 1200;
@@ -67,24 +68,8 @@ export class RagIngestService {
       return { upserted: 0, collection };
     }
 
-    const embedded: { text: string; vector: number[] }[] = [];
-    for (const text of pieces) {
-      const vector = await embedTextForRag(text);
-      if (!vector?.length) {
-        console.warn('[RagIngestService] skipping chunk: embedding failed');
-        continue;
-      }
-      embedded.push({ text, vector });
-    }
-
-    if (!embedded.length) {
-      return { upserted: 0, collection };
-    }
-
-    const dim = embedded[0].vector.length;
-    await ensureQdrantCollection(collection, dim);
-
-    const points: QdrantPoint[] = embedded.map(({ text, vector }) => {
+    await ensureQdrantInferenceCollection(collection);
+    const points: QdrantInferencePoint[] = pieces.map((text) => {
       const payload: Record<string, unknown> = {
         tenant_id: input.tenantId,
         text,
@@ -95,12 +80,11 @@ export class RagIngestService {
       }
       return {
         id: randomUUID(),
-        vector,
+        text,
         payload,
       };
     });
-
-    await qdrantUpsert(collection, points);
+    await qdrantInferenceUpsert(collection, points);
     return { upserted: points.length, collection };
   }
 }

@@ -13,6 +13,13 @@ export type {
   User,
 } from '@/lib/db/schema';
 
+export type {
+  AiConversation,
+  AiMessage,
+  NewAiConversation,
+  NewAiMessage,
+} from '@/lib/db/schema';
+
 export {
   bookingChargeStatusEnum,
   bookingChargeTypeEnum,

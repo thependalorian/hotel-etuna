@@ -414,7 +414,7 @@ Application → audit_trail table (Neon)
 | **Neon** | Database | High | Request SOC 2 Type II report | `docs/compliance/vendor-attestations/Neon_SOC2_2026.pdf` |
 | **Adumo** | Payments | High | Request PCI-DSS AOC + SOC 2 | `docs/compliance/vendor-attestations/Adumo_PCI_2026.pdf` |
 | **Qdrant Cloud** | Vector DB | Medium | Review security whitepaper | `docs/compliance/vendor-attestations/Qdrant_Security.pdf` |
-| **Voyage AI** | Embeddings | Low | API-only, no data storage | Vendor agreement |
+| **Qdrant Cloud** | RAG vectors + inference | Low | Tenant-scoped KB chunks | Vendor agreement |
 | **Anthropic/Groq** | LLM | Medium | Review data processing terms | Vendor agreements |
 
 **Vendor Due Diligence Checklist:**

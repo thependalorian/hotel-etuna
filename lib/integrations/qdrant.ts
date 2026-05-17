@@ -19,8 +19,13 @@ export function isQdrantConfigured(): boolean {
 }
 
 function baseUrl(): string {
-  const u = process.env.QDRANT_URL?.trim() || '';
-  return u.replace(/\/$/, '');
+  let u = process.env.QDRANT_URL?.trim() || '';
+  u = u.replace(/\/$/, '');
+  // Qdrant Cloud REST API listens on :6333; dashboard URLs without a port return 404
+  if (/\.cloud\.qdrant\.io$/i.test(u) && !/:\d+$/.test(u)) {
+    return `${u}:6333`;
+  }
+  return u;
 }
 
 function getHeaders(): HeadersInit {

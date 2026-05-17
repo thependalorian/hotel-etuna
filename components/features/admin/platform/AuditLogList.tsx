@@ -275,7 +275,7 @@ export default function AuditLogList() {
 
       {detail && (
         <div className="modal modal-open">
-          <div className="modal-box max-w-lg">
+          <div className="modal-box w-full max-w-lg mx-4 sm:mx-auto">
             <h3 className="font-bold text-lg mb-2">Audit detail</h3>
             <p className="text-sm text-base-content/70 mb-2">
               {detail.action} · {detail.resourceType}{' '}

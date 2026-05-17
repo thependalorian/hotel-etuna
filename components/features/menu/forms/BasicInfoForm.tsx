@@ -96,7 +96,7 @@ export default function BasicInfoForm({
           />
           <label className="label">
             <span className="label-text-alt">
-              Food: 2×2 grid on /dining. Drinks: list without photos.
+              Food: 2×3 grid on /dining (6 per page). Drinks: list without photos.
             </span>
           </label>
           {formData.imageUrl ? (

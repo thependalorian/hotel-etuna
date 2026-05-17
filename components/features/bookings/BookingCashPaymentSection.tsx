@@ -111,7 +111,7 @@ export function BookingCashPaymentSection({
             </Button>
             {showReceiptModal && (
               <div className="modal modal-open">
-                <div className="modal-box max-w-3xl max-h-[92vh] overflow-y-auto bg-white">
+                <div className="modal-box w-full max-w-lg mx-4 sm:mx-auto sm:max-w-3xl max-h-[92vh] overflow-y-auto bg-white">
                   <BookingReceipt
                     booking={{
                       id: booking.id,

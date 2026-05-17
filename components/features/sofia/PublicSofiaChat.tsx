@@ -171,9 +171,9 @@ export function PublicSofiaChat({ propertySlug, className }: PublicSofiaChatProp
   return (
     <div
       className={cn(
-        'fixed bottom-6 right-6 z-50 w-96 max-w-[calc(100vw-2rem)]',
+        'fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-full max-w-[min(24rem,calc(100vw-2rem))]',
         'transition-all duration-300',
-        isMinimized ? 'h-16' : 'h-[600px]',
+        isMinimized ? 'h-16' : 'h-[min(600px,calc(100dvh-6rem))]',
         className
       )}
     >

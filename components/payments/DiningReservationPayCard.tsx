@@ -6,6 +6,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 
 export interface DiningReservationPayCardProps {
   bookingCode: string;
@@ -22,6 +23,9 @@ export function DiningReservationPayCard({
 }: DiningReservationPayCardProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [redirecting, setRedirecting] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const retryHref = `/restaurant/reservation/pay?code=${encodeURIComponent(bookingCode)}`;
 
   useEffect(() => {
     let cancelled = false;
@@ -47,6 +51,7 @@ export function DiningReservationPayCard({
         if (!res.ok) {
           const msg =
             json?.error?.message || json?.message || 'Could not start card payment';
+          setErrorMessage(msg);
           onError?.(msg);
           setRedirecting(false);
           return;
@@ -57,7 +62,9 @@ export function DiningReservationPayCard({
         const { actionUrl, fields } = json.data ?? json;
         const form = formRef.current;
         if (!form || !actionUrl || !fields) {
-          onError?.('Invalid payment initiation response');
+          const msg = 'Invalid payment initiation response';
+          setErrorMessage(msg);
+          onError?.(msg);
           setRedirecting(false);
           return;
         }
@@ -74,7 +81,9 @@ export function DiningReservationPayCard({
         }
         form.submit();
       } catch {
-        onError?.('Network error starting payment');
+        const msg = 'Network error starting payment';
+        setErrorMessage(msg);
+        onError?.(msg);
         setRedirecting(false);
       }
     }
@@ -85,10 +94,21 @@ export function DiningReservationPayCard({
     };
   }, [bookingCode, returnSuccessUrl, returnFailUrl, onError]);
 
+  if (errorMessage) {
+    return (
+      <div className="alert alert-error flex flex-col items-stretch gap-3 text-sm sm:flex-row sm:items-center">
+        <span className="flex-1">{errorMessage}</span>
+        <Link href={retryHref} className="btn btn-sm btn-outline min-h-10 shrink-0">
+          Try again
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-2">
       {redirecting && (
-        <p className="text-sm text-terracotta-800">
+        <p className="text-sm text-terracotta-800 sm:text-base">
           Redirecting to Adumo secure card payment…
         </p>
       )}

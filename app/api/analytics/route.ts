@@ -1,34 +1,14 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { AnalyticsService } from '@/lib/services/analytics/AnalyticsService';
-import { getAuthenticatedUser } from '@/lib/utils/api-helpers';
+import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
 import { createCustomReportSchema } from '@/lib/utils/validation';
 import { AppError } from '@/lib/utils/errors';
 
 const analyticsService = new AnalyticsService();
 
-async function getSessionUser(req: NextRequest): Promise<{
-  id: string;
-  email: string;
-  role: string;
-  tenantId: string; // Guaranteed to be string after validation
-  propertyId?: string;
-}> {
-  const user = await getAuthenticatedUser(req);
-  if (!user || !user.id || !user.tenantId) {
-    throw new AppError(401, 'Unauthorized');
-  }
-  return {
-    id: user.id,
-    email: user.email,
-    role: user.role ?? 'user',
-    tenantId: user.tenantId,
-    propertyId: user.propertyId,
-  };
-}
-
 export async function POST(request: NextRequest) {
   try {
-    const user = await getSessionUser(request);
+    const user = await requireTenantSessionUser(request);
     const body = await request.json();
 
     const validatedData = createCustomReportSchema.parse(body);
@@ -57,7 +37,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getSessionUser(request);
+    const user = await requireTenantSessionUser(request);
     const { searchParams } = new URL(request.url);
     const propertyId = searchParams.get('propertyId');
     const dateFrom = searchParams.get('dateFrom') ? new Date(searchParams.get('dateFrom')!) : undefined;

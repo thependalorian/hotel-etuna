@@ -40,7 +40,7 @@ export default function QuickActions() {
         <p className="mb-4 text-sm text-base-content/60">
           Primary path highlighted for faster booking entry.
         </p>
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {actions.map((action) => {
             const Icon = action.icon;
             return (

@@ -1,18 +1,13 @@
 /**
  * Hotel Etuna Knowledge Base Ingestion Script
  *
- * Loads markdown documents from data/hotel-etuna-knowledge/, chunks them semantically,
- * generates embeddings via Voyage AI, and upserts to Qdrant with tenant isolation.
+ * Loads markdown from data/hotel-etuna-knowledge/, chunks semantically, upserts to Qdrant
+ * via Cloud Inference (intfloat/multilingual-e5-small, 384d).
  *
  * Usage:
- *   npx tsx scripts/ingest-hotel-etuna-knowledge.ts          # Full ingestion
- *   npx tsx scripts/ingest-hotel-etuna-knowledge.ts --dry    # Dry run (no API calls)
- *
- * Requirements:
- *   - QDRANT_URL and QDRANT_API_KEY in .env.local
- *   - VOYAGE_API_KEY in .env.local (embeddings; align EMBEDDING_MODEL with collection vector size)
- *   - HUB_TENANT_ID in .env.local
- *   - Optional: RAG_QDRANT_COLLECTION (default buffr_rag — must match RAGSearchService / Sofia)
+ *   npm run rag:seed
+ *   npm run rag:seed:dry
+ *   npm run rag:seed -- --upsert-batch=4
  */
 
 import { readFileSync, readdirSync } from 'fs';
@@ -20,33 +15,33 @@ import { join } from 'path';
 import { createHash } from 'crypto';
 import * as dotenv from 'dotenv';
 import {
-  ensureQdrantCollection,
-  qdrantUpsert,
-  qdrantDeleteByFilter,
-  type QdrantPoint,
-} from '../lib/integrations/qdrant';
-import { 
-  getEmbedding, 
-  isVoyageConfigured,
-  getEmbeddingDimension,
-  getModelName
-} from '../lib/integrations/embeddings-voyage';
+  ensureQdrantInferenceCollection,
+  isQdrantInferenceEnabled,
+  qdrantInferenceDeleteTenant,
+  qdrantInferenceModel,
+  qdrantInferenceUpsert,
+  qdrantInferenceVectorSize,
+  verifyQdrantInferenceConnection,
+  type QdrantInferencePoint,
+} from '../lib/integrations/qdrant-inference';
+import { isRagEmbeddingConfigured } from '../lib/integrations/embeddings-rag';
 
-// Load environment variables
 dotenv.config({ path: '.env.local' });
 
-// Configuration
 const KNOWLEDGE_DIR = join(process.cwd(), 'data', 'hotel-etuna-knowledge');
-/** Must match `RAGSearchService` / env `RAG_QDRANT_COLLECTION` (default buffr_rag). */
 const COLLECTION_NAME = process.env.RAG_QDRANT_COLLECTION?.trim() || 'buffr_rag';
 const CHUNK_MAX_CHARS = 800;
 const CHUNK_OVERLAP = 100;
-const BATCH_SIZE = 3; // Smaller bursts to ease Voyage free-tier limits
-const RETRY_ATTEMPTS = 8;
-const BASE_RETRY_DELAY_MS = 3500;
-const RATE_LIMIT_EXTRA_MS = 45000; // Added on HTTP 429
-const BETWEEN_CHUNK_MS = 450; // Pace requests inside a nominal “batch”
-const BATCH_DELAY_MS = 5500;
+
+function parseCliInt(flag: string, fallback: number): number {
+  const arg = process.argv.find((a) => a.startsWith(`--${flag}=`));
+  if (!arg) return fallback;
+  const n = parseInt(arg.split('=')[1] ?? '', 10);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
+const INFERENCE_UPSERT_BATCH = parseCliInt('upsert-batch', 8);
+const INFERENCE_BATCH_DELAY_MS = 1500;
 
 interface DocumentChunk {
   documentTitle: string;
@@ -56,20 +51,12 @@ interface DocumentChunk {
   metadata: Record<string, unknown>;
 }
 
-/**
- * Generates a deterministic UUID based on tenant ID, document title, and chunk index.
- */
 function generateDeterministicUuid(tenantId: string, documentTitle: string, chunkIndex: number): string {
   const input = `${tenantId}:${documentTitle}:${chunkIndex}`;
   const hash = createHash('sha256').update(input).digest('hex');
-  // Format as UUID v4
   return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-4${hash.slice(13, 16)}-${hash.slice(16, 20)}-${hash.slice(20, 32)}`;
 }
 
-/**
- * Semantic-aware markdown chunking.
- * Prefers splitting at markdown headings and paragraphs, with overlap for context.
- */
 function chunkMarkdownDocument(markdown: string, maxChars: number, overlap: number): string[] {
   const normalized = markdown.replace(/\r\n/g, '\n').trim();
   if (!normalized) return [];
@@ -84,7 +71,6 @@ function chunkMarkdownDocument(markdown: string, maxChars: number, overlap: numb
     if (trimmed) {
       chunks.push(trimmed);
     }
-    // Keep overlap from the end of current chunk
     if (overlap > 0 && trimmed.length > overlap) {
       const overlapText = trimmed.slice(-overlap);
       currentChunk = overlapText;
@@ -97,17 +83,12 @@ function chunkMarkdownDocument(markdown: string, maxChars: number, overlap: numb
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    const lineLength = line.length + 1; // +1 for newline
-
-    // Check if this is a markdown heading (semantic boundary)
+    const lineLength = line.length + 1;
     const isHeading = /^#{1,6}\s/.test(line);
 
-    // If adding this line exceeds max and we have content, flush
     if (currentSize + lineLength > maxChars && currentChunk.length > 0) {
       flushChunk();
     }
-
-    // If this is a heading and we have content, prefer splitting here
     if (isHeading && currentChunk.length > 0) {
       flushChunk();
     }
@@ -115,24 +96,20 @@ function chunkMarkdownDocument(markdown: string, maxChars: number, overlap: numb
     currentChunk += (currentChunk ? '\n' : '') + line;
     currentSize += lineLength;
 
-    // If we've exceeded max even after flushing, force flush
     if (currentSize > maxChars * 1.2) {
       flushChunk();
     }
   }
 
-  // Flush remaining
   if (currentChunk.trim()) {
     chunks.push(currentChunk.trim());
   }
 
-  // Ensure no chunk exceeds hard limit (fallback to character splitting)
   const finalChunks: string[] = [];
   for (const chunk of chunks) {
     if (chunk.length <= maxChars) {
       finalChunks.push(chunk);
     } else {
-      /** Fixed‑stride slicing so overlap cannot advance byte‑by‑byte (that produced 100+ micro‑chunks per paragraph). */
       let offset = 0;
       while (offset < chunk.length) {
         const raw = chunk.slice(offset, Math.min(offset + maxChars, chunk.length));
@@ -156,9 +133,6 @@ function chunkMarkdownDocument(markdown: string, maxChars: number, overlap: numb
   return finalChunks.filter(Boolean);
 }
 
-/**
- * Loads and chunks all markdown documents from the knowledge directory.
- */
 function loadAndChunkDocuments(): DocumentChunk[] {
   console.log(`📂 Loading documents from ${KNOWLEDGE_DIR}...`);
 
@@ -201,152 +175,55 @@ function loadAndChunkDocuments(): DocumentChunk[] {
   return allChunks;
 }
 
-/**
- * Generates embeddings for chunks with batch processing and retry logic.
- */
-async function generateEmbeddings(
-  chunks: DocumentChunk[], 
-  dryRun: boolean,
-  embeddingDimension: number
-): Promise<Map<DocumentChunk, number[]>> {
-  console.log(`🔮 Generating embeddings for ${chunks.length} chunks...`);
-
-  const embeddings = new Map<DocumentChunk, number[]>();
-  const batches: DocumentChunk[][] = [];
-
-  // Split into batches
-  for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
-    batches.push(chunks.slice(i, i + BATCH_SIZE));
-  }
-
-  console.log(`   Processing ${batches.length} batches (batch size: ${BATCH_SIZE})`);
-
-  for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
-    const batch = batches[batchIdx];
-    console.log(`   Batch ${batchIdx + 1}/${batches.length}...`);
-
-    for (const chunk of batch) {
-      if (dryRun) {
-        // Mock embedding for dry run
-        embeddings.set(chunk, new Array(embeddingDimension).fill(0));
-        continue;
-      }
-
-      let attempt = 0;
-      let success = false;
-      let embedding: number[] | null = null;
-
-      while (attempt < RETRY_ATTEMPTS && !success) {
-        try {
-          embedding = await getEmbedding(chunk.content);
-          if (embedding && embedding.length === embeddingDimension) {
-            embeddings.set(chunk, embedding);
-            success = true;
-          } else {
-            throw new Error(`Invalid embedding: expected ${embeddingDimension}d, got ${embedding ? `${embedding.length}d` : 'null'}`);
-          }
-        } catch (error: unknown) {
-          attempt++;
-          const status =
-            typeof error === 'object' && error && 'status' in error ? (error as { status?: number }).status : undefined;
-          const code429 = status === 429;
-          if (attempt < RETRY_ATTEMPTS) {
-            let delayMs = BASE_RETRY_DELAY_MS * Math.pow(2, attempt - 1);
-            if (code429) {
-              delayMs += RATE_LIMIT_EXTRA_MS;
-              console.log(`      ⚠️  Rate limited (429) — waiting extra ${RATE_LIMIT_EXTRA_MS / 1000}s before retry...`);
-            }
-            console.log(`      ⚠️  Retry ${attempt}/${RETRY_ATTEMPTS} after ${delayMs}ms...`);
-            await new Promise((resolve) => setTimeout(resolve, delayMs));
-          } else {
-            console.error(`      ❌ Failed after ${RETRY_ATTEMPTS} attempts:`, error);
-            throw new Error(`Failed to generate embedding for chunk: ${chunk.documentTitle}[${chunk.chunkIndex}]`);
-          }
-        }
-      }
-      
-      if (!dryRun) {
-        await new Promise((resolve) => setTimeout(resolve, BETWEEN_CHUNK_MS));
-      }
-    }
-
-    // Delay between batches to avoid rate limiting
-    if (batchIdx < batches.length - 1 && !dryRun) {
-      console.log(`   ⏱️  Waiting ${BATCH_DELAY_MS}ms before next batch...`);
-      await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY_MS));
-    }
-  }
-
-  console.log(`✅ Generated ${embeddings.size} embeddings\n`);
-  return embeddings;
-}
-
-/**
- * Upserts chunks to Qdrant with deterministic UUIDs.
- */
-async function upsertToQdrant(
+async function upsertToQdrantInference(
   tenantId: string,
-  embeddings: Map<DocumentChunk, number[]>,
-  dryRun: boolean,
-  embeddingDimension: number
+  chunks: DocumentChunk[],
+  dryRun: boolean
 ): Promise<void> {
-  console.log(`🚀 Upserting to Qdrant collection "${COLLECTION_NAME}"...`);
+  const model = qdrantInferenceModel();
+  const dims = qdrantInferenceVectorSize();
+  console.log(`🚀 Upserting to Qdrant inference (model: ${model}, ${dims}d)...`);
 
   if (dryRun) {
-    console.log(`   [DRY RUN] Would upsert ${embeddings.size} points`);
-    const entries = Array.from(embeddings.entries());
-    for (const [chunk, _] of entries) {
-      const id = generateDeterministicUuid(tenantId, chunk.documentTitle, chunk.chunkIndex);
-      console.log(`   [DRY RUN] Point ID: ${id}`);
-      console.log(
-        `              Payload: tenant_id=${tenantId}, text=…, source=${chunk.source}, doc=${chunk.documentTitle}, chunk=${chunk.chunkIndex}`
-      );
-    }
-    console.log(`✅ Dry run complete\n`);
+    console.log(`   [DRY RUN] Would upsert ${chunks.length} points to "${COLLECTION_NAME}"`);
     return;
   }
 
-  // Ensure collection exists
-  console.log(`   Ensuring collection exists (dimension: ${embeddingDimension})...`);
-  await ensureQdrantCollection(COLLECTION_NAME, embeddingDimension);
-
-  // Clear existing points for this tenant (idempotency)
-  console.log(`   Clearing existing points for tenant ${tenantId}...`);
-  await qdrantDeleteByFilter(COLLECTION_NAME, { tenant_id: tenantId });
-
-  // Prepare points
-  const points: QdrantPoint[] = [];
-  const entries = Array.from(embeddings.entries());
-  for (const [chunk, vector] of entries) {
-    const id = generateDeterministicUuid(tenantId, chunk.documentTitle, chunk.chunkIndex);
-    points.push({
-      id,
-      vector,
-      payload: {
-        tenant_id: tenantId,
-        text: chunk.content,
-        source: chunk.source,
-        document_title: chunk.documentTitle,
-        chunk_index: chunk.chunkIndex,
-        chunk_length: chunk.content.length,
-      },
-    });
+  const ping = await verifyQdrantInferenceConnection();
+  if (!ping.ok) {
+    throw new Error(`Qdrant unreachable: ${ping.error}`);
   }
 
-  // Upsert in batches (Qdrant handles large batches well, but we'll split for safety)
-  const upsertBatchSize = 100;
-  for (let i = 0; i < points.length; i += upsertBatchSize) {
-    const batch = points.slice(i, i + upsertBatchSize);
-    console.log(`   Upserting batch ${Math.floor(i / upsertBatchSize) + 1}/${Math.ceil(points.length / upsertBatchSize)} (${batch.length} points)...`);
-    await qdrantUpsert(COLLECTION_NAME, batch);
+  await ensureQdrantInferenceCollection(COLLECTION_NAME);
+  await qdrantInferenceDeleteTenant(COLLECTION_NAME, tenantId);
+
+  const points: QdrantInferencePoint[] = chunks.map((chunk) => ({
+    id: generateDeterministicUuid(tenantId, chunk.documentTitle, chunk.chunkIndex),
+    text: chunk.content,
+    payload: {
+      tenant_id: tenantId,
+      text: chunk.content,
+      source: chunk.source,
+      document_title: chunk.documentTitle,
+      chunk_index: chunk.chunkIndex,
+      chunk_length: chunk.content.length,
+    },
+  }));
+
+  for (let i = 0; i < points.length; i += INFERENCE_UPSERT_BATCH) {
+    const batch = points.slice(i, i + INFERENCE_UPSERT_BATCH);
+    const batchNum = Math.floor(i / INFERENCE_UPSERT_BATCH) + 1;
+    const totalBatches = Math.ceil(points.length / INFERENCE_UPSERT_BATCH);
+    console.log(`   Upsert batch ${batchNum}/${totalBatches} (${batch.length} points)...`);
+    await qdrantInferenceUpsert(COLLECTION_NAME, batch);
+    if (i + INFERENCE_UPSERT_BATCH < points.length) {
+      await new Promise((resolve) => setTimeout(resolve, INFERENCE_BATCH_DELAY_MS));
+    }
   }
 
-  console.log(`✅ Upserted ${points.length} points to Qdrant\n`);
+  console.log(`✅ Upserted ${points.length} points via Qdrant Cloud Inference\n`);
 }
 
-/**
- * Main ingestion pipeline.
- */
 async function main() {
   const isDryRun = process.argv.includes('--dry');
 
@@ -358,22 +235,21 @@ async function main() {
     console.log('⚠️  DRY RUN MODE - No API calls will be made\n');
   }
 
-  // Validate environment
   const QDRANT_URL = process.env.QDRANT_URL;
   const QDRANT_API_KEY = process.env.QDRANT_API_KEY;
   const HUB_TENANT_ID = process.env.HUB_TENANT_ID;
-  const hasVoyage = isVoyageConfigured();
-  const embeddingModel = getModelName();
-  const EMBEDDING_DIMENSION = getEmbeddingDimension();
 
   if (!QDRANT_URL) {
     throw new Error('QDRANT_URL not set in .env.local');
   }
   if (!QDRANT_API_KEY && !isDryRun) {
-    console.warn('⚠️  QDRANT_API_KEY not set (may be required for Qdrant Cloud)');
+    console.warn('⚠️  QDRANT_API_KEY not set (required for Qdrant Cloud)');
   }
-  if (!hasVoyage && !isDryRun) {
-    throw new Error('Voyage AI not configured. Set VOYAGE_API_KEY in .env.local');
+  if (!isQdrantInferenceEnabled() && !isDryRun) {
+    throw new Error('Set RAG_USE_QDRANT_INFERENCE=true with QDRANT_URL + QDRANT_API_KEY');
+  }
+  if (!isRagEmbeddingConfigured() && !isDryRun) {
+    throw new Error('RAG embedding config invalid — check Qdrant inference env vars');
   }
   if (!HUB_TENANT_ID) {
     throw new Error('HUB_TENANT_ID not set in .env.local');
@@ -382,45 +258,35 @@ async function main() {
   console.log('📋 Configuration:');
   console.log(`   Qdrant URL: ${QDRANT_URL}`);
   console.log(`   Qdrant API Key: ${QDRANT_API_KEY ? '✓ Set' : '✗ Not set'}`);
-  console.log(`   Embedding Provider: Voyage AI`);
-  console.log(`   Embedding Model: ${embeddingModel}`);
-  console.log(`   Voyage API Key: ${hasVoyage ? '✓ Configured' : '✗ Not configured'}`);
+  console.log(`   Inference model: ${qdrantInferenceModel()}`);
+  console.log(`   Vector size: ${qdrantInferenceVectorSize()}d`);
+  console.log(`   Upsert batch: ${INFERENCE_UPSERT_BATCH}`);
   console.log(`   Hub Tenant ID: ${HUB_TENANT_ID}`);
   console.log(`   Collection: ${COLLECTION_NAME}`);
-  console.log(`   Chunk size: ${CHUNK_MAX_CHARS} chars (overlap: ${CHUNK_OVERLAP})`);
-  console.log(`   Embedding dimension: ${EMBEDDING_DIMENSION}d\n`);
+  console.log(`   Chunk size: ${CHUNK_MAX_CHARS} chars (overlap: ${CHUNK_OVERLAP})\n`);
 
-  // Step 1: Load and chunk documents
   const chunks = loadAndChunkDocuments();
+  await upsertToQdrantInference(HUB_TENANT_ID, chunks, isDryRun);
 
-  // Step 2: Generate embeddings
-  const embeddings = await generateEmbeddings(chunks, isDryRun, EMBEDDING_DIMENSION);
-
-  // Step 3: Upsert to Qdrant
-  await upsertToQdrant(HUB_TENANT_ID, embeddings, isDryRun, EMBEDDING_DIMENSION);
-
-  // Summary
   const totalTokensEstimate = chunks.reduce((sum, c) => sum + Math.ceil(c.content.length / 4), 0);
   console.log('═══════════════════════════════════════════════════════════');
   console.log('✅ Ingestion Complete!');
   console.log('═══════════════════════════════════════════════════════════');
   console.log(`   Documents processed: ${new Set(chunks.map((c) => c.documentTitle)).size}`);
   console.log(`   Total chunks: ${chunks.length}`);
-  console.log(`   Total embeddings: ${embeddings.size}`);
   console.log(`   Estimated tokens: ~${totalTokensEstimate.toLocaleString()}`);
   console.log(`   Collection: ${COLLECTION_NAME}`);
   console.log(`   Tenant: ${HUB_TENANT_ID}\n`);
 
   if (!isDryRun) {
-    console.log(`🤖 Sofia AI can now answer questions about Hotel Etuna!`);
-    console.log(`   Embedding provider: Voyage AI (${embeddingModel})`);
+    console.log('🤖 Sofia AI can now answer questions about Hotel Etuna!');
+    console.log(`   Embeddings: Qdrant Cloud (${qdrantInferenceModel()}, ${qdrantInferenceVectorSize()}d)`);
     console.log('   Test with: "What does Etuna mean?" or "Tell me about the rooms"');
   }
 
   console.log('\n');
 }
 
-// Run the script
 main().catch((error) => {
   console.error('\n❌ Error:', error.message);
   console.error(error);

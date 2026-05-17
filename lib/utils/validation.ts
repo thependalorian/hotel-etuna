@@ -190,14 +190,19 @@ export const createOrderSchema = z.object({
   items: z.array(createOrderItemSchema).min(1),
 });
 
+/** Sofia concierge POST body — aligned with `AIRequest` / `ConversationContext` in lib/types/ai.ts */
 export const processAiMessageSchema = z.object({
-  message: z.string().min(1),
-  sessionId: entityId(),
+  message: z.string().min(1).max(4000),
+  sessionId: z.string().min(1).max(255),
   propertyId: entityIdOptional(),
   guestId: entityIdOptional(),
   bookingId: entityIdOptional(),
-  language: z.string().optional(),
+  language: z.string().max(10).optional(),
+  channel: z.enum(['WEB', 'EMAIL', 'WHATSAPP', 'PHONE']).optional(),
 });
+
+/** Alias for dashboard / legacy route names */
+export const sofiaConciergeChatSchema = processAiMessageSchema;
 
 export const createCustomReportSchema = z.object({
   metrics: z.array(z.string()).min(1),

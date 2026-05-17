@@ -11,17 +11,23 @@ export const SOC2_FRAMEWORK_REFERENCE =
   'NayaOne Limited SOC 2 Type II (Feb 2023–Feb 2024); AICPA TSC 2017';
 
 export const HOTEL_ETUNA_SOC2_SCOPE = {
-  organization: 'Buffr Financial Services CC (platform operator)',
-  system: 'Hotel Etuna PMS — hoteletuna.com',
+  organization:
+    'Buffr Financial Services CC (platform operator) / Etuna Guesthouse and Tours CC (property)',
+  system:
+    'Hotel Etuna PMS — hoteletuna.com (Next.js 14 on Vercel, Neon PostgreSQL, Qdrant RAG, Adumo Virtual)',
   inScope: [
-    'Next.js on Vercel (production)',
+    'Production Vercel deployment',
     'Neon PostgreSQL (tenant data)',
+    'Hub staff dashboard & guest portal',
     'Guest/staff auth, RBAC, RLS',
-    'Adumo Virtual card payments',
+    'Payment sessions & webhooks (Adumo Virtual)',
     'Audit trail & compliance APIs',
+    'Sofia AI concierge (when processing guest PII)',
   ],
   outOfScope: [
-    'Local dev machines (unless prod data)',
+    'Local developer machines (unless processing production data)',
+    'Adumo/AWS carved-out subservice controls (CUECs reviewed separately)',
+    'NamRA ITAS filing workflows (tax, not TSC)',
     'Buffr Bank Windhoek back-office (non-system)',
   ],
 } as const;

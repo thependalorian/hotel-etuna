@@ -2,7 +2,8 @@
 
 **Owner:** CTO  
 **Status:** SOC 2 Implementation In Progress (Target: Type II Nov 2026)  
-**Last Updated:** May 16, 2026
+**Last Updated:** May 17, 2026  
+**Product index:** PRD **§3.7** · TASK § Compliance verification · BoN sources: PRD **Appendix F** (`mba-agent/.../regulatory/namibia/`)
 
 ---
 
@@ -31,6 +32,8 @@ This folder contains all compliance documentation, policies, and evidence for Ho
 
 **Current Compliance Score:** ~45% baseline → Target 95%+ by audit (Week 25)
 
+**Fraud controls:** `PsdFraudGate` on `POST /api/payments/initiate` runs built-in checks plus `applyTenantFraudRules` (`lib/services/fraud/tenant-fraud-rules.ts`) against `fraud_detection_rules` from migration `0016`. Production fail-closed on gate errors (`FRAUD_GATE_FAIL_CLOSED` or `NODE_ENV=production`). See PRD §3.7.2.
+
 ---
 
 ## SOC 2 Implementation
@@ -46,6 +49,16 @@ This folder contains all compliance documentation, policies, and evidence for Ho
 
 **Current Week:** 1 (Started May 16, 2026)  
 **Target Audit Date:** November 2026
+
+### In-repo SOC 2 automation (May 17, 2026)
+
+| Layer | Path |
+|-------|------|
+| Static control catalog + auditor prompts | `lib/compliance/soc2/nayaone-tsc-framework.ts` |
+| Runtime scoring + scope | `lib/compliance/soc2/control-matrix.ts` |
+| Re-export shim (DRY) | `lib/compliance/soc2/control-catalog.ts` |
+| Orchestrator + agents | `Soc2AuditOrchestrator.ts`, `run-all-soc2-agents.ts` |
+| API / dashboard | `GET /api/compliance/soc2`, `/compliance/soc2` |
 
 ### Master Plan
 
@@ -136,9 +149,9 @@ docs/compliance/
 | **Data Protection Policy** | CC6.7 | ✅ Complete | `policies/DATA_PROTECTION_POLICY_NAMIBIA.md` (canonical; `DATA_PROTECTION_POLICY.md` = pointer) |
 | **Data Retention Policy** | CC6.5 | ✅ Complete | `policies/DATA_RETENTION_POLICY.md` |
 | **Acceptable Use Policy** | CC2.1 | ✅ Complete | `policies/ACCEPTABLE_USE_POLICY.md` |
-| **Vendor Management Policy** | CC9.1 | ⏳ Week 4 | `policies/VENDOR_MANAGEMENT_POLICY.md` |
-| **Data Classification Policy** | CC6.7 | ⏳ Week 4 | `policies/DATA_CLASSIFICATION_POLICY.md` |
-| **... (11 more policies)** | Various | ⏳ Week 4 | See [policy list](#security-policies-21-required) |
+| **Vendor Management Policy** | CC9.1 | ✅ Complete | [`policies/VENDOR_MANAGEMENT_POLICY.md`](policies/VENDOR_MANAGEMENT_POLICY.md) |
+| **Data Classification Policy** | CC6.7 | ✅ Complete | [`policies/DATA_CLASSIFICATION_POLICY.md`](policies/DATA_CLASSIFICATION_POLICY.md) |
+| **Full policy library (21)** | Various | ✅ Draft complete | See [policy list](#security-policies-21-required) |
 
 ### Technical Implementation
 
@@ -198,25 +211,25 @@ docs/compliance/
 | 4 | Incident Response Policy | CC7.3 | ✅ Complete (IRP) |
 | 5 | Change Management Policy | CC8.1 | ✅ Complete |
 | 6 | Business Continuity Policy | CC7.1 | ✅ Complete (BCP) |
-| 7 | Data Classification Policy | CC6.7 | ⏳ Week 4 |
+| 7 | Data Classification Policy | CC6.7 | ✅ [`DATA_CLASSIFICATION_POLICY.md`](policies/DATA_CLASSIFICATION_POLICY.md) |
 | 8 | Data Retention Policy | CC6.5 | ✅ Complete |
-| 9 | Vendor Management Policy | CC9.1 | ⏳ Week 4 |
-| 10 | Asset Management Policy | CC6.2 | ⏳ Week 4 |
-| 11 | Cryptography Policy | CC6.7 | ⏳ Week 4 |
-| 12 | Password Policy | CC6.1 | ⏳ Week 4 |
-| 13 | Remote Access Policy | CC6.6 | ⏳ Week 4 |
-| 14 | Physical Security Policy | CC6.4 | ⏳ Week 4 |
-| 15 | Network Security Policy | CC6.6 | ⏳ Week 4 |
-| 16 | Logging & Monitoring Policy | CC7.2 | ⏳ Week 4 |
-| 17 | Backup Policy | CC7.1 | ⏳ Week 4 |
+| 9 | Vendor Management Policy | CC9.1 | ✅ [`VENDOR_MANAGEMENT_POLICY.md`](policies/VENDOR_MANAGEMENT_POLICY.md) |
+| 10 | Asset Management Policy | CC6.2 | ✅ [`ASSET_MANAGEMENT_POLICY.md`](policies/ASSET_MANAGEMENT_POLICY.md) |
+| 11 | Cryptography Policy | CC6.7 | ✅ [`CRYPTOGRAPHY_POLICY.md`](policies/CRYPTOGRAPHY_POLICY.md) |
+| 12 | Password Policy | CC6.1 | ✅ [`PASSWORD_POLICY.md`](policies/PASSWORD_POLICY.md) |
+| 13 | Remote Access Policy | CC6.6 | ✅ [`REMOTE_ACCESS_POLICY.md`](policies/REMOTE_ACCESS_POLICY.md) |
+| 14 | Physical Security Policy | CC6.4 | ✅ [`PHYSICAL_SECURITY_POLICY.md`](policies/PHYSICAL_SECURITY_POLICY.md) |
+| 15 | Network Security Policy | CC6.6 | ✅ [`NETWORK_SECURITY_POLICY.md`](policies/NETWORK_SECURITY_POLICY.md) |
+| 16 | Logging & Monitoring Policy | CC7.2 | ✅ [`LOGGING_AND_MONITORING_POLICY.md`](policies/LOGGING_AND_MONITORING_POLICY.md) |
+| 17 | Backup Policy | CC7.1 | ✅ [`BACKUP_POLICY.md`](policies/BACKUP_POLICY.md) |
 | 18 | Data Protection Policy | CC6.7 | ✅ Complete |
-| 19 | HR Security Policy | CC2.1 | ⏳ Week 4 |
-| 20 | Training Policy | CC2.2 | ⏳ Week 4 |
-| 21 | Code of Conduct | CC2.1 | ⏳ Week 4 |
+| 19 | HR Security Policy | CC2.1 | ✅ [`HR_SECURITY_POLICY.md`](policies/HR_SECURITY_POLICY.md) |
+| 20 | Training Policy | CC2.2 | ✅ [`TRAINING_POLICY.md`](policies/TRAINING_POLICY.md) |
+| 21 | Code of Conduct | CC2.1 | ✅ [`CODE_OF_CONDUCT.md`](policies/CODE_OF_CONDUCT.md) |
 
 **Template:** Use `policies/POLICY_TEMPLATE.md` for consistency
 
-**Approval:** Executive Sponsor (CEO/Owner) must sign all policies
+**Approval:** Executive Sponsor (CEO/Owner) must sign all policies (drafts complete May 17, 2026 — collect signatures in `compliance/evidence/policies/`)
 
 ---
 
@@ -283,6 +296,8 @@ docs/compliance/
 **Key Resources:**
 - [ ] Security Prompt Pack: [`../SECURITY_PROMPT_PACK.md`](../SECURITY_PROMPT_PACK.md) — 15 AI-driven security review prompts
 - [ ] Coding Standards: `../../.cursor/rules/code-and-docs.mdc` — DRY, Boy Scout Rule
+- [ ] **Hotel Etuna hygiene tracker:** `docs/project/TASK.md` § Code hygiene — DRY & Boy Scout; `PLANNING.md` § Hotel Etuna DRY roadmap
+- [x] **SOC2 code layout:** static catalog `nayaone-tsc-framework.ts`; runtime `control-matrix.ts`; `control-catalog.ts` re-exports (May 17, 2026)
 - [ ] System Design Guide: See user rules (23 rules for scalable code)
 
 ### For Incident Commander (CTO)

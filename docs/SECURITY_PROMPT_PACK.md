@@ -73,12 +73,12 @@ Ensure all user input is sanitized before storage and display. Use parameterized
 ## 2. Hardcoded Secrets & API Keys
 
 **Why it matters:**  
-Hotel Etuna uses many secrets: Adumo JWT secret, Voyage AI key, Qdrant API key, SMTP credentials, Neon database URLs, NextAuth secret. These must never be in source code.
+Hotel Etuna uses many secrets: Adumo JWT secret, Qdrant API key, SMTP credentials, Neon database URLs, NextAuth secret. These must never be in source code.
 
 ### Prompt 2.1 – Scan for hardcoded secrets
 ```
 Scan the entire Hotel Etuna codebase for hardcoded secrets:
-- API keys (Adumo, Voyage, Qdrant, OpenAI, Anthropic, Groq, DeepSeek)
+- API keys (Adumo, Qdrant, OpenAI, Anthropic, Groq, DeepSeek)
 - Database URLs (DATABASE_URL, DATABASE_URL_UNPOOLED)
 - JWT secrets (ADUMO_JWT_SECRET, NEXTAUTH_SECRET)
 - SMTP passwords
@@ -110,7 +110,7 @@ If any secret was ever committed, list it so I can rotate those keys.
 Review each API key in Hotel Etuna. For each, identify if it's a public key (safe in frontend) or secret key (backend only). Check especially:
 - Adumo JWT secret (secret, never in frontend)
 - NextAuth secret (secret)
-- Voyage/Qdrant keys (secret)
+- Qdrant keys (secret)
 - Stripe-like keys (none currently, but for future)
 
 If any secret is in frontend code, move it to a backend API route immediately.
@@ -548,7 +548,7 @@ Create an inventory of every place Hotel Etuna collects, stores, or transmits pe
 - Retention period
 - Deletion mechanism
 
-Include: `guests` table, `bookings` (guest name, email), `guest_profiles`, `users` (staff), `audit_trail` (may contain PII), logs, and any third-party services (Adumo, Voyage, Qdrant).
+Include: `guests` table, `bookings` (guest name, email), `guest_profiles`, `users` (staff), `audit_trail` (may contain PII), logs, and any third-party services (Adumo, Qdrant, Mem0).
 ```
 
 ### Prompt 10.2 – Minimize data collection

@@ -1,12 +1,15 @@
 /**
- * Full-menu book — all categories in one page-turn flow.
+ * Full-menu — single-page viewer (Previous/Next); all categories in display order.
  * Location: components/dining/MenuBookFullMenu.tsx
  */
 
 'use client';
 
 import { useMemo } from 'react';
-import MenuPageTurner, { type MenuBookPage } from '@/components/dining/MenuPageTurner';
+import type { MenuBookPage } from '@/components/dining/MenuPageTurner';
+import MenuBookSinglePageViewer, {
+  flattenMenuBookPages,
+} from '@/components/dining/MenuBookSinglePageViewer';
 import MenuBookFullMenuCoverFace from '@/components/dining/MenuBookFullMenuCoverFace';
 import MenuBookItemsFace from '@/components/dining/MenuBookItemsFace';
 import MenuBookContinueFace from '@/components/dining/MenuBookContinueFace';
@@ -57,8 +60,23 @@ function buildFullMenuPages(menu: PublicMenuPayload): { pages: MenuBookPage[]; t
   return { pages, totalContentPages };
 }
 
+function getFlatPageLabel(
+  flatIndex: number,
+  totalFlatPages: number,
+  totalContentPages: number,
+): string {
+  if (flatIndex === 0) return 'Cover';
+  if (flatIndex === 1) return 'Menu sections';
+  const contentIndex = flatIndex - 2;
+  if (contentIndex >= 0 && contentIndex < totalContentPages) {
+    return `Full menu · page ${contentIndex + 1} of ${totalContentPages}`;
+  }
+  return `Page ${flatIndex + 1} of ${totalFlatPages}`;
+}
+
 export default function MenuBookFullMenu({ menu }: MenuBookFullMenuProps) {
   const { pages, totalContentPages } = useMemo(() => buildFullMenuPages(menu), [menu]);
+  const flatPages = useMemo(() => flattenMenuBookPages(pages), [pages]);
 
   if (menu.itemCount === 0) {
     return (
@@ -66,19 +84,13 @@ export default function MenuBookFullMenu({ menu }: MenuBookFullMenuProps) {
     );
   }
 
+  const bookKey = `full-menu-${menu.itemCount}`;
+
   return (
-    <MenuPageTurner
-      bookKey={`full-menu-${menu.itemCount}`}
-      pages={pages}
-      initialSpread={0}
-      getSpreadLabel={(spreadIndex, totalSpreads) => {
-        if (spreadIndex === 0) return 'Cover · Full menu';
-        const contentIndex = spreadIndex - 1;
-        if (contentIndex < totalContentPages) {
-          return `Full menu · page ${contentIndex + 1} of ${totalContentPages}`;
-        }
-        return `Full menu · ${spreadIndex + 1} / ${totalSpreads}`;
-      }}
+    <MenuBookSinglePageViewer
+      bookKey={bookKey}
+      pages={flatPages}
+      getPageLabel={(index, total) => getFlatPageLabel(index, total, totalContentPages)}
     />
   );
 }

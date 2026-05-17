@@ -14,7 +14,7 @@
  */
 
 import { EmailInboxService } from '@/lib/services/sofia/EmailInboxService';
-import { SofiaConciergeService } from '@/lib/services/ai/SofiaConciergeService';
+import { processSofiaConciergeMessage } from '@/lib/services/ai/sofia-concierge-handler';
 import { EmailService } from '@/lib/services/sofia/EmailService';
 import { db } from '@/lib/db';
 import {
@@ -28,7 +28,6 @@ import { eq, and } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
 const emailInboxService = new EmailInboxService();
-const sofiaService = new SofiaConciergeService();
 const emailService = new EmailService();
 
 /**
@@ -130,18 +129,15 @@ async function processEmailsThroughSofia() {
           }
         }
 
-        const context = {
-          tenantId,
-          propertyId: propertyId,
-          sessionId: `email_${email.id}`,
-          guestId: email.guestId ?? undefined,
-        };
-
+        const sessionId = `email_${email.id}`;
         const message = email.textBody ?? email.htmlBody ?? email.subject;
-        const sofiaResponse = await sofiaService.processMessage(
+        const sofiaResponse = await processSofiaConciergeMessage(
           {
             message,
-            context,
+            sessionId,
+            tenantId,
+            propertyId,
+            guestId: email.guestId ?? undefined,
             language: 'en',
             channel: 'EMAIL',
             emailData: {

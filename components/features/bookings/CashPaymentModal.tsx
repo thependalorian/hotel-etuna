@@ -105,7 +105,7 @@ export function CashPaymentModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 sm:mx-auto overflow-hidden">
         {/* Header */}
         <div className="bg-terracotta-600 text-white px-6 py-4">
           <h2 className="text-xl font-semibold">Mark Cash Payment as Paid</h2>

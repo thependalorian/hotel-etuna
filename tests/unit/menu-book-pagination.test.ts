@@ -25,16 +25,16 @@ const item = (id: string): PublicMenuItem => ({
 });
 
 describe('menu-book-pagination', () => {
-  it('uses 2×2 grid (4 items) for food categories', () => {
+  it('uses 2×3 grid (6 items) for food categories', () => {
     expect(getMenuBookLayout('Main Course')).toBe('grid');
     expect(getItemsPerBookFace('Pizza')).toBe(FOOD_GRID_ITEMS_PER_FACE);
-    expect(FOOD_GRID_ITEMS_PER_FACE).toBe(4);
+    expect(FOOD_GRID_ITEMS_PER_FACE).toBe(6);
 
     const { chunks } = buildMenuBookChunkPlan(
-      [item('1'), item('2'), item('3'), item('4'), item('5')],
+      [item('1'), item('2'), item('3'), item('4'), item('5'), item('6'), item('7')],
       'Main Course',
     );
-    expect(chunks[0]).toHaveLength(4);
+    expect(chunks[0]).toHaveLength(6);
     expect(chunks[1]).toHaveLength(1);
   });
 
@@ -53,7 +53,7 @@ describe('menu-book-pagination', () => {
         description: null,
         serviceLabel: 'All day',
         imageSrc: '/x.jpg',
-        items: [item('1'), item('2'), item('3'), item('4'), item('5')],
+        items: [item('1'), item('2'), item('3'), item('4'), item('5'), item('6'), item('7')],
       },
       {
         id: 'c2',

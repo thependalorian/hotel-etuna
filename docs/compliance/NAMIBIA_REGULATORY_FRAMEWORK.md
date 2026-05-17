@@ -53,6 +53,8 @@ Code: `lib/platform/namibia-tax.ts`, `lib/platform/settlement-accounts.ts`.
 
 **Authoritative sources (public):** [NamibLII](https://namiblii.org), [NamRA](https://www.namra.org.na), [NTB](https://www.namibiatourism.com.na), [FIC](https://www.fic.na), [BoN](https://www.bon.com.na).
 
+**Engineering corpus (full text, repo):** `mba-agent/documents/mba-agent/regulatory/namibia/` — indexed in **PRD Appendix F** (May 2026).
+
 ---
 
 ## 4. Payment system stack (Buffr + Etuna)
@@ -98,8 +100,21 @@ Platform fees  ──► Buffr invoice (B2B VAT) ──► Bank Windhoek
 | `policies/DATA_RETENTION_POLICY.md` | ✅ |
 | `policies/ACCEPTABLE_USE_POLICY.md` | ✅ |
 | `policies/CHANGE_MANAGEMENT_POLICY.md` | ✅ |
+| `policies/DATA_CLASSIFICATION_POLICY.md` | ✅ |
+| `policies/VENDOR_MANAGEMENT_POLICY.md` | ✅ |
+| `policies/ASSET_MANAGEMENT_POLICY.md` | ✅ |
+| `policies/CRYPTOGRAPHY_POLICY.md` | ✅ |
+| `policies/PASSWORD_POLICY.md` | ✅ |
+| `policies/REMOTE_ACCESS_POLICY.md` | ✅ |
+| `policies/PHYSICAL_SECURITY_POLICY.md` | ✅ |
+| `policies/NETWORK_SECURITY_POLICY.md` | ✅ |
+| `policies/LOGGING_AND_MONITORING_POLICY.md` | ✅ |
+| `policies/BACKUP_POLICY.md` | ✅ |
+| `policies/HR_SECURITY_POLICY.md` | ✅ |
+| `policies/TRAINING_POLICY.md` | ✅ |
+| `policies/CODE_OF_CONDUCT.md` | ✅ |
 | `policies/POLICY_TEMPLATE.md` | ✅ |
-| Remaining 13 SOC 2 policies | ⏳ Week 4 per [`README.md`](README.md) |
+| Executive sign-off (all 21) | ⏳ Collect in `compliance/evidence/policies/` |
 
 ### Public-facing legal
 
@@ -123,7 +138,7 @@ Platform fees  ──► Buffr invoice (B2B VAT) ──► Bank Windhoek
 | G-05 | FIC STR filing workflow (not only internal STR table) | Compliance | Q2 2026 |
 | G-06 | Cookie consent banner (ETA/GDPR-aligned) | Product | Q2 2026 |
 | G-07 | Immigration guest register (if required for foreign guests) | Operations | Counsel confirm |
-| G-08 | 13 remaining SOC 2 policies + executive sign-off | CTO | Week 4–8 |
+| G-08 | Executive sign-off on 21 SOC 2 policies (drafts complete May 17) | CEO + CTO | Week 4–8 |
 | G-09 | Vendor SOC 2 / PCI attestations in `vendor-attestations/` | CTO | Week 8 |
 
 ---
@@ -138,7 +153,7 @@ cd hotel-etuna && npm run security:preflight
 
 Run **§14 Master Security Review** and **§15 Deployment Pre-Flight** from [`docs/SECURITY_PROMPT_PACK.md`](../SECURITY_PROMPT_PACK.md). Evidence: `compliance/evidence/security/preflight-YYYY-MM-DD.json`.
 
-**Last preflight:** May 16, 2026 — 12/12 pass, 0 critical npm audit findings.
+**Last preflight:** May 17, 2026 — 12/12 pass, 0 critical npm audit (`compliance/evidence/security/preflight-2026-05-17.json`).
 
 ---
 
@@ -147,5 +162,8 @@ Run **§14 Master Security Review** and **§15 Deployment Pre-Flight** from [`do
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | May 16, 2026 | CTO | Initial Namibia framework index |
+| 1.1 | May 17, 2026 | Product / compliance | PRD §3.7 cross-ref; BoN mba-agent corpus index; fraud unified (`tenant-fraud-rules` + 0016 on initiate) |
+| 1.2 | May 17, 2026 | Engineering | Preflight 12/12; fail-closed fraud gate in production |
+| 1.3 | May 17, 2026 | CTO | 13 remaining SOC 2 policies published under `policies/` |
 
 **Next review:** August 2026 (post NamRA e-invoicing guidance)

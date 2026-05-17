@@ -97,7 +97,7 @@ export default function StaffCard({
         </div>
 
         {/* Stats Row */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
           <div className="text-center p-2 bg-nude-50 rounded-lg">
             <p className="text-xs text-nude-600 mb-1">Shifts</p>
             <p className="font-display text-lg font-bold text-nude-900">0</p>

@@ -60,7 +60,7 @@ export function Soc2AuditPanel() {
 
       {report && (
         <div className="space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
             <div className="rounded-lg bg-nude-50 border border-nude-200 p-3 text-center">
               <p className="text-xs text-nude-600">Score</p>
               <p className="text-2xl font-bold">{report.overallScorePercent}%</p>

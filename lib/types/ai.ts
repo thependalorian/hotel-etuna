@@ -1,3 +1,4 @@
+/** Matches `ai_conversations` lookup keys (tenant_id + session_id). */
 export interface ConversationContext {
   tenantId: string;
   propertyId?: string;
