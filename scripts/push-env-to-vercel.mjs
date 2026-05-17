@@ -13,6 +13,8 @@
  * Run:
  *   npm run env:push-vercel
  *   npm run env:push-vercel -- --dry-run
+ *   npm run env:push-vercel:new     # only add keys missing on Vercel
+ *   npm run env:push-vercel -- --force   # rm + re-add all (fixes sensitive var updates)
  *
  * Location: scripts/push-env-to-vercel.mjs
  */
@@ -26,6 +28,8 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const localPath = path.join(root, '.env.local');
 const PROD_URL = process.env.VERCEL_PRODUCTION_URL || 'https://hoteletuna.com';
 const DRY_RUN = process.argv.includes('--dry-run');
+const NEW_ONLY = process.argv.includes('--new-only');
+const FORCE_RECREATE = process.argv.includes('--force');
 
 const ENV_TARGETS = ['production', 'preview'];
 
@@ -102,20 +106,46 @@ function listRemoteKeys(target) {
   return keys;
 }
 
-function setRemote(key, value, target, exists) {
-  const cmd = exists ? 'update' : 'add';
-  const args = ['env', cmd, key, target, '-y', '--sensitive'];
-  const r = spawnSync('vercel', args, {
+function runVercel(args, value) {
+  return spawnSync('vercel', args, {
     cwd: root,
     input: value,
     encoding: 'utf8',
     stdio: ['pipe', 'pipe', 'pipe'],
   });
+}
+
+function removeRemote(key, target) {
+  return runVercel(['env', 'rm', key, target, '-y']);
+}
+
+function addRemote(key, value, target) {
+  const r = runVercel(['env', 'add', key, target, '-y', '--sensitive'], value);
   if (r.status !== 0) {
-    const err = (r.stderr || r.stdout || '').trim();
-    throw new Error(`${cmd} ${key} (${target}): ${err}`);
+    throw new Error(`add ${key} (${target}): ${(r.stderr || r.stdout || '').trim()}`);
   }
-  return cmd;
+  return 'add';
+}
+
+function setRemote(key, value, target, exists) {
+  if (!exists) return addRemote(key, value, target);
+
+  if (NEW_ONLY) return 'skip';
+
+  if (FORCE_RECREATE) {
+    removeRemote(key, target);
+    return addRemote(key, value, target);
+  }
+
+  const r = runVercel(['env', 'update', key, target, '-y', '--sensitive'], value);
+  if (r.status === 0) return 'update';
+
+  const err = (r.stderr || r.stdout || '').trim();
+  if (err.includes('Sensitive Environment Variable')) {
+    removeRemote(key, target);
+    return addRemote(key, value, target);
+  }
+  throw new Error(`update ${key} (${target}): ${err}`);
 }
 
 if (!fs.existsSync(localPath)) {
@@ -158,7 +188,8 @@ for (const target of ENV_TARGETS) {
           : raw;
 
     if (DRY_RUN) {
-      const action = remote.has(key) ? 'update' : 'add';
+      const action =
+        remote.has(key) && NEW_ONLY ? 'skip' : remote.has(key) ? 'update' : 'add';
       process.stdout.write(`  [dry-run] ${action} ${key}\n`);
       ok += 1;
       continue;
@@ -166,6 +197,7 @@ for (const target of ENV_TARGETS) {
 
     try {
       const action = setRemote(key, value, target, remote.has(key));
+      if (action === 'skip') continue;
       if (!remote.has(key)) remote.add(key);
       ok += 1;
       process.stdout.write(`  ${action} ${key}\n`);

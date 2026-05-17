@@ -46,6 +46,7 @@
     "env:sync": "node scripts/sync-env-local.mjs && node scripts/check-env-local.mjs",
     "env:push-vercel": "node scripts/push-env-to-vercel.mjs",
     "env:push-vercel:dry": "node scripts/push-env-to-vercel.mjs --dry-run",
+    "env:push-vercel:new": "node scripts/push-env-to-vercel.mjs --new-only",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "supabase:status": "supabase status"
