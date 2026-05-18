@@ -81,7 +81,11 @@ async function main() {
   if (!hubTenantIdRaw) throw new Error('HUB_TENANT_ID is required.');
 
   const pool = new Pool({ connectionString: databaseUrl });
-  const defaultPassword = process.env.PARTNER_SEED_PASSWORD || 'Test1234!';
+  const defaultPassword = process.env.PARTNER_SEED_PASSWORD;
+if (!defaultPassword) {
+  console.error('❌ PARTNER_SEED_PASSWORD not found in environment. Please set it before running the script.');
+  process.exit(1);
+}
   const defaultPasswordHash = await bcrypt.hash(defaultPassword, 10);
 
   const partners: PartnerSeed[] = [

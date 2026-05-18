@@ -52,7 +52,11 @@ async function getHubTenantId(): Promise<string | null> {
 
 async function main() {
   const { email, linkHub, dryRun } = parseArgs();
-  const password = process.env.PASSWORD || process.env.ADMIN_PASSWORD || 'Test1234!';
+  const password = process.env.PASSWORD || process.env.ADMIN_PASSWORD;
+if (!password) {
+  console.error('❌ PASSWORD or ADMIN_PASSWORD not found in environment. Please set one before running the script.');
+  process.exit(1);
+}
   const passwordHash = bcrypt.hashSync(password, 10);
 
   const hubTenantId = linkHub ? await getHubTenantId() : null;
