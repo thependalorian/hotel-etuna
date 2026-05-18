@@ -9,9 +9,9 @@
 
 **Forked from:** Buffr Host v1.0.0  
 **Version:** 2.0.0 (Hotel Etuna Hub-and-Spoke)  
-**Last Updated:** May 16, 2026
+**Last Updated:** May 18, 2026
 
-**Production:** Deployed on **Vercel** (`hoteletuna.com`). **Canonical docs:** [`docs/project/PRD.md`](docs/project/PRD.md) · [`PLANNING.md`](docs/project/PLANNING.md) · [`TASK.md`](docs/project/TASK.md) (testing, deployment, smoke). Automated tests: **Vitest `334 / 334` passed** (`npm run test`); Playwright E2E: **`npm run test:e2e`**. Sofia RAG uses **Qdrant Cloud Inference** (`intfloat/multilingual-e5-small`, 384d); run `npm run rag:seed` after setting `QDRANT_*` in `.env.local`.
+**Production:** Deployed on **Vercel** (`hoteletuna.com`). **Canonical docs:** [`docs/project/PRD.md`](docs/project/PRD.md) · [`PLANNING.md`](docs/project/PLANNING.md) · [`TASK.md`](docs/project/TASK.md) · [`DOMAINS_AND_PORTALS.md`](docs/project/DOMAINS_AND_PORTALS.md). **Full repo tree (all levels):** [`docs/project/REPO_TREE.txt`](docs/project/REPO_TREE.txt). **Build:** `npm run build` (May 18 — run after pull; legacy `/payments/chargebacks` redirect uses `force-dynamic`). **Lint:** 20 ESLint errors (React Compiler rules) + warnings — see `TASK.md`. Automated tests: `npm run test:ci`. Sofia RAG uses **Qdrant Cloud Inference** (`intfloat/multilingual-e5-small`, 384d); run `npm run rag:seed` after setting `QDRANT_*` in `.env.local`.
 
 ---
 
@@ -86,7 +86,7 @@ Built on a hub-and-spoke multi-tenant architecture with exclusive AI capabilitie
 
 | Category | Technology |
 |----------|------------|
-| **Frontend** | Next.js 14, React 18, TypeScript, Tailwind CSS, DaisyUI |
+| **Frontend** | Next.js 16, React 19, TypeScript, Tailwind CSS, DaisyUI |
 | **Backend** | Next.js API Routes, Middleware (tenant routing) |
 | **Database** | Neon (Serverless PostgreSQL), Drizzle ORM |
 | **Vector DB** | Qdrant (Sofia AI knowledge base) |
@@ -181,6 +181,9 @@ CREATE TABLE tenants (
    NEXT_PUBLIC_STACK_PROJECT_ID=<stack-project-id>
    NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=<stack-key>
    STACK_SECRET_SERVER_KEY=<stack-secret>
+
+   # Admin User Password (required for seeding)
+   ADMIN_PASSWORD=<your-strong-password>
    ```
 
 4. **Apply database migrations** (prefer reviewed SQL migrations; **never confirm** `drizzle-kit push` if it plans mass **`DROP POLICY`** — sync `lib/db/schema.ts` with Neon instead):
@@ -257,7 +260,7 @@ hotel-etuna/
 | `npm run test:e2e` | Run Playwright E2E tests |
 | `npm run test:e2e:ui` | Run Playwright in UI mode |
 | `npm run db:push` | Apply Drizzle migrations |
-| `npm run db:seed` | Seed hub tenant and initial data |
+| `npm run db:seed` | Run the Hotel Etuna seed script (requires ADMIN_PASSWORD env var) |
 
 ### Design System
 

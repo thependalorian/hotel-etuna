@@ -1,11 +1,11 @@
 /**
- * Hotel Etuna Hub Seed Script
- * 
- * Purpose: Populate Hotel Etuna hub with complete operational data
+ * Hotel Etuna operator seed script
+ *
+ * Purpose: Populate the single operator tenant with complete operational data
  * Location: scripts/seed-hotel-etuna.ts
- * 
+ *
  * Includes:
- * - Hub tenant
+ * - Operator tenant
  * - Property details
  * - 5 room types with rates
  * - Restaurant with menu
@@ -36,23 +36,35 @@ const args = process.argv.slice(2);
 const isDryRun = args.includes('--dry');
 const isForce = args.includes('--force');
 
-// Get hub tenant ID from environment (must be UUID if provided)
+// Tenant/property IDs from env (UUID). Legacy HUB_TENANT_ID / DEFAULT_PROPERTY_ID still accepted.
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const configuredHubTenantId = process.env.HUB_TENANT_ID?.trim() ?? '';
-let HUB_TENANT_ID = UUID_REGEX.test(configuredHubTenantId) ? configuredHubTenantId : randomUUID();
+const configuredTenantId =
+  process.env.ETUNA_TENANT_ID?.trim() ||
+  process.env.HUB_TENANT_ID?.trim() ||
+  '';
+const configuredPropertyId =
+  process.env.ETUNA_PROPERTY_ID?.trim() ||
+  process.env.DEFAULT_PROPERTY_ID?.trim() ||
+  '';
+let ETUNA_TENANT_ID = UUID_REGEX.test(configuredTenantId) ? configuredTenantId : randomUUID();
+let PROPERTY_ID = UUID_REGEX.test(configuredPropertyId) ? configuredPropertyId : randomUUID();
 
 // Password for admin user
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Test1234!';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+if (!ADMIN_PASSWORD) {
+  console.error('❌ ADMIN_PASSWORD not found in environment. Please set it before running the seed script.');
+  process.exit(1);
+}
 const PASSWORD_HASH = bcrypt.hashSync(ADMIN_PASSWORD, 10);
 
 // ============================================================================
 // HOTEL ETUNA DATA
 // ============================================================================
 
-const HUB_TENANT = {
-  id: HUB_TENANT_ID,
+const ETUNA_TENANT = {
+  id: ETUNA_TENANT_ID,
   name: 'Hotel Etuna',
-  type: 'hub',
+  type: 'operator',
   status: 'active',
   subscriptionTier: 'enterprise',
   subscriptionStatus: 'active',
@@ -60,28 +72,44 @@ const HUB_TENANT = {
   isEnterprise: true,
 };
 
-async function resolveHubTenantId(): Promise<string> {
-  if (UUID_REGEX.test(configuredHubTenantId)) {
-    return configuredHubTenantId;
+async function resolvePropertyId(tenantId: string): Promise<string> {
+  if (UUID_REGEX.test(configuredPropertyId)) {
+    return configuredPropertyId;
   }
 
-  const existingHubTenant = await sql`
-    SELECT id
-    FROM tenants
-    WHERE type = 'hub'::tenant_type
+  const existing = await sql`
+    SELECT id FROM properties
+    WHERE tenant_id = ${tenantId}::uuid AND slug = 'hotel-etuna'
+    LIMIT 1
+  `;
+  if (existing.length > 0) {
+    return existing[0].id as string;
+  }
+
+  return PROPERTY_ID;
+}
+
+async function resolveEtunaTenantIdFromDb(): Promise<string> {
+  if (UUID_REGEX.test(configuredTenantId)) {
+    return configuredTenantId;
+  }
+
+  const existing = await sql`
+    SELECT id FROM tenants
+    WHERE type = 'operator'::tenant_type
     ORDER BY created_at ASC
     LIMIT 1
   `;
 
-  if (existingHubTenant.length > 0) {
-    return existingHubTenant[0].id as string;
+  if (existing.length > 0) {
+    return existing[0].id as string;
   }
 
   return randomUUID();
 }
 
 const PROPERTY = {
-  id: randomUUID(),
+  id: PROPERTY_ID,
   name: 'Hotel Etuna',
   slug: 'hotel-etuna',
   type: 'hotel',
@@ -223,21 +251,21 @@ async function checkExists(table: string, condition: string, value: string): Pro
 }
 
 async function seedTenant() {
-  console.log('\n🏢 Seeding hub tenant...');
+  console.log('\n🏢 Seeding operator tenant...');
   
   if (isDryRun) {
-    console.log('   [DRY RUN] Would create tenant:', HUB_TENANT.name);
+    console.log('   [DRY RUN] Would create tenant:', ETUNA_TENANT.name);
     return;
   }
   
   try {
     // Check if exists
     const exists = await sql`
-      SELECT id FROM tenants WHERE id = ${HUB_TENANT.id}
+      SELECT id FROM tenants WHERE id = ${ETUNA_TENANT.id}
     `;
     
     if (exists.length > 0 && !isForce) {
-      console.log('   ✓ Hub tenant already exists');
+      console.log('   ✓ Operator tenant already exists');
       return;
     }
     
@@ -246,9 +274,9 @@ async function seedTenant() {
         id, name, type, status, subscription_tier, subscription_status,
         has_restaurant_features, is_enterprise, created_at, updated_at
       ) VALUES (
-        ${HUB_TENANT.id}, ${HUB_TENANT.name}, ${HUB_TENANT.type}::tenant_type,
-        ${HUB_TENANT.status}, ${HUB_TENANT.subscriptionTier}, ${HUB_TENANT.subscriptionStatus},
-        ${HUB_TENANT.hasRestaurantFeatures}, ${HUB_TENANT.isEnterprise}, NOW(), NOW()
+        ${ETUNA_TENANT.id}, ${ETUNA_TENANT.name}, ${ETUNA_TENANT.type}::tenant_type,
+        ${ETUNA_TENANT.status}, ${ETUNA_TENANT.subscriptionTier}, ${ETUNA_TENANT.subscriptionStatus},
+        ${ETUNA_TENANT.hasRestaurantFeatures}, ${ETUNA_TENANT.isEnterprise}, NOW(), NOW()
       )
       ON CONFLICT (id) DO UPDATE SET
         name = EXCLUDED.name,
@@ -256,7 +284,7 @@ async function seedTenant() {
         updated_at = NOW()
     `;
     
-    console.log(`   ✓ Hub tenant created: ${HUB_TENANT.name}`);
+    console.log(`   ✓ Tenant created: ${ETUNA_TENANT.name}`);
   } catch (error) {
     console.error('   ❌ Error creating tenant:', error);
     throw error;
@@ -294,7 +322,7 @@ async function seedProperty() {
         postal_code, star_rating, amenities, check_in_time, check_out_time,
         status, currency, has_restaurant_features, created_at, updated_at
       ) VALUES (
-        ${PROPERTY.id}, ${HUB_TENANT.id}, ${PROPERTY.name}, ${PROPERTY.slug},
+        ${PROPERTY.id}, ${ETUNA_TENANT.id}, ${PROPERTY.name}, ${PROPERTY.slug},
         ${PROPERTY.type}, ${PROPERTY.description}, ${PROPERTY.address}, ${PROPERTY.city},
         ${PROPERTY.state}, ${PROPERTY.country}, ${PROPERTY.postalCode}, ${PROPERTY.starRating},
         ${PROPERTY.amenities}, ${PROPERTY.checkInTime}, ${PROPERTY.checkOutTime},
@@ -536,7 +564,7 @@ async function seedInventoryForRestaurant(restaurantId: string) {
 
       const existingInv = await sql`
         SELECT id FROM inventory_items
-        WHERE tenant_id = ${HUB_TENANT.id} AND sku = ${row.sku}
+        WHERE tenant_id = ${ETUNA_TENANT.id} AND sku = ${row.sku}
         LIMIT 1
       `;
 
@@ -548,7 +576,7 @@ async function seedInventoryForRestaurant(restaurantId: string) {
             id, tenant_id, property_id, restaurant_id, sku, name, unit, category,
             quantity_on_hand, reorder_point, reorder_quantity, is_active, created_at, updated_at
           ) VALUES (
-            ${inventoryItemId}, ${HUB_TENANT.id}, ${PROPERTY.id}, ${restaurantId},
+            ${inventoryItemId}, ${ETUNA_TENANT.id}, ${PROPERTY.id}, ${restaurantId},
             ${row.sku}, ${row.name}, 'each', ${row.category},
             ${row.initialOnHand}, ${row.reorderPoint}, ${row.reorderPoint * 2},
             true, NOW(), NOW()
@@ -607,7 +635,7 @@ async function seedAdminUser() {
         id, tenant_id, email, password_hash, first_name, last_name,
         phone, role, email_verified, created_at, updated_at
       ) VALUES (
-        ${ADMIN_USER.id}, ${HUB_TENANT.id}, ${ADMIN_USER.email}, ${PASSWORD_HASH},
+        ${ADMIN_USER.id}, ${ETUNA_TENANT.id}, ${ADMIN_USER.email}, ${PASSWORD_HASH},
         ${ADMIN_USER.firstName}, ${ADMIN_USER.lastName}, ${ADMIN_USER.phone},
         ${ADMIN_USER.role}, ${ADMIN_USER.emailVerified}, NOW(), NOW()
       )
@@ -629,7 +657,7 @@ async function seedAdminUser() {
 
 async function main() {
   console.log('╔════════════════════════════════════════════════════════════╗');
-  console.log('║   Hotel Etuna Hub - Seed Script                           ║');
+  console.log('║   Hotel Etuna — Operator Seed Script                        ║');
   console.log('╚════════════════════════════════════════════════════════════╝');
   
   if (!process.env.DATABASE_URL) {
@@ -646,9 +674,12 @@ async function main() {
   }
   
   try {
-    HUB_TENANT_ID = await resolveHubTenantId();
-    HUB_TENANT.id = HUB_TENANT_ID;
-    console.log(`\n📍 Hub Tenant ID: ${HUB_TENANT_ID}`);
+    ETUNA_TENANT_ID = await resolveEtunaTenantIdFromDb();
+    ETUNA_TENANT.id = ETUNA_TENANT_ID;
+    PROPERTY_ID = await resolvePropertyId(ETUNA_TENANT_ID);
+    PROPERTY.id = PROPERTY_ID;
+    console.log(`\n📍 Operator tenant ID: ${ETUNA_TENANT_ID}`);
+    console.log(`📍 Property ID: ${PROPERTY_ID} (slug: hotel-etuna)`);
 
     await seedTenant();
     await seedProperty();
@@ -657,12 +688,12 @@ async function main() {
     await seedAdminUser();
     
     console.log('\n╔════════════════════════════════════════════════════════════╗');
-    console.log('║   ✅ Hotel Etuna hub seed completed!                       ║');
+    console.log('║   ✅ Hotel Etuna operator seed completed!                  ║');
     console.log('╚════════════════════════════════════════════════════════════╝');
     
     if (!isDryRun) {
       console.log('\n📊 Summary:');
-      console.log(`   - Tenant: Hotel Etuna (${HUB_TENANT_ID})`);
+      console.log(`   - Tenant: Hotel Etuna (${ETUNA_TENANT_ID})`);
       console.log(`   - Property: ${PROPERTY.name} (${PROPERTY.slug})`);
       console.log(`   - Rooms: ${ROOMS.length} room types`);
       console.log(`   - Restaurant: ${RESTAURANT.name}`);
@@ -674,6 +705,10 @@ async function main() {
       console.log(`   Email: ${ADMIN_USER.email}`);
       console.log(`   Password: ${ADMIN_PASSWORD}`);
       
+      console.log('\n📍 Env (.env.local):');
+      console.log(`   ETUNA_TENANT_ID="${ETUNA_TENANT_ID}"`);
+      console.log(`   ETUNA_PROPERTY_ID="${PROPERTY.id}"`);
+
       console.log('\n📍 Next steps:');
       console.log('   1. Ingest knowledge base: npx tsx scripts/ingest-hotel-etuna-knowledge.ts');
       console.log('   2. Start dev server: npm run dev');
