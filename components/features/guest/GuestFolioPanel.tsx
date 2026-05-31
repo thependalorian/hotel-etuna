@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * GuestFolioPanel
  *
@@ -5,8 +7,7 @@
  * Location: /components/features/guest/GuestFolioPanel.tsx
  */
 
-'use client';
-
+import { apiFetch } from '@/lib/utils/api-fetch';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -14,8 +15,12 @@ import { AdumoVirtualPaymentForm } from '@/components/payments/AdumoVirtualPayme
 import { GuestNamQrPayPanel } from '@/components/features/guest/GuestNamQrPayPanel';
 import { BookingDepositPayCard } from '@/components/payments/BookingDepositPayCard';
 import { FolioVatBreakdown } from '@/components/features/folio/FolioVatBreakdown';
+import { GuestPostStayPanel } from '@/components/features/guest/GuestPostStayPanel';
 import type { FolioSummary } from '@/lib/types/folio';
 import { guestCopy } from '@/lib/copy/guest';
+import { buildGuestRebookUrl, suggestRebookDates } from '@/lib/guest/rebook-url';
+
+
 
 type MenuItem = {
   id: string;
@@ -69,8 +74,8 @@ export function GuestFolioPanel({
     setError(null);
     try {
       const [folioRes, menuRes] = await Promise.all([
-        fetch(`/api/guest/stays/${bookingId}/folio`),
-        fetch(`/api/guest/stays/${bookingId}/menu`),
+        apiFetch(`/api/guest/stays/${bookingId}/folio`),
+        apiFetch(`/api/guest/stays/${bookingId}/menu`),
       ]);
       const folioJson = await folioRes.json();
       const menuJson = await menuRes.json();
@@ -118,7 +123,7 @@ export function GuestFolioPanel({
     setBusy(true);
     setMessage(null);
     try {
-      const res = await fetch(`/api/guest/stays/${bookingId}/orders`, {
+      const res = await apiFetch(`/api/guest/stays/${bookingId}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -152,7 +157,7 @@ export function GuestFolioPanel({
         paymentMethod: 'cash' as const,
         amountPaid,
       };
-      const res = await fetch(`/api/guest/stays/${bookingId}/settle`, {
+      const res = await apiFetch(`/api/guest/stays/${bookingId}/settle`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -173,7 +178,7 @@ export function GuestFolioPanel({
     setBusy(true);
     setMessage(null);
     try {
-      const res = await fetch('/api/guest/loyalty/redeem', {
+      const res = await apiFetch('/api/guest/loyalty/redeem', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -414,6 +419,25 @@ export function GuestFolioPanel({
         <p className="text-sm text-nude-600">
           Room service and folio payment are available once you are checked in.
         </p>
+      )}
+
+      {isPastStay && folio && (
+        <GuestPostStayPanel
+          bookingId={bookingId}
+          postStay={{
+            isPastStay: true,
+            invoiceAvailable: true,
+            invoiceDownloadPath: `/api/guest/stays/${bookingId}/invoice?format=html`,
+            rebookUrl: buildGuestRebookUrl({
+              propertyId: folio.propertyId || '',
+              ...suggestRebookDates(
+                folio.checkInDate || new Date().toISOString().slice(0, 10),
+                folio.checkOutDate || new Date().toISOString().slice(0, 10)
+              ),
+            }),
+            reviewUrl: `https://g.page/r/YOUR_GOOGLE_REVIEW_LINK/review`,
+          }}
+        />
       )}
     </div>
   );

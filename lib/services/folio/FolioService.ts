@@ -88,9 +88,52 @@ export class FolioService {
         folioClosedAt: booking.folioClosedAt,
         bookingStatus: booking.status ?? 'pending',
         roomPaymentStatus: booking.paymentStatus,
+        propertyId: booking.propertyId,
+        checkInDate: booking.checkInDate,
+        checkOutDate: booking.checkOutDate,
       };
     } catch (error) {
       throw handleServiceError(error, 'Error loading folio');
+    }
+  }
+
+  /** Staff-posted folio line (desk / J-S3). */
+  async postStaffCharge(
+    bookingId: string,
+    tenantId: string,
+    input: {
+      description: string;
+      amountNad: number;
+      chargeType?: 'fnb' | 'adjustment' | 'tax';
+      createdByUserId?: string;
+    }
+  ): Promise<{ chargeId: string }> {
+    try {
+      const { booking } = await loadBookingWithGuest(bookingId);
+      if (booking.tenantId !== tenantId) {
+        throw new AppError(403, 'Forbidden');
+      }
+      const chargeType = input.chargeType ?? 'adjustment';
+      const [row] = await db
+        .insert(bookingCharges)
+        .values({
+          tenantId,
+          bookingId,
+          chargeType,
+          description: input.description,
+          amount: input.amountNad.toFixed(2),
+          currency: booking.currency ?? 'NAD',
+          status: 'open',
+          createdBy: input.createdByUserId ?? null,
+        })
+        .returning({ id: bookingCharges.id });
+      if (!row) {
+        throw new AppError(500, 'Failed to create folio charge');
+      }
+      return { chargeId: row.id };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      throw handleServiceError(error, 'Error posting staff folio charge');
     }
   }
 
@@ -281,6 +324,7 @@ export class FolioService {
       gatewayTransactionId?: string;
       /** Buffr commercial / settlement tags (from Adumo Virtual confirm) */
       paymentMetadata?: Record<string, unknown>;
+      corporateAr?: boolean;
     }
   ): Promise<{
     amountSettled: number;
@@ -321,7 +365,7 @@ export class FolioService {
       const transactionReference =
         input.gatewayTransactionId ?? `FOLIO-${Date.now()}`;
       const now = new Date();
-      const pointsEarned = Math.floor(amountSettled / 10);
+      const pointsEarned = input.corporateAr ? 0 : Math.floor(amountSettled / 10);
       const balanceRemaining = Math.round((balanceDue - amountSettled) * 100) / 100;
       const folioClosed = balanceRemaining <= 0;
 
@@ -334,7 +378,7 @@ export class FolioService {
             tenantId: booking.tenantId!,
             bookingId: booking.id,
             guestId: guest.id,
-            transactionReference: `TX-${transactionReference}`,
+            transactionReference: `TX-${booking.id.slice(0, 8)}-${transactionReference}`,
             type: 'folio_settlement',
             amount: amountSettled.toFixed(2),
             currency: booking.currency ?? 'NAD',
@@ -379,6 +423,17 @@ export class FolioService {
             .update(bookings)
             .set({
               folioClosedAt: now,
+              paymentStatus: input.corporateAr ? 'invoiced' : 'paid',
+              billingSnapshot: input.corporateAr
+                ? ({
+                    ...(booking.billingSnapshot ?? {}),
+                    settlement: {
+                      mode: 'corporate_ar',
+                      settledAt: now.toISOString(),
+                      reference: transactionReference,
+                    },
+                  } as Record<string, unknown>)
+                : booking.billingSnapshot,
               updatedAt: now,
             })
             .where(eq(bookings.id, bookingId));

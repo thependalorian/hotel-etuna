@@ -1,3 +1,8 @@
+import type {
+  GuestPreArrivalDto,
+  GuestServiceRequestDto,
+} from '@/lib/services/guest/guest-portal-types';
+
 export type BookingChargeType = 'room' | 'fnb' | 'tax' | 'adjustment' | 'payment';
 
 export type BookingChargeStatus = 'open' | 'settled' | 'refunded';
@@ -53,6 +58,12 @@ export type FolioSummary = {
   folioClosedAt: Date | null;
   bookingStatus: BookingStatus | string;
   roomPaymentStatus: string | null;
+  billingParty?: string | null;
+  corporateBillToName?: string | null;
+  purchaseOrderRef?: string | null;
+  propertyId: string | null;
+  checkInDate: string | null;
+  checkOutDate: string | null;
 };
 
 export type GuestStaySummary = {
@@ -113,6 +124,40 @@ export type GuestStaysHubPayload = {
   paymentDue: GuestPaymentDueSummary[];
   pastStays: GuestPastStaySummary[];
   loyalty: GuestLoyaltyHubSummary | null;
+};
+
+export type GuestPostStayMeta = {
+  isPastStay: boolean;
+  invoiceAvailable: boolean;
+  invoiceDownloadPath: string | null;
+  rebookUrl: string | null;
+  reviewUrl: string;
+};
+
+export type GuestStayMenuItem = {
+  id: string;
+  name: string;
+  price: string;
+  currency?: string;
+  description: string | null;
+  isAvailable: boolean;
+};
+
+export type GuestStayMenuPayload = {
+  restaurant: { name: string };
+  categories: Array<{ id: string; name: string }>;
+  itemsByCategory: Record<string, GuestStayMenuItem[]>;
+};
+
+export type GuestStayHubPayload = {
+  booking: GuestBookingAccess;
+  folio: FolioSummary;
+  preArrival: GuestPreArrivalDto | null;
+  serviceRequests: GuestServiceRequestDto[];
+  openServiceRequests: GuestServiceRequestDto[];
+  loyalty: GuestLoyaltyHubSummary | null;
+  menu: GuestStayMenuPayload | null;
+  postStay: GuestPostStayMeta;
 };
 
 export type RoomServiceOrderItemInput = {
