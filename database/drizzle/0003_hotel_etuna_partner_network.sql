@@ -7,7 +7,7 @@
 -- ============================================================================
 
 DO $$ BEGIN
-  CREATE TYPE "tenant_type" AS ENUM ('hub', 'partner');
+  CREATE TYPE "tenant_type" AS ENUM ('operator', 'hub', 'partner');
 EXCEPTION
   WHEN duplicate_object THEN null;
 END $$;
@@ -16,8 +16,8 @@ END $$;
 -- STEP 2: Add new columns to tenants table
 -- ============================================================================
 
--- Add type column (hub vs partner)
-ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "type" "tenant_type" NOT NULL DEFAULT 'hub';
+-- Add type column (operator/hub vs partner)
+ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "type" "tenant_type" NOT NULL DEFAULT 'operator';
 
 -- Add parent_tenant_id for partner -> hub relationship
 ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "parent_tenant_id" uuid;
@@ -105,26 +105,42 @@ CREATE INDEX IF NOT EXISTS "idx_partner_invites_expires_at" ON "partner_invites"
 -- ============================================================================
 
 -- Ensure commission_percent is between 0 and 100
-ALTER TABLE "tenants" ADD CONSTRAINT IF NOT EXISTS "tenants_commission_percent_check" 
-  CHECK ("commission_percent" >= 0 AND "commission_percent" <= 100);
+DO $$ BEGIN
+  ALTER TABLE "tenants" ADD CONSTRAINT "tenants_commission_percent_check" 
+    CHECK ("commission_percent" >= 0 AND "commission_percent" <= 100);
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
 
 -- Ensure commission_amount is non-negative
-ALTER TABLE "bookings" ADD CONSTRAINT IF NOT EXISTS "bookings_commission_amount_check" 
-  CHECK ("commission_amount" IS NULL OR "commission_amount" >= 0);
+DO $$ BEGIN
+  ALTER TABLE "bookings" ADD CONSTRAINT "bookings_commission_amount_check" 
+    CHECK ("commission_amount" IS NULL OR "commission_amount" >= 0);
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
 
--- Hub tenants cannot have a parent
-ALTER TABLE "tenants" ADD CONSTRAINT IF NOT EXISTS "tenants_hub_no_parent_check" 
-  CHECK (("type" = 'hub' AND "parent_tenant_id" IS NULL) OR "type" = 'partner');
+-- Operator/Hub tenants cannot have a parent
+DO $$ BEGIN
+  ALTER TABLE "tenants" ADD CONSTRAINT "tenants_hub_no_parent_check" 
+    CHECK (("type" IN ('operator', 'hub') AND "parent_tenant_id" IS NULL) OR "type" = 'partner');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
 
 -- Partner tenants must have a parent
-ALTER TABLE "tenants" ADD CONSTRAINT IF NOT EXISTS "tenants_partner_has_parent_check" 
-  CHECK (("type" = 'partner' AND "parent_tenant_id" IS NOT NULL) OR "type" = 'hub');
+DO $$ BEGIN
+  ALTER TABLE "tenants" ADD CONSTRAINT "tenants_partner_has_parent_check" 
+    CHECK (("type" = 'partner' AND "parent_tenant_id" IS NOT NULL) OR "type" IN ('operator', 'hub'));
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
 
 -- ============================================================================
 -- STEP 8: Add comments for documentation
 -- ============================================================================
 
-COMMENT ON COLUMN "tenants"."type" IS 'Tenant type: hub (Hotel Etuna) or partner (referral properties)';
+COMMENT ON COLUMN "tenants"."type" IS 'Tenant type: operator (Hotel Etuna main), hub (deprecated), or partner (referral properties)';
 COMMENT ON COLUMN "tenants"."parent_tenant_id" IS 'For partners: references the hub tenant (Hotel Etuna)';
 COMMENT ON COLUMN "tenants"."commission_percent" IS 'Commission percentage for partner bookings (0-100)';
 COMMENT ON COLUMN "bookings"."commission_amount" IS 'Commission amount retained by hub for partner bookings';
