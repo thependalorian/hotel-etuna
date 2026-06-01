@@ -30,6 +30,7 @@ import {
   ClipboardCheck,
   QrCode,
   Banknote,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { HotelEtunaLogo } from '@/components/brand/HotelEtunaLogo';
@@ -47,6 +48,7 @@ const navItems: NavItem[] = [
   { href: "/properties", label: "Properties", icon: Building2, section: "Operations" },
   { href: "/rooms", label: "Rooms", icon: BedDouble, section: "Operations" },
   { href: "/bookings", label: "Bookings", icon: Calendar, section: "Operations" },
+  { href: "/housekeeping", label: "Housekeeping", icon: Sparkles, section: "Operations" },
   { href: "/payments/desk", label: "Payments desk", icon: QrCode, section: "Operations" },
   { href: "/payments/reconciliation", label: "Cash reconciliation", icon: Banknote, section: "Operations" },
   { href: "/restaurant/orders", label: "Restaurant orders", icon: UtensilsCrossed, section: "Operations" },

@@ -1,7 +1,7 @@
 /**
- * Guest Loyalty Redemption API
+ * Guest Loyalty API
  * 
- * POST /api/guest/loyalty/redeem - Redeem points for a reward
+ * GET /api/guest/loyalty - Get guest's loyalty balance and transaction history
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -12,22 +12,12 @@ import { and, eq } from 'drizzle-orm';
 
 const loyaltyService = new LoyaltyService();
 
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
     const context = await getCurrentUserTenantContext();
     
     if (!context) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const body = await req.json();
-    const { rewardId } = body;
-
-    if (!rewardId) {
-      return NextResponse.json(
-        { error: 'Reward ID is required' },
-        { status: 400 }
-      );
     }
 
     // Find guest by email
@@ -51,26 +41,26 @@ export async function POST(req: NextRequest) {
 
     const guest = guestResult[0];
 
-    // Redeem the reward
-    const redemption = await loyaltyService.redeemReward({
-      guestId: guest.id,
-      rewardId,
-      tenantId: context.tenantId,
-    });
-
-    // Get updated balance
+    // Get balance and tier info
     const balance = await loyaltyService.getGuestBalance(guest.id, context.tenantId);
+
+    // Get recent transactions
+    const transactions = await loyaltyService.getGuestTransactions(guest.id, context.tenantId, 20);
+
+    // Get redemptions
+    const redemptions = await loyaltyService.getGuestRedemptions(guest.id, context.tenantId);
 
     return NextResponse.json({
       success: true,
-      redemption,
       balance,
-      message: 'Reward redeemed successfully',
-    }, { status: 201 });
+      transactions,
+      redemptions,
+      pointsValue: loyaltyService.calculatePointsValue(balance.points),
+    });
   } catch (error: any) {
-    console.error('Error redeeming reward:', error);
+    console.error('Error fetching guest loyalty:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to redeem reward' },
+      { error: error.message || 'Failed to fetch loyalty information' },
       { status: error.status || 500 }
     );
   }
