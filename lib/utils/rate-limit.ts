@@ -54,6 +54,10 @@ export const RATE_LIMITS = {
   // Meta WhatsApp webhooks (burst-friendly; signature verification is primary gate)
   '/api/webhooks/whatsapp': { requests: 300, window: '1 m' },
 
+  // Introducer partners - public endpoints
+  '/api/introducers/validate': { requests: 30, window: '1 m' },
+  '/api/introducers/public': { requests: 60, window: '1 m' },
+
   // General API endpoints
   default: { requests: 100, window: '1 m' },
 } as const;

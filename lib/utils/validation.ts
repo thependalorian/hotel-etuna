@@ -277,9 +277,26 @@ export const ragIngestBodySchema = z
     path: ['text'],
   });
 
+// Introducer Partners validation schemas
+export const validateIntroducerCodeSchema = z.object({
+  code: z.string().min(1, 'Introducer code is required').max(50),
+});
 
+export const createIntroducerSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(255),
+  code: z.string().min(1, 'Code is required').max(50).regex(/^[A-Z0-9_-]+$/, 'Code must be uppercase alphanumeric with hyphens/underscores').transform(val => val.toUpperCase()),
+  email: z.string().email('Invalid email address').max(255).optional(),
+  phone: z.string().max(50).optional(),
+  commissionRate: z.number().min(0, 'Commission rate cannot be negative').max(100, 'Commission rate cannot exceed 100%'),
+  isActive: z.boolean().default(true),
+  showInPublicDirectory: z.boolean().default(false),
+  bio: z.string().max(2000).optional(),
+  website: z.string().url('Invalid website URL').max(500).optional(),
+  logoUrl: z.string().url('Invalid logo URL').max(500).optional(),
+  propertyId: entityIdOptional(),
+});
 
-
+export const updateIntroducerSchema = createIntroducerSchema.partial();
 
 
 

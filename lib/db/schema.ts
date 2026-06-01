@@ -79,6 +79,45 @@ export const StaffStatus = {
   TERMINATED: 'terminated',
 } as const;
 
+export const housekeepingTaskTypeEnum = pgEnum('housekeeping_task_type', [
+  'checkout_clean',
+  'stayover',
+  'deep_clean',
+  'maintenance',
+]);
+
+export const housekeepingTaskStatusEnum = pgEnum('housekeeping_task_status', [
+  'dirty',
+  'cleaning',
+  'inspecting',
+  'clean',
+  'cancelled',
+]);
+
+export const housekeepingTaskPriorityEnum = pgEnum('housekeeping_task_priority', [
+  'low',
+  'normal',
+  'high',
+  'urgent',
+]);
+
+/** For UI: Object.values(HousekeepingTaskStatus) for select options */
+export const HousekeepingTaskStatus = {
+  DIRTY: 'dirty',
+  CLEANING: 'cleaning',
+  INSPECTING: 'inspecting',
+  CLEAN: 'clean',
+  CANCELLED: 'cancelled',
+} as const;
+
+/** For UI: Object.values(HousekeepingTaskPriority) for select options */
+export const HousekeepingTaskPriority = {
+  LOW: 'low',
+  NORMAL: 'normal',
+  HIGH: 'high',
+  URGENT: 'urgent',
+} as const;
+
 export const loyaltyTierEnum = pgEnum('loyalty_tier', [
   'bronze',
   'silver',
@@ -406,71 +445,6 @@ export const roomQrCodes = pgTable('room_qr_codes', {
 }));
 
 // ============================================================================
-// HOUSEKEEPING SYSTEM
-// ============================================================================
-
-export const hkTaskTypeEnum = pgEnum('hk_task_type', [
-  'checkout_clean',
-  'stayover',
-  'deep_clean',
-  'maintenance',
-]);
-
-export const hkTaskStatusEnum = pgEnum('hk_task_status', [
-  'pending',
-  'in_progress',
-  'inspection',
-  'completed',
-  'cancelled',
-]);
-
-export const hkTaskPriorityEnum = pgEnum('hk_task_priority', [
-  'low',
-  'normal',
-  'high',
-  'urgent',
-]);
-
-export const hkTasks = pgTable('hk_tasks', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
-  propertyId: uuid('property_id').references(() => properties.id, { onDelete: 'cascade' }).notNull(),
-  roomId: uuid('room_id').references(() => rooms.id, { onDelete: 'cascade' }).notNull(),
-  bookingId: uuid('booking_id').references(() => bookings.id, { onDelete: 'set null' }),
-  
-  taskType: hkTaskTypeEnum('task_type').notNull().default('checkout_clean'),
-  status: hkTaskStatusEnum('status').notNull().default('pending'),
-  priority: hkTaskPriorityEnum('priority').notNull().default('normal'),
-  
-  notes: text('notes'),
-  assignedTo: uuid('assigned_to').references(() => users.id, { onDelete: 'set null' }),
-  
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  startedAt: timestamp('started_at', { withTimezone: true }),
-  completedAt: timestamp('completed_at', { withTimezone: true }),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-}, (table) => ({
-  tenantStatusIdx: index('idx_hk_tasks_tenant_status').on(table.tenantId, table.status, table.createdAt),
-  roomIdx: index('idx_hk_tasks_room').on(table.tenantId, table.roomId),
-  assignedIdx: index('idx_hk_tasks_assigned').on(table.tenantId, table.assignedTo),
-  propertyIdx: index('idx_hk_tasks_property').on(table.tenantId, table.propertyId),
-}));
-
-export const hkTaskPhotos = pgTable('hk_task_photos', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
-  taskId: uuid('task_id').references(() => hkTasks.id, { onDelete: 'cascade' }).notNull(),
-  
-  photoUrl: text('photo_url').notNull(),
-  caption: text('caption'),
-  uploadedBy: uuid('uploaded_by').references(() => users.id, { onDelete: 'set null' }),
-  
-  uploadedAt: timestamp('uploaded_at', { withTimezone: true }).notNull().defaultNow(),
-}, (table) => ({
-  taskIdx: index('idx_hk_task_photos_task').on(table.taskId, table.uploadedAt),
-}));
-
-// ============================================================================
 // BOOKING SYSTEM
 // ============================================================================
 
@@ -506,6 +480,7 @@ export const bookings = pgTable('bookings', {
   tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }),
   propertyId: uuid('property_id').references(() => properties.id, { onDelete: 'cascade' }),
   guestId: uuid('guest_id').references(() => guests.id, { onDelete: 'cascade' }),
+  introducerId: uuid('introducer_id').references(() => introducers.id, { onDelete: 'set null' }),
   bookingReference: varchar('booking_reference', { length: 100 }).unique().notNull(),
   status: varchar('status', { length: 50 }).default('confirmed'),
   checkInDate: date('check_in_date').notNull(),
@@ -537,6 +512,7 @@ export const bookings = pgTable('bookings', {
   statusIdx: index('idx_bookings_status').on(table.status),
   checkInIdx: index('idx_bookings_check_in_date').on(table.checkInDate),
   paymentMethodIdx: index('idx_bookings_payment_method').on(table.paymentMethod),
+  introducerIdx: index('idx_bookings_introducer_id').on(table.introducerId),
 }));
 
 export const bookingRooms = pgTable('booking_rooms', {
@@ -847,6 +823,40 @@ export const staffShifts = pgTable('staff_shifts', {
 }));
 
 // ============================================================================
+// HOUSEKEEPING TASKS — Mobile PWA for room cleaning workflow
+// ============================================================================
+
+export const housekeepingTasks = pgTable('housekeeping_tasks', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  propertyId: uuid('property_id').references(() => properties.id, { onDelete: 'cascade' }).notNull(),
+  roomId: uuid('room_id').references(() => rooms.id, { onDelete: 'cascade' }).notNull(),
+  bookingId: uuid('booking_id').references(() => bookings.id, { onDelete: 'set null' }),
+  
+  taskType: housekeepingTaskTypeEnum('task_type').default('checkout_clean').notNull(),
+  status: housekeepingTaskStatusEnum('status').default('dirty').notNull(),
+  priority: housekeepingTaskPriorityEnum('priority').default('normal').notNull(),
+  
+  notes: text('notes'),
+  inspectionNotes: text('inspection_notes'),
+  assignedTo: uuid('assigned_to').references(() => users.id, { onDelete: 'set null' }),
+  
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  startedAt: timestamp('started_at', { withTimezone: true }),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  
+  createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+  updatedBy: uuid('updated_by').references(() => users.id, { onDelete: 'set null' }),
+}, (table) => ({
+  propertyStatusIdx: index('idx_housekeeping_tasks_property_status').on(table.propertyId, table.status),
+  roomIdx: index('idx_housekeeping_tasks_room').on(table.roomId),
+  assignedIdx: index('idx_housekeeping_tasks_assigned').on(table.assignedTo, table.status),
+  bookingIdx: index('idx_housekeeping_tasks_booking').on(table.bookingId),
+  tenantIdx: index('idx_housekeeping_tasks_tenant').on(table.tenantId),
+}));
+
+// ============================================================================
 // COMPLIANCE — KYC / KYB (LangGraph-backed workflows, manual review queue)
 // ============================================================================
 
@@ -1082,31 +1092,6 @@ export type RestaurantOrderItem = typeof restaurantOrderItems.$inferSelect;
 export type NewRestaurantOrderItem = typeof restaurantOrderItems.$inferInsert;
 
 // ============================================================================
-// F&B PRINT JOBS (0032)
-// ============================================================================
-
-export const fnbPrintJobs = pgTable('fnb_print_jobs', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
-  orderId: uuid('order_id').references(() => restaurantOrders.id, { onDelete: 'cascade' }).notNull(),
-  station: varchar('station', { length: 20 }).notNull(),
-  status: varchar('status', { length: 20 }).default('pending').notNull(),
-  ticketContent: jsonb('ticket_content').notNull(),
-  printerUrl: text('printer_url'),
-  printedAt: timestamp('printed_at', { withTimezone: true }),
-  error: text('error'),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
-}, (table) => ({
-  orderIdx: index('idx_print_jobs_order').on(table.tenantId, table.orderId),
-  statusIdx: index('idx_print_jobs_status').on(table.tenantId, table.status, table.createdAt),
-  stationIdx: index('idx_print_jobs_station').on(table.tenantId, table.station, table.status),
-}));
-
-export type FnbPrintJob = typeof fnbPrintJobs.$inferSelect;
-export type NewFnbPrintJob = typeof fnbPrintJobs.$inferInsert;
-
-// ============================================================================
 // F&B INVENTORY (stock control — one SKU per sellable menu line where linked)
 // ============================================================================
 
@@ -1252,46 +1237,111 @@ export type GuestReview = typeof guestReviews.$inferSelect;
 export type NewGuestReview = typeof guestReviews.$inferInsert;
 
 // ============================================================================
-// LOYALTY SYSTEM
+// LOYALTY PROGRAM
 // ============================================================================
 
 export const loyaltyTransactions = pgTable('loyalty_transactions', {
   id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
-  guestId: uuid('guest_id').notNull().references(() => guests.id, { onDelete: 'cascade' }),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  guestId: uuid('guest_id').references(() => guests.id, { onDelete: 'cascade' }).notNull(),
+  guestProfileId: uuid('guest_profile_id').references(() => guestProfiles.id, { onDelete: 'set null' }),
+  transactionType: varchar('transaction_type', { length: 20 }).notNull(),
+  pointsDelta: integer('points_delta').notNull(),
+  pointsBefore: integer('points_before').notNull().default(0),
+  pointsAfter: integer('points_after').notNull(),
   bookingId: uuid('booking_id').references(() => bookings.id, { onDelete: 'set null' }),
-  type: varchar('type', { length: 20 }).notNull(),
-  points: integer('points').notNull(),
-  balanceAfter: integer('balance_after').notNull(),
-  metadata: jsonb('metadata').default({}),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  rewardId: uuid('reward_id'),
+  description: text('description').notNull(),
+  staffUserId: uuid('staff_user_id').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
-  tenantGuestIdx: index('idx_loyalty_tx_tenant_guest').on(table.tenantId, table.guestId),
-  guestCreatedIdx: index('idx_loyalty_tx_guest_created').on(table.guestId, table.createdAt),
-  bookingIdx: index('idx_loyalty_tx_booking').on(table.bookingId),
+  tenantGuestIdx: index('loyalty_transactions_tenant_guest_idx').on(table.tenantId, table.guestId, table.createdAt),
+  guestIdx: index('loyalty_transactions_guest_idx').on(table.guestId, table.createdAt),
+  typeIdx: index('idx_loyalty_tx_type_created').on(table.transactionType, table.createdAt),
 }));
 
-export const loyaltyRedemptionCatalog = pgTable('loyalty_redemption_catalog', {
+export const loyaltyRewards = pgTable('loyalty_rewards', {
   id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
-  redemptionType: varchar('redemption_type', { length: 50 }).notNull(),
-  title: varchar('title', { length: 255 }).notNull(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
   description: text('description'),
   pointsCost: integer('points_cost').notNull(),
-  valueNad: decimal('value_nad', { precision: 10, scale: 2 }).default('0'),
-  active: boolean('active').default(true),
-  metadata: jsonb('metadata').default({}),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  valueNad: decimal('value_nad', { precision: 12, scale: 2 }),
+  available: boolean('available').notNull().default(true),
+  maxRedemptionsPerGuest: integer('max_redemptions_per_guest'),
+  validFrom: timestamp('valid_from', { withTimezone: true }),
+  validUntil: timestamp('valid_until', { withTimezone: true }),
+  minTier: varchar('min_tier', { length: 50 }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
-  tenantActiveIdx: index('idx_loyalty_catalog_tenant_active').on(table.tenantId, table.active),
-  redemptionTypeIdx: index('idx_loyalty_catalog_redemption_type').on(table.redemptionType),
+  tenantAvailableIdx: index('idx_loyalty_rewards_tenant_available').on(table.tenantId, table.available),
+  pointsIdx: index('loyalty_rewards_points_idx').on(table.pointsCost),
+}));
+
+export const loyaltyRedemptions = pgTable('loyalty_redemptions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  guestId: uuid('guest_id').references(() => guests.id, { onDelete: 'cascade' }).notNull(),
+  rewardId: uuid('reward_id').references(() => loyaltyRewards.id, { onDelete: 'cascade' }).notNull(),
+  transactionId: uuid('transaction_id').references(() => loyaltyTransactions.id, { onDelete: 'cascade' }).notNull(),
+  pointsSpent: integer('points_spent').notNull(),
+  redeemedAt: timestamp('redeemed_at', { withTimezone: true }).defaultNow().notNull(),
+  status: varchar('status', { length: 50 }).notNull().default('pending'),
+  fulfilledAt: timestamp('fulfilled_at', { withTimezone: true }),
+  fulfilledBy: uuid('fulfilled_by').references(() => users.id, { onDelete: 'set null' }),
+  fulfillmentNotes: text('fulfillment_notes'),
+  propertyId: uuid('property_id').references(() => properties.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tenantGuestIdx: index('idx_loyalty_redemptions_tenant_guest').on(table.tenantId, table.guestId, table.redeemedAt),
+  statusIdx: index('idx_loyalty_redemptions_status').on(table.status, table.redeemedAt),
+  rewardIdx: index('idx_loyalty_redemptions_reward').on(table.rewardId),
+}));
+
+export const loyaltyTiers = pgTable('loyalty_tiers', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  tier: varchar('tier', { length: 20 }).notNull(),
+  displayName: varchar('display_name', { length: 100 }).notNull(),
+  pointsThreshold: integer('points_threshold').notNull(),
+  earnRateMultiplier: decimal('earn_rate_multiplier', { precision: 3, scale: 2 }).notNull().default('1.00'),
+  colorHex: varchar('color_hex', { length: 7 }),
+  iconUrl: text('icon_url'),
+  description: text('description'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tenantThresholdIdx: index('loyalty_tiers_tenant_threshold_idx').on(table.tenantId, table.pointsThreshold),
+}));
+
+export const loyaltyTierBenefits = pgTable('loyalty_tier_benefits', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  tier: varchar('tier', { length: 20 }).notNull(),
+  benefitName: varchar('benefit_name', { length: 200 }).notNull(),
+  benefitDescription: text('benefit_description'),
+  benefitType: varchar('benefit_type', { length: 50 }).notNull(),
+  benefitValue: varchar('benefit_value', { length: 100 }),
+  displayOrder: integer('display_order').notNull().default(0),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tenantTierIdx: index('loyalty_tier_benefits_tenant_tier_idx').on(table.tenantId, table.tier, table.displayOrder),
+  typeIdx: index('loyalty_tier_benefits_type_idx').on(table.benefitType),
 }));
 
 export type LoyaltyTransaction = typeof loyaltyTransactions.$inferSelect;
 export type NewLoyaltyTransaction = typeof loyaltyTransactions.$inferInsert;
-export type LoyaltyRedemptionCatalogItem = typeof loyaltyRedemptionCatalog.$inferSelect;
-export type NewLoyaltyRedemptionCatalogItem = typeof loyaltyRedemptionCatalog.$inferInsert;
+export type LoyaltyReward = typeof loyaltyRewards.$inferSelect;
+export type NewLoyaltyReward = typeof loyaltyRewards.$inferInsert;
+export type LoyaltyRedemption = typeof loyaltyRedemptions.$inferSelect;
+export type NewLoyaltyRedemption = typeof loyaltyRedemptions.$inferInsert;
+export type LoyaltyTier = typeof loyaltyTiers.$inferSelect;
+export type NewLoyaltyTier = typeof loyaltyTiers.$inferInsert;
+export type LoyaltyTierBenefit = typeof loyaltyTierBenefits.$inferSelect;
+export type NewLoyaltyTierBenefit = typeof loyaltyTierBenefits.$inferInsert;
 
 // ============================================================================
 // AI & COMMUNICATIONS
@@ -1498,6 +1548,36 @@ export const cmsMedia = pgTable('cms_media', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 }, (table) => ({
   propertyIdx: index('idx_cms_media_property_id').on(table.propertyId),
+}));
+
+export const cmsPages = pgTable('cms_pages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  slug: varchar('slug', { length: 255 }).notNull().unique(),
+  title: varchar('title', { length: 500 }).notNull(),
+  metaDescription: text('meta_description'),
+  status: varchar('status', { length: 50 }).notNull().default('draft'),
+  publishedAt: timestamp('published_at', { withTimezone: true }),
+  tenantId: uuid('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
+  createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tenantIdx: index('idx_cms_pages_tenant_id').on(table.tenantId),
+  slugIdx: index('idx_cms_pages_slug').on(table.slug),
+  statusIdx: index('idx_cms_pages_status').on(table.status),
+}));
+
+export const cmsBlocks = pgTable('cms_blocks', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  pageId: uuid('page_id').notNull().references(() => cmsPages.id, { onDelete: 'cascade' }),
+  blockType: varchar('block_type', { length: 100 }).notNull(),
+  blockOrder: integer('block_order').notNull().default(0),
+  content: jsonb('content').notNull().default(sql`'{}'`),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  pageIdx: index('idx_cms_blocks_page_id').on(table.pageId),
+  orderIdx: index('idx_cms_blocks_order').on(table.pageId, table.blockOrder),
 }));
 
 // ============================================================================
@@ -1742,6 +1822,11 @@ export type NewStaff = typeof staff.$inferInsert;
 
 export type CmsContent = typeof cmsContent.$inferSelect;
 export type CmsMedia = typeof cmsMedia.$inferSelect;
+
+export type CmsPage = typeof cmsPages.$inferSelect;
+export type NewCmsPage = typeof cmsPages.$inferInsert;
+export type CmsBlock = typeof cmsBlocks.$inferSelect;
+export type NewCmsBlock = typeof cmsBlocks.$inferInsert;
 
 export type Restaurant = typeof restaurants.$inferSelect;
 export type NewRestaurant = typeof restaurants.$inferInsert;
@@ -3203,8 +3288,6 @@ export type NewRecordRetentionAudit = typeof recordRetentionAudit.$inferInsert;
 export type CashReconciliation = typeof cashReconciliations.$inferSelect;
 export type NewCashReconciliation = typeof cashReconciliations.$inferInsert;
 
-// Housekeeping Types
-export type HkTask = typeof hkTasks.$inferSelect;
-export type NewHkTask = typeof hkTasks.$inferInsert;
-export type HkTaskPhoto = typeof hkTaskPhotos.$inferSelect;
-export type NewHkTaskPhoto = typeof hkTaskPhotos.$inferInsert;
+// Introducer Partner Types
+export type Introducer = typeof introducers.$inferSelect;
+export type NewIntroducer = typeof introducers.$inferInsert;
