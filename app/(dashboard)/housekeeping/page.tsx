@@ -28,10 +28,10 @@ interface TaskColumn {
 }
 
 const COLUMNS: TaskColumn[] = [
-  { id: 'pending', title: 'Pending', status: 'pending' },
-  { id: 'in_progress', title: 'In Progress', status: 'in_progress' },
-  { id: 'inspection', title: 'Inspection', status: 'inspection' },
-  { id: 'completed', title: 'Completed', status: 'completed' },
+  { id: 'dirty', title: 'Dirty', status: 'dirty' },
+  { id: 'cleaning', title: 'Cleaning', status: 'cleaning' },
+  { id: 'inspecting', title: 'Inspecting', status: 'inspecting' },
+  { id: 'clean', title: 'Clean', status: 'clean' },
 ];
 
 export default function HousekeepingPage() {
@@ -199,23 +199,23 @@ export default function HousekeepingPage() {
                       )}
 
                       <div className="flex gap-2 mt-3">
-                        {task.status !== 'completed' && (
+                        {task.status !== 'clean' && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               const nextStatus =
-                                task.status === 'pending'
-                                  ? 'in_progress'
-                                  : task.status === 'in_progress'
-                                  ? 'inspection'
-                                  : 'completed';
+                                task.status === 'dirty'
+                                  ? 'cleaning'
+                                  : task.status === 'cleaning'
+                                  ? 'inspecting'
+                                  : 'clean';
                               handleStatusChange(task.id, nextStatus);
                             }}
                             className="btn btn-xs btn-primary"
                           >
-                            {task.status === 'pending' && 'Start'}
-                            {task.status === 'in_progress' && 'Complete'}
-                            {task.status === 'inspection' && 'Approve'}
+                            {task.status === 'dirty' && 'Start Cleaning'}
+                            {task.status === 'cleaning' && 'Ready for Inspection'}
+                            {task.status === 'inspecting' && 'Approve'}
                           </button>
                         )}
                       </div>
@@ -262,10 +262,10 @@ export default function HousekeepingPage() {
                     setSelectedTask(null);
                   }}
                 >
-                  <option value="pending">Pending</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="inspection">Inspection</option>
-                  <option value="completed">Completed</option>
+                  <option value="dirty">Dirty</option>
+                  <option value="cleaning">Cleaning</option>
+                  <option value="inspecting">Inspecting</option>
+                  <option value="clean">Clean</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
               </div>

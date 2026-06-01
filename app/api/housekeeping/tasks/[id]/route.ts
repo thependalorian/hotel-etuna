@@ -18,7 +18,7 @@ import { entityId } from '@/lib/validation/entity-ids';
 import * as z from 'zod';
 
 const updateTaskSchema = z.object({
-  status: z.enum(['pending', 'in_progress', 'inspection', 'completed', 'cancelled']).optional(),
+  status: z.enum(['dirty', 'cleaning', 'inspecting', 'clean', 'cancelled']).optional(),
   assignedTo: entityId('Invalid user ID').optional(),
 });
 

@@ -47,6 +47,33 @@ export const guestSchema = z.object({
   idNumber: z.string().optional(),
 });
 
+// Corporate B2B schemas (Agent A7)
+export const corporateAccountSchema = z.object({
+  companyName: z.string().min(1, 'Company name is required'),
+  companyRegistration: z.string().optional(),
+  vatNumber: z.string().optional(),
+  billingAddress: z.string().optional(),
+  billingCity: z.string().optional(),
+  billingCountry: z.string().default('Namibia'),
+  billingPostalCode: z.string().optional(),
+  paymentTermsDays: z.number().int().min(0).default(30),
+  creditLimit: z.string().regex(/^\d+(\.\d{1,2})?$/).default('0.00'),
+  accountStatus: z.enum(['active', 'inactive', 'suspended']).default('active'),
+  billingEmail: z.string().email().optional(),
+  billingPhone: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+export const corporateContactSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  email: z.string().email('Valid email is required'),
+  phone: z.string().optional(),
+  jobTitle: z.string().optional(),
+  isPrimary: z.boolean().default(false),
+  canAuthorizeBookings: z.boolean().default(false),
+});
+
 export const createStaffSchema = z.object({
   propertyId: entityId(),
   userId: entityIdOptional(),
