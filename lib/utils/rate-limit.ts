@@ -42,6 +42,10 @@ export const RATE_LIMITS = {
   '/api/bookings': { requests: 20, window: '1 m' },
   '/api/bookings/availability': { requests: 30, window: '1 m' },
   
+  // Introducer validation - abuse protection
+  '/api/introducers/validate': { requests: 30, window: '1 m' },
+  '/api/introducers/public': { requests: 60, window: '1 m' },
+  
   // Restaurant orders - moderate limits
   '/api/restaurant/orders': { requests: 30, window: '1 m' },
   '/api/public/restaurant/orders': { requests: 20, window: '1 m' },

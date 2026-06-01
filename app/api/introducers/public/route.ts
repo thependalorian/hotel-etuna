@@ -17,10 +17,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, introducers } from '@/lib/db';
 import { eq, and } from 'drizzle-orm';
-import { successResponse } from '@/lib/utils/api-helpers';
+import { successResponse, rateLimitResponse } from '@/lib/utils/api-helpers';
+import { checkRateLimit } from '@/lib/utils/rate-limit';
 
 export async function GET(request: NextRequest) {
   try {
+    const rateLimitResult = await checkRateLimit(request);
+    if (!rateLimitResult.allowed) {
+      return rateLimitResponse(rateLimitResult);
+    }
     const publicIntroducers = await db
       .select({
         id: introducers.id,

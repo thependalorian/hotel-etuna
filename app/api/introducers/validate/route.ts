@@ -18,8 +18,9 @@
  */
 
 import { NextRequest } from 'next/server';
-import { errorResponse, successResponse } from '@/lib/utils/api-helpers';
+import { errorResponse, successResponse, rateLimitResponse } from '@/lib/utils/api-helpers';
 import { validateIntroducerCodeSchema } from '@/lib/utils/validation';
+import { checkRateLimit } from '@/lib/utils/rate-limit';
 import { db, introducers } from '@/lib/db';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
@@ -58,6 +59,10 @@ import { z } from 'zod';
  */
 export async function POST(request: NextRequest) {
   try {
+    const rateLimitResult = await checkRateLimit(request);
+    if (!rateLimitResult.allowed) {
+      return rateLimitResponse(rateLimitResult);
+    }
     let body;
     try {
       body = await request.json();
