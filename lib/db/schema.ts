@@ -1205,6 +1205,108 @@ export type GuestReview = typeof guestReviews.$inferSelect;
 export type NewGuestReview = typeof guestReviews.$inferInsert;
 
 // ============================================================================
+// LOYALTY SYSTEM
+// ============================================================================
+
+export const loyaltyTransactions = pgTable('loyalty_transactions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  guestId: uuid('guest_id').references(() => guests.id, { onDelete: 'cascade' }).notNull(),
+  guestProfileId: uuid('guest_profile_id').references(() => guestProfiles.id, { onDelete: 'set null' }),
+  transactionType: varchar('transaction_type', { length: 20 }).notNull(),
+  pointsDelta: integer('points_delta').notNull(),
+  pointsBefore: integer('points_before').default(0).notNull(),
+  pointsAfter: integer('points_after').notNull(),
+  bookingId: uuid('booking_id').references(() => bookings.id, { onDelete: 'set null' }),
+  rewardId: uuid('reward_id'),
+  description: text('description').notNull(),
+  staffUserId: uuid('staff_user_id').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tenantGuestIdx: index('idx_loyalty_tx_tenant_guest').on(table.tenantId, table.guestId),
+  guestCreatedIdx: index('idx_loyalty_tx_guest_created').on(table.guestId, table.createdAt),
+  typeCreatedIdx: index('idx_loyalty_tx_type_created').on(table.transactionType, table.createdAt),
+}));
+
+export const loyaltyRewards = pgTable('loyalty_rewards', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  pointsCost: integer('points_cost').notNull(),
+  valueNad: decimal('value_nad', { precision: 12, scale: 2 }),
+  available: boolean('available').default(true).notNull(),
+  maxRedemptionsPerGuest: integer('max_redemptions_per_guest'),
+  validFrom: timestamp('valid_from', { withTimezone: true }),
+  validUntil: timestamp('valid_until', { withTimezone: true }),
+  minTier: varchar('min_tier', { length: 50 }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tenantAvailableIdx: index('idx_loyalty_rewards_tenant_available').on(table.tenantId, table.available),
+}));
+
+export const loyaltyRedemptions = pgTable('loyalty_redemptions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  guestId: uuid('guest_id').references(() => guests.id, { onDelete: 'cascade' }).notNull(),
+  rewardId: uuid('reward_id').references(() => loyaltyRewards.id, { onDelete: 'cascade' }).notNull(),
+  transactionId: uuid('transaction_id').references(() => loyaltyTransactions.id, { onDelete: 'cascade' }).notNull(),
+  pointsSpent: integer('points_spent').notNull(),
+  status: varchar('status', { length: 20 }).default('pending').notNull(),
+  fulfilledByUserId: uuid('fulfilled_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+  fulfilledAt: timestamp('fulfilled_at', { withTimezone: true }),
+  notes: text('notes'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  guestIdx: index('idx_loyalty_redemptions_guest').on(table.guestId, table.createdAt),
+  statusIdx: index('idx_loyalty_redemptions_status').on(table.status, table.createdAt),
+  tenantIdx: index('idx_loyalty_redemptions_tenant').on(table.tenantId, table.createdAt),
+}));
+
+export const loyaltyTiers = pgTable('loyalty_tiers', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  tierName: varchar('tier_name', { length: 50 }).notNull(),
+  tierOrder: integer('tier_order').notNull(),
+  pointsThreshold: integer('points_threshold').default(0).notNull(),
+  earnRateMultiplier: decimal('earn_rate_multiplier', { precision: 3, scale: 2 }).default('1.00').notNull(),
+  description: text('description'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tenantIdx: index('idx_loyalty_tiers_tenant').on(table.tenantId, table.tierOrder),
+}));
+
+export const loyaltyTierBenefits = pgTable('loyalty_tier_benefits', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  tierId: uuid('tier_id').references(() => loyaltyTiers.id, { onDelete: 'cascade' }).notNull(),
+  benefitType: varchar('benefit_type', { length: 50 }).notNull(),
+  benefitName: varchar('benefit_name', { length: 255 }).notNull(),
+  benefitDescription: text('benefit_description'),
+  benefitValue: varchar('benefit_value', { length: 100 }),
+  active: boolean('active').default(true).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tierIdx: index('idx_tier_benefits_tier').on(table.tierId, table.active),
+  tenantIdx: index('idx_tier_benefits_tenant').on(table.tenantId, table.tierId),
+}));
+
+export type LoyaltyTransaction = typeof loyaltyTransactions.$inferSelect;
+export type NewLoyaltyTransaction = typeof loyaltyTransactions.$inferInsert;
+export type LoyaltyReward = typeof loyaltyRewards.$inferSelect;
+export type NewLoyaltyReward = typeof loyaltyRewards.$inferInsert;
+export type LoyaltyRedemption = typeof loyaltyRedemptions.$inferSelect;
+export type NewLoyaltyRedemption = typeof loyaltyRedemptions.$inferInsert;
+export type LoyaltyTier = typeof loyaltyTiers.$inferSelect;
+export type NewLoyaltyTier = typeof loyaltyTiers.$inferInsert;
+export type LoyaltyTierBenefit = typeof loyaltyTierBenefits.$inferSelect;
+export type NewLoyaltyTierBenefit = typeof loyaltyTierBenefits.$inferInsert;
+
+// ============================================================================
 // AI & COMMUNICATIONS
 // ============================================================================
 
