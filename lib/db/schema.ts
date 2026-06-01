@@ -158,6 +158,20 @@ export const aiMessageSenderTypeEnum = pgEnum('ai_message_sender_type', [
   'system',
 ]);
 
+export const housekeepingTaskStatusEnum = pgEnum('housekeeping_task_status', [
+  'dirty',
+  'cleaning',
+  'inspecting',
+  'clean',
+]);
+
+export const housekeepingTaskPriorityEnum = pgEnum('housekeeping_task_priority', [
+  'low',
+  'normal',
+  'high',
+  'urgent',
+]);
+
 // ============================================================================
 // CORE TABLES (Multi-Tenancy & Auth)
 // ============================================================================
@@ -441,6 +455,7 @@ export const bookings = pgTable('bookings', {
   tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }),
   propertyId: uuid('property_id').references(() => properties.id, { onDelete: 'cascade' }),
   guestId: uuid('guest_id').references(() => guests.id, { onDelete: 'cascade' }),
+  introducerId: uuid('introducer_id').references(() => introducers.id, { onDelete: 'set null' }),
   bookingReference: varchar('booking_reference', { length: 100 }).unique().notNull(),
   status: varchar('status', { length: 50 }).default('confirmed'),
   checkInDate: date('check_in_date').notNull(),
@@ -469,6 +484,7 @@ export const bookings = pgTable('bookings', {
   tenantIdx: index('idx_bookings_tenant_id').on(table.tenantId),
   propertyIdx: index('idx_bookings_property_id').on(table.propertyId),
   guestIdx: index('idx_bookings_guest_id').on(table.guestId),
+  introducerIdx: index('idx_bookings_introducer_id').on(table.introducerId),
   statusIdx: index('idx_bookings_status').on(table.status),
   checkInIdx: index('idx_bookings_check_in_date').on(table.checkInDate),
   paymentMethodIdx: index('idx_bookings_payment_method').on(table.paymentMethod),
@@ -485,6 +501,33 @@ export const bookingRooms = pgTable('booking_rooms', {
 }, (table) => ({
   bookingIdx: index('idx_booking_rooms_booking_id').on(table.bookingId),
   roomIdx: index('idx_booking_rooms_room_id').on(table.roomId),
+}));
+
+export const housekeepingTasks = pgTable('housekeeping_tasks', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  propertyId: uuid('property_id').references(() => properties.id, { onDelete: 'cascade' }).notNull(),
+  roomId: uuid('room_id').references(() => rooms.id, { onDelete: 'cascade' }).notNull(),
+  bookingId: uuid('booking_id').references(() => bookings.id, { onDelete: 'set null' }),
+  assignedTo: uuid('assigned_to').references(() => staff.id, { onDelete: 'set null' }),
+  status: housekeepingTaskStatusEnum('status').default('dirty').notNull(),
+  priority: housekeepingTaskPriorityEnum('priority').default('normal').notNull(),
+  taskType: varchar('task_type', { length: 100 }).default('checkout_cleaning'),
+  notes: text('notes'),
+  startedAt: timestamp('started_at', { withTimezone: true }),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+  inspectionNotes: text('inspection_notes'),
+  photos: text('photos').array().default([]),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+  createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+  updatedBy: uuid('updated_by').references(() => users.id, { onDelete: 'set null' }),
+}, (table) => ({
+  propertyIdx: index('idx_housekeeping_tasks_property_id').on(table.propertyId),
+  roomIdx: index('idx_housekeeping_tasks_room_id').on(table.roomId),
+  assignedToIdx: index('idx_housekeeping_tasks_assigned_to').on(table.assignedTo),
+  statusIdx: index('idx_housekeeping_tasks_status').on(table.status),
+  bookingIdx: index('idx_housekeeping_tasks_booking_id').on(table.bookingId),
+  createdAtIdx: index('idx_housekeeping_tasks_created_at').on(table.createdAt),
 }));
 
 /** Per-stay folio lines (room rate, F&B, tax, payments) — not the same as guest_profiles (loyalty). */
@@ -1366,6 +1409,36 @@ export const cmsMedia = pgTable('cms_media', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 }, (table) => ({
   propertyIdx: index('idx_cms_media_property_id').on(table.propertyId),
+}));
+
+export const cmsPages = pgTable('cms_pages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  slug: varchar('slug', { length: 255 }).notNull().unique(),
+  title: varchar('title', { length: 500 }).notNull(),
+  metaDescription: text('meta_description'),
+  status: varchar('status', { length: 50 }).notNull().default('draft'),
+  publishedAt: timestamp('published_at', { withTimezone: true }),
+  tenantId: uuid('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
+  createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tenantIdx: index('idx_cms_pages_tenant_id').on(table.tenantId),
+  slugIdx: index('idx_cms_pages_slug').on(table.slug),
+  statusIdx: index('idx_cms_pages_status').on(table.status),
+}));
+
+export const cmsBlocks = pgTable('cms_blocks', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  pageId: uuid('page_id').notNull().references(() => cmsPages.id, { onDelete: 'cascade' }),
+  blockType: varchar('block_type', { length: 100 }).notNull(),
+  blockOrder: integer('block_order').notNull().default(0),
+  content: jsonb('content').notNull().default(sql`'{}'`),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  pageIdx: index('idx_cms_blocks_page_id').on(table.pageId),
+  orderIdx: index('idx_cms_blocks_order').on(table.pageId, table.blockOrder),
 }));
 
 // ============================================================================
@@ -3039,6 +3112,53 @@ export const recordRetentionAudit = pgTable('record_retention_audit', {
 }));
 
 // ============================================================================
+// INTRODUCER PARTNERS
+// ============================================================================
+
+export const introducers = pgTable('introducers', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  propertyId: uuid('property_id').references(() => properties.id, { onDelete: 'cascade' }),
+  
+  name: varchar('name', { length: 255 }).notNull(),
+  code: varchar('code', { length: 50 }).unique().notNull(),
+  email: varchar('email', { length: 255 }),
+  phone: varchar('phone', { length: 50 }),
+  
+  commissionRate: decimal('commission_rate', { precision: 5, scale: 2 }).default('10.00').notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
+  showInPublicDirectory: boolean('show_in_public_directory').default(false).notNull(),
+  
+  bio: text('bio'),
+  website: varchar('website', { length: 500 }),
+  logoUrl: varchar('logo_url', { length: 500 }),
+  
+  totalBookings: integer('total_bookings').default(0).notNull(),
+  totalCommissionEarned: decimal('total_commission_earned', { precision: 12, scale: 2 }).default('0.00').notNull(),
+  
+  metadata: jsonb('metadata').default({}),
+  
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  tenantIdx: index('idx_introducers_tenant').on(table.tenantId),
+  codeIdx: uniqueIndex('idx_introducers_code').on(table.code),
+  activeIdx: index('idx_introducers_active').on(table.isActive),
+  publicIdx: index('idx_introducers_public').on(table.showInPublicDirectory),
+}));
+
+export const introducerRelations = relations(introducers, ({ one, many }) => ({
+  tenant: one(tenants, {
+    fields: [introducers.tenantId],
+    references: [tenants.id],
+  }),
+  property: one(properties, {
+    fields: [introducers.propertyId],
+    references: [properties.id],
+  }),
+}));
+
+// ============================================================================
 // TYPE EXPORTS
 // ============================================================================
 
@@ -3070,3 +3190,76 @@ export type NewRecordRetentionAudit = typeof recordRetentionAudit.$inferInsert;
 // Cash Reconciliation Types
 export type CashReconciliation = typeof cashReconciliations.$inferSelect;
 export type NewCashReconciliation = typeof cashReconciliations.$inferInsert;
+
+// Introducer Types
+export type Introducer = typeof introducers.$inferSelect;
+export type NewIntroducer = typeof introducers.$inferInsert;
+
+// ============================================================================
+// F&B PRINT JOBS
+// ============================================================================
+
+export const printJobStatusEnum = pgEnum('print_job_status', [
+  'pending',
+  'printing',
+  'printed',
+  'failed',
+  'cancelled',
+]);
+
+export const printStationTypeEnum = pgEnum('print_station_type', [
+  'kitchen',
+  'bar',
+  'pastry',
+  'front_desk',
+  'back_office',
+]);
+
+export const fnbPrintJobs = pgTable('fnb_print_jobs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  propertyId: uuid('property_id').references(() => properties.id, { onDelete: 'cascade' }).notNull(),
+  orderId: uuid('order_id').references(() => restaurantOrders.id, { onDelete: 'set null' }),
+  bookingId: uuid('booking_id').references(() => bookings.id, { onDelete: 'set null' }),
+  station: printStationTypeEnum('station').notNull(),
+  status: printJobStatusEnum('status').default('pending').notNull(),
+  printerId: varchar('printer_id', { length: 100 }),
+  ticketType: varchar('ticket_type', { length: 50 }).default('order_ticket').notNull(),
+  ticketData: jsonb('ticket_data').notNull(),
+  attempts: integer('attempts').default(0).notNull(),
+  lastAttemptAt: timestamp('last_attempt_at', { withTimezone: true }),
+  errorMessage: text('error_message'),
+  printedAt: timestamp('printed_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+}, (table) => ({
+  propertyIdx: index('idx_fnb_print_jobs_property_id').on(table.propertyId),
+  orderIdx: index('idx_fnb_print_jobs_order_id').on(table.orderId),
+  stationIdx: index('idx_fnb_print_jobs_station').on(table.station),
+  statusIdx: index('idx_fnb_print_jobs_status').on(table.status),
+  createdAtIdx: index('idx_fnb_print_jobs_created_at').on(table.createdAt),
+  stationStatusIdx: index('idx_fnb_print_jobs_station_status').on(table.station, table.status),
+}));
+
+export const fnbPrintJobsRelations = relations(fnbPrintJobs, ({ one }) => ({
+  property: one(properties, {
+    fields: [fnbPrintJobs.propertyId],
+    references: [properties.id],
+  }),
+  order: one(restaurantOrders, {
+    fields: [fnbPrintJobs.orderId],
+    references: [restaurantOrders.id],
+  }),
+  booking: one(bookings, {
+    fields: [fnbPrintJobs.bookingId],
+    references: [bookings.id],
+  }),
+  creator: one(users, {
+    fields: [fnbPrintJobs.createdBy],
+    references: [users.id],
+  }),
+}));
+
+// F&B Print Job Types
+export type FnbPrintJob = typeof fnbPrintJobs.$inferSelect;
+export type NewFnbPrintJob = typeof fnbPrintJobs.$inferInsert;

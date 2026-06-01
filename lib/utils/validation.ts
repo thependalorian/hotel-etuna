@@ -27,6 +27,7 @@ export const createPropertySchema = z.object({
 export const createBookingSchema = z.object({
   propertyId: entityId(),
   guestId: entityIdOptional(),
+  introducerId: entityIdOptional(),
   checkInDate: z.string().transform((val) => new Date(val)),
   checkOutDate: z.string().transform((val) => new Date(val)),
   roomCount: z.number().int().min(1),
@@ -277,7 +278,26 @@ export const ragIngestBodySchema = z
     path: ['text'],
   });
 
+/** Introducer validation schemas */
+export const createIntroducerSchema = z.object({
+  propertyId: entityIdOptional(),
+  name: z.string().min(2, 'Name must be at least 2 characters').max(255),
+  code: z.string().min(3, 'Code must be at least 3 characters').max(50).regex(/^[A-Z0-9_-]+$/, 'Code must be uppercase letters, numbers, hyphens or underscores only'),
+  email: z.string().email().optional(),
+  phone: z.string().min(1).max(50).optional(),
+  commissionRate: z.number().min(0).max(100).default(10),
+  isActive: z.boolean().default(true),
+  showInPublicDirectory: z.boolean().default(false),
+  bio: z.string().max(2000).optional(),
+  website: z.string().url().max(500).optional().or(z.literal('')),
+  logoUrl: z.string().url().max(500).optional().or(z.literal('')),
+});
 
+export const updateIntroducerSchema = createIntroducerSchema.partial();
+
+export const validateIntroducerCodeSchema = z.object({
+  code: z.string().min(1).max(50),
+});
 
 
 
