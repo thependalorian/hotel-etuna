@@ -10,6 +10,7 @@ import {
   scheduleBookingTransitionEffects,
 } from '@/lib/services/booking/bookingLifecycleSideEffects';
 import { FolioService } from '@/lib/services/folio/FolioService';
+import { HousekeepingService } from '@/lib/services/housekeeping/HousekeepingService';
 
 // A DTO for creating a booking
 export interface CreateBookingDTO {
@@ -421,7 +422,20 @@ export class BookingService {
               .update(roomsSchema)
               .set({ status: 'occupied', updatedAt: now })
               .where(eq(roomsSchema.id, roomId));
-          } else if (next === 'checked_out' || next === 'cancelled') {
+          } else if (next === 'checked_out') {
+            // Create housekeeping task for checkout
+            const housekeepingService = new HousekeepingService();
+            await housekeepingService.createTask({
+              tenantId,
+              propertyId: booking.propertyId ?? '',
+              roomId,
+              bookingId: booking.id,
+              taskType: 'checkout_clean',
+              priority: 'high',
+              notes: `Auto-generated from checkout of booking ${booking.bookingReference}`,
+            });
+            // Note: Room status will be updated to 'available' when task is completed
+          } else if (next === 'cancelled') {
             await tx
               .update(roomsSchema)
               .set({ status: 'available', updatedAt: now })

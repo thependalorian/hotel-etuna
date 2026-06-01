@@ -406,6 +406,71 @@ export const roomQrCodes = pgTable('room_qr_codes', {
 }));
 
 // ============================================================================
+// HOUSEKEEPING SYSTEM
+// ============================================================================
+
+export const hkTaskTypeEnum = pgEnum('hk_task_type', [
+  'checkout_clean',
+  'stayover',
+  'deep_clean',
+  'maintenance',
+]);
+
+export const hkTaskStatusEnum = pgEnum('hk_task_status', [
+  'pending',
+  'in_progress',
+  'inspection',
+  'completed',
+  'cancelled',
+]);
+
+export const hkTaskPriorityEnum = pgEnum('hk_task_priority', [
+  'low',
+  'normal',
+  'high',
+  'urgent',
+]);
+
+export const hkTasks = pgTable('hk_tasks', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  propertyId: uuid('property_id').references(() => properties.id, { onDelete: 'cascade' }).notNull(),
+  roomId: uuid('room_id').references(() => rooms.id, { onDelete: 'cascade' }).notNull(),
+  bookingId: uuid('booking_id').references(() => bookings.id, { onDelete: 'set null' }),
+  
+  taskType: hkTaskTypeEnum('task_type').notNull().default('checkout_clean'),
+  status: hkTaskStatusEnum('status').notNull().default('pending'),
+  priority: hkTaskPriorityEnum('priority').notNull().default('normal'),
+  
+  notes: text('notes'),
+  assignedTo: uuid('assigned_to').references(() => users.id, { onDelete: 'set null' }),
+  
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  startedAt: timestamp('started_at', { withTimezone: true }),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  tenantStatusIdx: index('idx_hk_tasks_tenant_status').on(table.tenantId, table.status, table.createdAt),
+  roomIdx: index('idx_hk_tasks_room').on(table.tenantId, table.roomId),
+  assignedIdx: index('idx_hk_tasks_assigned').on(table.tenantId, table.assignedTo),
+  propertyIdx: index('idx_hk_tasks_property').on(table.tenantId, table.propertyId),
+}));
+
+export const hkTaskPhotos = pgTable('hk_task_photos', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  taskId: uuid('task_id').references(() => hkTasks.id, { onDelete: 'cascade' }).notNull(),
+  
+  photoUrl: text('photo_url').notNull(),
+  caption: text('caption'),
+  uploadedBy: uuid('uploaded_by').references(() => users.id, { onDelete: 'set null' }),
+  
+  uploadedAt: timestamp('uploaded_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  taskIdx: index('idx_hk_task_photos_task').on(table.taskId, table.uploadedAt),
+}));
+
+// ============================================================================
 // BOOKING SYSTEM
 // ============================================================================
 
@@ -1017,6 +1082,31 @@ export type RestaurantOrderItem = typeof restaurantOrderItems.$inferSelect;
 export type NewRestaurantOrderItem = typeof restaurantOrderItems.$inferInsert;
 
 // ============================================================================
+// F&B PRINT JOBS (0032)
+// ============================================================================
+
+export const fnbPrintJobs = pgTable('fnb_print_jobs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  orderId: uuid('order_id').references(() => restaurantOrders.id, { onDelete: 'cascade' }).notNull(),
+  station: varchar('station', { length: 20 }).notNull(),
+  status: varchar('status', { length: 20 }).default('pending').notNull(),
+  ticketContent: jsonb('ticket_content').notNull(),
+  printerUrl: text('printer_url'),
+  printedAt: timestamp('printed_at', { withTimezone: true }),
+  error: text('error'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  orderIdx: index('idx_print_jobs_order').on(table.tenantId, table.orderId),
+  statusIdx: index('idx_print_jobs_status').on(table.tenantId, table.status, table.createdAt),
+  stationIdx: index('idx_print_jobs_station').on(table.tenantId, table.station, table.status),
+}));
+
+export type FnbPrintJob = typeof fnbPrintJobs.$inferSelect;
+export type NewFnbPrintJob = typeof fnbPrintJobs.$inferInsert;
+
+// ============================================================================
 // F&B INVENTORY (stock control — one SKU per sellable menu line where linked)
 // ============================================================================
 
@@ -1160,6 +1250,48 @@ export type GuestProfile = typeof guestProfiles.$inferSelect;
 export type NewGuestProfile = typeof guestProfiles.$inferInsert;
 export type GuestReview = typeof guestReviews.$inferSelect;
 export type NewGuestReview = typeof guestReviews.$inferInsert;
+
+// ============================================================================
+// LOYALTY SYSTEM
+// ============================================================================
+
+export const loyaltyTransactions = pgTable('loyalty_transactions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
+  guestId: uuid('guest_id').notNull().references(() => guests.id, { onDelete: 'cascade' }),
+  bookingId: uuid('booking_id').references(() => bookings.id, { onDelete: 'set null' }),
+  type: varchar('type', { length: 20 }).notNull(),
+  points: integer('points').notNull(),
+  balanceAfter: integer('balance_after').notNull(),
+  metadata: jsonb('metadata').default({}),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  tenantGuestIdx: index('idx_loyalty_tx_tenant_guest').on(table.tenantId, table.guestId),
+  guestCreatedIdx: index('idx_loyalty_tx_guest_created').on(table.guestId, table.createdAt),
+  bookingIdx: index('idx_loyalty_tx_booking').on(table.bookingId),
+}));
+
+export const loyaltyRedemptionCatalog = pgTable('loyalty_redemption_catalog', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
+  redemptionType: varchar('redemption_type', { length: 50 }).notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description'),
+  pointsCost: integer('points_cost').notNull(),
+  valueNad: decimal('value_nad', { precision: 10, scale: 2 }).default('0'),
+  active: boolean('active').default(true),
+  metadata: jsonb('metadata').default({}),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  tenantActiveIdx: index('idx_loyalty_catalog_tenant_active').on(table.tenantId, table.active),
+  redemptionTypeIdx: index('idx_loyalty_catalog_redemption_type').on(table.redemptionType),
+}));
+
+export type LoyaltyTransaction = typeof loyaltyTransactions.$inferSelect;
+export type NewLoyaltyTransaction = typeof loyaltyTransactions.$inferInsert;
+export type LoyaltyRedemptionCatalogItem = typeof loyaltyRedemptionCatalog.$inferSelect;
+export type NewLoyaltyRedemptionCatalogItem = typeof loyaltyRedemptionCatalog.$inferInsert;
 
 // ============================================================================
 // AI & COMMUNICATIONS
@@ -3070,3 +3202,9 @@ export type NewRecordRetentionAudit = typeof recordRetentionAudit.$inferInsert;
 // Cash Reconciliation Types
 export type CashReconciliation = typeof cashReconciliations.$inferSelect;
 export type NewCashReconciliation = typeof cashReconciliations.$inferInsert;
+
+// Housekeeping Types
+export type HkTask = typeof hkTasks.$inferSelect;
+export type NewHkTask = typeof hkTasks.$inferInsert;
+export type HkTaskPhoto = typeof hkTaskPhotos.$inferSelect;
+export type NewHkTaskPhoto = typeof hkTaskPhotos.$inferInsert;
