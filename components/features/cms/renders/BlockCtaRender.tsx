@@ -1,50 +1,57 @@
-/**
- * CTA Block Render Component
- * 
- * Renders CTA block for public pages
- */
-
 import React from 'react';
-import Link from 'next/link';
 import DOMPurify from 'isomorphic-dompurify';
+import Link from 'next/link';
 
-interface Props {
+interface BlockCtaRenderProps {
   content: {
     heading?: string;
     description?: string;
     buttonText?: string;
     buttonLink?: string;
+    backgroundColor?: string;
   };
 }
 
-export default function BlockCtaRender({ content }: Props) {
-  const sanitizedHeading = content.heading
+export function BlockCtaRender({ content }: BlockCtaRenderProps) {
+  const sanitizedHeading = content.heading 
     ? DOMPurify.sanitize(content.heading, { ALLOWED_TAGS: [] })
     : '';
-  const sanitizedDescription = content.description
+  const sanitizedDescription = content.description 
     ? DOMPurify.sanitize(content.description, { ALLOWED_TAGS: [] })
     : '';
-  const sanitizedButtonText = content.buttonText
+  const sanitizedButtonText = content.buttonText 
     ? DOMPurify.sanitize(content.buttonText, { ALLOWED_TAGS: [] })
     : '';
+  const sanitizedButtonLink = content.buttonLink 
+    ? DOMPurify.sanitize(content.buttonLink, { ALLOWED_TAGS: [] })
+    : '';
+  const sanitizedBackgroundColor = content.backgroundColor 
+    ? DOMPurify.sanitize(content.backgroundColor, { ALLOWED_TAGS: [] })
+    : '#e8d5c7';
 
   return (
-    <div className="card bg-primary text-primary-content shadow-xl">
-      <div className="card-body text-center">
-        {sanitizedHeading && (
-          <h2 className="card-title justify-center text-3xl">
-            {sanitizedHeading}
-          </h2>
-        )}
-        {sanitizedDescription && <p className="text-lg">{sanitizedDescription}</p>}
-        {content.buttonLink && sanitizedButtonText && (
-          <div className="card-actions justify-center mt-4">
-            <Link href={content.buttonLink} className="btn btn-secondary btn-lg">
-              {sanitizedButtonText}
-            </Link>
-          </div>
-        )}
-      </div>
+    <div 
+      className="card rounded-lg p-12 text-center shadow-xl"
+      style={{ backgroundColor: sanitizedBackgroundColor }}
+    >
+      {sanitizedHeading && (
+        <h2 className="text-4xl font-bold mb-4">
+          {sanitizedHeading}
+        </h2>
+      )}
+      {sanitizedDescription && (
+        <p className="text-xl mb-8">
+          {sanitizedDescription}
+        </p>
+      )}
+      {sanitizedButtonText && sanitizedButtonLink && (
+        <Link 
+          href={sanitizedButtonLink}
+          className="btn btn-primary btn-lg"
+        >
+          {sanitizedButtonText}
+        </Link>
+      )}
     </div>
   );
 }

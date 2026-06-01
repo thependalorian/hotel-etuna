@@ -1,27 +1,21 @@
-/**
- * Text Block Render Component
- * 
- * Renders text block for public pages
- */
-
 import React from 'react';
 import DOMPurify from 'isomorphic-dompurify';
 
-interface Props {
+interface BlockTextRenderProps {
   content: {
     heading?: string;
     content?: string;
   };
 }
 
-export default function BlockTextRender({ content }: Props) {
-  // Sanitize user-generated content
-  const sanitizedHeading = content.heading
+export function BlockTextRender({ content }: BlockTextRenderProps) {
+  const sanitizedHeading = content.heading 
     ? DOMPurify.sanitize(content.heading, { ALLOWED_TAGS: [] })
     : '';
-  const sanitizedContent = content.content
-    ? DOMPurify.sanitize(content.content, { 
-        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li'],
+    
+  const sanitizedContent = content.content 
+    ? DOMPurify.sanitize(content.content, {
+        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
         ALLOWED_ATTR: ['href', 'target', 'rel']
       })
     : '';
@@ -30,7 +24,9 @@ export default function BlockTextRender({ content }: Props) {
     <div className="prose max-w-none">
       {sanitizedHeading && <h2>{sanitizedHeading}</h2>}
       {sanitizedContent && (
-        <div dangerouslySetInnerHTML={{ __html: sanitizedContent }} />
+        <div 
+          dangerouslySetInnerHTML={{ __html: sanitizedContent }} 
+        />
       )}
     </div>
   );

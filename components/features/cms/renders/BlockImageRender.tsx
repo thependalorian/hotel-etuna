@@ -1,42 +1,38 @@
-/**
- * Image Block Render Component
- * 
- * Renders image block for public pages
- */
-
 import React from 'react';
-import Image from 'next/image';
 import DOMPurify from 'isomorphic-dompurify';
 
-interface Props {
+interface BlockImageRenderProps {
   content: {
-    src?: string;
-    alt?: string;
+    imageUrl?: string;
+    altText?: string;
     caption?: string;
   };
 }
 
-export default function BlockImageRender({ content }: Props) {
-  if (!content.src) {
-    return null;
-  }
-
-  const sanitizedAlt = content.alt
-    ? DOMPurify.sanitize(content.alt, { ALLOWED_TAGS: [] })
+export function BlockImageRender({ content }: BlockImageRenderProps) {
+  const sanitizedImageUrl = content.imageUrl 
+    ? DOMPurify.sanitize(content.imageUrl, { ALLOWED_TAGS: [] })
+    : '';
+  const sanitizedAltText = content.altText 
+    ? DOMPurify.sanitize(content.altText, { ALLOWED_TAGS: [] })
     : 'Image';
-  const sanitizedCaption = content.caption
+  const sanitizedCaption = content.caption 
     ? DOMPurify.sanitize(content.caption, { ALLOWED_TAGS: [] })
     : '';
 
+  if (!sanitizedImageUrl) {
+    return null;
+  }
+
   return (
-    <figure className="text-center">
-      <img
-        src={content.src}
-        alt={sanitizedAlt}
-        className="mx-auto rounded-lg max-h-[600px] object-cover"
+    <figure className="max-w-5xl mx-auto">
+      <img 
+        src={sanitizedImageUrl} 
+        alt={sanitizedAltText} 
+        className="w-full h-auto rounded-lg shadow-lg"
       />
       {sanitizedCaption && (
-        <figcaption className="mt-4 text-sm text-base-content/70">
+        <figcaption className="text-center mt-4 text-sm text-nude-600">
           {sanitizedCaption}
         </figcaption>
       )}

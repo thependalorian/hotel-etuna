@@ -1,7 +1,9 @@
 /**
- * CMS Page Blocks API
- *
- * PUT /api/cms/pages/[id]/blocks - Save all blocks for a page
+ * CMS Blocks API Route
+ * 
+ * Purpose: Save all blocks for a page
+ * Endpoints:
+ * - PUT /api/cms/pages/[id]/blocks - Replace all blocks for a page
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -12,8 +14,7 @@ import { z } from 'zod';
 
 const blockSchema = z.object({
   id: z.string(),
-  pageId: z.string(),
-  blockType: z.string(),
+  blockType: z.enum(['hero', 'text', 'image', 'cta', 'testimonial_grid']),
   blockOrder: z.number(),
   content: z.record(z.any()),
 });
@@ -22,23 +23,27 @@ const saveBlocksSchema = z.object({
   blocks: z.array(blockSchema),
 });
 
+interface RouteContext {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
 export async function PUT(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: RouteContext
 ) {
   try {
     const session = await getSessionWithTenantContext();
-
-    if (!session || !session.user?.tenantId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    
+    if (!session?.user?.tenantId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id: pageId } = await context.params;
+    const body = await request.json();
+    const validated = saveBlocksSchema.parse(body);
 
-    // Verify page belongs to tenant
     const [page] = await db
       .select()
       .from(cmsPages)
@@ -51,52 +56,28 @@ export async function PUT(
       .limit(1);
 
     if (!page) {
-      return NextResponse.json(
-        { error: 'Page not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Page not found' }, { status: 404 });
     }
 
-    const body = await request.json();
-    const validatedData = saveBlocksSchema.parse(body);
-
-    // Delete all existing blocks for this page
     await db.delete(cmsBlocks).where(eq(cmsBlocks.pageId, pageId));
 
-    // Insert new blocks (only non-temp ones)
-    const blocksToInsert = validatedData.blocks
-      .filter((block) => !block.id.startsWith('temp-'))
-      .map((block) => ({
-        pageId: pageId,
+    if (validated.blocks.length > 0) {
+      const blocksToInsert = validated.blocks.map(block => ({
+        pageId,
         blockType: block.blockType,
         blockOrder: block.blockOrder,
         content: block.content,
       }));
 
-    // Also insert temp blocks but with new IDs
-    const tempBlocks = validatedData.blocks
-      .filter((block) => block.id.startsWith('temp-'))
-      .map((block) => ({
-        pageId: pageId,
-        blockType: block.blockType,
-        blockOrder: block.blockOrder,
-        content: block.content,
-      }));
-
-    const allBlocks = [...blocksToInsert, ...tempBlocks];
-
-    let savedBlocks = [];
-    if (allBlocks.length > 0) {
-      savedBlocks = await db
-        .insert(cmsBlocks)
-        .values(allBlocks)
-        .returning();
+      await db.insert(cmsBlocks).values(blocksToInsert);
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      blocks: savedBlocks 
-    });
+    const savedBlocks = await db
+      .select()
+      .from(cmsBlocks)
+      .where(eq(cmsBlocks.pageId, pageId));
+
+    return NextResponse.json({ blocks: savedBlocks });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -105,9 +86,9 @@ export async function PUT(
       );
     }
 
-    console.error('[CMS Blocks API] PUT error:', error);
+    console.error('Error saving blocks:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to save blocks' },
       { status: 500 }
     );
   }

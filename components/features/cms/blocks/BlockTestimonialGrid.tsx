@@ -1,146 +1,184 @@
-/**
- * Testimonial Grid Block Component
- * 
- * Block type for displaying testimonials in a grid
- */
-
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import { Plus, Trash2 } from 'lucide-react';
 
-interface Props {
+interface Testimonial {
+  name: string;
+  role: string;
+  content: string;
+  avatar?: string;
+}
+
+interface BlockTestimonialGridProps {
   content: {
     heading?: string;
-    testimonials?: Array<{
-      name: string;
-      role: string;
-      content: string;
-      rating: number;
-    }>;
+    testimonials?: Testimonial[];
   };
   onUpdate: (content: Record<string, any>) => void;
 }
 
-export default function BlockTestimonialGrid({ content, onUpdate }: Props) {
-  const update = (field: string, value: any) => {
-    onUpdate({ ...content, [field]: value });
-  };
+export function BlockTestimonialGrid({ content, onUpdate }: BlockTestimonialGridProps) {
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  
+  const testimonials = content.testimonials || [];
 
   const addTestimonial = () => {
-    const testimonials = content.testimonials || [];
-    update('testimonials', [
+    const newTestimonials = [
       ...testimonials,
-      { name: 'Customer Name', role: 'Customer Role', content: 'Testimonial text...', rating: 5 },
-    ]);
+      { name: '', role: '', content: '', avatar: '' }
+    ];
+    onUpdate({ ...content, testimonials: newTestimonials });
+    setEditingIndex(newTestimonials.length - 1);
   };
 
-  const updateTestimonial = (index: number, field: string, value: any) => {
-    const testimonials = [...(content.testimonials || [])];
-    testimonials[index] = { ...testimonials[index], [field]: value };
-    update('testimonials', testimonials);
+  const updateTestimonial = (index: number, field: keyof Testimonial, value: string) => {
+    const newTestimonials = [...testimonials];
+    newTestimonials[index] = { ...newTestimonials[index], [field]: value };
+    onUpdate({ ...content, testimonials: newTestimonials });
   };
 
   const removeTestimonial = (index: number) => {
-    const testimonials = content.testimonials?.filter((_, i) => i !== index) || [];
-    update('testimonials', testimonials);
+    const newTestimonials = testimonials.filter((_, i) => i !== index);
+    onUpdate({ ...content, testimonials: newTestimonials });
+    setEditingIndex(null);
   };
 
   return (
     <div className="space-y-4">
       <div className="form-control">
         <label className="label">
-          <span className="label-text">Section Heading</span>
+          <span className="label-text">Section Heading (optional)</span>
         </label>
         <input
           type="text"
-          className="input input-bordered"
+          className="input input-bordered input-sm"
           value={content.heading || ''}
-          onChange={(e) => update('heading', e.target.value)}
+          onChange={(e) => onUpdate({ ...content, heading: e.target.value })}
+          placeholder="What Our Guests Say"
         />
       </div>
 
-      <div className="divider">Testimonials</div>
+      <div className="flex justify-between items-center">
+        <p className="text-sm font-medium">Testimonials ({testimonials.length})</p>
+        <button
+          onClick={addTestimonial}
+          className="btn btn-sm btn-outline"
+        >
+          <Plus className="w-4 h-4 mr-1" />
+          Add Testimonial
+        </button>
+      </div>
 
-      {(content.testimonials || []).map((testimonial, index) => (
-        <div key={index} className="card bg-base-300">
-          <div className="card-body">
-            <div className="flex justify-between">
-              <span className="badge">Testimonial {index + 1}</span>
-              <button
-                onClick={() => removeTestimonial(index)}
-                className="btn btn-xs btn-error btn-ghost"
-              >
-                Remove
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <input
-                type="text"
-                className="input input-sm input-bordered"
-                placeholder="Name"
-                value={testimonial.name}
-                onChange={(e) => updateTestimonial(index, 'name', e.target.value)}
-              />
-              <input
-                type="text"
-                className="input input-sm input-bordered"
-                placeholder="Role"
-                value={testimonial.role}
-                onChange={(e) => updateTestimonial(index, 'role', e.target.value)}
-              />
-            </div>
-            <textarea
-              className="textarea textarea-sm textarea-bordered"
-              placeholder="Testimonial content"
-              rows={2}
-              value={testimonial.content}
-              onChange={(e) => updateTestimonial(index, 'content', e.target.value)}
-            />
-            <input
-              type="number"
-              min="1"
-              max="5"
-              className="input input-sm input-bordered w-24"
-              placeholder="Rating"
-              value={testimonial.rating}
-              onChange={(e) => updateTestimonial(index, 'rating', parseInt(e.target.value))}
-            />
-          </div>
-        </div>
-      ))}
-
-      <button onClick={addTestimonial} className="btn btn-sm btn-outline w-full">
-        + Add Testimonial
-      </button>
-
-      {/* Preview */}
-      <div className="divider">Preview</div>
-      <div>
-        {content.heading && <h3 className="text-2xl font-bold mb-4">{content.heading}</h3>}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {(content.testimonials || []).map((testimonial, index) => (
-            <div key={index} className="card bg-base-100">
-              <div className="card-body">
-                <div className="rating rating-sm">
-                  {[...Array(5)].map((_, i) => (
+      {testimonials.length > 0 && (
+        <div className="space-y-3">
+          {testimonials.map((testimonial, index) => (
+            <div key={index} className="border border-nude-200 rounded p-4">
+              {editingIndex === index ? (
+                <div className="space-y-3">
+                  <div className="form-control">
                     <input
-                      key={i}
-                      type="radio"
-                      className="mask mask-star-2 bg-orange-400"
-                      checked={i < testimonial.rating}
-                      readOnly
+                      type="text"
+                      className="input input-bordered input-sm"
+                      value={testimonial.name}
+                      onChange={(e) => updateTestimonial(index, 'name', e.target.value)}
+                      placeholder="Guest Name"
                     />
-                  ))}
+                  </div>
+                  <div className="form-control">
+                    <input
+                      type="text"
+                      className="input input-bordered input-sm"
+                      value={testimonial.role}
+                      onChange={(e) => updateTestimonial(index, 'role', e.target.value)}
+                      placeholder="Guest Title or Location"
+                    />
+                  </div>
+                  <div className="form-control">
+                    <textarea
+                      className="textarea textarea-bordered h-24"
+                      value={testimonial.content}
+                      onChange={(e) => updateTestimonial(index, 'content', e.target.value)}
+                      placeholder="Testimonial content"
+                    />
+                  </div>
+                  <div className="form-control">
+                    <input
+                      type="url"
+                      className="input input-bordered input-sm"
+                      value={testimonial.avatar}
+                      onChange={(e) => updateTestimonial(index, 'avatar', e.target.value)}
+                      placeholder="Avatar URL (optional)"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setEditingIndex(null)}
+                      className="btn btn-sm btn-ghost"
+                    >
+                      Done
+                    </button>
+                    <button
+                      onClick={() => removeTestimonial(index)}
+                      className="btn btn-sm btn-ghost text-error"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-                <p className="text-sm">{testimonial.content}</p>
-                <div className="mt-4">
-                  <div className="font-medium">{testimonial.name}</div>
-                  <div className="text-sm opacity-70">{testimonial.role}</div>
+              ) : (
+                <div 
+                  className="cursor-pointer hover:bg-nude-50 p-2 rounded"
+                  onClick={() => setEditingIndex(index)}
+                >
+                  <p className="font-medium">{testimonial.name || 'Unnamed'}</p>
+                  <p className="text-sm text-nude-600 truncate">
+                    {testimonial.content || 'No content'}
+                  </p>
                 </div>
-              </div>
+              )}
             </div>
           ))}
         </div>
+      )}
+
+      <div className="divider">Preview</div>
+
+      <div>
+        {content.heading && (
+          <h2 className="text-3xl font-bold text-center mb-8">
+            {content.heading}
+          </h2>
+        )}
+        
+        {testimonials.length === 0 ? (
+          <p className="text-center text-nude-600">
+            Add testimonials to see them here
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {testimonials.map((testimonial, index) => (
+              <div key={index} className="card bg-base-100 shadow-lg">
+                <div className="card-body">
+                  {testimonial.avatar && (
+                    <div className="avatar">
+                      <div className="w-12 rounded-full">
+                        <img src={testimonial.avatar} alt={testimonial.name} />
+                      </div>
+                    </div>
+                  )}
+                  <p className="text-sm mb-4">&ldquo;{testimonial.content}&rdquo;</p>
+                  <div>
+                    <p className="font-semibold">{testimonial.name}</p>
+                    {testimonial.role && (
+                      <p className="text-xs text-nude-600">{testimonial.role}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
