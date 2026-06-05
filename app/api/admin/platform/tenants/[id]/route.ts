@@ -14,6 +14,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentPlatformAdmin, isPlatformAdmin, isSuperAdmin } from '@/lib/auth/platform-admin';
 import { db, tenants } from '@/lib/db';
 import { eq } from 'drizzle-orm';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ data: tenant });
   } catch (error) {
-    console.error('Error fetching tenant:', error);
+    securityLogger.error('Error fetching tenant:', error);
     return NextResponse.json(
       { error: 'Failed to fetch tenant' },
       { status: 500 }
@@ -97,7 +98,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ data: updatedTenant });
   } catch (error) {
-    console.error('Error updating tenant:', error);
+    securityLogger.error('Error updating tenant:', error);
     return NextResponse.json(
       { error: 'Failed to update tenant' },
       { status: 500 }
@@ -136,7 +137,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ message: 'Tenant deleted successfully' });
   } catch (error) {
-    console.error('Error deleting tenant:', error);
+    securityLogger.error('Error deleting tenant:', error);
     return NextResponse.json(
       { error: 'Failed to delete tenant' },
       { status: 500 }

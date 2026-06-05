@@ -26,6 +26,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import EmptyState from '@/components/shared/EmptyState';
 import NoticeState from '@/components/shared/NoticeState';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 import {
   Users,
   Search,
@@ -93,7 +94,7 @@ export default function UserManagement({ users: initialUsers, userRole }: UserMa
         showToast({ variant: 'error', title: 'Could not update user', message: msg });
       }
     } catch (error) {
-      console.error('Error updating user status:', error);
+      securityLogger.error('Error updating user status:', error);
       showToast({
         variant: 'error',
         title: 'Could not update user',
@@ -125,7 +126,7 @@ export default function UserManagement({ users: initialUsers, userRole }: UserMa
         showToast({ variant: 'error', title: 'Could not delete user', message: msg });
       }
     } catch (error) {
-      console.error('Error deleting user:', error);
+      securityLogger.error('Error deleting user:', error);
       showToast({
         variant: 'error',
         title: 'Could not delete user',

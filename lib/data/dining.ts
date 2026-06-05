@@ -8,6 +8,7 @@ import { restaurants, cmsMenuItems, menuCategories } from '@/lib/db/schema';
 import { eq, and, inArray, asc } from 'drizzle-orm';
 import { cache } from 'react';
 import { resolvePublicHubProperty } from '@/lib/utils/public-property';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 async function resolveHubRestaurant() {
   const defaultPropertyId = process.env.DEFAULT_PROPERTY_ID?.trim();
@@ -35,7 +36,7 @@ export const getHubRestaurant = cache(async () => {
     const { restaurant } = await resolveHubRestaurant();
     return restaurant;
   } catch (error) {
-    console.error('[getHubRestaurant] Error:', error);
+    securityLogger.error('[getHubRestaurant] Error:', error);
     return null;
   }
 });
@@ -58,7 +59,7 @@ export const getMenuItems = cache(async (limit?: number) => {
 
     return limit != null ? await base.limit(limit) : await base;
   } catch (error) {
-    console.error('[getMenuItems] Error:', error);
+    securityLogger.error('[getMenuItems] Error:', error);
     return [];
   }
 });
@@ -128,7 +129,7 @@ export const getCompleteMenuForProperty = cache(async (propertyId: string) => {
     const menu = await loadMenuForRestaurantId(restaurant.id);
     return { restaurant, propertyId, ...menu };
   } catch (error) {
-    console.error('[getCompleteMenuForProperty] Error:', error);
+    securityLogger.error('[getCompleteMenuForProperty] Error:', error);
     return { restaurant: null, propertyId, categories: [], itemsByCategory: new Map() };
   }
 });
@@ -148,7 +149,7 @@ export const getCompleteMenu = cache(async () => {
     const menu = await loadMenuForRestaurantId(restaurant.id);
     return { restaurant, propertyId, ...menu };
   } catch (error) {
-    console.error('[getCompleteMenu] Error:', error);
+    securityLogger.error('[getCompleteMenu] Error:', error);
     return {
       restaurant: null,
       propertyId: process.env.DEFAULT_PROPERTY_ID ?? '',

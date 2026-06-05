@@ -7,18 +7,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { LoyaltyService } from '@/lib/services/loyalty/LoyaltyService';
 import { db, guests } from '@/lib/db';
-import { getCurrentUserTenantContext } from '@/lib/middleware/withApiAuth';
+import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
 import { and, eq } from 'drizzle-orm';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const loyaltyService = new LoyaltyService();
 
 export async function POST(req: NextRequest) {
   try {
-    const context = await getCurrentUserTenantContext();
-    
-    if (!context) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const context = await requireTenantSessionUser(req);
 
     const body = await req.json();
     const { rewardId } = body;
@@ -36,7 +33,7 @@ export async function POST(req: NextRequest) {
       .from(guests)
       .where(
         and(
-          eq(guests.email, context.user.email.toLowerCase()),
+          eq(guests.email, (context.email ?? '').toLowerCase()),
           eq(guests.tenantId, context.tenantId)
         )
       )
@@ -68,7 +65,7 @@ export async function POST(req: NextRequest) {
       message: 'Reward redeemed successfully',
     }, { status: 201 });
   } catch (error: any) {
-    console.error('Error redeeming reward:', error);
+    securityLogger.error('Error redeeming reward:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to redeem reward' },
       { status: error.status || 500 }

@@ -8,6 +8,7 @@
 import { NextResponse } from 'next/server';
 import { db, properties, rooms, tenants } from '@/lib/db';
 import { and, asc, eq, inArray } from 'drizzle-orm';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export async function GET() {
   try {
@@ -74,7 +75,7 @@ export async function GET() {
       }
     );
   } catch (error) {
-    console.error('[API] Partners list error:', error);
+    securityLogger.error('[API] Partners list error:', error);
     return NextResponse.json({ error: 'Failed to fetch partners' }, { status: 500 });
   }
 }

@@ -33,6 +33,33 @@ curl -sI https://www.hoteletuna.com | head -5
 
 ---
 
+## Room inventory & facilities booking (June 2026)
+
+| Area | Status |
+|------|--------|
+| Data | `lib/data/hotel-etuna-room-inventory.ts` — 35 guest rooms + 1 conference hall + 1 campsite (no guest room numbers on facilities) |
+| Migrations | `0040`–`0042` applied via `npm run db:migrate:all` |
+| Public UI | `getHubRoomTypeCatalog()` on `/`, `/rooms`; `/facilities/conference`, `/facilities/campsite` |
+| Booking | `FacilityBookingPricing`, `createFacilityBooking`, `POST /api/bookings` discriminated by `bookingKind` |
+| Docs | `docs/project/ROOM_INVENTORY.md`, PRD §3.3, `PROJECT_STATE.md` |
+| RAG | `npm run rag:seed` after knowledge markdown changes |
+
+---
+
+## Production hardening (June 2026)
+
+| Area | Status |
+|------|--------|
+| Nav / RBAC | Risk nav removed for staff; `/crm` link; `proxy.ts` routes; `/dashboard/rooms` removed |
+| Buffr Hub | AI observability + secrets pages; intelligence digest preview on platform overview |
+| PEP / Linear | PEP API gated off; `linear.ts` removed; internal support escalation only |
+| Migrations | `database/all-migrations.sql` generator; verify script through `0038` |
+| Intelligence | `IntelligenceReportService`, cron digests, `FOUNDER_DIGEST_EMAIL`, partner weekly via `users.notification_preferences` |
+| Email | Zod schemas in `lib/validation/sofia-email-schemas.ts`; `npm run validate:email-templates` in `test:ci` |
+| Docs | Canonical `docs/project/*`; root `TASK.md` / `PLANNING.md` are stubs |
+
+---
+
 ## Legacy inventory & cleanup (May 17, 2026)
 
 **Payments (May 17):** Removed Stripe env block, `AdumoEnterpriseService`, `/api/payments/3ds-callback`, `/api/payments/complete`. **Namibia card rail = Adumo Virtual only** (form POST → `initialisevirtual`, redirects, JWT webhook).
@@ -572,7 +599,7 @@ npm run dev
 # Test critical paths from smoke test above
 
 # Hotel hub admin (operations)
-# Email: manager@hoteletuna.com
+# Email: admin@hoteletuna.com
 # Password: Test1234!  (or ADMIN_PASSWORD from .env.local)
 
 # Buffr platform admin (cross-tenant /admin/platform)
@@ -1097,10 +1124,10 @@ curl -H "api-key: $QDRANT_API_KEY" \
 #### Hub Tenant (Hotel Etuna)
 - **Tenant ID:** `c8cba92f-cbb1-4a79-b02f-d8d6d66b31a8`
 - **Property:** Hotel Etuna (Ongwediva, Namibia)
-- **Rooms:** 5 types (Standard, Luxury, Family, Executive Suite, Premier)
+- **Rooms:** Standard (Types A/B/C), Executive Room, Premiere Room
 - **Restaurant:** Etuna Restaurant
 - **Menu:** 5 categories, 16 items
-- **Hotel admin:** manager@hoteletuna.com / `owner` / Test1234! (seed script)
+- **Hotel admin:** admin@hoteletuna.com / `owner` / Test1234! (seed script)
 - **Buffr platform admin:** george@buffr.ai / `super-admin` / `is_platform_admin` — provision via `scripts/provision-platform-admin.ts` (password from `ADMIN_PASSWORD` env, not committed)
 
 #### Partner Tenants
@@ -1264,3 +1291,29 @@ export const revalidate = 60; // 1 minute
 
 **Last Verified:** May 16, 2026 (codebase audit — see § Verified Implementation Audit)  
 **Deployment Status:** ✅ Production Live
+
+---
+
+## Test Run — 2026-06-02 (Post Full Migration + Fix Session)
+
+| Step | Command | Result |
+|------|---------|--------|
+| TypeScript | `npx tsc --noEmit` | ✅ 0 errors |
+| ESLint | `npm run lint` | ✅ 0 errors, 421 warnings |
+| DB health | `npm run test:db` | ✅ Pass |
+| DB migrations | `npm run test:db:migrations` | ✅ 20/20 |
+| Vitest full suite | `npm test` | ✅ **449 passed** / 0 failed / 2 skipped (55 files) |
+| Smoke tests | `npm run test:smoke` | ✅ 6/6 |
+| Security preflight | `npm run security:preflight` | ✅ 12/12, 100%, 0 critical |
+| npm audit | `npm audit --audit-level=critical` | ✅ 0 critical |
+
+**Test count growth:** 334 (May 2026 baseline) → 427 (May 17) → **449** (June 2026, new features)
+
+**Fixes applied in this session:**
+- `posthog.ts` restored `console.warn` for client-side analytics (securityLogger is no-op in browser)
+- `successResponse` / `errorResponse` in `api-helpers.ts` — added `success: true/false` field
+- Housekeeping test: fixed `createTestBooking` positional args + Drizzle `Date` types
+- Database/rooms integration tests: seeded Hotel Etuna hub + partner tenants
+- `create_housekeeping_task_on_checkout` trigger: recreated with `booking_rooms` JOIN (not direct `room_id` column)
+- All migrations 0003–0037 applied; fraud rules seeded; loyalty tiers seeded
+- Lint: `<a>` → `<Link>` in booking deposit page; malformed import in print-email-signature.ts; setState rule downgraded to warning

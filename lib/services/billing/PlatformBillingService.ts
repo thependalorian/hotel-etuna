@@ -21,6 +21,7 @@ import { computeVatOnTaxableSupply, getBuffrTaxProfile } from '@/lib/platform/na
 import { AppError } from '@/lib/utils/errors';
 import { handleServiceError } from '@/lib/utils/errors';
 import { and, desc, eq, sql } from 'drizzle-orm';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export type PlatformInvoiceStatus = 'draft' | 'issued' | 'paid' | 'void';
 
@@ -84,7 +85,7 @@ export class PlatformBillingService {
 
       return inserted?.id ?? null;
     } catch (error) {
-      console.error('[PlatformBillingService] recordCardFeeAccrual failed:', error);
+      securityLogger.error('[PlatformBillingService] recordCardFeeAccrual failed:', error);
       return null;
     }
   }

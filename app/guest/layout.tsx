@@ -22,8 +22,14 @@ export default function GuestLayout({ children }: { children: React.ReactNode })
             <Link href="/guest" className="inline-flex min-h-11 items-center hover:text-terracotta-800 font-medium">
               My stays
             </Link>
+            <Link href="/guest/loyalty" className="inline-flex min-h-11 items-center hover:text-terracotta-800 font-medium">
+              Loyalty
+            </Link>
             <Link href="/profile" className="inline-flex min-h-11 items-center hover:text-terracotta-800 font-medium">
               Account
+            </Link>
+            <Link href="/guest/dsar" className="inline-flex min-h-11 items-center hover:text-terracotta-800 font-medium text-xs opacity-70">
+              Data rights
             </Link>
           </nav>
           {children}

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 import * as z from 'zod';
 
 const checkSchema = z.object({
@@ -43,7 +44,10 @@ export async function POST(request: Request) {
       hasOtp: !!user.emailVerificationOtp,
     }, { status: 200 });
   } catch (error) {
-    console.error('Check email verified error:', error);
+    securityLogger.error('[CheckEmailVerified] Check email verified error', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack?.substring(0, 500) : undefined,
+    });
     return NextResponse.json({
       verified: false,
       message: 'An unexpected error occurred.',

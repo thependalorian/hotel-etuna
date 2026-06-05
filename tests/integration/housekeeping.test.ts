@@ -58,14 +58,14 @@ describe('Housekeeping Task Lifecycle', () => {
     const checkOut = new Date(checkIn);
     checkOut.setDate(checkOut.getDate() + 2);
 
-    const booking = await createTestBooking({
-      tenantId: tenant.id,
-      propertyId: property.id,
-      guestId: guest.id,
-      roomId: room.id,
-      checkInDate: checkIn.toISOString().split('T')[0],
-      checkOutDate: checkOut.toISOString().split('T')[0],
-    });
+    const booking = await createTestBooking(
+      tenant.id,
+      property.id,
+      guest.id,
+      room.id,
+      checkIn,
+      checkOut
+    );
 
     tenantId = tenant.id;
     userId = user.id;
@@ -89,7 +89,7 @@ describe('Housekeeping Task Lifecycle', () => {
         .update(bookings)
         .set({ 
           status: 'checked_out',
-          actualCheckOutDate: new Date().toISOString(),
+          actualCheckOutDate: new Date(),
         })
         .where(eq(bookings.id, bookingId));
 
@@ -149,7 +149,7 @@ describe('Housekeeping Task Lifecycle', () => {
         .set({ 
           status: 'cleaning',
           assignedTo: staffId,
-          startedAt: new Date().toISOString(),
+          startedAt: new Date(),
         })
         .where(eq(housekeepingTasks.id, taskId));
 
@@ -182,7 +182,7 @@ describe('Housekeeping Task Lifecycle', () => {
         .update(housekeepingTasks)
         .set({ 
           status: 'clean',
-          completedAt: new Date().toISOString(),
+          completedAt: new Date(),
         })
         .where(eq(housekeepingTasks.id, taskId));
 
@@ -299,7 +299,7 @@ describe('Housekeeping Task Lifecycle', () => {
         .update(housekeepingTasks)
         .set({ 
           status: 'cleaning',
-          startedAt: startTime.toISOString(),
+          startedAt: startTime,
         })
         .where(eq(housekeepingTasks.id, task.id));
 
@@ -329,7 +329,7 @@ describe('Housekeeping Task Lifecycle', () => {
         .update(housekeepingTasks)
         .set({ 
           status: 'clean',
-          completedAt: completionTime.toISOString(),
+          completedAt: completionTime,
         })
         .where(eq(housekeepingTasks.id, task.id));
 

@@ -21,9 +21,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
+import { AppError } from '@/lib/utils/errors';
 import { ElectronicSignatureService } from '@/lib/services/documents/ElectronicSignatureService';
 import { entityId } from '@/lib/validation/entity-ids';
 import { z } from 'zod';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 // Signature request validation
 const signatureRequestSchema = z.object({
@@ -80,13 +83,15 @@ const signatureRequestSchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     // Parse and validate request
+    const user = await requireTenantSessionUser(req);
     const body = await req.json();
     const validatedData = signatureRequestSchema.parse(body);
     
-    console.log('[API:ElectronicSignature] Capturing signature:', {
+    securityLogger.info('[API:ElectronicSignature] Capturing signature', {
       documentType: validatedData.documentType,
       signerId: validatedData.signerId,
       method: validatedData.signatureMethod,
+      tenantId: user.tenantId,
     });
     
     // Extract IP address from request
@@ -100,7 +105,7 @@ export async function POST(req: NextRequest) {
     
     // Capture signature
     const signature = await signatureService.captureSignature(
-      validatedData.tenantId,
+      user.tenantId,
       {
         documentType: validatedData.documentType,
         documentId: validatedData.documentId,
@@ -121,10 +126,12 @@ export async function POST(req: NextRequest) {
       }
     );
     
-    console.log('[API:ElectronicSignature] Signature captured successfully:', {
+    securityLogger.info('[API:ElectronicSignature] Signature captured successfully', {
       signatureId: signature.id,
       etaCompliant: signature.etaCompliant,
       legallyBinding: signature.legallyBinding,
+      tenantId: user.tenantId,
+      signerId: validatedData.signerId,
     });
     
     return NextResponse.json({
@@ -157,7 +164,7 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    console.error('[API:ElectronicSignature] Error:', error);
+    securityLogger.error('[API:ElectronicSignature] Error:', error);
     
     return NextResponse.json(
       {
@@ -204,7 +211,7 @@ export async function GET(req: NextRequest) {
     });
     
   } catch (error) {
-    console.error('[API:ElectronicSignature:Get] Error:', error);
+    securityLogger.error('[API:ElectronicSignature:Get] Error:', error);
     
     return NextResponse.json(
       {
@@ -243,7 +250,7 @@ export async function PATCH(req: NextRequest) {
     });
     
   } catch (error) {
-    console.error('[API:ElectronicSignature:Void] Error:', error);
+    securityLogger.error('[API:ElectronicSignature:Void] Error:', error);
     
     return NextResponse.json(
       {

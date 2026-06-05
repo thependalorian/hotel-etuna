@@ -42,7 +42,7 @@ These scripts are intended for production use and maintenance:
 - **`push-env-to-vercel.mjs`** — Push `.env.local` secrets to linked Vercel project (`npm run env:push-vercel`). Applies production Adumo redirect/webhook URLs. **Never commit `.env.local` or `.env.vercel`.**
 
 ### Other production / ops scripts
-- **`provision-platform-admin.ts`** - Create Buffr platform admin users
+- **`provision-platform-admin.ts`** — Buffr Hub (`george@buffr.ai` default): `ADMIN_PASSWORD='…' npx tsx scripts/provision-platform-admin.ts --link-hub`
 - **`security/run-preflight.ts`** - Pre-deploy security checks (`npm run security:preflight`)
 - **`seed-menu-images.ts`**, **`validate-menu-images.ts`** - Menu image pipeline
 - **`soc2/`**, **`compliance/`** - Evidence collection

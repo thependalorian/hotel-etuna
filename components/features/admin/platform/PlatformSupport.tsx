@@ -88,7 +88,7 @@ export default function PlatformSupport() {
   const [replyBody, setReplyBody] = useState('');
   const [sendingReply, setSendingReply] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
-  const [linearLoading, setLinearLoading] = useState(false);
+  const [escalateLoading, setEscalateLoading] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   const selectedTicket = selectedId ? tickets.find((t) => t.id === selectedId) ?? null : null;
@@ -217,23 +217,23 @@ export default function PlatformSupport() {
     }
   }
 
-  async function escalateLinear() {
+  async function escalateToEngineering() {
     if (!selectedId) return;
-    setLinearLoading(true);
+    setEscalateLoading(true);
     try {
-      const res = await fetch(apiUrl(`/api/admin/platform/support/tickets/${selectedId}/linear`), {
+      const res = await fetch(apiUrl(`/api/admin/platform/support/tickets/${selectedId}/escalate`), {
         method: 'POST',
         credentials: 'include',
       });
       if (!res.ok) {
         const msg = res.status === 429 ? await rateLimitMessage(res) : await messageFromFailedResponse(res);
-        showToast({ variant: 'error', title: 'Linear', message: msg });
+        showToast({ variant: 'error', title: 'Escalation', message: msg });
         return;
       }
       const json = (await res.json()) as {
-        data?: { linear_issue_url?: string; alreadyLinked?: boolean };
+        data?: { escalation_url?: string; alreadyLinked?: boolean };
       };
-      const url = json.data?.linear_issue_url;
+      const url = json.data?.escalation_url;
       if (url) {
         setTickets((prev) =>
           prev.map((t) => (t.id === selectedId ? { ...t, linearIssueUrl: url } : t)),
@@ -241,14 +241,14 @@ export default function PlatformSupport() {
       }
       showToast({
         variant: 'success',
-        title: json.data?.alreadyLinked ? 'Already in Linear' : 'Linear issue created',
-        message: url ? 'Open Linear from the link below.' : 'OK',
+        title: json.data?.alreadyLinked ? 'Already escalated' : 'Escalated to engineering',
+        message: url ? 'Reference link is in the ticket header.' : 'OK',
       });
       await loadTickets();
     } catch (e) {
-      showToast({ variant: 'error', title: 'Linear', message: networkErrorMessage(e) });
+      showToast({ variant: 'error', title: 'Escalation', message: networkErrorMessage(e) });
     } finally {
-      setLinearLoading(false);
+      setEscalateLoading(false);
     }
   }
 
@@ -348,7 +348,7 @@ export default function PlatformSupport() {
                     rel="noopener noreferrer"
                     className="link link-primary ml-2 inline-flex items-center gap-1"
                   >
-                    Linear <ExternalLink className="h-3 w-3" aria-hidden />
+                    Engineering ref <ExternalLink className="h-3 w-3" aria-hidden />
                   </a>
                 ) : null}
               </p>
@@ -358,10 +358,14 @@ export default function PlatformSupport() {
                 <button
                   type="button"
                   className="btn btn-sm btn-secondary"
-                  disabled={linearLoading || Boolean(selectedTicket.linearIssueUrl)}
-                  onClick={() => escalateLinear()}
+                  disabled={escalateLoading || Boolean(selectedTicket.linearIssueUrl)}
+                  onClick={() => escalateToEngineering()}
                 >
-                  {linearLoading ? <span className="loading loading-spinner loading-sm" /> : 'Create Linear issue'}
+                  {escalateLoading ? (
+                    <span className="loading loading-spinner loading-sm" />
+                  ) : (
+                    'Escalate to engineering'
+                  )}
                 </button>
                 <button
                   type="button"

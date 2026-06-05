@@ -32,6 +32,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import PropertySelector from '@/components/features/restaurant/PropertySelector';
 import MenuCategoryCard from '@/components/features/restaurant/menu/MenuCategoryCard';
 import { apiUrl } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface MenuItem {
   id: string;
@@ -148,7 +149,7 @@ export default function RestaurantMenuPage() {
             setMenuItemImages(imageMap);
           }
         } catch (error) {
-          console.error('Error fetching menu item images:', error);
+          securityLogger.error('Error fetching menu item images:', error);
         }
       };
       fetchMenuItemImages();

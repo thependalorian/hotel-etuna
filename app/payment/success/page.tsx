@@ -1,3 +1,10 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Payment Confirmed',
+  robots: { index: false, follow: false },
+};
+
 /**
  * Adumo Virtual — successful redirect landing page.
  * Location: app/payment/success/page.tsx

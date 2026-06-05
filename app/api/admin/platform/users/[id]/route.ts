@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentPlatformAdmin, isSuperAdmin } from '@/lib/auth/platform-admin';
 import { db, users } from '@/lib/db';
 import { eq } from 'drizzle-orm';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -55,7 +56,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ data: updatedUser });
   } catch (error) {
-    console.error('Error updating user:', error);
+    securityLogger.error('Error updating user:', error);
     return NextResponse.json(
       { error: 'Failed to update user' },
       { status: 500 }
@@ -91,7 +92,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ message: 'User deleted successfully' });
   } catch (error) {
-    console.error('Error deleting user:', error);
+    securityLogger.error('Error deleting user:', error);
     return NextResponse.json(
       { error: 'Failed to delete user' },
       { status: 500 }

@@ -5,6 +5,7 @@
  */
 
 import { runSoc2Audit } from '../../lib/compliance/soc2/soc2-audit-engine';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 function parseArg(name: string): string | undefined {
   const hit = process.argv.find((a) => a.startsWith(`--${name}=`));
@@ -20,11 +21,11 @@ async function main() {
     : new Date(to.getFullYear(), to.getMonth() - 3, to.getDate());
 
   const report = await runSoc2Audit({ from, to });
-  console.log(JSON.stringify(report, null, 2));
+  securityLogger.info(JSON.stringify(report, null, 2));
   process.exit(report.summary.gap > 0 ? 1 : 0);
 }
 
 main().catch((err) => {
-  console.error(err);
+  securityLogger.error(err);
   process.exit(2);
 });

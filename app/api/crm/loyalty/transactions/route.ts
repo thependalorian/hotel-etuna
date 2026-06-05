@@ -6,20 +6,17 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db, loyaltyTransactions, guests } from '@/lib/db';
-import { getCurrentUserTenantContext } from '@/lib/middleware/withApiAuth';
+import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
 import { and, eq, desc } from 'drizzle-orm';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export async function GET(req: NextRequest) {
   try {
-    const context = await getCurrentUserTenantContext();
-    
-    if (!context) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const context = await requireTenantSessionUser(req);
 
     // Staff-only endpoint
     const staffRoles = ['owner', 'manager', 'admin', 'staff'];
-    if (!staffRoles.includes(context.user.role)) {
+    if (!staffRoles.includes(context.role)) {
       return NextResponse.json(
         { error: 'Only staff can view all loyalty transactions' },
         { status: 403 }
@@ -58,7 +55,8 @@ export async function GET(req: NextRequest) {
         description: loyaltyTransactions.description,
         staffUserId: loyaltyTransactions.staffUserId,
         createdAt: loyaltyTransactions.createdAt,
-        guestName: guests.name,
+        guestFirstName: guests.firstName,
+        guestLastName: guests.lastName,
         guestEmail: guests.email,
       })
       .from(loyaltyTransactions)
@@ -87,7 +85,7 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error('Error fetching transactions:', error);
+    securityLogger.error('Error fetching transactions:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to fetch transactions' },
       { status: error.status || 500 }

@@ -52,17 +52,19 @@ This Incident Response Plan defines Hotel Etuna's procedures for detecting, resp
 
 | Role | Name | Contact | Responsibilities |
 |------|------|---------|-----------------|
-| **Incident Commander** | [CTO Name] | [Phone], [Email] | Overall incident leadership; communications; BoN notification |
-| **Technical Lead** | [Senior Developer] | [Phone], [Email] | Investigation; containment; forensics; system recovery |
-| **Communications Lead** | [Operations Manager] | [Phone], [Email] | Internal comms; guest notification; PR liaison |
-| **Legal Liaison** | [External Counsel] | [Phone], [Email] | Regulatory guidance; breach notification requirements |
+| **Incident Commander** | CTO — George Nekwaya | pendanek@gmail.com | Overall incident leadership; communications; BoN notification |
+| **Technical Lead** | Lead Developer (on-call) | support@hoteletuna.com | Investigation; containment; forensics; system recovery |
+| **Communications Lead** | Hotel Manager | +264 65 231 177 | Internal comms; guest notification; front-desk coordination |
+| **Legal Liaison** | External Counsel (TBC) | To be appointed before SOC 2 audit | Regulatory guidance; breach notification requirements |
+
+> ⚠️ **Action required:** Appoint Legal Liaison before SOC 2 Type I assessment.
 
 ### 3.2 Extended Team (On-Call)
 
-- **Vercel Support:** [Contact] — Platform issues
-- **Neon Support:** [Contact] — Database issues
-- **Adumo Support:** [Contact] — Payment issues
-- **Bank of Namibia Cybersecurity Unit:** [Contact] — PSD-12 reporting
+- **Vercel Support:** https://vercel.com/support (Enterprise SLA) — Platform issues
+- **Neon Support:** https://neon.tech/support — Database issues
+- **Adumo Support:** Contact Buffr Financial Services who holds the merchant agreement — Payment issues
+- **Bank of Namibia Cybersecurity Unit:** BoN PSD-12 reporting channel — cybersecurity@bon.com.na (verify current address at bon.com.na)
 
 ---
 

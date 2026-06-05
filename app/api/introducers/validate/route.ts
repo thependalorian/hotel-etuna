@@ -24,6 +24,7 @@ import { checkRateLimit } from '@/lib/utils/rate-limit';
 import { db, introducers } from '@/lib/db';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 /**
  * POST /api/introducers/validate
@@ -113,7 +114,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error validating introducer code:', error);
+    securityLogger.error('Error validating introducer code:', error);
     return errorResponse(
       'Failed to validate introducer code',
       500,

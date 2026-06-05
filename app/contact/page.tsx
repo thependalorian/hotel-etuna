@@ -8,10 +8,13 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
-import { MapPin, Phone, Mail, Clock, Send } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock } from 'lucide-react';
 import PublicHero from '@/components/shared/PublicHero';
 import Footer from '@/components/shared/Footer';
 import NavigationHeader from '@/components/sections/landing/NavigationHeader';
+import { ContactForm } from '@/components/features/contact/ContactForm';
+import HotelEtunaTeamEmails from '@/components/shared/HotelEtunaTeamEmails';
+import { brand } from '@/lib/copy/brand';
 
 export const metadata: Metadata = {
   title: 'Contact Us',
@@ -36,97 +39,7 @@ export default function ContactPage() {
             <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12">
               {/* Contact Form */}
               <div className="bg-white rounded-2xl p-8 shadow-card">
-                <h2 className="font-display text-3xl font-bold text-terracotta-900 mb-6">
-                  Send Us a Message
-                </h2>
-                
-                <form className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-terracotta-900 mb-2">
-                        First Name *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        className="w-full px-4 py-3 rounded-lg border border-nude-300 focus:ring-2 focus:ring-khaki-600 focus:border-transparent"
-                        placeholder="John"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-terracotta-900 mb-2">
-                        Last Name *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        className="w-full px-4 py-3 rounded-lg border border-nude-300 focus:ring-2 focus:ring-khaki-600 focus:border-transparent"
-                        placeholder="Doe"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-terracotta-900 mb-2">
-                      Email Address *
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      className="w-full px-4 py-3 rounded-lg border border-nude-300 focus:ring-2 focus:ring-khaki-600 focus:border-transparent"
-                      placeholder="john@example.com"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-terracotta-900 mb-2">
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      className="w-full px-4 py-3 rounded-lg border border-nude-300 focus:ring-2 focus:ring-khaki-600 focus:border-transparent"
-                      placeholder="+264 81 234 5678"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-terracotta-900 mb-2">
-                      Subject *
-                    </label>
-                    <select
-                      required
-                      className="w-full px-4 py-3 rounded-lg border border-nude-300 focus:ring-2 focus:ring-khaki-600 focus:border-transparent"
-                    >
-                      <option value="">Select a subject</option>
-                      <option value="reservation">Reservation Inquiry</option>
-                      <option value="restaurant">Restaurant Reservation</option>
-                      <option value="event">Event/Conference Inquiry</option>
-                      <option value="general">General Question</option>
-                      <option value="feedback">Feedback</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-terracotta-900 mb-2">
-                      Message *
-                    </label>
-                    <textarea
-                      required
-                      rows={6}
-                      className="w-full px-4 py-3 rounded-lg border border-nude-300 focus:ring-2 focus:ring-khaki-600 focus:border-transparent resize-none"
-                      placeholder="Tell us how we can help..."
-                    />
-                  </div>
-
-                  <Button type="submit" size="lg" className="w-full">
-                    <Send className="w-5 h-5" />
-                    Send Message
-                  </Button>
-
-                  <p className="text-sm text-terracotta-800 text-center">
-                    We typically respond within 24 hours
-                  </p>
-                </form>
+                <ContactForm />
               </div>
 
               {/* Contact Info */}
@@ -168,21 +81,16 @@ export default function ContactPage() {
                       </div>
                     </div>
 
-                    <div className="flex gap-4">
+                    <div className="flex gap-4" id="emails">
                       <div className="w-12 h-12 bg-khaki-600 rounded-full flex items-center justify-center shrink-0">
                         <Mail className="w-6 h-6 text-white" />
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-terracotta-900 mb-1">Email</h3>
-                        <p className="text-terracotta-800">
-                          <a href="mailto:info@hoteletuna.com" className="hover:text-khaki-600 transition-colors">
-                            info@hoteletuna.com
-                          </a>
-                          <br />
-                          <a href="mailto:reservations@hoteletuna.com" className="hover:text-khaki-600 transition-colors">
-                            reservations@hoteletuna.com
-                          </a>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-semibold text-terracotta-900 mb-2">Email</h3>
+                        <p className="text-sm text-terracotta-800 mb-4">
+                          Reach the right team at {brand.name}:
                         </p>
+                        <HotelEtunaTeamEmails />
                       </div>
                     </div>
 

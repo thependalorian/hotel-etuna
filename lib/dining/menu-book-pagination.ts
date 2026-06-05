@@ -7,6 +7,13 @@ import type { PublicMenuCategory, PublicMenuItem } from '@/lib/dining/menu-displ
 
 export type MenuBookLayout = 'grid' | 'list';
 
+/** A single two-sided page in the menu book (front face + back face). */
+export type MenuBookPage = {
+  id: string;
+  front: import('react').ReactNode;
+  back: import('react').ReactNode;
+};
+
 /** Food pages: 2 columns × 3 rows per screen (single-page menu). */
 export const FOOD_GRID_COLUMNS = 2;
 export const FOOD_GRID_ROWS = 3;

@@ -39,7 +39,7 @@ export default async function CmsPagesListPage() {
       publishedAt: cmsPages.publishedAt,
       createdAt: cmsPages.createdAt,
       updatedAt: cmsPages.updatedAt,
-      createdByName: users.name,
+      createdByEmail: users.email,
     })
     .from(cmsPages)
     .leftJoin(users, eq(cmsPages.createdBy, users.id))
@@ -121,7 +121,7 @@ export default async function CmsPagesListPage() {
                       {page.status}
                     </span>
                   </td>
-                  <td>{page.createdByName || 'Unknown'}</td>
+                  <td>{page.createdByEmail || 'Unknown'}</td>
                   <td>
                     {new Date(page.updatedAt).toLocaleDateString()}
                   </td>

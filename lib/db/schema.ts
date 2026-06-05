@@ -218,6 +218,9 @@ export const users = pgTable('users', {
   isPlatformAdmin: boolean('is_platform_admin').default(false),
   status: varchar('status', { length: 50 }).default('active'),
   lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
+  notificationPreferences: jsonb('notification_preferences')
+    .notNull()
+    .default(sql`'{}'::jsonb`),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (table) => ({
@@ -378,6 +381,8 @@ export const rooms = pgTable('rooms', {
   amenities: text('amenities').array(),
   images: text('images').array(),
   status: varchar('status', { length: 50 }).default('available'),
+  inventoryKind: varchar('inventory_kind', { length: 32 }).default('guest_room').notNull(),
+  pricingMetadata: jsonb('pricing_metadata').default({}).notNull(),
   smokingAllowed: boolean('smoking_allowed').default(false),
   petFriendly: boolean('pet_friendly').default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
@@ -385,6 +390,7 @@ export const rooms = pgTable('rooms', {
 }, (table) => ({
   propertyIdx: index('idx_rooms_property_id').on(table.propertyId),
   statusIdx: index('idx_rooms_status').on(table.status),
+  inventoryKindIdx: index('idx_rooms_inventory_kind').on(table.inventoryKind),
   uniqueRoomNumber: uniqueIndex('unique_room_number').on(table.propertyId, table.roomNumber),
 }));
 
@@ -478,6 +484,8 @@ export const bookings = pgTable('bookings', {
   aiProcessed: boolean('ai_processed').default(false),
   aiConfidenceScore: decimal('ai_confidence_score', { precision: 3, scale: 2 }),
   folioClosedAt: timestamp('folio_closed_at', { withTimezone: true }),
+  bookingKind: varchar('booking_kind', { length: 32 }).default('accommodation'),
+  pricingDetails: jsonb('pricing_details').default({}),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (table) => ({
@@ -488,6 +496,7 @@ export const bookings = pgTable('bookings', {
   statusIdx: index('idx_bookings_status').on(table.status),
   checkInIdx: index('idx_bookings_check_in_date').on(table.checkInDate),
   paymentMethodIdx: index('idx_bookings_payment_method').on(table.paymentMethod),
+  bookingKindIdx: index('idx_bookings_booking_kind').on(table.bookingKind),
 }));
 
 export const bookingRooms = pgTable('booking_rooms', {

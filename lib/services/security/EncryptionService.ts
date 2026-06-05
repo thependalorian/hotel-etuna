@@ -27,6 +27,7 @@
  */
 
 import crypto from 'crypto';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 // ============================================================================
 // TYPES
@@ -153,7 +154,7 @@ export class EncryptionService {
         authTag: authTag.toString('base64'),
       };
     } catch (error: any) {
-      console.error('[EncryptionService] Encryption error:', error);
+      securityLogger.error('[EncryptionService] Encryption error:', error);
       throw new Error(`Encryption failed: ${error.message}`);
     }
   }
@@ -186,7 +187,7 @@ export class EncryptionService {
         success: true,
       };
     } catch (error: any) {
-      console.error('[EncryptionService] Decryption error:', error);
+      securityLogger.error('[EncryptionService] Decryption error:', error);
       return {
         decrypted: '',
         success: false,
@@ -254,7 +255,7 @@ export class EncryptionService {
         type,
       };
     } catch (error: any) {
-      console.error('[EncryptionService] Tokenization error:', error);
+      securityLogger.error('[EncryptionService] Tokenization error:', error);
       throw new Error(`Tokenization failed: ${error.message}`);
     }
   }
@@ -278,7 +279,7 @@ export class EncryptionService {
         error: 'Token vault not implemented. Use encryption for data storage.',
       };
     } catch (error: any) {
-      console.error('[EncryptionService] Detokenization error:', error);
+      securityLogger.error('[EncryptionService] Detokenization error:', error);
       return {
         value: '',
         success: false,
@@ -476,7 +477,7 @@ export class EncryptionService {
     // Restore new key
     process.env.ENCRYPTION_KEY = newKey;
 
-    console.log('[EncryptionService] Key rotation completed');
+    securityLogger.info('[EncryptionService] Key rotation completed');
   }
 
   /**

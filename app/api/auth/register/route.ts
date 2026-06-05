@@ -15,6 +15,7 @@ import { checkRateLimit } from '@/lib/utils/rate-limit';
 import { rateLimitResponse } from '@/lib/utils/api-helpers';
 import { passwordSchema } from '@/lib/validation/password';
 import { isTurnstileConfigured, verifyTurnstileToken } from '@/lib/auth/verify-turnstile';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const registerSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }).max(120),
@@ -131,7 +132,11 @@ export async function POST(request: NextRequest) {
       },
     }).catch(async (error) => {
       // Log error but don't fail registration
-      console.error('Failed to send verification email:', error);
+      securityLogger.error('[Register] Failed to send verification email', {
+        email,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack?.substring(0, 500) : undefined,
+      });
       
       // Try to log the error to database for debugging
       try {
@@ -157,7 +162,10 @@ export async function POST(request: NextRequest) {
           },
         });
       } catch (dbError) {
-        console.error('Failed to log email error to database:', dbError);
+        securityLogger.error('[Register] Failed to log email error to database', {
+          error: dbError instanceof Error ? dbError.message : String(dbError),
+          stack: dbError instanceof Error ? dbError.stack?.substring(0, 500) : undefined,
+        });
       }
     });
 
@@ -168,10 +176,11 @@ export async function POST(request: NextRequest) {
 
   } catch (error: unknown) {
     const err = error as { message?: string; code?: string; cause?: { code?: string } };
-    console.error('Registration error:', error);
-    console.error('Registration error details:', {
+    securityLogger.error('[Register] Registration error', {
       message: err?.message,
-      stack: err && typeof err === 'object' && 'stack' in err ? (err as Error).stack : undefined,
+      code: err?.code,
+      cause: err?.cause,
+      stack: err && typeof err === 'object' && 'stack' in err ? (err as Error).stack?.substring(0, 500) : undefined,
       name: err && typeof err === 'object' && 'name' in err ? (err as Error).name : undefined,
     });
 

@@ -15,6 +15,7 @@ import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
 import { db, users, tenants } from '@/lib/db';
 import { eq } from 'drizzle-orm';
 import { AppError } from '@/lib/utils/errors';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,7 +58,7 @@ export async function GET(request: NextRequest) {
     if (error instanceof AppError) {
       return NextResponse.json({ message: error.message }, { status: error.statusCode });
     }
-    console.error('Error fetching user profile:', error);
+    securityLogger.error('Error fetching user profile:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }

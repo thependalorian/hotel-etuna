@@ -14,6 +14,7 @@ import {
   qdrantInferenceQuery,
 } from '@/lib/integrations/qdrant-inference';
 import { isRagEmbeddingConfigured } from '@/lib/integrations/embeddings-rag';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export type RagSearchChunk = {
   id: string;
@@ -45,11 +46,11 @@ export class RAGSearchService {
       return [];
     }
     if (!isQdrantConfigured()) {
-      console.warn('[RAGSearchService] RAG_ENABLED=true but QDRANT_URL is not set.');
+      securityLogger.warn('[RAGSearchService] RAG_ENABLED=true but QDRANT_URL is not set.');
       return [];
     }
     if (!isRagEmbeddingConfigured()) {
-      console.warn(
+      securityLogger.warn(
         '[RAGSearchService] RAG_ENABLED=true but Qdrant inference is not configured (RAG_USE_QDRANT_INFERENCE=true + QDRANT_API_KEY).'
       );
       return [];
@@ -87,7 +88,7 @@ export class RAGSearchService {
       }
       return chunks;
     } catch (e) {
-      console.warn('[RAGSearchService] search error', e);
+      securityLogger.warn('[RAGSearchService] search error', e);
       return [];
     }
   }

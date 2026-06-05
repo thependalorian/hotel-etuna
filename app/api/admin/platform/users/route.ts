@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentPlatformAdmin, isPlatformAdmin } from '@/lib/auth/platform-admin';
 import { db, users, tenants } from '@/lib/db';
 import { desc, eq, sql } from 'drizzle-orm';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 // GET - List all users
 export async function GET(request: NextRequest) {
@@ -71,7 +72,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data: filtered });
   } catch (error) {
-    console.error('Error fetching users:', error);
+    securityLogger.error('Error fetching users:', error);
     return NextResponse.json(
       { error: 'Failed to fetch users' },
       { status: 500 }

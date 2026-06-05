@@ -24,6 +24,7 @@ import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { FolioService } from '@/lib/services/folio/FolioService';
 import { schedulePaymentReceiptEmail } from '@/lib/services/booking/bookingLifecycleSideEffects';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const markAsPaidSchema = z.object({
   amountTendered: z.number().positive('Amount tendered must be positive'),
@@ -229,7 +230,7 @@ export async function PATCH(
     });
 
   } catch (error) {
-    console.error('[MARK PAYMENT AS PAID ERROR]', error);
+    securityLogger.error('[MARK PAYMENT AS PAID ERROR]', error);
     return NextResponse.json(
       { error: 'Internal server error', message: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
@@ -290,7 +291,7 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error('[GET PAYMENT DETAILS ERROR]', error);
+    securityLogger.error('[GET PAYMENT DETAILS ERROR]', error);
     return NextResponse.json(
       { error: 'Internal server error', message: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

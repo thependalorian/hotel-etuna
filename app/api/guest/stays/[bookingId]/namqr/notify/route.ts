@@ -16,6 +16,7 @@ import {
 import { GUEST_API_ROLES } from '@/lib/auth/roles';
 import { entityId } from '@/lib/validation/entity-ids';
 import { AppError } from '@/lib/utils/errors';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const bodySchema = z.object({
   amountClaimed: z.number().positive(),
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         if (e instanceof AppError) {
           return errorResponse(e.message, e.statusCode, 'NAMQR_NOTIFY_FAILED');
         }
-        console.error('[guest/namqr/notify]', e);
+        securityLogger.error('[guest/namqr/notify]', e);
         return errorResponse('Failed to submit payment notification', 500, 'NAMQR_NOTIFY_FAILED');
       }
     },

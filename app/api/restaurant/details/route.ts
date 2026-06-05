@@ -3,6 +3,7 @@ import { PropertyService } from '@/lib/services/property/PropertyService';
 import { getAuthenticatedUser } from '@/lib/utils/api-helpers';
 import { db, restaurants } from '@/lib/db';
 import { eq } from 'drizzle-orm';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const propertyService = new PropertyService();
 
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
       updatedAt: restaurant.updatedAt?.toISOString?.() ?? new Date().toISOString(),
     }, { status: 200 });
   } catch (error) {
-    console.error('Error fetching restaurant details:', error);
+    securityLogger.error('Error fetching restaurant details:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }

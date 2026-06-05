@@ -29,6 +29,8 @@ export const HOSPITALITY_REPORT_FIELD_LABELS = {
   operatingCashFlow: 'Operating Cash Flow Summary',
   journalLines: 'General Journal',
   roomRevenueExVat: 'Room Revenue (Sales)',
+  conferenceRevenueExVat: 'Conference Hall Revenue (Other revenue)',
+  campsiteRevenueExVat: 'Campsite Hire Revenue (Other revenue)',
   fnbRevenueExVat: 'Food & Beverage Revenue (Sales)',
   vatOutput: 'VAT Output Payable (NamRA liability)',
   vatInputOnPlatform: 'VAT Input Recoverable (Buffr invoices)',

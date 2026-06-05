@@ -8,6 +8,12 @@ import { ImagePlaceholder } from '@/components/ui';
 import Link from 'next/link';
 import { FileText, Image as ImageIcon } from 'lucide-react';
 import { apiUrl } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger.client';
+import {
+  getInventoryListingTitle,
+  isFacilityInventoryKind,
+  isGuestInventoryKind,
+} from '@/lib/rooms/inventory-display';
 
 interface RoomManagementProps {
   propertyId: string;
@@ -21,7 +27,7 @@ export function RoomManagement({ propertyId, initialRooms }: RoomManagementProps
   const fetchRooms = async () => {
     const response = await fetch(apiUrl(`/api/rooms?propertyId=${encodeURIComponent(propertyId)}`));
     if (!response.ok) {
-      console.error('Error fetching rooms:', response.statusText);
+      securityLogger.error('Error fetching rooms:', response.statusText);
       return;
     }
 
@@ -47,11 +53,54 @@ export function RoomManagement({ propertyId, initialRooms }: RoomManagementProps
           setRoomMedia(mediaMap);
         }
       } catch (error) {
-        console.error('Error fetching room media:', error);
+        securityLogger.error('Error fetching room media:', error);
       }
     };
     fetchRoomMedia();
   }, [propertyId]);
+
+  const guestRooms = rooms.filter((r) => isGuestInventoryKind(r.inventoryKind));
+  const facilities = rooms.filter((r) => isFacilityInventoryKind(r.inventoryKind));
+
+  const renderInventoryCard = (room: Room) => {
+    const title = getInventoryListingTitle({
+      roomType: room.roomType,
+      roomNumber: room.roomNumber,
+      inventoryKind: room.inventoryKind,
+    });
+    return (
+      <Card key={room.id} className="overflow-hidden">
+        <figure className="relative h-32 w-full overflow-hidden bg-base-200">
+          <ImagePlaceholder
+            src={roomMedia[room.id]}
+            alt={title}
+            fill
+            className="object-cover"
+          />
+        </figure>
+        <CardContent className="p-4">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="font-bold text-lg">{title}</p>
+              <p className="text-sm text-base-content/70">
+                {isFacilityInventoryKind(room.inventoryKind)
+                  ? 'Single bookable facility (no room number)'
+                  : `Max occupancy: ${room.maxOccupancy ?? 0}`}
+              </p>
+            </div>
+            <Link
+              href="/cms"
+              className="btn btn-ghost btn-sm min-h-[44px]"
+              title="Manage content and images"
+              aria-label={`Manage content for ${title}`}
+            >
+              <ImageIcon className="w-4 h-4" />
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -68,46 +117,35 @@ export function RoomManagement({ propertyId, initialRooms }: RoomManagementProps
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2">
-          <h3 className="text-lg font-semibold mb-4">Existing Rooms</h3>
-          {rooms.length === 0 ? (
-            <Card>
-              <CardContent className="p-6 text-center">
-                <p className="text-base-content/70">No rooms created yet.</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {rooms.map((room) => (
-                <Card key={room.id} className="overflow-hidden">
-                  <figure className="relative h-32 w-full overflow-hidden bg-base-200">
-                    <ImagePlaceholder
-                      src={roomMedia[room.id]}
-                      alt={`${room.roomType} - Room ${room.roomNumber}`}
-                      fill
-                      className="object-cover"
-                    />
-                  </figure>
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-bold text-lg">{room.roomType} - Room {room.roomNumber}</p>
-                        <p className="text-sm text-base-content/70">Max Occupancy: {room.maxOccupancy ?? 0}</p>
-                      </div>
-                      <Link 
-                        href="/cms" 
-                        className="btn btn-ghost btn-sm min-h-[44px]"
-                        title="Manage room content and images"
-                        aria-label={`Manage content and images for ${room.roomType} - Room ${room.roomNumber}`}
-                      >
-                        <ImageIcon className="w-4 h-4" />
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+        <div className="md:col-span-2 space-y-8">
+          <section>
+            <h3 className="text-lg font-semibold mb-4">Guest rooms ({guestRooms.length})</h3>
+            {guestRooms.length === 0 ? (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <p className="text-base-content/70">No guest rooms created yet.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">{guestRooms.map(renderInventoryCard)}</div>
+            )}
+          </section>
+
+          <section>
+            <h3 className="text-lg font-semibold mb-2">Facilities ({facilities.length})</h3>
+            <p className="text-sm text-base-content/70 mb-4">
+              One conference hall and one campsite — booked via /facilities, not numbered like guest rooms.
+            </p>
+            {facilities.length === 0 ? (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <p className="text-base-content/70">No facility inventory rows yet.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">{facilities.map(renderInventoryCard)}</div>
+            )}
+          </section>
         </div>
         <div>
           <CreateRoomForm propertyId={propertyId} onRoomCreated={fetchRooms} />

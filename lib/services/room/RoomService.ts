@@ -37,6 +37,8 @@ export class RoomService {
       amenities: (row.amenities as string[]) ?? null,
       images: (row.images as string[]) ?? null,
       status: (row.status as string) ?? 'available',
+      inventoryKind: (row.inventoryKind as string) ?? (row.inventory_kind as string) ?? 'guest_room',
+      pricingMetadata: (row.pricingMetadata as Record<string, unknown>) ?? (row.pricing_metadata as Record<string, unknown>) ?? {},
       smokingAllowed: (row.smokingAllowed as boolean) ?? (row.smoking_allowed as boolean) ?? null,
       petFriendly: (row.petFriendly as boolean) ?? (row.pet_friendly as boolean) ?? null,
       createdAt: (row.createdAt as Date) ?? (row.created_at as Date) ?? null,

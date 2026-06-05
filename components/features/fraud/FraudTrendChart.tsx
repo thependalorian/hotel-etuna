@@ -9,6 +9,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface FraudTrendChartProps {
   tenantId: string;
@@ -30,27 +31,24 @@ export function FraudTrendChart({ tenantId, periodType }: FraudTrendChartProps) 
     async function fetchTrendData() {
       try {
         setLoading(true);
-        
-        // Generate mock trend data
-        // TODO: Replace with actual API call
-        const mockData: TrendData[] = [];
-        const days = periodType === 'daily' ? 7 : periodType === 'weekly' ? 4 : 12;
-        
-        for (let i = days - 1; i >= 0; i--) {
-          const date = new Date();
-          date.setDate(date.getDate() - i);
-          
-          mockData.push({
-            date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            totalTransactions: Math.floor(Math.random() * 500) + 100,
-            flaggedTransactions: Math.floor(Math.random() * 50) + 10,
-            declinedTransactions: Math.floor(Math.random() * 20) + 5,
-          });
+
+        const response = await fetch(
+          `/api/fraud/statistics?tenantId=${encodeURIComponent(tenantId)}&periodType=${periodType}`
+        );
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch fraud statistics: ${response.status}`);
         }
-        
-        setTrendData(mockData);
+
+        const result = await response.json();
+
+        if (!result.success || !result.data?.trendData) {
+          throw new Error('Invalid fraud statistics response');
+        }
+
+        setTrendData(result.data.trendData);
       } catch (error) {
-        console.error('Error fetching trend data:', error);
+        securityLogger.error('Error fetching trend data:', error);
       } finally {
         setLoading(false);
       }

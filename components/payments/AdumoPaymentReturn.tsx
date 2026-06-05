@@ -36,10 +36,19 @@ export function AdumoPaymentReturn({ mode }: AdumoPaymentReturnProps) {
     const responseToken = searchParams.get('_RESPONSE_TOKEN');
     const transactionIndex = searchParams.get('_TRANSACTIONINDEX');
     const result = searchParams.get('_RESULT');
-    const bookingId = searchParams.get('bookingId') || searchParams.get('Variable1');
+    // Adumo docs show VARIABLE1 (uppercase) in response table — handle both casings
+    const bookingId =
+      searchParams.get('bookingId') ||
+      searchParams.get('Variable1') ||
+      searchParams.get('VARIABLE1');
+    // Parse _STATUS for richer decline messages (APPROVED / DECLINED / USER_CANCELLED)
+    const status = searchParams.get('_STATUS') ?? '';
 
     if (mode === 'failed' || result === '-1') {
-      setMessage('Payment was declined or cancelled. You can try again or pay at reception.');
+      const reason = status === 'USER_CANCELLED'
+        ? 'Payment cancelled. You can try again or pay at reception.'
+        : 'Card payment declined. Please check your card details or pay at reception.';
+      setMessage(reason);
       return;
     }
 

@@ -32,6 +32,7 @@ import PropertySelector from '@/components/features/restaurant/PropertySelector'
 import TableForm from '@/components/features/restaurant/TableForm';
 import TableCard from '@/components/features/restaurant/TableCard';
 import { apiUrl } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface Property {
   id: string;
@@ -169,7 +170,7 @@ export default function RestaurantTablesPage() {
         setAddTableError(data.message || 'Failed to add table.');
       }
     } catch (err) {
-      console.error('Error adding table:', err);
+      securityLogger.error('Error adding table:', err);
       setAddTableError('An unexpected error occurred.');
     } finally {
       setAddTableLoading(false);

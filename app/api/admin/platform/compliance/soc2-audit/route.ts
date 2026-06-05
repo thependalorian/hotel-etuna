@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentPlatformAdmin, isPlatformAdmin } from '@/lib/auth/platform-admin';
 import { enforcePlatformAdminRateLimit } from '@/lib/compliance/with-admin-rate-limit';
 import { runSoc2Audit } from '@/lib/compliance/soc2/soc2-audit-engine';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (err) {
-    console.error('[soc2-audit]', err);
+    securityLogger.error('[soc2-audit]', err);
     const isProd = process.env.NODE_ENV === 'production';
     return NextResponse.json(
       {

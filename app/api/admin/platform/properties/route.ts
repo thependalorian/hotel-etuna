@@ -10,6 +10,7 @@ import { db } from '@/lib/db';
 import { properties, tenants } from '@/lib/db';
 import { eq, desc } from 'drizzle-orm';
 import { getCurrentPlatformAdmin, isPlatformAdmin } from '@/lib/auth/platform-admin';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
       })),
     });
   } catch (err) {
-    console.error('[Platform Admin Properties]', err);
+    securityLogger.error('[Platform Admin Properties]', err);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -3,6 +3,7 @@ import { AnalyticsService } from '@/lib/services/analytics/AnalyticsService';
 import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
 import { createCustomReportSchema } from '@/lib/utils/validation';
 import { AppError } from '@/lib/utils/errors';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const analyticsService = new AnalyticsService();
 
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
       const zodError = error as { issues: unknown[] };
       return NextResponse.json({ message: 'Invalid input', errors: zodError.issues }, { status: 400 });
     }
-    console.error('Error in analytics route:', error);
+    securityLogger.error('Error in analytics route:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
         }
         return NextResponse.json(summary, { status: 200 });
       } catch (summaryError: any) {
-        console.error('Error in getDashboardSummary:', summaryError);
+        securityLogger.error('Error in getDashboardSummary:', summaryError);
         // Return default summary on error instead of 500
         return NextResponse.json({
           revenue: { totalRevenue: 0, bookingRevenue: 0, restaurantRevenue: 0, otherRevenue: 0, growthRate: 0, averageOrderValue: 0, revenueByProperty: [], revenueByCategory: [] },

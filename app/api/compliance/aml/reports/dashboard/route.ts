@@ -14,22 +14,20 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
+import { AppError } from '@/lib/utils/errors';
 import { AMLMonitoringService } from '@/lib/services/compliance/AMLMonitoringService';
 import { PEPScreeningService } from '@/lib/services/compliance/PEPScreeningService';
 import { STRGenerationService } from '@/lib/services/compliance/STRGenerationService';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const tenantId = searchParams.get('tenantId');
-    const year = parseInt(searchParams.get('year') || new Date().getFullYear().toString());
+    const user = await requireTenantSessionUser(request);
 
-    if (!tenantId) {
-      return NextResponse.json({
-        success: false,
-        error: 'Tenant ID is required',
-      }, { status: 400 });
-    }
+    const { searchParams } = new URL(request.url);
+    const tenantId = user.tenantId;
+    const year = parseInt(searchParams.get('year') || new Date().getFullYear().toString());
 
     // Fetch all compliance data in parallel
     const [
@@ -98,7 +96,7 @@ export async function GET(request: NextRequest) {
       },
     }, { status: 200 });
   } catch (error) {
-    console.error('[AML Dashboard API] Error:', error);
+    securityLogger.error('[AML Dashboard API] Error:', error);
     
     return NextResponse.json({
       success: false,

@@ -16,7 +16,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { 
+import {
   LayoutDashboard,
   Building2,
   Users,
@@ -24,7 +24,9 @@ import {
   BarChart3,
   HelpCircle,
   FileText,
-  Shield
+  Shield,
+  Bot,
+  KeyRound,
 } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
@@ -43,6 +45,8 @@ const navItems = [
   { href: '/admin/platform/users', label: 'Users', icon: Users },
   { href: '/admin/platform/properties', label: 'Properties', icon: Building2 },
   { href: '/admin/platform/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/admin/platform/ai-observability', label: 'AI observability', icon: Bot },
+  { href: '/admin/platform/secrets', label: 'Secrets', icon: KeyRound },
   { href: '/admin/platform/support', label: 'Support', icon: HelpCircle },
   { href: '/admin/platform/audit', label: 'Audit Logs', icon: FileText },
   { href: '/admin/platform/settings', label: 'Settings', icon: Settings },

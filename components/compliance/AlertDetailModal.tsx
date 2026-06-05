@@ -15,6 +15,7 @@
 
 import { useState } from 'react';
 import { X, AlertTriangle, FileText, CheckCircle, XCircle } from 'lucide-react';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface Alert {
   id: string;
@@ -54,7 +55,7 @@ export default function AlertDetailModal({
       await onResolve(alert.id, action);
       onClose();
     } catch (error) {
-      console.error('Error resolving alert:', error);
+      securityLogger.error('Error resolving alert:', error);
     } finally {
       setLoading(false);
     }

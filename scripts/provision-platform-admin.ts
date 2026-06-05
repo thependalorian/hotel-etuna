@@ -12,6 +12,7 @@ import { resolve } from 'path';
 import * as bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
 import { neon } from '@neondatabase/serverless';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 config({ path: resolve(process.cwd(), '.env.local') });
 
@@ -36,7 +37,7 @@ function parseArgs(): { email: string; linkHub: boolean; dryRun: boolean } {
   }
 
   if (!email.endsWith('@buffr.ai')) {
-    console.error('Platform admin email must use @buffr.ai');
+    securityLogger.error('Platform admin email must use @buffr.ai');
     process.exit(1);
   }
 
@@ -63,14 +64,14 @@ async function main() {
     LIMIT 1
   `;
 
-  console.log('Buffr platform admin provision');
-  console.log('─'.repeat(50));
-  console.log(`Email:      ${email}`);
-  console.log(`Link hub:   ${linkHub ? (hubTenantId ?? 'none found') : 'no'}`);
-  console.log(`Dry run:    ${dryRun}`);
+  securityLogger.info('Buffr platform admin provision');
+  securityLogger.info('─'.repeat(50));
+  securityLogger.info(`Email:      ${email}`);
+  securityLogger.info(`Link hub:   ${linkHub ? (hubTenantId ?? 'none found') : 'no'}`);
+  securityLogger.info(`Dry run:    ${dryRun}`);
 
   if (dryRun) {
-    console.log('\nDry run — no database changes.');
+    securityLogger.info('\nDry run — no database changes.');
     return;
   }
 
@@ -88,7 +89,7 @@ async function main() {
         updated_at = NOW()
       WHERE id = ${row.id}
     `;
-    console.log(`\nUpdated existing user ${row.id}`);
+    securityLogger.info(`\nUpdated existing user ${row.id}`);
   } else {
     const id = randomUUID();
     await sql`
@@ -108,19 +109,19 @@ async function main() {
         'active'
       )
     `;
-    console.log(`\nCreated user ${id}`);
+    securityLogger.info(`\nCreated user ${id}`);
   }
 
   const verify = await sql`
     SELECT email, role, tenant_id, is_platform_admin, email_verified
     FROM users WHERE LOWER(email) = LOWER(${email})
   `;
-  console.log('\nVerified row:', verify[0]);
-  console.log('\nSign in at /login?redirect=/dashboard with the email and PASSWORD you set.');
-  console.log('Platform console: /admin/platform');
+  securityLogger.info('\nVerified row:', verify[0]);
+  securityLogger.info('\nSign in at /login?redirect=/dashboard with the email and PASSWORD you set.');
+  securityLogger.info('Platform console: /admin/platform');
 }
 
 main().catch((err) => {
-  console.error(err);
+  securityLogger.error(err);
   process.exit(1);
 });

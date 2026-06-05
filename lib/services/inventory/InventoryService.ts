@@ -18,6 +18,7 @@ import {
 } from '@/lib/db';
 import { AppError, handleServiceError } from '@/lib/utils/errors';
 import { and, asc, desc, eq, inArray } from 'drizzle-orm';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export type InventoryListItem = {
   id: string;
@@ -184,7 +185,7 @@ export class InventoryService {
         });
       }
     } catch (error) {
-      console.error('[InventoryService] deductForOrder failed:', error);
+      securityLogger.error('[InventoryService] deductForOrder failed:', error);
     }
   }
 

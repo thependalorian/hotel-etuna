@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { apiUrl } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface MediaUploaderProps {
   propertyId: string;
@@ -70,7 +71,7 @@ export default function MediaUploader({ propertyId, onMediaUploaded }: MediaUplo
         setError(data.message || 'Failed to upload media.');
       }
     } catch (err) {
-      console.error('Error uploading media:', err);
+      securityLogger.error('Error uploading media:', err);
       setError('An unexpected error occurred.');
     } finally {
       setLoading(false);

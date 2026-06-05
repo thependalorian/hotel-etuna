@@ -33,6 +33,7 @@ import { z } from 'zod';
 import { isGuestConsumerRole } from '@/lib/auth/roles';
 import { isPlatformAdmin } from '@/lib/auth/platform-admin';
 import { AppError } from '@/lib/utils/errors';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 type StackJwtPayload = {
   sub?: string;
@@ -159,14 +160,14 @@ export async function getAuthenticatedUser(req?: NextRequest) {
                 audience: projectId, // Stack Auth uses project ID as audience
               });
               payload = result.payload as StackJwtPayload;
-              console.log('[API Helpers] ✅ JWT verified successfully with issuer validation');
+              securityLogger.info('[API Helpers] JWT verified successfully with issuer validation', { userId: payload.sub, email: payload.email });
             } catch {
               // If issuer/audience validation fails, try without validation (still verify signature)
               // This handles cases where issuer format might vary
               try {
                 const result = await jwtVerify(accessToken, jwks);
                 payload = result.payload as StackJwtPayload;
-                console.log('[API Helpers] ✅ JWT verified successfully (without issuer check)');
+                securityLogger.info('[API Helpers] JWT verified successfully (without issuer check)', { userId: payload.sub, email: payload.email });
               } catch (verifyError: unknown) {
                 throw verifyError;
               }
@@ -175,7 +176,7 @@ export async function getAuthenticatedUser(req?: NextRequest) {
             // Extract user info from JWT payload
             // Stack Auth JWTs contain: sub (user ID), email, name, etc.
             if (payload && payload.sub) {
-              console.log('[API Helpers] JWT payload extracted:', {
+              securityLogger.debug('[API Helpers] JWT payload extracted', {
                 sub: payload.sub,
                 email: payload.email,
                 name: payload.name,
@@ -190,12 +191,12 @@ export async function getAuthenticatedUser(req?: NextRequest) {
                 primaryEmailVerified: payload.email_verified as boolean || false,
               } satisfies StackAuthUser;
               
-              console.log('[API Helpers] ✅ Stack Auth user created from JWT payload');
+              securityLogger.info('[API Helpers] Stack Auth user created from JWT payload', { userId: stackUser.id, email: stackUser.primaryEmail });
             }
           } catch (jwtError: unknown) {
             // JWT verification failed - try REST API as fallback
             // Log error for debugging
-            console.error('[API Helpers] Stack Auth JWT verification failed:', {
+            securityLogger.error('[API Helpers] Stack Auth JWT verification failed:', {
               code: jwtError instanceof Error && 'code' in jwtError ? jwtError.code : undefined,
               message: getErrorMessage(jwtError),
               tokenLength: accessToken.length,
@@ -225,7 +226,7 @@ export async function getAuthenticatedUser(req?: NextRequest) {
                   displayName: userData.displayName ?? null,
                   primaryEmailVerified: userData.primaryEmailVerified ?? false,
                 };
-                console.log('[API Helpers] ✅ Stack Auth user verified via REST API fallback');
+                securityLogger.info('[API Helpers] Stack Auth user verified via REST API fallback', { userId: stackUser.id, email: stackUser.primaryEmail });
               } else {
                 // REST API verification failed - this is expected if STACK_SECRET_SERVER_KEY is not set
                 // JWT verification is the primary method and works correctly
@@ -235,13 +236,13 @@ export async function getAuthenticatedUser(req?: NextRequest) {
                   try {
                     const errorData = JSON.parse(errorText);
                     if (errorData.code !== 'INVALID_SECRET_SERVER_KEY') {
-                      console.error(`[API Helpers] REST API fallback also failed: ${userResponse.status} ${errorText.substring(0, 200)}`);
+                      securityLogger.error(`[API Helpers] REST API fallback also failed: ${userResponse.status} ${errorText.substring(0, 200)}`);
                     }
                     // Silently continue - JWT verification is the primary method
                   } catch {
                     // Not JSON, check if it contains the expected error code
                     if (!errorText.includes('INVALID_SECRET_SERVER_KEY')) {
-                      console.error(`[API Helpers] REST API fallback also failed: ${userResponse.status} ${errorText.substring(0, 200)}`);
+                      securityLogger.error(`[API Helpers] REST API fallback also failed: ${userResponse.status} ${errorText.substring(0, 200)}`);
                     }
                   }
                 } catch {
@@ -250,7 +251,7 @@ export async function getAuthenticatedUser(req?: NextRequest) {
               }
             } catch (restApiError: unknown) {
               // Both JWT and REST API failed - will fall back to NextAuth
-              console.error('[API Helpers] REST API fallback error:', getErrorMessage(restApiError));
+              securityLogger.error('[API Helpers] REST API fallback error:', getErrorMessage(restApiError));
             }
           }
         }
@@ -281,9 +282,9 @@ export async function getAuthenticatedUser(req?: NextRequest) {
               propertyId: undefined,
             };
           }
-          console.warn(`[API Helpers] Stack Auth user ${stackUser.primaryEmail} not found in database`);
+          securityLogger.warn(`[API Helpers] Stack Auth user ${stackUser.primaryEmail} not found in database`);
         } catch (dbError: unknown) {
-          console.error('[API Helpers] Database error fetching Stack Auth user:', (dbError as Error).message);
+          securityLogger.error('[API Helpers] Database error fetching Stack Auth user:', (dbError as Error).message);
         }
       }
     } catch (stackError: unknown) {
@@ -291,7 +292,7 @@ export async function getAuthenticatedUser(req?: NextRequest) {
       // This is expected if user is not authenticated with Stack Auth
       const message = getErrorMessage(stackError);
       if (message && !message.includes('No user found')) {
-        console.error('[API Helpers] Stack Auth error:', message);
+        securityLogger.error('[API Helpers] Stack Auth error:', message);
       }
     }
   }
@@ -314,7 +315,7 @@ export async function getAuthenticatedUser(req?: NextRequest) {
     };
   } catch (nextAuthError: unknown) {
     // NextAuth also failed - return null
-    console.error('[API Helpers] NextAuth error:', getErrorMessage(nextAuthError));
+    securityLogger.error('[API Helpers] NextAuth error:', getErrorMessage(nextAuthError));
     return null;
   }
 }
@@ -403,6 +404,7 @@ export function errorResponse(
 
   return NextResponse.json(
     {
+      success: false,
       error: {
         message: safeMessage,
         code,
@@ -442,7 +444,7 @@ export function rateLimitResponse(result: {
  * Standardized success response
  */
 export function successResponse(data: unknown, status: number = 200): NextResponse {
-  return NextResponse.json({ data }, { status });
+  return NextResponse.json({ success: true, data }, { status });
 }
 
 /**
@@ -531,7 +533,7 @@ export async function withApiAuth(
     );
   } catch (error: unknown) {
     const message = getErrorMessage(error);
-    console.error('withApiAuth error:', {
+    securityLogger.error('withApiAuth error:', {
       message,
       stack: getErrorStack(error),
       path: req.nextUrl.pathname,
@@ -561,7 +563,7 @@ export async function withApiAuth(
       );
     }
     
-    console.error('API error:', error);
+    securityLogger.error('API error:', error);
     return errorResponse('Internal server error', 500, 'INTERNAL_ERROR');
   }
 }

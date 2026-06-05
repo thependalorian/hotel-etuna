@@ -22,7 +22,7 @@ describe('Hotel Etuna email signature', () => {
     const html = getHotelEtunaEmailSignatureHtml();
     expect(html).toContain(brand.tagline);
     expect(html).toContain('VAT 05517026-015');
-    expect(html).toContain('info@hoteletuna.com');
+    expect(html).toContain('frontdesk@hoteletuna.com');
   });
 
   it('supports optional staff name block', () => {

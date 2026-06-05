@@ -24,6 +24,7 @@ import RecentActivity from '@/components/features/dashboard/RecentActivity';
 import OnboardingWelcome from '@/components/features/dashboard/OnboardingWelcome';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { apiUrl } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export default function DashboardHomePage() {
   const { data: session } = useSession();
@@ -68,7 +69,7 @@ export default function DashboardHomePage() {
             setRecentActivity(Array.isArray(activityData) ? activityData : []);
           }
         } catch (error) {
-          console.error('Error fetching dashboard data:', error);
+          securityLogger.error('Error fetching dashboard data:', error);
         } finally {
           setLoading(false);
         }

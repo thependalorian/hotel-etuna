@@ -7,6 +7,7 @@
 
 import { db, transactions } from '@/lib/db';
 import { sql, count, gte, desc } from 'drizzle-orm';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export interface PaymentsByRailRow {
   bucket: string;
@@ -40,7 +41,7 @@ export async function getPaymentsByRailSince(since: Date): Promise<PaymentsByRai
       totalAmountNad: r.totalAmountNad ?? '0',
     }));
   } catch (err) {
-    console.warn('[payments-by-rail] aggregation failed', err);
+    securityLogger.warn('[payments-by-rail] aggregation failed', err);
     return [];
   }
 }

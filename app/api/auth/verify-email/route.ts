@@ -8,6 +8,7 @@ import {
   normalizeAccountEmail,
 } from '@/lib/services/booking/linkGuestAccount';
 import * as z from 'zod';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const verifySchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
@@ -83,7 +84,10 @@ export async function POST(request: Request) {
       verified: true,
     }, { status: 200 });
   } catch (error) {
-    console.error('Email verification error:', error);
+    securityLogger.error('[VerifyEmail] Email verification error', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack?.substring(0, 500) : undefined,
+    });
     return NextResponse.json({
       message: 'An unexpected error occurred.',
     }, { status: 500 });

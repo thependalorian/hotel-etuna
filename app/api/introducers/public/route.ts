@@ -19,6 +19,7 @@ import { db, introducers } from '@/lib/db';
 import { eq, and } from 'drizzle-orm';
 import { successResponse, rateLimitResponse } from '@/lib/utils/api-helpers';
 import { checkRateLimit } from '@/lib/utils/rate-limit';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export async function GET(request: NextRequest) {
   try {
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     return successResponse(publicIntroducers);
   } catch (error) {
-    console.error('Error fetching public introducers:', error);
+    securityLogger.error('Error fetching public introducers:', error);
     return NextResponse.json(
       { success: false, error: { message: 'Failed to fetch introducers' } },
       { status: 500 }

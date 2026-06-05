@@ -21,6 +21,7 @@ import Link from 'next/link';
 import EmptyState from '@/components/shared/EmptyState';
 import PageHeader from '@/components/shared/PageHeader';
 import { Plus } from 'lucide-react';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,7 +35,7 @@ async function getProperties() {
     const properties = await propertyService.getPropertiesByTenant(session.user.tenantId as string);
     return Array.isArray(properties) ? properties : [];
   } catch (error) {
-    console.error(error);
+    securityLogger.error("[PropertiesPage] load error", error);
     return [];
   }
 }

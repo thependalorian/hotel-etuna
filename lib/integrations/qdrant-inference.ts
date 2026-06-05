@@ -43,7 +43,7 @@ export function qdrantInferenceVectorSize(): number {
 }
 
 function normalizeQdrantUrl(raw: string): string {
-  let u = raw.replace(/\/$/, '');
+  const u = raw.replace(/\/$/, '');
   if (/\.cloud\.qdrant\.io$/i.test(u) && !/:\d+$/.test(u)) {
     return `${u}:6333`;
   }

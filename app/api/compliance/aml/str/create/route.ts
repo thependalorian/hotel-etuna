@@ -13,9 +13,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
+import { AppError } from '@/lib/utils/errors';
 import { STRGenerationService } from '@/lib/services/compliance/STRGenerationService';
 import { entityId, entityIdArray } from '@/lib/validation/entity-ids';
 import { z } from 'zod';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const createSTRSchema = z.object({
   tenantId: entityId(),
@@ -37,6 +40,8 @@ const createSTRSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await requireTenantSessionUser(request);
+
     const body = await request.json();
     
     const validatedData = createSTRSchema.parse(body);
@@ -57,7 +62,7 @@ export async function POST(request: NextRequest) {
       },
     }, { status: 201 });
   } catch (error) {
-    console.error('[STR Create API] Error:', error);
+    securityLogger.error('[STR Create API] Error:', error);
     
     if (error instanceof z.ZodError) {
       return NextResponse.json({
@@ -76,16 +81,11 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const tenantId = searchParams.get('tenantId');
-    const status = searchParams.get('status') || undefined;
+    const user = await requireTenantSessionUser(request);
 
-    if (!tenantId) {
-      return NextResponse.json({
-        success: false,
-        error: 'Tenant ID is required',
-      }, { status: 400 });
-    }
+    const { searchParams } = new URL(request.url);
+    const tenantId = user.tenantId;
+    const status = searchParams.get('status') || undefined;
 
     const strs = await STRGenerationService.getSTRs(tenantId, status);
 
@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
       },
     }, { status: 200 });
   } catch (error) {
-    console.error('[STR Create API] Error fetching STRs:', error);
+    securityLogger.error('[STR Create API] Error fetching STRs:', error);
     
     return NextResponse.json({
       success: false,

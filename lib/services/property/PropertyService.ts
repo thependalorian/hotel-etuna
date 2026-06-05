@@ -2,6 +2,7 @@ import { db, properties as propertiesSchema } from '@/lib/db';
 import { AppError, handleServiceError } from '@/lib/utils/errors';
 import { eq, sql } from 'drizzle-orm';
 import type { Property } from '@/lib/db/schema';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -141,7 +142,7 @@ export class PropertyService {
 
       return newProperties.rows[0] as Property;
     } catch (error: any) {
-      console.error('[PropertyService.createProperty] Database error:', {
+      securityLogger.error('[PropertyService.createProperty] Database error:', {
         error: error.message,
         // Drizzle doesn't have error codes and meta in the same way as Prisma
       });

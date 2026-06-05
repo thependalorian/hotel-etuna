@@ -231,7 +231,15 @@ export class LoyaltyService {
         .insert(loyaltyRewards)
         .values({
           tenantId,
-          ...data,
+          name: data.name,
+          description: data.description,
+          pointsCost: data.pointsCost,
+          valueNad: data.valueNad != null ? String(data.valueNad) : undefined,
+          minTier: data.minTier,
+          available: data.available,
+          validFrom: data.validFrom,
+          validUntil: data.validUntil,
+          maxRedemptionsPerGuest: data.maxRedemptionsPerGuest,
         })
         .returning();
 
@@ -260,12 +268,21 @@ export class LoyaltyService {
     }>
   ): Promise<LoyaltyReward> {
     try {
+      const updateFields: Record<string, unknown> = {};
+      if (data.name !== undefined) updateFields.name = data.name;
+      if (data.description !== undefined) updateFields.description = data.description;
+      if (data.pointsCost !== undefined) updateFields.pointsCost = data.pointsCost;
+      if (data.valueNad !== undefined) updateFields.valueNad = String(data.valueNad);
+      if (data.minTier !== undefined) updateFields.minTier = data.minTier;
+      if (data.available !== undefined) updateFields.available = data.available;
+      if (data.validFrom !== undefined) updateFields.validFrom = data.validFrom;
+      if (data.validUntil !== undefined) updateFields.validUntil = data.validUntil;
+      if (data.maxRedemptionsPerGuest !== undefined) updateFields.maxRedemptionsPerGuest = data.maxRedemptionsPerGuest;
+
+       
       const [reward] = await db
         .update(loyaltyRewards)
-        .set({
-          ...data,
-          updatedAt: new Date(),
-        })
+        .set({ ...updateFields, updatedAt: new Date() } as any)
         .where(and(eq(loyaltyRewards.id, rewardId), eq(loyaltyRewards.tenantId, tenantId)))
         .returning();
 

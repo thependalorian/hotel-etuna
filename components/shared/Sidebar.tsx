@@ -19,51 +19,72 @@ import {
   BarChart3,
   Settings,
   User,
-  Shield,
   Bot,
   X,
-  BedDouble,
   UtensilsCrossed,
   BookOpenCheck,
   LifeBuoy,
-  AlertTriangle,
   ClipboardCheck,
   QrCode,
   Banknote,
   Sparkles,
+  Gift,
+  UserCheck,
+  Receipt,
+  CreditCard,
+  FileBarChart,
+  PanelLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { HotelEtunaLogo } from '@/components/brand/HotelEtunaLogo';
 import { useSession } from "next-auth/react";
+import { isPlatformAdminRole } from "@/lib/auth/roles";
 
 interface NavItem {
   href: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  section: "Operations" | "Experience" | "Risk" | "Admin";
+  section: "Operations" | "Experience" | "Admin";
+  platformOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
   { href: "/dashboard", label: "Command center", icon: LayoutDashboard, section: "Operations" },
   { href: "/properties", label: "Properties", icon: Building2, section: "Operations" },
-  { href: "/rooms", label: "Rooms", icon: BedDouble, section: "Operations" },
   { href: "/bookings", label: "Bookings", icon: Calendar, section: "Operations" },
   { href: "/housekeeping", label: "Housekeeping", icon: Sparkles, section: "Operations" },
   { href: "/payments/desk", label: "Payments desk", icon: QrCode, section: "Operations" },
   { href: "/payments/reconciliation", label: "Cash reconciliation", icon: Banknote, section: "Operations" },
   { href: "/restaurant/orders", label: "Restaurant orders", icon: UtensilsCrossed, section: "Operations" },
   { href: "/restaurant/menu", label: "Restaurant menu", icon: BookOpenCheck, section: "Operations" },
-  { href: "/crm/guests", label: "Guest CRM", icon: Users, section: "Experience" },
+  { href: "/crm", label: "Guest CRM", icon: Users, section: "Experience" },
+  { href: "/crm/reviews", label: "Reviews", icon: FileText, section: "Experience" },
+  { href: "/crm/introducers", label: "Introducers", icon: UserCheck, section: "Experience" },
+  { href: "/crm/loyalty/catalog", label: "Loyalty catalog", icon: Gift, section: "Experience" },
+  { href: "/crm/loyalty/transactions", label: "Loyalty ledger", icon: Receipt, section: "Experience" },
+  { href: "/cms/pages", label: "CMS pages", icon: PanelLeft, section: "Experience" },
   { href: "/crm/knowledge", label: "Sofia knowledge", icon: FileText, section: "Experience" },
   { href: "/ai", label: "Sofia AI", icon: Bot, section: "Experience" },
   { href: "/sofia/email", label: "Sofia email", icon: LifeBuoy, section: "Experience" },
-  { href: "/staff", label: "Staff", icon: ClipboardCheck, section: "Risk" },
-  { href: "/compliance/kyc", label: "KYC / KYB", icon: Shield, section: "Risk" },
-  { href: "/compliance/soc2", label: "SOC 2 readiness", icon: Shield, section: "Risk" },
-  { href: "/fraud", label: "Fraud alerts", icon: AlertTriangle, section: "Risk" },
+  { href: "/staff", label: "Staff", icon: ClipboardCheck, section: "Operations" },
   { href: "/analytics", label: "Analytics", icon: BarChart3, section: "Admin" },
-  { href: "/admin/platform/support", label: "Support", icon: LifeBuoy, section: "Admin" },
-  { href: "/admin", label: "Admin", icon: Shield, section: "Admin" },
+  { href: "/reports/accounting", label: "Accounting", icon: FileBarChart, section: "Admin" },
+  { href: "/reports/property-vat", label: "VAT report", icon: FileBarChart, section: "Admin" },
+  {
+    href: "/payments/platform-billing",
+    label: "Platform billing",
+    icon: CreditCard,
+    section: "Admin",
+    platformOnly: true,
+  },
+  {
+    href: "/admin/platform/support",
+    label: "Support",
+    icon: LifeBuoy,
+    section: "Admin",
+    platformOnly: true,
+  },
+  { href: "/admin", label: "Buffr Hub", icon: LayoutDashboard, section: "Admin", platformOnly: true },
   { href: "/settings", label: "Settings", icon: Settings, section: "Admin" },
   { href: "/profile", label: "Profile", icon: User, section: "Admin" },
 ];
@@ -77,20 +98,21 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose }: SidebarProps) => {
   const pathname = usePathname();
   const asideRef = useRef<ElementRef<"aside">>(null);
   const { data: session } = useSession();
-  const role = String(session?.user?.role ?? '').toLowerCase();
-  const isPartner = role.startsWith('partner');
+  const role = String(session?.user?.role ?? '');
+  const roleLower = role.toLowerCase();
+  const isPartner = roleLower.startsWith('partner');
+  const isPlatformOperator =
+    isPlatformAdminRole(role) &&
+    String(session?.user?.email ?? '')
+      .toLowerCase()
+      .endsWith('@buffr.ai');
 
-  const visibleNavItems = isPartner
+  const visibleNavItems = (isPartner
     ? navItems.filter((item) =>
-        [
-          "/dashboard",
-          "/properties",
-          "/rooms",
-          "/bookings",
-          "/settings",
-        ].includes(item.href)
+        ['/dashboard', '/properties', '/bookings', '/settings'].includes(item.href),
       )
-    : navItems;
+    : navItems.filter((item) => !item.platformOnly || isPlatformOperator)
+  );
 
   useEffect(() => {
     if (pathname && isMobileOpen) {
@@ -154,7 +176,7 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose }: SidebarProps) => {
         </div>
 
         <nav className="scrollbar-thin flex-1 overflow-y-auto p-4" aria-label="Main navigation">
-          {(["Operations", "Experience", "Risk", "Admin"] as const).map((section) => {
+          {(["Operations", "Experience", "Admin"] as const).map((section) => {
             const sectionItems = visibleNavItems.filter((item) => item.section === section);
             if (sectionItems.length === 0) return null;
             return (

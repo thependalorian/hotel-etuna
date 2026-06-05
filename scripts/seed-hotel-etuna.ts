@@ -7,7 +7,7 @@
  * Includes:
  * - Hub tenant
  * - Property details
- * - 5 room types with rates
+ * - 5 room layouts (Standard A/B/C, Executive, Premiere)
  * - Restaurant with menu
  * - Admin user
  * 
@@ -21,10 +21,17 @@ import { neon } from '@neondatabase/serverless';
 import * as bcrypt from 'bcryptjs';
 import * as dotenv from 'dotenv';
 import { randomUUID } from 'crypto';
+import { facilityDbRoomNumber } from '@/lib/rooms/inventory-display';
+import {
+  HOTEL_ETUNA_FACILITY_OFFERINGS,
+  HOTEL_ETUNA_GUEST_ROOM_INVENTORY,
+  LEGACY_DEMO_ROOM_PREFIX,
+} from '../lib/data/hotel-etuna-room-inventory';
 import { ETUNA_MENU_CATEGORIES, ETUNA_MENU_ITEMS } from '../lib/data/etuna-restaurant-menu-catalog';
 import { getMenuItemImageUrlForSeed } from '../lib/data/menu-item-image-urls';
 import { getRestaurantOpeningHoursJson } from '../lib/dining/restaurant-hours';
 import { buildInventorySeedFromCatalog } from '../lib/data/etuna-inventory-seed';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 // Load environment variables
 dotenv.config({ path: '.env.local' });
@@ -85,7 +92,7 @@ const PROPERTY = {
   name: 'Hotel Etuna',
   slug: 'hotel-etuna',
   type: 'hotel',
-  description: 'Hotel Etuna is a luxury guesthouse in the heart of Ongwediva, Namibia. Offering 5 room types, an outdoor pool, and a celebrated on-site restaurant, we embody the Oshiwambo meaning of our name — He takes care of us.',
+  description: 'Hotel Etuna is a luxury guesthouse in the heart of Ongwediva, Namibia. Offering Standard, Executive, and Premiere rooms, an outdoor pool, and a celebrated on-site restaurant, we embody the Oshiwambo meaning of our name — He takes care of us.',
   address: '5544 Valley Street, Ongwediva, Oshana Region, Namibia',
   city: 'Ongwediva',
   state: 'Oshana',
@@ -114,69 +121,31 @@ const PROPERTY = {
 };
 
 const ROOMS = [
-  {
+  ...HOTEL_ETUNA_GUEST_ROOM_INVENTORY.map((row) => ({
     id: randomUUID(),
-    roomNumber: 'ET-101',
-    roomType: 'Standard Room',
-    maxOccupancy: 2,
-    baseRate: '800.00',
-    description: 'Comfortable room with essential amenities, air-con, mosquito net, satellite TV, coffee/tea station, private bathroom.',
-    amenities: ['WiFi', 'Aircon', 'TV', 'Minibar', 'Coffee/Tea', 'Mosquito Net', 'Desk'],
-    status: 'available',
-  },
-  {
+    roomNumber: row.roomNumber,
+    roomType: row.roomType,
+    maxOccupancy: row.maxOccupancy,
+    baseRate: row.baseRate,
+    amenities: row.amenities,
+    status: 'available' as const,
+    inventoryKind: 'guest_room' as const,
+    pricingMetadata: {},
+  })),
+  ...HOTEL_ETUNA_FACILITY_OFFERINGS.map((row) => ({
     id: randomUUID(),
-    roomNumber: 'ET-201',
-    roomType: 'Luxury Room',
-    maxOccupancy: 2,
-    baseRate: '1200.00',
-    description: 'Enhanced space with elegant touches, premium bathroom, sitting area, and pool view.',
-    amenities: ['WiFi', 'Aircon', 'TV', 'Minibar', 'Coffee/Tea', 'Mosquito Net', 'Sitting Area', 'Bathrobe'],
-    status: 'available',
-  },
-  {
-    id: randomUUID(),
-    roomNumber: 'ET-301',
-    roomType: 'Family Room',
-    maxOccupancy: 4,
-    baseRate: '1500.00',
-    description: 'Ample space for families with two double beds and extra convenience features, plus garden access.',
-    amenities: ['WiFi', 'Aircon', 'TV', 'Minibar', 'Coffee/Tea', 'Mosquito Net', 'Extra Bedding', 'Garden Access'],
-    status: 'available',
-  },
-  {
-    id: randomUUID(),
-    roomNumber: 'ET-401',
-    roomType: 'Executive Suite',
-    maxOccupancy: 2,
-    baseRate: '1800.00',
-    description: '26 m² business-friendly suite with work desk, premium toiletries, and VIP lounge access.',
-    amenities: ['WiFi', 'Aircon', 'TV', 'Minibar', 'Coffee/Tea', 'Mosquito Net', 'Work Desk', 'VIP Toiletries', 'Lounge Access'],
-    status: 'available',
-  },
-  {
-    id: randomUUID(),
-    roomNumber: 'ET-501',
-    roomType: 'Premier Room',
-    maxOccupancy: 4,
-    baseRate: '2500.00',
-    description:
-      'Private lounge, master bedroom, and twin room — flagship stay for up to 4 guests with mini fridge.',
-    amenities: [
-      'WiFi',
-      'Aircon',
-      'TV',
-      'Mini fridge',
-      'Minibar',
-      'Coffee/Tea',
-      'Mosquito Net',
-      'Private Balcony',
-      'Lounge',
-      '2 Bathrooms',
-      'Bathrobe',
-    ],
-    status: 'available',
-  },
+    roomNumber: facilityDbRoomNumber(row.kind),
+    roomType: row.roomType,
+    maxOccupancy: row.maxOccupancy,
+    baseRate: row.baseRate,
+    amenities:
+      row.kind === 'conference'
+        ? ['Projector', 'Sound System', 'WiFi', 'Catering space', 'Parking']
+        : ['Whole-site hire', 'Braai area', 'Ablutions', 'Parking'],
+    status: 'available' as const,
+    inventoryKind: row.kind,
+    pricingMetadata: row.pricingMetadata,
+  })),
 ];
 
 const RESTAURANT = {
@@ -201,7 +170,7 @@ const MENU_ITEMS = ETUNA_MENU_ITEMS;
 
 const ADMIN_USER = {
   id: randomUUID(),
-  email: 'manager@hoteletuna.com',
+  email: 'admin@hoteletuna.com',
   firstName: 'Etuna',
   lastName: 'Manager',
   phone: '+264 81 802 4833',
@@ -223,10 +192,10 @@ async function checkExists(table: string, condition: string, value: string): Pro
 }
 
 async function seedTenant() {
-  console.log('\n🏢 Seeding hub tenant...');
+  securityLogger.info('\n🏢 Seeding hub tenant...');
   
   if (isDryRun) {
-    console.log('   [DRY RUN] Would create tenant:', HUB_TENANT.name);
+    securityLogger.info('   [DRY RUN] Would create tenant:', HUB_TENANT.name);
     return;
   }
   
@@ -237,7 +206,7 @@ async function seedTenant() {
     `;
     
     if (exists.length > 0 && !isForce) {
-      console.log('   ✓ Hub tenant already exists');
+      securityLogger.info('   ✓ Hub tenant already exists');
       return;
     }
     
@@ -256,18 +225,18 @@ async function seedTenant() {
         updated_at = NOW()
     `;
     
-    console.log(`   ✓ Hub tenant created: ${HUB_TENANT.name}`);
+    securityLogger.info(`   ✓ Hub tenant created: ${HUB_TENANT.name}`);
   } catch (error) {
-    console.error('   ❌ Error creating tenant:', error);
+    securityLogger.error('   ❌ Error creating tenant:', error);
     throw error;
   }
 }
 
 async function seedProperty() {
-  console.log('\n🏨 Seeding property...');
+  securityLogger.info('\n🏨 Seeding property...');
   
   if (isDryRun) {
-    console.log('   [DRY RUN] Would create property:', PROPERTY.name);
+    securityLogger.info('   [DRY RUN] Would create property:', PROPERTY.name);
     return;
   }
   
@@ -278,7 +247,7 @@ async function seedProperty() {
     `;
     
     if (exists.length > 0 && !isForce) {
-      console.log('   ✓ Property already exists');
+      securityLogger.info('   ✓ Property already exists');
       // Update property ID for rooms
       PROPERTY.id = exists[0].id;
       return;
@@ -307,22 +276,28 @@ async function seedProperty() {
         updated_at = NOW()
     `;
     
-    console.log(`   ✓ Property created: ${PROPERTY.name}`);
+    securityLogger.info(`   ✓ Property created: ${PROPERTY.name}`);
   } catch (error) {
-    console.error('   ❌ Error creating property:', error);
+    securityLogger.error('   ❌ Error creating property:', error);
     throw error;
   }
 }
 
 async function seedRooms() {
-  console.log('\n🛏️  Seeding rooms...');
+  securityLogger.info('\n🛏️  Seeding rooms...');
   
   if (isDryRun) {
-    console.log(`   [DRY RUN] Would create ${ROOMS.length} rooms`);
+    securityLogger.info(`   [DRY RUN] Would create ${ROOMS.length} rooms (${HOTEL_ETUNA_GUEST_ROOM_INVENTORY.length} guest + ${HOTEL_ETUNA_FACILITY_OFFERINGS.length} facilities)`);
     return;
   }
   
   try {
+    await sql`
+      UPDATE rooms SET status = 'out_of_order', updated_at = NOW()
+      WHERE property_id = ${PROPERTY.id}
+        AND room_number LIKE ${`${LEGACY_DEMO_ROOM_PREFIX}%`}
+    `;
+
     for (const room of ROOMS) {
       // Check if exists
       const exists = await sql`
@@ -331,7 +306,7 @@ async function seedRooms() {
       `;
       
       if (exists.length > 0 && !isForce) {
-        console.log(`   ✓ Room ${room.roomNumber} already exists`);
+        securityLogger.info(`   ✓ Room ${room.roomNumber} already exists`);
         continue;
       }
       
@@ -340,33 +315,38 @@ async function seedRooms() {
       await sql`
         INSERT INTO rooms (
           id, property_id, room_number, room_type, max_occupancy,
-          base_rate, amenities, status, currency, created_at, updated_at
+          base_rate, amenities, status, currency, inventory_kind, pricing_metadata,
+          created_at, updated_at
         ) VALUES (
           ${roomId}, ${PROPERTY.id}, ${room.roomNumber}, ${room.roomType},
           ${room.maxOccupancy}, ${room.baseRate}, ${room.amenities},
-          ${room.status}, 'NAD', NOW(), NOW()
+          ${room.status}, 'NAD', ${room.inventoryKind}, ${JSON.stringify(room.pricingMetadata)}::jsonb,
+          NOW(), NOW()
         )
         ON CONFLICT (property_id, room_number) DO UPDATE SET
           room_type = EXCLUDED.room_type,
           max_occupancy = EXCLUDED.max_occupancy,
           base_rate = EXCLUDED.base_rate,
           amenities = EXCLUDED.amenities,
+          inventory_kind = EXCLUDED.inventory_kind,
+          pricing_metadata = EXCLUDED.pricing_metadata,
+          status = 'available',
           updated_at = NOW()
       `;
       
-      console.log(`   ✓ Room created: ${room.roomNumber} - ${room.roomType}`);
+      securityLogger.info(`   ✓ Room created: ${room.roomNumber} - ${room.roomType}`);
     }
   } catch (error) {
-    console.error('   ❌ Error creating rooms:', error);
+    securityLogger.error('   ❌ Error creating rooms:', error);
     throw error;
   }
 }
 
 async function seedRestaurant() {
-  console.log('\n🍽️  Seeding restaurant...');
+  securityLogger.info('\n🍽️  Seeding restaurant...');
   
   if (isDryRun) {
-    console.log('   [DRY RUN] Would create restaurant and menu');
+    securityLogger.info('   [DRY RUN] Would create restaurant and menu');
     return;
   }
   
@@ -379,7 +359,7 @@ async function seedRestaurant() {
     let restaurantId = RESTAURANT.id;
     
     if (existingRestaurant.length > 0 && !isForce) {
-      console.log('   ✓ Restaurant already exists');
+      securityLogger.info('   ✓ Restaurant already exists');
       restaurantId = existingRestaurant[0].id;
       await sql`
         UPDATE restaurants SET opening_hours = ${JSON.stringify(getRestaurantOpeningHoursJson())}, updated_at = NOW()
@@ -406,7 +386,7 @@ async function seedRestaurant() {
           updated_at = NOW()
       `;
       
-      console.log(`   ✓ Restaurant created: ${RESTAURANT.name}`);
+      securityLogger.info(`   ✓ Restaurant created: ${RESTAURANT.name}`);
     }
     
     if (isForce) {
@@ -441,14 +421,14 @@ async function seedRestaurant() {
       categoryMap.set(category.name, categoryId);
     }
     
-    console.log(`   ✓ ${MENU_CATEGORIES.length} menu categories created`);
+    securityLogger.info(`   ✓ ${MENU_CATEGORIES.length} menu categories created`);
     
     // Seed menu items
     for (const item of MENU_ITEMS) {
       const categoryId = categoryMap.get(item.categoryName);
       
       if (!categoryId) {
-        console.warn(`   ⚠️  Category not found: ${item.categoryName}`);
+        securityLogger.warn(`   ⚠️  Category not found: ${item.categoryName}`);
         continue;
       }
       
@@ -497,11 +477,11 @@ async function seedRestaurant() {
       `;
     }
     
-    console.log(`   ✓ ${MENU_ITEMS.length} menu items created`);
+    securityLogger.info(`   ✓ ${MENU_ITEMS.length} menu items created`);
 
     await seedInventoryForRestaurant(restaurantId);
   } catch (error) {
-    console.error('   ❌ Error creating restaurant/menu:', error);
+    securityLogger.error('   ❌ Error creating restaurant/menu:', error);
     throw error;
   }
 }
@@ -517,7 +497,7 @@ async function seedInventoryForRestaurant(restaurantId: string) {
       LIMIT 1
     `;
     if (tableCheck.length === 0) {
-      console.warn('   ⚠️  inventory_items table missing — run database/drizzle/0011_fnb_inventory.sql first');
+      securityLogger.warn('   ⚠️  inventory_items table missing — run database/drizzle/0011_fnb_inventory.sql first');
       return;
     }
 
@@ -577,17 +557,17 @@ async function seedInventoryForRestaurant(restaurantId: string) {
       linked += 1;
     }
 
-    console.log(`   ✓ ${linked} menu ↔ inventory SKU links`);
+    securityLogger.info(`   ✓ ${linked} menu ↔ inventory SKU links`);
   } catch (error) {
-    console.warn('   ⚠️  Inventory seed skipped:', error);
+    securityLogger.warn('   ⚠️  Inventory seed skipped:', error);
   }
 }
 
 async function seedAdminUser() {
-  console.log('\n👤 Seeding admin user...');
+  securityLogger.info('\n👤 Seeding admin user...');
   
   if (isDryRun) {
-    console.log(`   [DRY RUN] Would create user: ${ADMIN_USER.email}`);
+    securityLogger.info(`   [DRY RUN] Would create user: ${ADMIN_USER.email}`);
     return;
   }
   
@@ -598,7 +578,7 @@ async function seedAdminUser() {
     `;
     
     if (exists.length > 0 && !isForce) {
-      console.log(`   ✓ Admin user already exists: ${ADMIN_USER.email}`);
+      securityLogger.info(`   ✓ Admin user already exists: ${ADMIN_USER.email}`);
       return;
     }
     
@@ -616,9 +596,9 @@ async function seedAdminUser() {
         updated_at = NOW()
     `;
     
-    console.log(`   ✓ Admin user created: ${ADMIN_USER.email}`);
+    securityLogger.info(`   ✓ Admin user created: ${ADMIN_USER.email}`);
   } catch (error) {
-    console.error('   ❌ Error creating admin user:', error);
+    securityLogger.error('   ❌ Error creating admin user:', error);
     throw error;
   }
 }
@@ -628,27 +608,27 @@ async function seedAdminUser() {
 // ============================================================================
 
 async function main() {
-  console.log('╔════════════════════════════════════════════════════════════╗');
-  console.log('║   Hotel Etuna Hub - Seed Script                           ║');
-  console.log('╚════════════════════════════════════════════════════════════╝');
+  securityLogger.info('╔════════════════════════════════════════════════════════════╗');
+  securityLogger.info('║   Hotel Etuna Hub - Seed Script                           ║');
+  securityLogger.info('╚════════════════════════════════════════════════════════════╝');
   
   if (!process.env.DATABASE_URL) {
-    console.error('❌ DATABASE_URL not found in environment');
+    securityLogger.error('❌ DATABASE_URL not found in environment');
     process.exit(1);
   }
   
   if (isDryRun) {
-    console.log('\n⚠️  DRY RUN MODE - No data will be inserted');
+    securityLogger.info('\n⚠️  DRY RUN MODE - No data will be inserted');
   }
   
   if (isForce) {
-    console.log('\n⚠️  FORCE MODE - Existing data will be updated');
+    securityLogger.info('\n⚠️  FORCE MODE - Existing data will be updated');
   }
   
   try {
     HUB_TENANT_ID = await resolveHubTenantId();
     HUB_TENANT.id = HUB_TENANT_ID;
-    console.log(`\n📍 Hub Tenant ID: ${HUB_TENANT_ID}`);
+    securityLogger.info(`\n📍 Hub Tenant ID: ${HUB_TENANT_ID}`);
 
     await seedTenant();
     await seedProperty();
@@ -656,33 +636,33 @@ async function main() {
     await seedRestaurant();
     await seedAdminUser();
     
-    console.log('\n╔════════════════════════════════════════════════════════════╗');
-    console.log('║   ✅ Hotel Etuna hub seed completed!                       ║');
-    console.log('╚════════════════════════════════════════════════════════════╝');
+    securityLogger.info('\n╔════════════════════════════════════════════════════════════╗');
+    securityLogger.info('║   ✅ Hotel Etuna hub seed completed!                       ║');
+    securityLogger.info('╚════════════════════════════════════════════════════════════╝');
     
     if (!isDryRun) {
-      console.log('\n📊 Summary:');
-      console.log(`   - Tenant: Hotel Etuna (${HUB_TENANT_ID})`);
-      console.log(`   - Property: ${PROPERTY.name} (${PROPERTY.slug})`);
-      console.log(`   - Rooms: ${ROOMS.length} room types`);
-      console.log(`   - Restaurant: ${RESTAURANT.name}`);
-      console.log(`   - Menu Categories: ${MENU_CATEGORIES.length}`);
-      console.log(`   - Menu Items: ${MENU_ITEMS.length}`);
-      console.log(`   - Admin User: ${ADMIN_USER.email}`);
+      securityLogger.info('\n📊 Summary:');
+      securityLogger.info(`   - Tenant: Hotel Etuna (${HUB_TENANT_ID})`);
+      securityLogger.info(`   - Property: ${PROPERTY.name} (${PROPERTY.slug})`);
+      securityLogger.info(`   - Rooms: ${HOTEL_ETUNA_GUEST_ROOM_INVENTORY.length} guest units + ${HOTEL_ETUNA_FACILITY_OFFERINGS.length} facilities`);
+      securityLogger.info(`   - Restaurant: ${RESTAURANT.name}`);
+      securityLogger.info(`   - Menu Categories: ${MENU_CATEGORIES.length}`);
+      securityLogger.info(`   - Menu Items: ${MENU_ITEMS.length}`);
+      securityLogger.info(`   - Admin User: ${ADMIN_USER.email}`);
       
-      console.log('\n🔐 Admin credentials:');
-      console.log(`   Email: ${ADMIN_USER.email}`);
-      console.log(`   Password: ${ADMIN_PASSWORD}`);
+      securityLogger.info('\n🔐 Admin credentials:');
+      securityLogger.info(`   Email: ${ADMIN_USER.email}`);
+      securityLogger.info(`   Password: ${ADMIN_PASSWORD}`);
       
-      console.log('\n📍 Next steps:');
-      console.log('   1. Ingest knowledge base: npx tsx scripts/ingest-hotel-etuna-knowledge.ts');
-      console.log('   2. Start dev server: npm run dev');
-      console.log('   3. Login at: http://localhost:3000/login');
-      console.log('   4. View public site: http://localhost:3000');
+      securityLogger.info('\n📍 Next steps:');
+      securityLogger.info('   1. Ingest knowledge base: npx tsx scripts/ingest-hotel-etuna-knowledge.ts');
+      securityLogger.info('   2. Start dev server: npm run dev');
+      securityLogger.info('   3. Login at: http://localhost:3000/login');
+      securityLogger.info('   4. View public site: http://localhost:3000');
     }
     
   } catch (error) {
-    console.error('\n❌ Seed failed:', error);
+    securityLogger.error('\n❌ Seed failed:', error);
     process.exit(1);
   }
 }

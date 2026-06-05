@@ -6,6 +6,7 @@
 import { Pool } from 'pg';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -15,7 +16,7 @@ async function applyMigrations() {
   const client = await pool.connect();
   
   try {
-    console.log('📦 Applying CMS migrations...');
+    securityLogger.info('📦 Applying CMS migrations...');
     
     // Read migration files
     const migration1 = readFileSync(
@@ -29,14 +30,14 @@ async function applyMigrations() {
     );
     
     // Apply migration 0029
-    console.log('⚡ Applying 0029_cms_pages_blocks.sql...');
+    securityLogger.info('⚡ Applying 0029_cms_pages_blocks.sql...');
     await client.query(migration1);
-    console.log('✅ Migration 0029 applied');
+    securityLogger.info('✅ Migration 0029 applied');
     
     // Apply migration 0029b
-    console.log('⚡ Applying 0029b_cms_pages_blocks_rls.sql...');
+    securityLogger.info('⚡ Applying 0029b_cms_pages_blocks_rls.sql...');
     await client.query(migration2);
-    console.log('✅ Migration 0029b applied');
+    securityLogger.info('✅ Migration 0029b applied');
     
     // Verify tables exist
     const result = await client.query(`
@@ -47,12 +48,12 @@ async function applyMigrations() {
       ORDER BY table_name;
     `);
     
-    console.log('\n📋 CMS Tables:');
-    result.rows.forEach(row => console.log(`  ✓ ${row.table_name}`));
+    securityLogger.info('\n📋 CMS Tables:');
+    result.rows.forEach(row => securityLogger.info(`  ✓ ${row.table_name}`));
     
-    console.log('\n✅ All CMS migrations applied successfully!');
+    securityLogger.info('\n✅ All CMS migrations applied successfully!');
   } catch (error) {
-    console.error('❌ Migration failed:', error);
+    securityLogger.error('❌ Migration failed:', error);
     throw error;
   } finally {
     client.release();

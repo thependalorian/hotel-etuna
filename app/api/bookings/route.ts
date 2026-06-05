@@ -24,18 +24,42 @@ import { db, guests } from '@/lib/db';
 import { eq, and } from 'drizzle-orm';
 import { entityId } from '@/lib/validation/entity-ids';
 import * as z from 'zod';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const listBookingsQuerySchema = z.object({
   propertyId: entityId('Invalid property ID'),
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'startDate must be YYYY-MM-DD').optional(),
+  bookingKind: z.enum(['accommodation', 'conference', 'campsite']).optional(),
 });
 
-const bookingSchema = z.object({
+const accommodationBookingSchema = z.object({
   checkInDate: z.string().min(1, 'Check-in date is required'),
   checkOutDate: z.string().min(1, 'Check-out date is required'),
   numGuests: z.number().min(1, 'Number of guests must be at least 1'),
   roomId: entityId('Invalid room ID'),
+  bookingKind: z.literal('accommodation').optional(),
 });
+
+const conferenceBookingSchema = z.object({
+  bookingKind: z.literal('conference'),
+  sessionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'sessionDate must be YYYY-MM-DD'),
+  roomId: entityId('Invalid room ID'),
+});
+
+const campsiteBookingSchema = z.object({
+  bookingKind: z.literal('campsite'),
+  checkInDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  checkOutDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  namibianGuests: z.number().int().min(0).default(0),
+  nonNamibianGuests: z.number().int().min(0).default(0),
+  roomId: entityId('Invalid room ID'),
+});
+
+const bookingSchema = z.union([
+  conferenceBookingSchema,
+  campsiteBookingSchema,
+  accommodationBookingSchema,
+]);
 
 export async function GET(request: NextRequest) {
   return withApiAuth(
@@ -48,6 +72,7 @@ export async function GET(request: NextRequest) {
       const parsed = listBookingsQuerySchema.safeParse({
         propertyId: req.nextUrl.searchParams.get('propertyId'),
         startDate: req.nextUrl.searchParams.get('startDate') ?? undefined,
+        bookingKind: req.nextUrl.searchParams.get('bookingKind') ?? undefined,
       });
 
       if (!parsed.success) {
@@ -59,8 +84,9 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      const { propertyId, startDate } = parsed.data;
+      const { propertyId, startDate, bookingKind } = parsed.data;
       const bookingService = new BookingService();
+      const kindOpt = bookingKind ? { bookingKind } : undefined;
       let rows: Awaited<ReturnType<BookingService['getBookingsForProperty']>>;
 
       if (startDate) {
@@ -72,10 +98,15 @@ export async function GET(request: NextRequest) {
           propertyId,
           user.tenantId,
           startIso,
-          endIso
+          endIso,
+          kindOpt
         );
       } else {
-        rows = await bookingService.getBookingsForProperty(propertyId, user.tenantId);
+        rows = await bookingService.getBookingsForProperty(
+          propertyId,
+          user.tenantId,
+          kindOpt
+        );
       }
 
       const calendarRows = rows.map((b) => ({
@@ -85,6 +116,10 @@ export async function GET(request: NextRequest) {
         startDate: b.check_in_date ?? b.checkInDate,
         endDate: b.check_out_date ?? b.checkOutDate,
         status: b.status,
+        bookingKind: b.booking_kind ?? b.bookingKind ?? 'accommodation',
+        inventoryKind: b.inventory_kind ?? b.inventoryKind,
+        pricingDetails: b.pricing_details ?? b.pricingDetails,
+        roomType: b.room_type ?? b.roomType,
       }));
 
       /** BookingCalendar expects a top-level array (same as /api/bookings/availability). */
@@ -119,7 +154,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const { checkInDate, checkOutDate, numGuests, roomId } = validation.data;
+      const bookingPayload = validation.data;
 
       // Find or create a guest record for the logged-in user
       const userEmail = (user as any).primaryEmail || user.email;
@@ -150,17 +185,39 @@ export async function POST(request: NextRequest) {
       const bookingService = new BookingService();
       let newBooking;
       try {
-        newBooking = await bookingService.createBooking({
-          checkInDate: new Date(checkInDate),
-          checkOutDate: new Date(checkOutDate),
-          numGuests,
-          roomId,
-          guestId: guest.id,
-        });
+        if ('bookingKind' in bookingPayload && bookingPayload.bookingKind === 'conference') {
+          const session = new Date(bookingPayload.sessionDate);
+          newBooking = await bookingService.createFacilityBooking({
+            bookingKind: 'conference',
+            roomId: bookingPayload.roomId,
+            guestId: guest.id,
+            checkInDate: session,
+            checkOutDate: session,
+            pricingDetails: { sessionDate: bookingPayload.sessionDate },
+          });
+        } else if ('bookingKind' in bookingPayload && bookingPayload.bookingKind === 'campsite') {
+          newBooking = await bookingService.createFacilityBooking({
+            bookingKind: 'campsite',
+            roomId: bookingPayload.roomId,
+            guestId: guest.id,
+            checkInDate: new Date(bookingPayload.checkInDate),
+            checkOutDate: new Date(bookingPayload.checkOutDate),
+            namibianGuests: bookingPayload.namibianGuests,
+            nonNamibianGuests: bookingPayload.nonNamibianGuests,
+          });
+        } else {
+          newBooking = await bookingService.createBooking({
+            checkInDate: new Date(bookingPayload.checkInDate),
+            checkOutDate: new Date(bookingPayload.checkOutDate),
+            numGuests: bookingPayload.numGuests,
+            roomId: bookingPayload.roomId,
+            guestId: guest.id,
+          });
+        }
 
         return successResponse(newBooking, 201);
       } catch (error: any) {
-        console.error('[POST /api/bookings] BookingService error:', {
+        securityLogger.error('[POST /api/bookings] BookingService error:', {
           message: error.message,
           code: error.code,
           statusCode: error.statusCode,

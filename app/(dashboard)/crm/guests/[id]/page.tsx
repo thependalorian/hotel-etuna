@@ -38,6 +38,7 @@ import GuestAddressForm from '@/components/features/crm/forms/GuestAddressForm';
 import GuestPreferencesForm from '@/components/features/crm/forms/GuestPreferencesForm';
 import GuestCrmMemoryPanel from '@/components/features/crm/GuestCrmMemoryPanel';
 import { apiUrl } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface Guest {
   id: string;
@@ -154,7 +155,7 @@ export default function GuestProfilePage() {
         setError(data.message || 'Failed to update guest profile.');
       }
     } catch (err) {
-      console.error('Error updating guest profile:', err);
+      securityLogger.error('Error updating guest profile:', err);
       setError('An unexpected error occurred.');
     } finally {
       setSaving(false);

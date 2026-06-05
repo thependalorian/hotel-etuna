@@ -38,10 +38,11 @@ export default function PublicFooter({ className = '' }: PublicFooterProps) {
             <h4 className={footerHeadingClass}>Quick Links</h4>
             <ul className="space-y-2 text-sm">
               <li><Link href="/rooms" className={footerLinkClass}>Rooms</Link></li>
+              <li><Link href="/facilities" className={footerLinkClass}>Facilities</Link></li>
               <li><Link href="/dining" className={footerLinkClass}>Dining</Link></li>
+              <li><Link href="/partners" className={footerLinkClass}>Partners</Link></li>
               <li><Link href="/about" className={footerLinkClass}>About</Link></li>
               <li><Link href="/contact" className={footerLinkClass}>Contact</Link></li>
-              <li><Link href="/partners" className={footerLinkClass}>Referral Partners</Link></li>
             </ul>
           </div>
 
@@ -58,9 +59,14 @@ export default function PublicFooter({ className = '' }: PublicFooterProps) {
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="w-4 h-4 shrink-0 text-khaki-sand" aria-hidden />
-                <a href={`mailto:${brand.email}`} className={footerLinkClass}>
-                  {brand.email}
+                <a href={`mailto:${brand.emailFrontDesk}`} className={footerLinkClass}>
+                  {brand.emailFrontDesk}
                 </a>
+              </li>
+              <li className="text-nude-100/90 text-xs">
+                <Link href="/contact#emails" className={footerLinkClass}>
+                  All team emails
+                </Link>
               </li>
             </ul>
           </div>

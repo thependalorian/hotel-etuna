@@ -1,8 +1,9 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/utils/api-helpers';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export async function GET(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   request: NextRequest
 ) {
   const user = await getAuthenticatedUser(request);
@@ -22,7 +23,7 @@ export async function GET(
 
     return NextResponse.json(stats, { status: 200 });
   } catch (error) {
-    console.error('Error fetching staff stats:', error);
+    securityLogger.error('Error fetching staff stats:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }

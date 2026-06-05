@@ -9,6 +9,7 @@ import { properties, users, sofiaEmailLogs } from '@/lib/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import nodemailer from 'nodemailer';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 interface EmailData {
   to: string;
@@ -102,7 +103,7 @@ export class EmailService {
             if (owner?.email) ccRecipients.push(owner.email);
           }
         } catch (err) {
-          console.warn('Failed to fetch property owner email for CC:', err);
+          securityLogger.warn('Failed to fetch property owner email for CC:', err);
         }
       }
 
@@ -117,7 +118,7 @@ export class EmailService {
       };
 
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('Email sent: %s', info.messageId);
+      securityLogger.info('Email sent', { messageId: info.messageId, to: data.to, subject: data.subject, tenantId });
 
       try {
         await db.insert(sofiaEmailLogs).values({
@@ -139,12 +140,12 @@ export class EmailService {
           },
         });
       } catch (dbError) {
-        console.warn('Failed to log email to database (email was sent successfully):', dbError);
+        securityLogger.warn('Failed to log email to database (email was sent successfully):', dbError);
       }
 
       return { success: true, messageId: info.messageId };
     } catch (error) {
-      console.error('Error sending email:', error);
+      securityLogger.error('Error sending email:', error);
       try {
         await db.insert(sofiaEmailLogs).values({
           id: uuidv4(),
@@ -161,7 +162,7 @@ export class EmailService {
           metadata: (data.metadata as Record<string, unknown>) ?? {},
         });
       } catch (dbError) {
-        console.warn('Failed to log email failure to database:', dbError);
+        securityLogger.warn('Failed to log email failure to database:', dbError);
       }
       throw error;
     }

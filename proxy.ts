@@ -41,6 +41,7 @@ const PUBLIC_ROUTES = [
   '/verify-email',       // Email verification
   '/unauthorized',        // Unauthorized access page (must be public to prevent redirect loops)
   '/rooms',              // Rooms listing and details
+  '/facilities',         // Conference hall + campsite booking pages
   '/dining',             // Restaurant information
   '/about',              // About Hotel Etuna
   '/contact',            // Contact page
@@ -64,31 +65,31 @@ const PUBLIC_API_ROUTES = [
 ];
 
 // Guest-facing routes (require guest session but not full authentication)
-const GUEST_ROUTES = [
-  '/guest',              // Guest dashboard
-  '/guest/bookings',     // Guest booking management
-  '/guest/orders',       // Guest order management
-];
+const GUEST_ROUTES = ['/guest'];
+
+/** Staff cannot access FinTech compliance surfaces — Buffr Hub only. */
+const HOSPITALITY_STAFF_BLOCKED_PREFIXES = ['/compliance', '/fraud'];
 
 // Property owner routes (require property owner authentication)
 const PROPERTY_OWNER_ROUTES = [
-  '/dashboard',          // Main dashboard home
-  '/properties',         // Property management (main landing page after login)
-  '/bookings',          // Booking management
-  '/analytics',         // Analytics
-  '/crm',               // Customer management
-  '/cms',               // Content Management System
-  '/staff',             // Staff management
-  '/compliance',        // KYC/KYB verification queue
-  '/settings',          // Account settings
-  '/profile',           // Account profile
-  '/fraud',             // Fraud monitoring
-  '/menu',              // Host menu management
-  '/rooms',             // Room management
-  '/restaurant',        // Restaurant management
-  '/sofia',             // Sofia email/AI workflows
-  '/ai',                // Sofia AI
-  '/admin',             // Admin (for property owners)
+  '/dashboard',
+  '/properties',
+  '/bookings',
+  '/housekeeping',
+  '/payments',
+  '/reports',
+  '/analytics',
+  '/crm',
+  '/cms',
+  '/staff',
+  '/settings',
+  '/profile',
+  '/menu',
+  '/rooms',
+  '/restaurant',
+  '/sofia',
+  '/ai',
+  '/admin',
 ];
 
 const HUB_ONLY_API_PREFIXES = ['/api/sofia', '/api/crm', '/api/ai', '/api/guest/stays', '/api/guest/loyalty'];
@@ -155,6 +156,12 @@ function hasRouteAccess(pathname: string, role: string): boolean {
   
   // Property owner routes
   if (normalizedRole === 'owner' || normalizedRole === 'manager') {
+    if (HOSPITALITY_STAFF_BLOCKED_PREFIXES.some((p) => pathname.startsWith(p))) {
+      return false;
+    }
+    if (pathname.startsWith('/admin/platform')) {
+      return false;
+    }
     if (PROPERTY_OWNER_ROUTES.some(route => pathname.startsWith(route))) {
       return true;
     }
@@ -175,6 +182,12 @@ function hasRouteAccess(pathname: string, role: string): boolean {
 
   // Staff routes — operational dashboard (not legacy /staff-only paths)
   if (normalizedRole === 'staff') {
+    if (HOSPITALITY_STAFF_BLOCKED_PREFIXES.some((p) => pathname.startsWith(p))) {
+      return false;
+    }
+    if (pathname.startsWith('/admin/platform')) {
+      return false;
+    }
     if (PROPERTY_OWNER_ROUTES.some((route) => pathname.startsWith(route))) {
       return true;
     }
@@ -374,6 +387,10 @@ export default withAuth(
       // Skip static files and images (early return for performance)
       if (isStaticFile(pathname)) {
         return NextResponse.next();
+      }
+
+      if (pathname === '/dashboard/rooms' || pathname.startsWith('/dashboard/rooms/')) {
+        return NextResponse.redirect(new URL('/properties', req.url));
       }
       
       // CRITICAL: Handle public routes FIRST, before any auth logic

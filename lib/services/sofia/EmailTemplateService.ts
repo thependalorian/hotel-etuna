@@ -137,7 +137,10 @@ ${otpCodeHtml(otp)}
         ? `<li><strong>Total:</strong> ${currency} ${amount}</li>`
         : '';
 
-    const body = `<p>Your stay at <strong>${propertyName}</strong> is confirmed.</p>
+    const intro = options.customMessage
+      ? `<p>${options.customMessage}</p>`
+      : `<p>Your stay at <strong>${propertyName}</strong> is confirmed.</p>`;
+    const body = `${intro}
 <ul style="padding-left: 18px; line-height: 1.6;">
 <li><strong>Reference:</strong> ${bookingRef}</li>
 <li><strong>Check-in:</strong> ${checkIn}</li>
@@ -294,6 +297,20 @@ ${checkInOutFactsHtml()}`;
       body,
       ctaLink: options.ctaLink,
       ctaText: options.ctaText || 'View details',
+    });
+  }
+
+  /** Founder / partner intelligence digest (cron + Buffr Hub test send). */
+  generateAdminDigestEmail(options: EmailTemplateOptions): WrappedTemplate {
+    const body =
+      options.customMessage ||
+      '<p>Your scheduled intelligence digest is attached below.</p>';
+    return this.wrap(options, {
+      subject: options.subject || 'Buffr Hub intelligence digest',
+      body: `<p>Summary for <strong>${options.recipientName || 'Buffr operator'}</strong>:</p>${body}`,
+      ctaLink: options.ctaLink || `${siteBaseUrl()}/admin/platform`,
+      ctaText: options.ctaText || 'Open Buffr Hub',
+      compactSignature: true,
     });
   }
 }

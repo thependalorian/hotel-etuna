@@ -72,7 +72,7 @@ Until Namibian Bill is enacted, use this **working matrix** (counsel to confirm)
 
 **Workflow:**
 
-1. Request via privacy@hoteletuna.com (or in-app form when built).
+1. Request via admin@hoteletuna.com (or in-app form when built).
 2. Log in `consumer_rights_requests` with deadline.
 3. Identity verification (booking ref + ID).
 4. Fulfill via `RegulatoryLifecycleService` / manual export.

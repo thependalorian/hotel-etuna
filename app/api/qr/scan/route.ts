@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { NamQrService } from '@/lib/services/qr/NAMQRService';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const qrService = new NamQrService();
 
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
-    console.error('Error scanning QR code:', error);
+    securityLogger.error('Error scanning QR code:', error);
     return NextResponse.json({ 
       message: error instanceof Error ? error.message : 'Internal server error' 
     }, { status: 500 });

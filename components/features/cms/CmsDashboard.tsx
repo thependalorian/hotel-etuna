@@ -9,6 +9,7 @@ import { formatDate } from '@/lib/formatters';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import ContentEditor from './ContentEditor';
 import MediaUploader from './MediaUploader';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface CmsDashboardProps {
   initialContent: CmsContent[];
@@ -34,9 +35,9 @@ export default function CmsDashboard({ initialContent, initialMedia, properties 
       setMedia(mediaData);
     } catch (err: unknown) {
       if (err instanceof Error) {
-        console.error('Error fetching CMS data:', err.message);
+        securityLogger.error('Error fetching CMS data:', err.message);
       } else {
-        console.error('Error fetching CMS data:', err);
+        securityLogger.error('Error fetching CMS data:', err);
       }
     }
   }, []);

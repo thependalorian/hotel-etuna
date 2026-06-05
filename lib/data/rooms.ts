@@ -11,6 +11,11 @@ import { asc, eq, sql } from 'drizzle-orm';
 import { cache } from 'react';
 import { slugify } from '@/lib/utils/slugify';
 import { resolvePublicHubProperty } from '@/lib/utils/public-property';
+import { securityLogger } from '@/lib/utils/security-logger';
+import {
+  isFacilityInventoryRow,
+  isGuestRoomInventoryRow,
+} from '@/lib/data/hotel-etuna-room-inventory';
 
 type HubRoomRow = {
   id: string;
@@ -23,9 +28,12 @@ type HubRoomRow = {
   amenities: string[] | null;
   images: string[] | null;
   status: string | null;
+  inventoryKind: string | null;
   propertyId: string;
   createdAt: Date | null;
 };
+
+export type HubRoom = ReturnType<typeof mapHubRoom>;
 
 function mapHubRoom(row: HubRoomRow) {
   const slug = slugify(row.roomType);
@@ -34,9 +42,11 @@ function mapHubRoom(row: HubRoomRow) {
     slug,
     name: row.roomType,
     priceFrom: row.baseRate,
+    baseRate: row.baseRate ?? '0',
     isAvailable: (row.status ?? '').toLowerCase() === 'available',
     images: row.images ?? [],
     amenities: row.amenities ?? [],
+    inventoryKind: row.inventoryKind ?? 'guest_room',
   };
 }
 
@@ -50,54 +60,99 @@ function publicRoomsWhere(propertyId: string) {
   )`;
 }
 
+const hubRoomSelect = {
+  id: rooms.id,
+  roomNumber: rooms.roomNumber,
+  roomType: rooms.roomType,
+  floor: rooms.floor,
+  maxOccupancy: rooms.maxOccupancy,
+  baseRate: rooms.baseRate,
+  currency: rooms.currency,
+  amenities: rooms.amenities,
+  images: rooms.images,
+  status: rooms.status,
+  inventoryKind: rooms.inventoryKind,
+  propertyId: rooms.propertyId,
+  createdAt: rooms.createdAt,
+};
+
+async function fetchHubRoomRows(propertyId: string, mode?: 'guest' | 'facility' | 'all') {
+  const rows = await db
+    .select(hubRoomSelect)
+    .from(rooms)
+    .where(publicRoomsWhere(propertyId))
+    .orderBy(asc(rooms.roomType), asc(rooms.roomNumber));
+
+  const filtered = rows.filter((row) => {
+    const kind = row.inventoryKind;
+    if (mode === 'guest') return isGuestRoomInventoryRow(kind);
+    if (mode === 'facility') return isFacilityInventoryRow(kind);
+    return true;
+  });
+
+  return filtered.map((r) => mapHubRoom(r as HubRoomRow));
+}
+
 /**
- * All hub rooms for the resolved public property (same source as landing page).
+ * Guest rooms only (35 physical units) — staff tables and availability.
  */
-export const getHubRooms = cache(async () => {
+export const getHubGuestRooms = cache(async () => {
   try {
     const { property } = await resolvePublicHubProperty();
-
-    const rows = await db
-      .select({
-        id: rooms.id,
-        roomNumber: rooms.roomNumber,
-        roomType: rooms.roomType,
-        floor: rooms.floor,
-        maxOccupancy: rooms.maxOccupancy,
-        baseRate: rooms.baseRate,
-        currency: rooms.currency,
-        amenities: rooms.amenities,
-        images: rooms.images,
-        status: rooms.status,
-        propertyId: rooms.propertyId,
-        createdAt: rooms.createdAt,
-      })
-      .from(rooms)
-      .where(publicRoomsWhere(property.id))
-      .orderBy(asc(rooms.roomType), asc(rooms.baseRate));
-
-    return rows.map((r) => mapHubRoom(r as HubRoomRow));
+    return await fetchHubRoomRows(property.id, 'guest');
   } catch (error) {
-    console.error('[getHubRooms] Error:', error);
+    securityLogger.error('[getHubGuestRooms] Error:', error);
     return [];
   }
 });
 
 /**
- * Match `/rooms/[slug]` to a hub room by slugified room type or room number.
+ * Conference + campsite inventory rows.
+ */
+export const getHubFacilityRooms = cache(async () => {
+  try {
+    const { property } = await resolvePublicHubProperty();
+    return await fetchHubRoomRows(property.id, 'facility');
+  } catch (error) {
+    securityLogger.error('[getHubFacilityRooms] Error:', error);
+    return [];
+  }
+});
+
+/**
+ * All hub rooms for the resolved public property (guest + facilities).
+ */
+export const getHubRooms = cache(async () => {
+  try {
+    const { property } = await resolvePublicHubProperty();
+    return await fetchHubRoomRows(property.id);
+  } catch (error) {
+    securityLogger.error('[getHubRooms] Error:', error);
+    return [];
+  }
+});
+
+/**
+ * Match `/rooms/[slug]` to a hub room type (first unit of that type) or room number.
  */
 export const getRoomBySlug = cache(async (slug: string) => {
   const normalized = slug.trim().toLowerCase();
-  const list = await getHubRooms();
+  const list = await getHubGuestRooms();
+  const byType = list.find((r) => r.slug === normalized);
+  if (byType) return byType;
   return (
     list.find(
       (r) =>
-        r.slug === normalized ||
         slugify(r.roomNumber) === normalized ||
         r.roomNumber.toLowerCase() === normalized,
     ) ?? null
   );
 });
+
+export async function getFacilityRoomByKind(kind: 'conference' | 'campsite') {
+  const facilities = await getHubFacilityRooms();
+  return facilities.find((r) => r.inventoryKind === kind) ?? null;
+}
 
 export const getRoomAvailability = cache(
   async (roomId: string, checkIn: string, checkOut: string) => {
@@ -119,16 +174,8 @@ export const getRoomAvailability = cache(
         checkOut,
       };
     } catch (error) {
-      console.error('[getRoomAvailability] Error:', error);
-      return {
-        available: false,
-        roomId,
-        checkIn,
-        checkOut,
-      };
+      securityLogger.error('[getRoomAvailability] Error:', error);
+      return { available: false, roomId, checkIn, checkOut };
     }
   },
 );
-
-export type HubRoom = Awaited<ReturnType<typeof getHubRooms>>[number];
-export type RoomDetail = Awaited<ReturnType<typeof getRoomBySlug>>;

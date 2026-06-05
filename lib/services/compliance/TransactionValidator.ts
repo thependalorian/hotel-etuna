@@ -26,6 +26,7 @@ import {
 } from '@/lib/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import { AppError, handleServiceError } from '@/lib/utils/errors';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -439,7 +440,7 @@ export class TransactionValidator {
       });
     } catch (error) {
       // Log error but don't fail the transaction validation
-      console.error('Error creating KYC upgrade prompt:', error);
+      securityLogger.error('Error creating KYC upgrade prompt:', error);
     }
   }
 

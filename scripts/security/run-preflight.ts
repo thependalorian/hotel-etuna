@@ -8,6 +8,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { execSync } from 'node:child_process';
 import { runSecurityPreflightChecks } from '../../lib/compliance/security-pack/preflight-checks';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const jsonOnly = process.argv.includes('--json');
 
@@ -61,19 +62,19 @@ function main() {
   writeFileSync(outPath, JSON.stringify(report, null, 2));
 
   if (jsonOnly) {
-    console.log(JSON.stringify(report, null, 2));
+    securityLogger.info(JSON.stringify(report, null, 2));
     process.exit(report.summary.fail > 0 ? 1 : 0);
   }
 
-  console.log(`\n🔐 Hotel Etuna Security Pre-Flight — ${report.scorePercent}%`);
-  console.log(`   Pass: ${report.summary.pass}  Warn: ${report.summary.warn}  Fail: ${report.summary.fail}`);
-  console.log(`   npm audit: ${npmAuditNote}`);
-  console.log(`   Evidence: ${outPath}\n`);
+  securityLogger.info(`\n🔐 Hotel Etuna Security Pre-Flight — ${report.scorePercent}%`);
+  securityLogger.info(`   Pass: ${report.summary.pass}  Warn: ${report.summary.warn}  Fail: ${report.summary.fail}`);
+  securityLogger.info(`   npm audit: ${npmAuditNote}`);
+  securityLogger.info(`   Evidence: ${outPath}\n`);
 
   for (const c of report.checks) {
     const icon = c.status === 'pass' ? '✅' : c.status === 'warn' ? '⚠️' : '❌';
-    console.log(`${icon} [${c.id}] ${c.title}`);
-    console.log(`   ${c.detail}`);
+    securityLogger.info(`${icon} [${c.id}] ${c.title}`);
+    securityLogger.info(`   ${c.detail}`);
   }
 
   process.exit(report.summary.fail > 0 ? 1 : 0);

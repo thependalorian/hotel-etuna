@@ -3,6 +3,7 @@ import { GuestService } from '@/lib/services/booking/GuestService';
 import { getAuthenticatedUser } from '@/lib/utils/api-helpers';
 import { recordAuditTrail } from '@/lib/compliance/record-audit';
 import { CrmConsentService } from '@/lib/services/crm/CrmConsentService';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const guestService = new GuestService();
 const consentService = new CrmConsentService();
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
     return NextResponse.json(guest, { status: 200 });
   } catch (error) {
-    console.error('Error fetching guest:', error);
+    securityLogger.error('Error fetching guest:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }
@@ -85,7 +86,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
     return NextResponse.json(updatedGuest, { status: 200 });
   } catch (error) {
-    console.error('Error updating guest:', error);
+    securityLogger.error('Error updating guest:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }

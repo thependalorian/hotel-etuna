@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import ErrorDisplay from '@/components/shared/ErrorDisplay';
 import { apiUrl } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface UserData {
   firstName: string;
@@ -32,7 +33,7 @@ export default function ProfilePage() {
             setUserData(data);
           } else {
             // Fallback to session data
-            console.warn('[ProfilePage] API returned non-OK status:', response.status);
+            securityLogger.warn('[ProfilePage] API returned non-OK status:', response.status);
             const nameParts = (session.user.name || '').split(' ');
             setUserData({
               firstName: nameParts[0] || '',
@@ -44,7 +45,7 @@ export default function ProfilePage() {
             });
           }
         } catch (error) {
-          console.error('[ProfilePage] Error fetching user data:', error);
+          securityLogger.error('[ProfilePage] Error fetching user data:', error);
           // Fallback to session data
           const nameParts = (session.user.name || '').split(' ');
           setUserData({

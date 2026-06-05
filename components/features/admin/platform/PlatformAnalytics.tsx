@@ -15,8 +15,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { apiUrl } from '@/lib/utils/api-url';
-import { 
-  TrendingUp, 
+import { securityLogger } from '@/lib/utils/security-logger.client';
+import {
+  TrendingUp,
   TrendingDown,
   DollarSign,
   Users,
@@ -95,7 +96,7 @@ export default function PlatformAnalytics({ userRole }: PlatformAnalyticsProps) 
       const data = (await res.json()) as AnalyticsData;
       setAnalytics(data);
     } catch (error) {
-      console.error('Error fetching analytics:', error);
+      securityLogger.error('Error fetching analytics:', error);
       setAnalytics(null);
     }
 

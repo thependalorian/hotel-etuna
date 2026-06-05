@@ -1,3 +1,9 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'uprivacy Policy',
+};
+
 /**
  * Privacy Policy Page
  * 
@@ -54,7 +60,7 @@ export default function PrivacyPolicyPage() {
             </p>
             <p>
               <strong>Hotel Etuna</strong><br />
-              Email: info@hoteletuna.com<br />
+              Email: admin@hoteletuna.com<br />
               Phone: +264 65 231 177<br />
               Address: 5544 Valley Street, Ongwediva, Namibia
             </p>
@@ -221,7 +227,7 @@ export default function PrivacyPolicyPage() {
             <p>Where processing is based on consent, you can withdraw it at any time.</p>
 
             <p className="mt-4">
-              To exercise these rights, contact us at <strong>info@hoteletuna.com</strong>. We will respond within 30 days (or as required by applicable law).
+              To exercise these rights, contact us at <strong>admin@hoteletuna.com</strong>. We will respond within 30 days (or as required by applicable law).
             </p>
           </section>
 
@@ -285,7 +291,7 @@ export default function PrivacyPolicyPage() {
             <p>
               <strong>Data Protection Officer</strong><br />
               Hotel Etuna<br />
-              Email: info@hoteletuna.com<br />
+              Email: admin@hoteletuna.com<br />
               Phone: +264 65 231 177<br />
               Address: 5544 Valley Street, Ongwediva, Namibia
             </p>

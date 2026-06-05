@@ -152,7 +152,7 @@ Marketing personas in **§2.1** describe *who books and why*. The table below ma
 
 | Domain | Requirements |
 |--------|----------------|
-| **PMS** | Complete property management for Hotel Etuna: 5 room types (Standard, Luxury, Family, Executive Suite, Premier), dynamic rates (editable via admin), availability calendar, online booking flow, booking lifecycle (confirmed → checked‑in → checked‑out → completed/cancelled). Hub admin can view all bookings (own + partners) for commission reporting. |
+| **PMS** | Complete property management for Hotel Etuna: Standard Room (Types A/B/C), Executive Room, Premiere Room, dynamic rates (editable via admin), availability calendar, online booking flow, booking lifecycle (confirmed → checked‑in → checked‑out → completed/cancelled). Hub admin can view all bookings (own + partners) for commission reporting. |
 | **Restaurant** | Etuna Restaurant: **12 menu categories**, **~110+ live items** in Neon (`menu_categories` + `cms_menu_items`; catalog `lib/data/etuna-restaurant-menu-catalog.ts` for seed/reference). **Public digital menu** on `/dining` (§3.1.1 — single-page, 2×3 food grid). Table QR dine‑in, **in‑room room service** (checked‑in only) on **stay folio** (`booking_charges`), order lifecycle (pending → preparing → served). **Hours:** breakfast **07:00–10:00**; lunch, dinner & bar orders **10:00–22:00** (`lib/dining/restaurant-hours.ts`). **Signature dishes:** Full Breakfast, King Klip, Oxtail, Lamb Curry, Etuna Chicken Mushroom pizza. **F&B inventory:** SKU-level stock + low-stock alerts (`database/drizzle/0011_fnb_inventory.sql`, `lib/services/inventory/InventoryService.ts`). APIs: `GET /api/public/room-qr/[code]`, `GET/POST /api/guest/stays/[bookingId]/folio|orders|settle`. |
 | **Guest CRM** | Comprehensive guest profiles, preferences, **CRM memory** (facts, relationship edges), contact history, marketing consent. **`guest_profiles`** holds **loyalty tier/points** (permanent); **`booking_charges`** holds **per‑stay folio** (room + F&B + settlement) — not duplicated. **Loyalty program:** Earn 1 point per N$10 spent on folio settlement; redeem 100 points = N$50 folio adjustment. `/api/crm/*` endpoints accessible by hub admin across all properties. |
 | **Staff & Dashboard** | Role‑based access for Hotel Etuna staff (owner, manager, front‑desk, housekeeping, kitchen). Audit logging for all sensitive actions. Staff dashboard is hub‑specific and includes partner management features. |
@@ -160,7 +160,7 @@ Marketing personas in **§2.1** describe *who books and why*. The table below ma
 | **Support** | Platform support tickets for hotel staff and partners. Integrated issue tracker for bug reports, feature requests. Hub admin can view all support tickets. |
 | **Compliance & Risk** | Consumer rights / cyber incident lifecycles; **KYC/KYB for Hotel Etuna and all partners**. Court‑admissible audit themes. All regulatory requirements (PSD‑12, PSD‑4, ETA 2019) apply platform‑wide. |
 | **AI (Sofia)** | **Hub‑exclusive AI concierge** with knowledge base for Hotel Etuna only. RAG over Hotel Etuna property documents, guest preferences, CRM memory. **Knowledge base contains 4 documents** (hotel facts, room descriptions, restaurant menu, local area info), **~27 semantic chunks**, **Qdrant Cloud Inference** (`intfloat/multilingual-e5-small`, **384d**), collection **`buffr_rag`**. Human escalation for low confidence or policy keywords. **Partners do not have access to Sofia AI or any AI features.** Sofia enforces gated content: will not disclose prices or availability to unauthenticated users, instead prompts sign‑up. **Ingestion:** `npm run rag:seed` — semantic chunking (~800 chars, 100-char overlap), Qdrant Inference upsert, tenant-scoped `buffr_rag`. **Conversations** persist in Neon (`ai_conversations` / `ai_messages`, tenant-scoped history). **Long-term guest memory:** Neon `crm_guest_memory_facts` + `crm_graph_edges` (auto-written after each turn via `SofiaGuestFactExtractor`); optional Mem0 mirror if `MEM0_API_KEY` set — **not** Ava-style `long_term_memory` in Qdrant. **Restaurant flow state:** `ai_conversations.context` JSONB + `dining_reservations`. |
-| **Guest‑Facing Website** | Public homepage with hero, **room photo tours** (`/rooms`, `/rooms/[slug]` — §3.1.2), restaurant digital menu (`/dining` — §3.1.1), photo gallery, contact page, **plus** a "Referral Partners" section showcasing partner properties. Fully branded with Hotel Etuna visual identity. **✅ Database‑driven** — all content pulled live from Neon DB. **✅ Review approval workflow** (`is_public` toggle in admin dashboard at `/crm/reviews` — filter by status, sort by date/rating, real-time optimistic UI updates). **✅ Gated content model** — prices/booking hidden until login; room tours and menu browse are public. **✅ ISR caching: 5-minute revalidation** for performance. **Contact details verified:** 5544 Valley Street, Ongwediva; +264 65 231 177; +264 81 802 4833; check-in 14:00, check-out 11:00. **All room slugs:** `standard-room`, `luxury-room`, `family-room`, `executive-suite`, `premier-room`. |
+| **Guest‑Facing Website** | Public homepage with hero, **room photo tours** (`/rooms`, `/rooms/[slug]` — §3.1.2), restaurant digital menu (`/dining` — §3.1.1), photo gallery, contact page, **plus** a "Referral Partners" section showcasing partner properties. Fully branded with Hotel Etuna visual identity. **✅ Database‑driven** — all content pulled live from Neon DB. **✅ Review approval workflow** (`is_public` toggle in admin dashboard at `/crm/reviews` — filter by status, sort by date/rating, real-time optimistic UI updates). **✅ Gated content model** — prices/booking hidden until login; room tours and menu browse are public. **✅ ISR caching: 5-minute revalidation** for performance. **Contact details verified:** 5544 Valley Street, Ongwediva; +264 65 231 177; +264 81 802 4833; check-in 14:00, check-out 11:00. **All room slugs:** `standard-room-type-a`, `standard-room-type-b`, `standard-room-type-c`, `executive-room`, `premiere-room`. |
 | **Platform** | Hub‑and‑spoke multi‑tenancy with `tenant_type` distinction. Hub admin has elevated permissions. Domain: `hoteletuna.com` with partner subpages at `/partners/[slug]`. |
 
 #### 3.1.1 Public digital menu (`/dining`)
@@ -217,28 +217,39 @@ Marketing personas in **§2.1** describe *who books and why*. The table below ma
 
 ### 3.3 Room Inventory & Amenities (Hotel Etuna)
 
-**Room tiers and pricing verified against database:**
+**Physical inventory:** **35 guest rooms** (`rooms.inventory_kind = guest_room`) plus **2 bookable facilities** (`conference`, `campsite`). Source of truth: `lib/data/hotel-etuna-room-inventory.ts`; migrations `0040`–`0042`. Public marketing shows **5 category cards** via `getHubRoomTypeCatalog()`; staff/PMS lists all units via `getHubGuestRooms()`.
 
-|| Room Type | Slug | Base Rate | Max Occupancy | Key Amenities (Verified) |
-|---|-----------|------|-----------|---------------|------------------------|
-| 1 | Standard Room | `standard-room` | NAD 1,200/night | 2 guests | WiFi, Air Conditioning, TV, Minibar, Coffee/Tea, Mosquito Net, Desk |
-| 2 | Luxury Room | `luxury-room` | NAD 1,800/night | 2 guests | WiFi, Air Conditioning, TV, Minibar, Coffee/Tea, Mosquito Net, Sitting Area, Bathrobe |
-| 3 | Family Room | `family-room` | NAD 2,500/night | 4 guests | WiFi, Air Conditioning, TV, Minibar, Coffee/Tea, Mosquito Net, Extra Bedding, Garden Access |
-| 4 | Executive Suite | `executive-suite` | NAD 3,000/night | 2 guests | WiFi, Air Conditioning, Work Desk, VIP Toiletries, Lounge Access, Mosquito Net |
-| 5 | Premier Room | `premier-room` | NAD 3,800/night | **4 guests** | WiFi, Air Conditioning, TV, **Mini fridge**, Minibar, Coffee/Tea, Private Balcony, **Private lounge**, **Master + twin bedrooms**, 2 Bathrooms, Bathrobe |
+**Room tiers and pricing (verified against database):**
+
+| Room Type | Slug | Base Rate | Units | Max Occupancy | Key Amenities (Verified) |
+|-----------|------|-----------|-------|---------------|--------------------------|
+| Standard Room (Type A) | `standard-room-type-a` | NAD 800/night | 5, 6, 8, 17, 19, 21 | 2 | Double bed, WiFi, Aircon, TV, Minibar, Coffee/Tea, Mosquito Net, Desk |
+| Standard Room (Type B) | `standard-room-type-b` | NAD 800/night | 7–16, 18, 20 (incl. `14`) | 2 | Two single beds, same essentials as Type A |
+| Standard Room (Type C) | `standard-room-type-c` | NAD 1,200/night | 2, 3, 4 | 3 | Double + single bed |
+| Executive Room | `executive-room` | NAD 1,000/night | 22, E1–E6, E8–E13 | 2 | Work desk, VIP toiletries, lounge access |
+| Premiere Room | `premiere-room` | NAD 2,000/night | E7, E14 | 4 | Private lounge, master + twin, balcony, 2 bathrooms |
+
+**Facilities (online booking):**
+
+| Offering | Inventory | Pricing | Route |
+|----------|-----------|---------|-------|
+| Conference Hall (one) | `inventory_kind = conference` | NAD 1,200/session, 08:00–17:00, one session per calendar day | `/facilities/conference` |
+| Campsite (whole site, one) | `inventory_kind = campsite` | NAD 250/NAD 400 per person (Namibian/non-Namibian); total = max(NAD 1,200, sum) | `/facilities/campsite` |
+
+Legacy demo rows (`ET-*`) are set `out_of_order`, not deleted, to preserve historical `booking_rooms` links.
 
 **Fictional amenities removed during frontend audit:**
-- ❌ "Private Pool" (Premier Room) — does not exist
-- ❌ "Butler Service" (Premier Room) — not offered
-- ❌ "Spa Bath" (Premier Room) — not available
+- ❌ "Private Pool" (Premiere Room) — does not exist
+- ❌ "Butler Service" (Premiere Room) — not offered
+- ❌ "Spa Bath" (Premiere Room) — not available
 - ❌ Generic "Queen Bed" / "King Bed" claims without verification
 - ❌ "Bathtub" claims for standard rooms
-- ❌ "2 Bedrooms" claim for Family Room (misleading)
+- ❌ Legacy Luxury/Family room tiers — retired; use Standard Types B/C instead
 
 **Amenity standardization across property:**
 - **Shared amenities:** Outdoor pool, free parking, 24/7 security, braai area, restaurant, conference facilities
 - **Standard in all rooms:** **Mini fridge**, WiFi, air conditioning, TV, mosquito net protection
-- **Premium tiers:** Bathrobes (Luxury, Premier), VIP toiletries (Executive, Premier), lounge access (Executive, Premier)
+- **Premium tiers:** Bathrobes (Premiere), VIP toiletries (Executive, Premiere), lounge access (Executive, Premiere)
 - **Contact-verified:** Address (5544 Valley Street), phones (+264 65 231 177, +264 81 802 4833), check-in 14:00, check-out 11:00
 
 > Partner network requirements are defined once in **§3.2** (do not duplicate here).
@@ -1145,7 +1156,7 @@ STACK_SECRET_SERVER_KEY=<stack-secret>
 
 # SMTP (Email automation)
 SMTP_HOST=mail.privateemail.com
-SMTP_USER=concierge@hoteletuna.com
+SMTP_USER=frontdesk@hoteletuna.com
 SMTP_PASS=<smtp-password>
 
 # NextAuth fallback
@@ -1278,7 +1289,6 @@ Regenerated May 17, 2026 (`tree -L 3` from `hotel-etuna/`). **229 directories, 3
 |   |   |-- compliance/
 |   |   |-- crm/
 |   |   |-- dashboard/
-|   |   |-- design-system-demo/
 |   |   |-- fraud/
 |   |   |-- menu/
 |   |   |-- payments/
@@ -2751,7 +2761,7 @@ Public copy is aligned to seeded Neon data (no fictional amenities). Canonical f
 
 | Area | Notes |
 |------|--------|
-| **Rooms** | Slugs: `standard-room`, `luxury-room`, `family-room`, `executive-suite`, `premier-room`; Premier Room must not advertise amenities absent from DB (e.g. private pool). |
+| **Rooms** | Slugs: `standard-room-type-a`, `standard-room-type-b`, `standard-room-type-c`, `executive-room`, `premiere-room`; Premiere Room must not advertise amenities absent from DB (e.g. private pool). |
 | **Contact** | 5544 Valley Street, Ongwediva; +264 65 231 177; +264 81 802 4833; check-in 14:00, check-out 11:00. |
 | **Etuna Restaurant** | Name “Etuna Restaurant”; breakfast **07:00–10:00**; lunch, dinner & bar **10:00–22:00**. |
 | **Partners** | JayLa: four self-catering rooms; Aquarius: one double-room penthouse — copy matches tenant/property records. |

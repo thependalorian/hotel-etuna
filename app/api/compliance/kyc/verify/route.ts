@@ -10,11 +10,14 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
+import { AppError } from '@/lib/utils/errors';
 import { transactionValidator } from '@/lib/services/compliance/TransactionValidator';
 // Note: withRateLimit not available - rate limiting handled by middleware
 import { recordAuditTrail } from '@/lib/compliance/record-audit';
 import { entityId, entityIdOptional } from '@/lib/validation/entity-ids';
 import { z } from 'zod';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 // ============================================================================
 // REQUEST VALIDATION SCHEMA
@@ -33,6 +36,8 @@ const verifyTransactionSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await requireTenantSessionUser(request);
+
     // Step 1: Parse and validate request body (rate limiting handled by middleware)
     const body = await request.json();
     const validationResult = verifyTransactionSchema.safeParse(body);
@@ -50,7 +55,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { guestId, tenantId, amount, transactionId } = validationResult.data;
+    const { guestId, amount, transactionId } = validationResult.data;
+    const tenantId = user.tenantId;
 
     // Step 2: Validate transaction
     const validationResponse = await transactionValidator.validateTransaction(
@@ -114,7 +120,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error('Error in KYC verification endpoint:', error);
+    securityLogger.error('Error in KYC verification endpoint:', error);
 
     return NextResponse.json(
       {

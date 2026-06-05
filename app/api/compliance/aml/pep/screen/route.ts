@@ -13,9 +13,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { isPepScreeningEnabled } from '@/lib/config/compliance-flags';
+import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
 import { PEPScreeningService } from '@/lib/services/compliance/PEPScreeningService';
 import { entityId } from '@/lib/validation/entity-ids';
 import { z } from 'zod';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const screenRequestSchema = z.object({
   guestId: entityId(),
@@ -23,14 +26,22 @@ const screenRequestSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  if (!isPepScreeningEnabled()) {
+    return NextResponse.json(
+      { success: false, error: 'PEP screening is not enabled for this deployment' },
+      { status: 404 }
+    );
+  }
   try {
+    const user = await requireTenantSessionUser(request);
+
     const body = await request.json();
     
     const validatedData = screenRequestSchema.parse(body);
 
     const result = await PEPScreeningService.screenGuest(
       validatedData.guestId,
-      validatedData.tenantId
+      user.tenantId
     );
 
     return NextResponse.json({
@@ -38,7 +49,7 @@ export async function POST(request: NextRequest) {
       data: result,
     }, { status: 200 });
   } catch (error) {
-    console.error('[PEP Screen API] Error:', error);
+    securityLogger.error('[PEP Screen API] Error:', error);
     
     if (error instanceof z.ZodError) {
       return NextResponse.json({
@@ -56,16 +67,15 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
+  if (!isPepScreeningEnabled()) {
+    return NextResponse.json({
+      success: true,
+      data: { pepFlags: [], count: 0, disabled: true },
+    });
+  }
   try {
-    const { searchParams } = new URL(request.url);
-    const tenantId = searchParams.get('tenantId');
-
-    if (!tenantId) {
-      return NextResponse.json({
-        success: false,
-        error: 'Tenant ID is required',
-      }, { status: 400 });
-    }
+    const user = await requireTenantSessionUser(request);
+    const tenantId = user.tenantId;
 
     const pepFlags = await PEPScreeningService.getActivePEPFlags(tenantId);
 
@@ -77,7 +87,7 @@ export async function GET(request: NextRequest) {
       },
     }, { status: 200 });
   } catch (error) {
-    console.error('[PEP Screen API] Error fetching PEP flags:', error);
+    securityLogger.error('[PEP Screen API] Error fetching PEP flags:', error);
     
     return NextResponse.json({
       success: false,

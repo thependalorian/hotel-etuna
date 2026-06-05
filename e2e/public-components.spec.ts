@@ -33,7 +33,7 @@ test.describe('Public Components', () => {
     await expect(page.getByText(/ongwediva|valley of the leopard/i).first()).toBeVisible();
     
     // Should have email link
-    await expect(page.getByRole('link', { name: /info@hoteletuna.com/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /frontdesk@hoteletuna.com/i })).toBeVisible();
     
     // Should have phone or contact instruction
     const hasPhone = await page.getByText(/\+264 65 231 177/i).count() > 0;
@@ -91,7 +91,7 @@ test.describe('Public Components', () => {
     
     // Should show room types
     expect(await page.getByText('Standard Room').count()).toBeGreaterThan(0);
-    expect(await page.getByText('Luxury Room').count()).toBeGreaterThan(0);
+    expect(await page.getByText('Standard Room (Type A)').count()).toBeGreaterThan(0);
   });
 
   test('should render Partners section', async ({ page }) => {

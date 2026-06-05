@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { apiUrl } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface ContentEditorProps {
   propertyId: string;
@@ -65,7 +66,7 @@ export default function ContentEditor({ propertyId, onContentAdded }: ContentEdi
         setError(data.message || 'Failed to create content.');
       }
     } catch (err) {
-      console.error('Error creating content:', err);
+      securityLogger.error('Error creating content:', err);
       setError('An unexpected error occurred.');
     } finally {
       setLoading(false);

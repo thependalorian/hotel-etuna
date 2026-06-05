@@ -136,7 +136,7 @@ export default function LoyaltyCatalogPage() {
   }
 
   if (error) {
-    return <ErrorDisplay message={error} />;
+    return <ErrorDisplay error={error} />;
   }
 
   return (

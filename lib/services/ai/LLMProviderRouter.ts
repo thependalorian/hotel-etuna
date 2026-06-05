@@ -24,12 +24,19 @@ export type LlmProviderConfig = {
   enabled?: boolean;
 };
 
+export type LlmTokenUsage = {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+};
+
 export type LlmRouterResult = {
   content: string;
   providerId: string;
   model: string;
   degraded: boolean;
   attemptedProviders: string[];
+  usage?: LlmTokenUsage;
 };
 
 export type LlmRouterOptions = {
@@ -110,6 +117,29 @@ function extractOpenAiContent(payload: unknown): string | null {
   return typeof content === 'string' && content.trim() ? content : null;
 }
 
+function extractOpenAiUsage(payload: unknown): LlmTokenUsage | undefined {
+  const usage = (payload as { usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } })
+    .usage;
+  if (!usage) return undefined;
+  const promptTokens = usage.prompt_tokens ?? 0;
+  const completionTokens = usage.completion_tokens ?? 0;
+  const totalTokens = usage.total_tokens ?? promptTokens + completionTokens;
+  if (totalTokens <= 0) return undefined;
+  return { promptTokens, completionTokens, totalTokens };
+}
+
+function extractAnthropicUsage(payload: unknown): LlmTokenUsage | undefined {
+  const usage = (payload as {
+    usage?: { input_tokens?: number; output_tokens?: number };
+  }).usage;
+  if (!usage) return undefined;
+  const promptTokens = usage.input_tokens ?? 0;
+  const completionTokens = usage.output_tokens ?? 0;
+  const totalTokens = promptTokens + completionTokens;
+  if (totalTokens <= 0) return undefined;
+  return { promptTokens, completionTokens, totalTokens };
+}
+
 function extractAnthropicContent(payload: unknown): string | null {
   const content = (payload as { content?: Array<{ type?: string; text?: unknown }> }).content;
   const text = content?.find((part) => part.type === 'text' && typeof part.text === 'string')?.text;
@@ -147,13 +177,14 @@ export class LLMProviderRouter {
     for (const provider of enabledProviders) {
       attemptedProviders.push(provider.id);
       try {
-        const content = await this.callProvider(provider, messages, options);
+        const { content, usage } = await this.callProvider(provider, messages, options);
         return {
           content,
           providerId: provider.id,
           model: provider.model,
           degraded: false,
           attemptedProviders,
+          usage,
         };
       } catch (error) {
         errors.push(`${provider.id}: ${error instanceof Error ? error.message : 'unknown error'}`);
@@ -178,7 +209,7 @@ export class LLMProviderRouter {
     provider: LlmProviderConfig,
     messages: LlmChatMessage[],
     options: LlmRouterOptions
-  ): Promise<string> {
+  ): Promise<{ content: string; usage?: LlmTokenUsage }> {
     const temperature = options.temperature ?? 0.7;
     const maxTokens = options.maxTokens ?? 500;
     const controller = new AbortController();
@@ -200,7 +231,7 @@ export class LLMProviderRouter {
     maxTokens: number,
     temperature: number,
     signal: AbortSignal
-  ): Promise<string> {
+  ): Promise<{ content: string; usage?: LlmTokenUsage }> {
     const response = await this.fetcher(`${provider.baseUrl.replace(/\/$/, '')}/chat/completions`, {
       method: 'POST',
       headers: {
@@ -220,12 +251,13 @@ export class LLMProviderRouter {
       throw new Error(`HTTP ${response.status}`);
     }
 
-    const content = extractOpenAiContent(await response.json());
+    const payload = await response.json();
+    const content = extractOpenAiContent(payload);
     if (!content) {
       throw new Error('Provider returned no text content');
     }
 
-    return content;
+    return { content, usage: extractOpenAiUsage(payload) };
   }
 
   private async callAnthropicProvider(
@@ -234,7 +266,7 @@ export class LLMProviderRouter {
     maxTokens: number,
     temperature: number,
     signal: AbortSignal
-  ): Promise<string> {
+  ): Promise<{ content: string; usage?: LlmTokenUsage }> {
     const response = await this.fetcher(`${provider.baseUrl.replace(/\/$/, '')}/messages`, {
       method: 'POST',
       headers: {
@@ -253,11 +285,12 @@ export class LLMProviderRouter {
       throw new Error(`HTTP ${response.status}`);
     }
 
-    const content = extractAnthropicContent(await response.json());
+    const payload = await response.json();
+    const content = extractAnthropicContent(payload);
     if (!content) {
       throw new Error('Provider returned no text content');
     }
 
-    return content;
+    return { content, usage: extractAnthropicUsage(payload) };
   }
 }

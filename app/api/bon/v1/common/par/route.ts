@@ -28,6 +28,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { OAuthService, PushedAuthorizationRequest } from '@/lib/services/openbanking/OAuthService';
 import { db, obApiTransactions } from '@/lib/db';
 import crypto from 'crypto';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -129,7 +130,7 @@ async function logApiTransaction(
       errorMessage: errorCode ? `Error during PAR: ${errorCode}` : undefined,
     });
   } catch (logError) {
-    console.error('Failed to log API transaction:', logError);
+    securityLogger.error('Failed to log API transaction:', logError);
     // Don't throw - logging failure shouldn't break API
   }
 }

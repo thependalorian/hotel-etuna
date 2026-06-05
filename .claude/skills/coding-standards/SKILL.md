@@ -1,11 +1,11 @@
 ---
 name: coding-standards
-description: This skill should be used when writing code, creating components, or implementing features. It provides the 23 essential coding standards that must be followed for every piece of code, ensuring scalable, efficient, and maintainable codebases.
+description: This skill should be used when writing code, creating components, or implementing features. It provides the 26 essential coding standards that must be followed for every piece of code, ensuring scalable, efficient, and maintainable codebases.
 ---
 
 # Coding Standards
 
-This skill provides the 23 essential coding standards that must be followed with every piece of code you write, ensuring scalable, efficient, and maintainable codebases.
+This skill provides the 26 essential coding standards that must be followed with every piece of code you write, ensuring scalable, efficient, and maintainable codebases.
 
 ## When to Use This Skill
 

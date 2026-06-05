@@ -7,6 +7,7 @@ import StaffList from '@/components/features/staff/StaffList';
 import { Plus, Users, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import PageHeader from '@/components/shared/PageHeader';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 // Force dynamic rendering for authenticated routes
 export const dynamic = 'force-dynamic';
@@ -41,12 +42,12 @@ async function getStaffData(searchParams: { [key: string]: string | string[] | u
         properties: Array.isArray(propertiesData) ? propertiesData : [] 
       };
     } catch (serviceError) {
-      console.error('[StaffPage] Service error:', serviceError);
+      securityLogger.error('[StaffPage] Service error:', serviceError);
       // Return empty data on service errors
       return { staff: [], stats: null, properties: [] };
     }
   } catch (error) {
-    console.error('[StaffPage] Error:', error);
+    securityLogger.error('[StaffPage] Error:', error);
     // Always return empty data to prevent page crash
     return { staff: [], stats: null, properties: [] };
   }

@@ -13,6 +13,11 @@ import { EmailService } from '@/lib/services/sofia/EmailService';
 import { EmailTemplateService } from '@/lib/services/sofia/EmailTemplateService';
 import { CrmOutreachService } from '@/lib/services/crm/CrmOutreachService';
 import { FolioService } from '@/lib/services/folio/FolioService';
+import { securityLogger } from '@/lib/utils/security-logger';
+import {
+  isAccommodationBookingKind,
+  isFacilityBookingKind,
+} from '@/lib/bookings/booking-kind';
 
 const emailService = new EmailService();
 const folioService = new FolioService();
@@ -20,7 +25,7 @@ const bookingEmailTemplates = new EmailTemplateService();
 const outreach = new CrmOutreachService();
 
 function fire(fn: () => Promise<void>): void {
-  void fn().catch((err) => console.error('[bookingLifecycleSideEffects]', err));
+  void fn().catch((err) => securityLogger.error('[bookingLifecycleSideEffects]', err));
 }
 
 async function loadGuestAndPropertyEmails(
@@ -89,6 +94,7 @@ export function scheduleBookingCreatedEffects(input: {
   bookingReference: string;
   checkInDate: string;
   checkOutDate: string;
+  bookingKind?: string | null;
 }): void {
   fire(async () => {
     const { guestEmail, guestName, propertyName } = await loadGuestAndPropertyEmails(
@@ -98,14 +104,28 @@ export function scheduleBookingCreatedEffects(input: {
     );
     if (!guestEmail) return;
 
-    const tpl = bookingEmailTemplates.generateBookingConfirmationEmail({
-      recipientName: guestName,
-      propertyName,
-      bookingReference: input.bookingReference,
-      bookingId: input.bookingId,
-      checkInDate: input.checkInDate,
-      checkOutDate: input.checkOutDate,
-    });
+    const kind = input.bookingKind ?? 'accommodation';
+    const tpl = isFacilityBookingKind(kind)
+      ? bookingEmailTemplates.generateBookingConfirmationEmail({
+          recipientName: guestName,
+          propertyName,
+          bookingReference: input.bookingReference,
+          bookingId: input.bookingId,
+          checkInDate: input.checkInDate,
+          checkOutDate: input.checkOutDate,
+          customMessage:
+            kind === 'conference'
+              ? `Your conference hall session is confirmed for ${input.checkInDate} (08:00–17:00).`
+              : `Your campsite reservation is confirmed from ${input.checkInDate} to ${input.checkOutDate}.`,
+        })
+      : bookingEmailTemplates.generateBookingConfirmationEmail({
+          recipientName: guestName,
+          propertyName,
+          bookingReference: input.bookingReference,
+          bookingId: input.bookingId,
+          checkInDate: input.checkInDate,
+          checkOutDate: input.checkOutDate,
+        });
 
     await emailService.sendEmail(input.tenantId, {
       to: guestEmail,
@@ -149,7 +169,12 @@ export function scheduleBookingTransitionEffects(input: {
         bookingReference: booking.bookingReference ?? booking.id.slice(0, 8),
         checkInDate: String(booking.checkInDate),
         checkOutDate: String(booking.checkOutDate),
+        bookingKind: booking.bookingKind,
       });
+      return;
+    }
+
+    if (!isAccommodationBookingKind(booking.bookingKind)) {
       return;
     }
 
@@ -227,15 +252,13 @@ export function scheduleBookingTransitionEffects(input: {
       try {
         const folio = await folioService.getFolio(booking.id);
         if (folio.balanceDue > 0 && !folio.folioClosedAt) {
-          console.warn(
+          securityLogger.warn(
             '[bookingLifecycleSideEffects] checked_out with open folio',
-            booking.id,
-            folio.balanceDue,
-            folio.currency
+            { bookingId: booking.id, balanceDue: folio.balanceDue, currency: folio.currency }
           );
         }
       } catch (folioErr) {
-        console.error('[bookingLifecycleSideEffects] folio check on checkout:', folioErr);
+        securityLogger.error('[bookingLifecycleSideEffects] folio check on checkout:', folioErr);
       }
 
       const { guestEmail, guestName, propertyName } = await loadGuestAndPropertyEmails(
@@ -305,7 +328,13 @@ export async function runCheckInReminderJob(): Promise<{ sent: number; skipped: 
   const due = await db
     .select()
     .from(bookings)
-    .where(and(eq(bookings.checkInDate, dateStr), eq(bookings.status, 'confirmed')));
+    .where(
+      and(
+        eq(bookings.checkInDate, dateStr),
+        eq(bookings.status, 'confirmed'),
+        sql`(booking_kind IS NULL OR booking_kind = 'accommodation')`
+      )
+    );
 
   let sent = 0;
   let skipped = 0;

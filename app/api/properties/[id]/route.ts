@@ -12,6 +12,7 @@ import { getAuthenticatedUser, withApiAuth, errorResponse, successResponse } fro
 import { PropertyService } from '@/lib/services/property/PropertyService';
 import * as z from 'zod';
 import { AppError } from '@/lib/utils/errors';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const propertySchema = z.object({
   name: z.string().min(3),
@@ -80,7 +81,7 @@ export async function PUT(
 
     return successResponse(updatedProperty, 200);
   } catch (error) {
-    console.error('Update property error:', error);
+    securityLogger.error('Update property error:', error);
     if (typeof error === 'object' && error !== null && 'statusCode' in error && 'message' in error) {
       return errorResponse(
         (error as AppError).message,

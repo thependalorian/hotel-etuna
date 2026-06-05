@@ -24,6 +24,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import PageHeader from '@/components/shared/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { apiUrl } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface LoyaltyBalance {
   points: number;
@@ -109,7 +110,7 @@ export default function GuestLoyaltyPage() {
       const data = await response.json();
       setRewards(data.rewards || []);
     } catch (err: any) {
-      console.error('Error fetching rewards:', err);
+      securityLogger.error('Error fetching rewards:', err);
     }
   };
 
@@ -202,7 +203,7 @@ export default function GuestLoyaltyPage() {
   }
 
   if (error && !balance) {
-    return <ErrorDisplay message={error} />;
+    return <ErrorDisplay error={error} />;
   }
 
   if (!balance) {

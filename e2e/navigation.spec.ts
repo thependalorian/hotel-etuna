@@ -26,11 +26,11 @@ test.describe('Navigation', () => {
     test.setTimeout(120_000);
     const routes = [
       '/rooms',
-      '/rooms/standard-room',
-      '/rooms/luxury-room',
-      '/rooms/family-room',
-      '/rooms/executive-suite',
-      '/rooms/premier-room',
+      '/rooms/standard-room-type-a',
+      '/rooms/standard-room-type-b',
+      '/rooms/standard-room-type-c',
+      '/rooms/executive-room',
+      '/rooms/premiere-room',
       '/dining',
       '/about',
       '/contact',
@@ -40,6 +40,8 @@ test.describe('Navigation', () => {
       '/login',
       '/legal/privacy',
       '/legal/terms',
+      '/facilities/conference',
+      '/facilities/campsite',
     ];
 
     for (const route of routes) {
@@ -77,6 +79,11 @@ test.describe('Navigation', () => {
       // Menu should expand or become visible
       // (implementation specific, so we just check it's clickable)
     }
+  });
+
+  test('public header includes Partners link', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByRole('navigation').getByRole('link', { name: 'Partners' })).toBeVisible();
   });
 
   test('should have accessible navigation landmarks', async ({ page }) => {

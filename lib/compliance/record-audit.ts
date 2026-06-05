@@ -7,6 +7,7 @@
 
 import type { NextRequest } from 'next/server';
 import { db, auditTrail } from '@/lib/db';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export function clientMetaFromRequest(req: NextRequest): {
   ip: string | null;
@@ -48,6 +49,6 @@ export async function recordAuditTrail(input: {
       userAgent: userAgent ?? undefined,
     });
   } catch (err) {
-    console.error('[recordAuditTrail] insert failed', err);
+    securityLogger.error('[recordAuditTrail] insert failed', err);
   }
 }

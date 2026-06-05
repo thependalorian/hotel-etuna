@@ -10,6 +10,7 @@ import { ZodError } from 'zod';
 import { getAuthenticatedUser } from '@/lib/utils/api-helpers';
 import { processAiMessageSchema } from '@/lib/utils/validation';
 import { AppError } from '@/lib/utils/errors';
+import { securityLogger } from '@/lib/utils/security-logger';
 import {
   getSofiaConciergeService,
   processSofiaConciergeMessage,
@@ -25,7 +26,7 @@ function sofiaRouteErrorResponse(error: unknown, logLabel: string): NextResponse
       { status: 400 }
     );
   }
-  console.error(logLabel, error);
+  securityLogger.error(logLabel, error);
   return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
 }
 

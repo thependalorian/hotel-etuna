@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { apiUrl } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export default function EmailSenderForm() {
   const { data: session } = useSession();
@@ -59,7 +60,7 @@ export default function EmailSenderForm() {
         setError(data.message || 'Failed to send email.');
       }
     } catch (err) {
-      console.error('Error sending email:', err);
+      securityLogger.error('Error sending email:', err);
       setError('An unexpected error occurred.');
     } finally {
       setLoading(false);

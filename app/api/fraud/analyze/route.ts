@@ -13,13 +13,15 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { FraudDetectionService, type TransactionContext } from '@/lib/services/fraud/FraudDetectionService';
-import { entityId, entityIdOptional } from '@/lib/validation/entity-ids';
+import { entityIdOptional } from '@/lib/validation/entity-ids';
+import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
+import { AppError } from '@/lib/utils/errors';
 import { z } from 'zod';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
-// Request validation schema
+// Request validation schema (tenantId comes from auth session, not request body)
 const fraudAnalysisSchema = z.object({
-  tenantId: entityId(),
-  transactionId: entityId(),
+  transactionId: z.string().uuid(),
   guestId: entityIdOptional(),
   amount: z.number().positive(),
   currency: z.string().length(3).default('NAD'),
@@ -47,10 +49,11 @@ const fraudAnalysisSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('[Fraud API] Analyzing transaction...');
+    const user = await requireTenantSessionUser(request);
 
     // Parse and validate request body
     const body = await request.json();
+    securityLogger.info('[Fraud API] Analyzing transaction...', { tenantId: user.tenantId, transactionId: body.transactionId });
     const validationResult = fraudAnalysisSchema.safeParse(body);
 
     if (!validationResult.success) {
@@ -66,8 +69,8 @@ export async function POST(request: NextRequest) {
 
     const data = validationResult.data;
 
-    // Initialize fraud detection service
-    const fraudService = new FraudDetectionService(data.tenantId);
+    // Use authenticated user's tenantId — never trust client-provided tenantId
+    const fraudService = new FraudDetectionService(user.tenantId);
 
     // Build transaction context
     const context: TransactionContext = {
@@ -86,10 +89,11 @@ export async function POST(request: NextRequest) {
     // Analyze transaction for fraud
     const fraudScore = await fraudService.analyzeTransaction(context);
 
-    console.log('[Fraud API] Analysis complete', {
+    securityLogger.info('[Fraud API] Analysis complete', {
       transactionId: data.transactionId,
       riskLevel: fraudScore.riskLevel,
       decision: fraudScore.decision,
+      tenantId: user.tenantId,
     });
 
     return NextResponse.json({
@@ -97,16 +101,11 @@ export async function POST(request: NextRequest) {
       data: fraudScore,
     });
   } catch (error) {
-    console.error('[Fraud API] Error analyzing transaction:', error);
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to analyze transaction',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+    if (error instanceof AppError) {
+      return NextResponse.json({ success: false, error: error.message }, { status: error.statusCode });
+    }
+    securityLogger.error('[Fraud API] Error analyzing transaction', { error: error instanceof Error ? error.message : String(error) });
+    return NextResponse.json({ success: false, error: 'Failed to analyze transaction' }, { status: 500 });
   }
 }
 

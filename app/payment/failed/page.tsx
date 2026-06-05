@@ -1,3 +1,10 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Payment Not Completed',
+  robots: { index: false, follow: false },
+};
+
 /**
  * Adumo Virtual — failed redirect landing page.
  * Location: app/payment/failed/page.tsx

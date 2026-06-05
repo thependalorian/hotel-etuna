@@ -25,6 +25,7 @@ import {
   type QdrantInferencePoint,
 } from '../lib/integrations/qdrant-inference';
 import { isRagEmbeddingConfigured } from '../lib/integrations/embeddings-rag';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 dotenv.config({ path: '.env.local' });
 
@@ -134,14 +135,14 @@ function chunkMarkdownDocument(markdown: string, maxChars: number, overlap: numb
 }
 
 function loadAndChunkDocuments(): DocumentChunk[] {
-  console.log(`📂 Loading documents from ${KNOWLEDGE_DIR}...`);
+  securityLogger.info(`📂 Loading documents from ${KNOWLEDGE_DIR}...`);
 
   const files = readdirSync(KNOWLEDGE_DIR).filter((f) => f.endsWith('.md'));
   if (files.length === 0) {
     throw new Error(`No .md files found in ${KNOWLEDGE_DIR}`);
   }
 
-  console.log(`   Found ${files.length} markdown files`);
+  securityLogger.info(`   Found ${files.length} markdown files`);
 
   const allChunks: DocumentChunk[] = [];
 
@@ -150,10 +151,10 @@ function loadAndChunkDocuments(): DocumentChunk[] {
     const content = readFileSync(filePath, 'utf-8');
     const documentTitle = file.replace('.md', '');
 
-    console.log(`   📄 Processing ${file} (${content.length} chars)...`);
+    securityLogger.info(`   📄 Processing ${file} (${content.length} chars)...`);
 
     const chunks = chunkMarkdownDocument(content, CHUNK_MAX_CHARS, CHUNK_OVERLAP);
-    console.log(`      → Generated ${chunks.length} chunks`);
+    securityLogger.info(`      → Generated ${chunks.length} chunks`);
 
     chunks.forEach((chunkContent, idx) => {
       allChunks.push({
@@ -171,7 +172,7 @@ function loadAndChunkDocuments(): DocumentChunk[] {
     });
   }
 
-  console.log(`✅ Total chunks: ${allChunks.length}\n`);
+  securityLogger.info(`✅ Total chunks: ${allChunks.length}\n`);
   return allChunks;
 }
 
@@ -182,10 +183,10 @@ async function upsertToQdrantInference(
 ): Promise<void> {
   const model = qdrantInferenceModel();
   const dims = qdrantInferenceVectorSize();
-  console.log(`🚀 Upserting to Qdrant inference (model: ${model}, ${dims}d)...`);
+  securityLogger.info(`🚀 Upserting to Qdrant inference (model: ${model}, ${dims}d)...`);
 
   if (dryRun) {
-    console.log(`   [DRY RUN] Would upsert ${chunks.length} points to "${COLLECTION_NAME}"`);
+    securityLogger.info(`   [DRY RUN] Would upsert ${chunks.length} points to "${COLLECTION_NAME}"`);
     return;
   }
 
@@ -214,25 +215,25 @@ async function upsertToQdrantInference(
     const batch = points.slice(i, i + INFERENCE_UPSERT_BATCH);
     const batchNum = Math.floor(i / INFERENCE_UPSERT_BATCH) + 1;
     const totalBatches = Math.ceil(points.length / INFERENCE_UPSERT_BATCH);
-    console.log(`   Upsert batch ${batchNum}/${totalBatches} (${batch.length} points)...`);
+    securityLogger.info(`   Upsert batch ${batchNum}/${totalBatches} (${batch.length} points)...`);
     await qdrantInferenceUpsert(COLLECTION_NAME, batch);
     if (i + INFERENCE_UPSERT_BATCH < points.length) {
       await new Promise((resolve) => setTimeout(resolve, INFERENCE_BATCH_DELAY_MS));
     }
   }
 
-  console.log(`✅ Upserted ${points.length} points via Qdrant Cloud Inference\n`);
+  securityLogger.info(`✅ Upserted ${points.length} points via Qdrant Cloud Inference\n`);
 }
 
 async function main() {
   const isDryRun = process.argv.includes('--dry');
 
-  console.log('═══════════════════════════════════════════════════════════');
-  console.log('🏨 Hotel Etuna Knowledge Base Ingestion');
-  console.log('═══════════════════════════════════════════════════════════\n');
+  securityLogger.info('═══════════════════════════════════════════════════════════');
+  securityLogger.info('🏨 Hotel Etuna Knowledge Base Ingestion');
+  securityLogger.info('═══════════════════════════════════════════════════════════\n');
 
   if (isDryRun) {
-    console.log('⚠️  DRY RUN MODE - No API calls will be made\n');
+    securityLogger.info('⚠️  DRY RUN MODE - No API calls will be made\n');
   }
 
   const QDRANT_URL = process.env.QDRANT_URL;
@@ -243,7 +244,7 @@ async function main() {
     throw new Error('QDRANT_URL not set in .env.local');
   }
   if (!QDRANT_API_KEY && !isDryRun) {
-    console.warn('⚠️  QDRANT_API_KEY not set (required for Qdrant Cloud)');
+    securityLogger.warn('⚠️  QDRANT_API_KEY not set (required for Qdrant Cloud)');
   }
   if (!isQdrantInferenceEnabled() && !isDryRun) {
     throw new Error('Set RAG_USE_QDRANT_INFERENCE=true with QDRANT_URL + QDRANT_API_KEY');
@@ -255,40 +256,40 @@ async function main() {
     throw new Error('HUB_TENANT_ID not set in .env.local');
   }
 
-  console.log('📋 Configuration:');
-  console.log(`   Qdrant URL: ${QDRANT_URL}`);
-  console.log(`   Qdrant API Key: ${QDRANT_API_KEY ? '✓ Set' : '✗ Not set'}`);
-  console.log(`   Inference model: ${qdrantInferenceModel()}`);
-  console.log(`   Vector size: ${qdrantInferenceVectorSize()}d`);
-  console.log(`   Upsert batch: ${INFERENCE_UPSERT_BATCH}`);
-  console.log(`   Hub Tenant ID: ${HUB_TENANT_ID}`);
-  console.log(`   Collection: ${COLLECTION_NAME}`);
-  console.log(`   Chunk size: ${CHUNK_MAX_CHARS} chars (overlap: ${CHUNK_OVERLAP})\n`);
+  securityLogger.info('📋 Configuration:');
+  securityLogger.info(`   Qdrant URL: ${QDRANT_URL}`);
+  securityLogger.info(`   Qdrant API Key: ${QDRANT_API_KEY ? '✓ Set' : '✗ Not set'}`);
+  securityLogger.info(`   Inference model: ${qdrantInferenceModel()}`);
+  securityLogger.info(`   Vector size: ${qdrantInferenceVectorSize()}d`);
+  securityLogger.info(`   Upsert batch: ${INFERENCE_UPSERT_BATCH}`);
+  securityLogger.info(`   Hub Tenant ID: ${HUB_TENANT_ID}`);
+  securityLogger.info(`   Collection: ${COLLECTION_NAME}`);
+  securityLogger.info(`   Chunk size: ${CHUNK_MAX_CHARS} chars (overlap: ${CHUNK_OVERLAP})\n`);
 
   const chunks = loadAndChunkDocuments();
   await upsertToQdrantInference(HUB_TENANT_ID, chunks, isDryRun);
 
   const totalTokensEstimate = chunks.reduce((sum, c) => sum + Math.ceil(c.content.length / 4), 0);
-  console.log('═══════════════════════════════════════════════════════════');
-  console.log('✅ Ingestion Complete!');
-  console.log('═══════════════════════════════════════════════════════════');
-  console.log(`   Documents processed: ${new Set(chunks.map((c) => c.documentTitle)).size}`);
-  console.log(`   Total chunks: ${chunks.length}`);
-  console.log(`   Estimated tokens: ~${totalTokensEstimate.toLocaleString()}`);
-  console.log(`   Collection: ${COLLECTION_NAME}`);
-  console.log(`   Tenant: ${HUB_TENANT_ID}\n`);
+  securityLogger.info('═══════════════════════════════════════════════════════════');
+  securityLogger.info('✅ Ingestion Complete!');
+  securityLogger.info('═══════════════════════════════════════════════════════════');
+  securityLogger.info(`   Documents processed: ${new Set(chunks.map((c) => c.documentTitle)).size}`);
+  securityLogger.info(`   Total chunks: ${chunks.length}`);
+  securityLogger.info(`   Estimated tokens: ~${totalTokensEstimate.toLocaleString()}`);
+  securityLogger.info(`   Collection: ${COLLECTION_NAME}`);
+  securityLogger.info(`   Tenant: ${HUB_TENANT_ID}\n`);
 
   if (!isDryRun) {
-    console.log('🤖 Sofia AI can now answer questions about Hotel Etuna!');
-    console.log(`   Embeddings: Qdrant Cloud (${qdrantInferenceModel()}, ${qdrantInferenceVectorSize()}d)`);
-    console.log('   Test with: "What does Etuna mean?" or "Tell me about the rooms"');
+    securityLogger.info('🤖 Sofia AI can now answer questions about Hotel Etuna!');
+    securityLogger.info(`   Embeddings: Qdrant Cloud (${qdrantInferenceModel()}, ${qdrantInferenceVectorSize()}d)`);
+    securityLogger.info('   Test with: "What does Etuna mean?" or "Tell me about the rooms"');
   }
 
-  console.log('\n');
+  securityLogger.info('\n');
 }
 
 main().catch((error) => {
-  console.error('\n❌ Error:', error.message);
-  console.error(error);
+  securityLogger.error('\n❌ Error:', error.message);
+  securityLogger.error(error);
   process.exit(1);
 });

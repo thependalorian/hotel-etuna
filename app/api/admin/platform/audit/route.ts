@@ -15,6 +15,7 @@ import { eq, desc, and } from 'drizzle-orm';
 import { getCurrentPlatformAdmin, isPlatformAdmin, isSuperAdmin } from '@/lib/auth/platform-admin';
 import { recordAuditTrail } from '@/lib/compliance/record-audit';
 import { entityIdNullableOptional } from '@/lib/validation/entity-ids';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error('[Platform Admin Audit POST]', err);
+    securityLogger.error('[Platform Admin Audit POST]', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -117,7 +118,7 @@ export async function GET(request: NextRequest) {
       })),
     });
   } catch (err) {
-    console.error('[Platform Admin Audit]', err);
+    securityLogger.error('[Platform Admin Audit]', err);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

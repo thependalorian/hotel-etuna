@@ -4,6 +4,7 @@ import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { EmailService } from '@/lib/services/sofia/EmailService';
 import { EmailTemplateService } from '@/lib/services/sofia/EmailTemplateService';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 import * as z from 'zod';
 import crypto from 'crypto';
 
@@ -61,14 +62,23 @@ export async function POST(request: Request) {
           htmlContent: resetEmail.html,
           textContent: resetEmail.text,
         })
-        .catch((err) => console.error('Failed to send password reset email:', err));
+        .catch((err) => {
+          securityLogger.error('[ForgotPassword] Failed to send password reset email', {
+            email,
+            error: err instanceof Error ? err.message : String(err),
+            stack: err instanceof Error ? err.stack?.substring(0, 500) : undefined,
+          });
+        });
     }
 
     return NextResponse.json({
       message: "If an account with that email exists, we've sent a password reset link.",
     }, { status: 200 });
   } catch (error) {
-    console.error('Forgot password error:', error);
+    securityLogger.error('[ForgotPassword] Forgot password error', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack?.substring(0, 500) : undefined,
+    });
     return NextResponse.json({
       message: 'An unexpected error occurred.',
     }, { status: 500 });

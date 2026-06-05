@@ -15,6 +15,7 @@
  */
 
 import { sql } from '@/lib/db';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 interface SecurityIncident {
   id: string;
@@ -63,7 +64,7 @@ export class BonIncidentReportingService {
     this.bonApiKey = process.env.BON_API_KEY || '';
     
     if (!this.bonApiKey) {
-      console.warn('[BonReporting] BON_API_KEY not configured - incident reporting will be simulated');
+      securityLogger.warn('[BonReporting] BON_API_KEY not configured - incident reporting will be simulated');
     }
   }
   
@@ -143,7 +144,7 @@ export class BonIncidentReportingService {
     submittedBy: string
   ): Promise<BonSubmissionResponse> {
     try {
-      console.log('[BonReporting] Submitting incident report to BoN:', {
+      securityLogger.info('[BonReporting] Submitting incident report to BoN', {
         reportType: report.reportType,
         incidentId: report.incidentId,
         severity: report.severity,
@@ -151,7 +152,7 @@ export class BonIncidentReportingService {
       
       // Check if BoN API is configured
       if (!this.bonApiKey) {
-        console.warn('[BonReporting] BON_API_KEY not configured - simulating submission');
+        securityLogger.warn('[BonReporting] BON_API_KEY not configured - simulating submission');
         return this.simulateSubmission(tenantId, report, submittedBy);
       }
       
@@ -175,7 +176,7 @@ export class BonIncidentReportingService {
       // Record submission in database
       await this.recordSubmission(tenantId, report, result.reference, submittedBy);
       
-      console.log('[BonReporting] Submission successful:', {
+      securityLogger.info('[BonReporting] Submission successful', {
         bonReference: result.reference,
         acknowledged: result.acknowledged,
       });
@@ -188,7 +189,7 @@ export class BonIncidentReportingService {
       };
       
     } catch (error: unknown) {
-      console.error('[BonReporting] Submission failed:', error);
+      securityLogger.error('[BonReporting] Submission failed:', error);
       
       // Record failed attempt
       await this.recordFailedSubmission(tenantId, report, submittedBy, error);
@@ -257,7 +258,7 @@ export class BonIncidentReportingService {
       )
     `;
     
-    console.log('[BonReporting] Submission recorded in database:', bonReference);
+    securityLogger.info('[BonReporting] Submission recorded in database', { bonReference });
   }
   
   /**

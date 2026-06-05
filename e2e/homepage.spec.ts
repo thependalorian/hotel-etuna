@@ -50,10 +50,10 @@ test.describe('Homepage', () => {
 
     // Accept DB-driven rendering either in cards or booking options.
     expect(await page.getByText('Standard Room').count()).toBeGreaterThan(0);
-    expect(await page.getByText('Luxury Room').count()).toBeGreaterThan(0);
-    expect(await page.getByText('Family Room').count()).toBeGreaterThan(0);
-    expect(await page.getByText('Executive Suite').count()).toBeGreaterThan(0);
-    expect(await page.getByText('Premier Room').count()).toBeGreaterThan(0);
+    expect(await page.getByText('Standard Room (Type A)').count()).toBeGreaterThan(0);
+    expect(await page.getByText('Standard Room (Type B)').count()).toBeGreaterThan(0);
+    expect(await page.getByText('Executive Room').count()).toBeGreaterThan(0);
+    expect(await page.getByText('Premiere Room').count()).toBeGreaterThan(0);
 
     await expect(page.getByText('Family Suite')).toHaveCount(0);
     await expect(page.getByText('Premier Suite')).toHaveCount(0);
@@ -100,7 +100,7 @@ test.describe('Homepage', () => {
     const phoneCount = await page.getByText(/\+264 65 231 177/i).count();
     const fallbackCount = await page.getByText(/contact reception/i).count();
     expect(phoneCount > 0 || fallbackCount > 0).toBe(true);
-    await expect(page.getByRole('link', { name: /info@hoteletuna.com/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /frontdesk@hoteletuna.com/i })).toBeVisible();
   });
 
   test('should render guest reviews section with approved-or-empty state', async ({ page }) => {

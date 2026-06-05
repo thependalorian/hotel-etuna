@@ -26,6 +26,7 @@ import {
 } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const emailInboxService = new EmailInboxService();
 const emailService = new EmailService();
@@ -34,35 +35,35 @@ const emailService = new EmailService();
  * Main cron job function to monitor email inboxes
  */
 export async function monitorEmailInboxes() {
-  console.log('[Email Inbox Monitor] Starting email inbox monitoring...');
+  securityLogger.info('[Email Inbox Monitor] Starting email inbox monitoring...');
 
   try {
     const configs = await emailInboxService.getActiveConfigs();
-    console.log(`[Email Inbox Monitor] Found ${configs.length} active inbox configurations`);
+    securityLogger.info(`[Email Inbox Monitor] Found ${configs.length} active inbox configurations`, { count: configs.length });
 
     let totalFetched = 0;
     let totalProcessed = 0;
 
     for (const config of configs) {
       try {
-        console.log(`[Email Inbox Monitor] Fetching emails for ${config.emailAddress}...`);
+        securityLogger.info(`[Email Inbox Monitor] Fetching emails for ${config.emailAddress}...`, { emailAddress: config.emailAddress, configId: config.id });
         const fetched = await emailInboxService.fetchNewEmails(config.id);
         totalFetched += fetched;
-        console.log(`[Email Inbox Monitor] Fetched ${fetched} new emails from ${config.emailAddress}`);
+        securityLogger.info(`[Email Inbox Monitor] Fetched ${fetched} new emails from ${config.emailAddress}`, { fetchedCount: fetched, emailAddress: config.emailAddress, configId: config.id });
       } catch (error) {
-        console.error(`[Email Inbox Monitor] Error fetching emails for ${config.emailAddress}:`, error);
+        securityLogger.error(`[Email Inbox Monitor] Error fetching emails for ${config.emailAddress}:`, error);
       }
     }
 
-    console.log('[Email Inbox Monitor] Processing pending emails...');
+    securityLogger.info('[Email Inbox Monitor] Processing pending emails...');
     totalProcessed = await emailInboxService.processPendingEmails();
-    console.log(`[Email Inbox Monitor] Processed ${totalProcessed} pending emails`);
+    securityLogger.info(`[Email Inbox Monitor] Processed ${totalProcessed} pending emails`, { processedCount: totalProcessed });
 
     await processEmailsThroughSofia();
 
-    console.log(`[Email Inbox Monitor] Completed. Fetched: ${totalFetched}, Processed: ${totalProcessed}`);
+    securityLogger.info(`[Email Inbox Monitor] Completed`, { fetchedCount: totalFetched, processedCount: totalProcessed });
   } catch (error) {
-    console.error('[Email Inbox Monitor] Error in email inbox monitoring:', error);
+    securityLogger.error('[Email Inbox Monitor] Error in email inbox monitoring:', error);
     throw error;
   }
 }
@@ -79,7 +80,7 @@ async function processEmailsThroughSofia() {
       .orderBy(sofiaIncomingEmails.receivedAt)
       .limit(50);
 
-    console.log(`[Email Inbox Monitor] Processing ${pendingEmails.length} emails through Sofia...`);
+    securityLogger.info(`[Email Inbox Monitor] Processing ${pendingEmails.length} emails through Sofia...`, { pendingEmailsCount: pendingEmails.length });
 
     for (const email of pendingEmails) {
       try {
@@ -202,9 +203,9 @@ async function processEmailsThroughSofia() {
             );
         }
 
-        console.log(`[Email Inbox Monitor] Processed and replied to email ${email.id}`);
+        securityLogger.info(`[Email Inbox Monitor] Processed and replied to email ${email.id}`, { emailId: email.id, tenantId: email.tenantId });
       } catch (error) {
-        console.error(`[Email Inbox Monitor] Error processing email ${email.id}:`, error);
+        securityLogger.error(`[Email Inbox Monitor] Error processing email ${email.id}:`, error);
         await db
           .update(sofiaIncomingEmails)
           .set({
@@ -216,7 +217,7 @@ async function processEmailsThroughSofia() {
       }
     }
   } catch (error) {
-    console.error('[Email Inbox Monitor] Error processing emails through Sofia:', error);
+    securityLogger.error('[Email Inbox Monitor] Error processing emails through Sofia:', error);
     throw error;
   }
 }
@@ -229,7 +230,7 @@ export async function runEmailInboxMonitor() {
     await monitorEmailInboxes();
     return { success: true, message: 'Email inbox monitoring completed' };
   } catch (error) {
-    console.error('[Email Inbox Monitor] Fatal error:', error);
+    securityLogger.error('[Email Inbox Monitor] Fatal error:', error);
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Unknown error',

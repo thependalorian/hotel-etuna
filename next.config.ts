@@ -67,6 +67,28 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: false,
   },
 
+  // Webpack
+  webpack: (config, { webpack }) => {
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      net: false,
+      tls: false,
+      crypto: false,
+    };
+
+    // Prevent Node-only DB drivers from being bundled into client components
+    config.plugins = [
+      ...(config.plugins ?? []),
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^(pg|pg-connection-string|@neondatabase\/serverless)$/,
+        contextRegExp: /^$/,
+      }),
+    ];
+
+    return config;
+  },
+
   // Output Configuration
   output: 'standalone',
 };

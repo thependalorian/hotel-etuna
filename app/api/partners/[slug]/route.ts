@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, properties, rooms, tenants } from '@/lib/db';
 import { and, asc, eq } from 'drizzle-orm';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface Params {
   params: Promise<{ slug: string }>;
@@ -114,7 +115,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
       }
     );
   } catch (error) {
-    console.error('Failed to load partner profile:', error);
+    securityLogger.error('Failed to load partner profile:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

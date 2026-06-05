@@ -1,25 +1,29 @@
 /**
- * Fraud Detection Dashboard Page
- * 
- * Purpose: Main page for fraud detection system
- * Functionality: Display fraud monitoring dashboard with real-time updates
+ * Fraud Detection Dashboard
+ *
+ * Purpose: Real-time fraud monitoring for the authenticated tenant.
  * Location: app/(dashboard)/fraud/page.tsx
  */
 
+import { Metadata } from 'next';
+import { getSessionWithTenantContext } from '@/lib/auth/tenant-context';
+import { redirect } from 'next/navigation';
 import { FraudDashboard } from '@/components/features/fraud/FraudDashboard';
 
-export const metadata = {
-  title: 'Fraud Detection | Hotel Etuna',
+export const metadata: Metadata = {
+  title: 'Fraud Detection',
   description: 'Real-time fraud detection and prevention dashboard',
 };
 
-// Mock tenant ID - In production, get from session
-const TENANT_ID = '00000000-0000-0000-0000-000000000001';
+export const dynamic = 'force-dynamic';
 
-export default function FraudDetectionPage() {
+export default async function FraudDetectionPage() {
+  const session = await getSessionWithTenantContext();
+  if (!session?.user?.tenantId) redirect('/login');
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <FraudDashboard tenantId={TENANT_ID} />
+      <FraudDashboard tenantId={session.user.tenantId as string} />
     </div>
   );
 }

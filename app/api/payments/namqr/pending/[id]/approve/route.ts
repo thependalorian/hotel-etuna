@@ -11,6 +11,7 @@ import { withApiAuth, errorResponse, successResponse } from '@/lib/utils/api-hel
 import { HospitalityNamQrPaymentService } from '@/lib/services/payment/HospitalityNamQrPaymentService';
 import { entityId } from '@/lib/validation/entity-ids';
 import { AppError } from '@/lib/utils/errors';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const bodySchema = z.object({
   amountPaid: z.number().positive().optional(),
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         if (e instanceof AppError) {
           return errorResponse(e.message, e.statusCode, 'NAMQR_APPROVE_FAILED');
         }
-        console.error('[namqr/pending/approve]', e);
+        securityLogger.error('[namqr/pending/approve]', e);
         return errorResponse('Approve failed', 500, 'NAMQR_APPROVE_FAILED');
       }
     },

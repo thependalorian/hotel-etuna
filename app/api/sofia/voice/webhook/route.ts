@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as z from 'zod';
 import { VoiceChannelAdapter } from '@/lib/services/sofia/VoiceChannelAdapter';
 import { entityId, entityIdNullableOptional } from '@/lib/validation/entity-ids';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const bodySchema = z.object({
   type: z.enum(['session.started', 'transcript.user', 'session.ended', 'handoff.requested']),
@@ -28,7 +29,7 @@ const adapter = new VoiceChannelAdapter();
 export async function POST(request: NextRequest) {
   const secret = process.env.VOICE_WEBHOOK_SECRET;
   if (!secret) {
-    console.error('VOICE_WEBHOOK_SECRET is not configured');
+    securityLogger.error('VOICE_WEBHOOK_SECRET is not configured');
     return NextResponse.json({ ok: false, error: 'Voice webhook not configured' }, { status: 503 });
   }
 
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result, { status: 200 });
   } catch (e) {
-    console.error('[voice webhook]', e);
+    securityLogger.error('[voice webhook]', e);
     return NextResponse.json({ ok: false, error: 'Internal error' }, { status: 500 });
   }
 }

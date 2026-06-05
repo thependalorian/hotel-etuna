@@ -205,8 +205,8 @@ describe.skipIf(!hubSeedValidationEnabled)(
 
     expect(restaurant).toBeTruthy();
     expect(restaurant!.contactPhone).toBe('+264 65 231 177');
-    // DB may store null and UI falls back to info@hoteletuna.com.
-    expect(restaurant!.contactEmail === null || restaurant!.contactEmail === 'info@hoteletuna.com').toBe(true);
+    // DB may store null and UI falls back to frontdesk@hoteletuna.com.
+    expect(restaurant!.contactEmail === null || restaurant!.contactEmail === 'frontdesk@hoteletuna.com').toBe(true);
   });
   }
 );

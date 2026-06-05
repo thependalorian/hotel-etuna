@@ -17,6 +17,7 @@ import { redirect } from 'next/navigation';
 import { db, properties, cmsContent, cmsMedia } from '@/lib/db';
 import { eq, and, asc, desc } from 'drizzle-orm';
 import CmsDashboard from '@/components/features/cms/CmsDashboard';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,7 +39,7 @@ const CmsPage = async () => {
         .where(eq(properties.tenantId, tenantId))
         .orderBy(asc(properties.name));
     } catch (error) {
-      console.error('[CmsPage] Error fetching properties:', error);
+      securityLogger.error('[CmsPage] Error fetching properties:', error);
     }
 
     let initialContent: typeof cmsContent.$inferSelect[] = [];
@@ -59,7 +60,7 @@ const CmsPage = async () => {
           )
           .orderBy(desc(cmsContent.updatedAt));
       } catch (error) {
-        console.error('[CmsPage] Error fetching content:', error);
+        securityLogger.error('[CmsPage] Error fetching content:', error);
       }
 
       try {
@@ -74,7 +75,7 @@ const CmsPage = async () => {
           )
           .orderBy(desc(cmsMedia.createdAt));
       } catch (error) {
-        console.error('[CmsPage] Error fetching media:', error);
+        securityLogger.error('[CmsPage] Error fetching media:', error);
       }
     }
 
@@ -156,7 +157,7 @@ const CmsPage = async () => {
       />
     );
   } catch (error) {
-    console.error('[CmsPage] Fatal error:', error);
+    securityLogger.error('[CmsPage] Fatal error:', error);
     return (
       <CmsDashboard
         initialContent={[]}

@@ -36,6 +36,7 @@ import NotificationSettingsForm from '@/components/features/settings/Notificatio
 import SecuritySettingsForm from '@/components/features/settings/SecuritySettingsForm';
 import AppearanceSettingsForm from '@/components/features/settings/AppearanceSettingsForm';
 import { apiUrl } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface SettingsData {
   siteName: string;
@@ -85,10 +86,10 @@ export default function SettingsPage() {
           setFormData((prev) => ({ ...prev, ...data }));
         } else {
           // Handle non-OK responses - use defaults
-          console.warn('[SettingsPage] API returned non-OK status:', response.status);
+          securityLogger.warn('[SettingsPage] API returned non-OK status:', response.status);
         }
       } catch (error) {
-        console.error('[SettingsPage] Error fetching settings:', error);
+        securityLogger.error('[SettingsPage] Error fetching settings:', error);
         // Continue with default form data
       } finally {
         setFetching(false);
@@ -132,7 +133,7 @@ export default function SettingsPage() {
         successMessage.remove();
       }, 3000);
     } catch (error) {
-      console.error('Error saving settings:', error);
+      securityLogger.error('Error saving settings:', error);
       const errorMessage = document.createElement('div');
       errorMessage.className = 'alert alert-error fixed top-4 right-4 z-50 animate-slide-down';
       errorMessage.textContent = error instanceof Error ? error.message : 'Failed to save settings';

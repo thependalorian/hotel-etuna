@@ -16,6 +16,7 @@
 
 import { useState, useEffect } from 'react';
 import { AlertTriangle, Users, FileText, Shield, TrendingUp, Clock } from 'lucide-react';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface DashboardData {
   summary: {
@@ -95,7 +96,7 @@ export default function AMLDashboard({ tenantId }: AMLDashboardProps) {
       }
     } catch (err) {
       setError('Failed to fetch dashboard data');
-      console.error('Dashboard fetch error:', err);
+      securityLogger.error('Dashboard fetch error:', err);
     } finally {
       setLoading(false);
     }

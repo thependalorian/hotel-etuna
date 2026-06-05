@@ -17,6 +17,7 @@
 
 import { NextRequest } from 'next/server';
 import { normalizePathnameForRateLimit } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 // Rate limit configuration per endpoint
 export const RATE_LIMITS = {
@@ -24,6 +25,9 @@ export const RATE_LIMITS = {
   '/api/auth/login': { requests: 5, window: '15 m' },
   '/api/auth/register': { requests: 3, window: '15 m' },
   '/api/auth/forgot-password': { requests: 3, window: '1 h' },
+
+  // Public contact form — prevent spam
+  '/api/contact': { requests: 5, window: '1 h' },
 
   // Payments & guest orders — abuse protection (Security Prompt Pack §8)
   '/api/payments/virtual': { requests: 5, window: '1 m' },
@@ -135,7 +139,7 @@ export async function checkRateLimit(
       const { checkRateLimitRedisTcp } = await import('@/lib/cache/redis-rate-limit');
       return await checkRateLimitRedisTcp(key, config.requests, config.window);
     } catch (err) {
-      console.error('[checkRateLimit] Redis error', err);
+      securityLogger.error('[checkRateLimit] Redis error', err);
       if (isRedisRateLimitRequired()) {
         return denyBecauseRateLimitUnavailable();
       }
@@ -143,12 +147,12 @@ export async function checkRateLimit(
   }
 
   if (isRedisRateLimitRequired()) {
-    console.error('[checkRateLimit] Redis-backed rate limiting is required but unavailable');
+    securityLogger.error('[checkRateLimit] Redis-backed rate limiting is required but unavailable');
     return denyBecauseRateLimitUnavailable();
   }
 
   if (!warnedAboutMemoryFallback && process.env.NODE_ENV === 'production') {
-    console.warn('[checkRateLimit] Using in-memory rate limiting fallback in production');
+    securityLogger.warn('[checkRateLimit] Using in-memory rate limiting fallback in production');
     warnedAboutMemoryFallback = true;
   }
   
@@ -208,6 +212,7 @@ export async function checkRateLimit(
 /*
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const redis = Redis.fromEnv();
 

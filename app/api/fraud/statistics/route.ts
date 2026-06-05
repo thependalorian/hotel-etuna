@@ -1,74 +1,50 @@
 /**
  * Fraud Statistics API Endpoint
- * 
- * Purpose: Provide fraud detection statistics and metrics
- * Functionality: Generate reports on fraud trends and detection effectiveness
+ *
+ * Purpose: Provide fraud detection statistics and metrics for the authenticated tenant.
  * Location: app/api/fraud/statistics/route.ts
- * 
- * @implements Rule 4: Vercel compatible
- * @implements Rule 10: Comprehensive error handling
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { FraudDetectionService } from '@/lib/services/fraud/FraudDetectionService';
-import { entityId } from '@/lib/validation/entity-ids';
+import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
+import { AppError } from '@/lib/utils/errors';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 import { z } from 'zod';
 
-// Query parameters schema
 const statisticsQuerySchema = z.object({
-  tenantId: entityId(),
   periodType: z.enum(['daily', 'weekly', 'monthly']).default('daily'),
 });
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    
-    // Build query object
-    const queryData = {
-      tenantId: searchParams.get('tenantId'),
-      periodType: searchParams.get('periodType') || 'daily',
-    };
+    const user = await requireTenantSessionUser(request);
 
-    const validationResult = statisticsQuerySchema.safeParse(queryData);
+    const { searchParams } = new URL(request.url);
+    const validationResult = statisticsQuerySchema.safeParse({
+      periodType: searchParams.get('periodType') || 'daily',
+    });
 
     if (!validationResult.success) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Invalid query parameters',
-          details: validationResult.error.issues,
-        },
+        { success: false, error: 'Invalid query parameters', details: validationResult.error.issues },
         { status: 400 }
       );
     }
 
-    const { tenantId, periodType } = validationResult.data;
-
-    // Initialize fraud detection service
-    const fraudService = new FraudDetectionService(tenantId);
-
-    // Get statistics
+    const { periodType } = validationResult.data;
+    const fraudService = new FraudDetectionService(user.tenantId);
     const statistics = await fraudService.getStatistics(periodType);
 
     return NextResponse.json({
       success: true,
-      data: {
-        ...statistics,
-        periodType,
-        generatedAt: new Date().toISOString(),
-      },
+      data: { ...statistics, periodType, generatedAt: new Date().toISOString() },
     });
   } catch (error) {
-    console.error('[Fraud Statistics API] Error fetching statistics:', error);
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to fetch statistics',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+    if (error instanceof AppError) {
+      return NextResponse.json({ success: false, error: error.message }, { status: error.statusCode });
+    }
+    securityLogger.error('[Fraud Statistics API] Error', { error: error instanceof Error ? error.message : String(error) });
+    return NextResponse.json({ success: false, error: 'Failed to fetch statistics' }, { status: 500 });
   }
 }

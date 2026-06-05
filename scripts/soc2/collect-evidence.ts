@@ -8,6 +8,7 @@
 import { writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { soc2AuditOrchestrator } from '../../lib/compliance/soc2/Soc2AuditOrchestrator';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 function parseArg(name: string): string | undefined {
   const prefix = `--${name}=`;
@@ -21,7 +22,7 @@ async function main() {
     ? new Date(parseArg('from')!)
     : new Date(to.getTime() - 90 * 24 * 60 * 60 * 1000);
 
-  console.log(`Running SOC 2 agents (${from.toISOString()} → ${to.toISOString()})…`);
+  securityLogger.info(`Running SOC 2 agents (${from.toISOString()} → ${to.toISOString()})…`);
 
   const report = await soc2AuditOrchestrator.runAudit({ periodFrom: from, periodTo: to });
 
@@ -31,14 +32,14 @@ async function main() {
   const outPath = join(outDir, `soc2_audit_${stamp}.json`);
   writeFileSync(outPath, JSON.stringify(report, null, 2), 'utf8');
 
-  console.log(`Overall score: ${report.overallScorePercent}%`);
-  console.log(
+  securityLogger.info(`Overall score: ${report.overallScorePercent}%`);
+  securityLogger.info(
     `Controls: ${report.summary.compliant} compliant, ${report.summary.partial} partial, ${report.summary.gap} gap`
   );
-  console.log(`Written: ${outPath}`);
+  securityLogger.info(`Written: ${outPath}`);
 }
 
 main().catch((err) => {
-  console.error(err);
+  securityLogger.error(err);
   process.exit(1);
 });

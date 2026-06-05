@@ -27,6 +27,7 @@ import {
   staff,
   restaurantOrders,
 } from '@/lib/db/schema';
+import { accommodationBookingCondition } from '@/lib/bookings/booking-kind';
 import {
   AnalyticsFilters,
   RevenueMetrics,
@@ -35,6 +36,7 @@ import {
   PerformanceMetrics,
 } from '@/lib/types/analytics';
 import { handleServiceError } from '@/lib/utils/errors';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 // Status values align with Drizzle schema (varchar / enums)
 const BOOKING_CONFIRMED = 'confirmed';
@@ -84,7 +86,7 @@ export class AnalyticsService {
       };
     } catch (error: unknown) {
       const err = error as { message?: string; code?: string };
-      console.error('[AnalyticsService.getRevenueMetrics] Error:', {
+      securityLogger.error('[AnalyticsService.getRevenueMetrics] Error:', {
         message: err.message,
         code: err.code,
         tenantId: filters.tenantId,
@@ -155,7 +157,7 @@ export class AnalyticsService {
       };
     } catch (error: unknown) {
       const err = error as { message?: string; code?: string };
-      console.error('[AnalyticsService.getBookingMetrics] Error:', {
+      securityLogger.error('[AnalyticsService.getBookingMetrics] Error:', {
         message: err.message,
         code: err.code,
         tenantId: filters.tenantId,
@@ -238,7 +240,7 @@ export class AnalyticsService {
       };
     } catch (error: unknown) {
       const err = error as { message?: string; code?: string };
-      console.error('[AnalyticsService.getGuestMetrics] Error:', {
+      securityLogger.error('[AnalyticsService.getGuestMetrics] Error:', {
         message: err.message,
         code: err.code,
         tenantId: filters.tenantId,
@@ -322,7 +324,7 @@ export class AnalyticsService {
       };
     } catch (error: unknown) {
       const err = error as { message?: string; code?: string };
-      console.error('[AnalyticsService.getPerformanceMetrics] Error:', {
+      securityLogger.error('[AnalyticsService.getPerformanceMetrics] Error:', {
         message: err.message,
         code: err.code,
         tenantId: filters.tenantId,
@@ -363,7 +365,7 @@ export class AnalyticsService {
         period: { from: filters.dateFrom, to: filters.dateTo },
       };
     } catch (error) {
-      console.error('Error fetching dashboard summary:', error);
+      securityLogger.error('Error fetching dashboard summary:', error);
       return {
         revenue: {
           totalRevenue: 0,
@@ -432,7 +434,7 @@ export class AnalyticsService {
             results.performance = await this.getPerformanceMetrics(reportConfig.filters);
             break;
           default:
-            console.warn(`Unknown metric: ${metric}`);
+            securityLogger.warn(`Unknown metric: ${metric}`);
         }
       }
 
@@ -487,19 +489,25 @@ export class AnalyticsService {
   private async getRevenueByCategory(filters: AnalyticsFilters) {
     const dateFilter = this.buildDateFilter(filters.dateFrom, filters.dateTo);
 
-    const bookingConditions = [
+    const baseBookingConditions = [
       eq(bookings.tenantId, filters.tenantId),
       eq(bookings.status, BOOKING_CONFIRMED),
     ];
-    if (dateFilter.createdAt?.gte) bookingConditions.push(gte(bookings.createdAt, dateFilter.createdAt.gte));
-    if (dateFilter.createdAt?.lte) bookingConditions.push(lte(bookings.createdAt, dateFilter.createdAt.lte));
-    if (filters.propertyId) bookingConditions.push(eq(bookings.propertyId, filters.propertyId));
+    if (dateFilter.createdAt?.gte) baseBookingConditions.push(gte(bookings.createdAt, dateFilter.createdAt.gte));
+    if (dateFilter.createdAt?.lte) baseBookingConditions.push(lte(bookings.createdAt, dateFilter.createdAt.lte));
+    if (filters.propertyId) baseBookingConditions.push(eq(bookings.propertyId, filters.propertyId));
 
-    const bookingCountResult = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(bookings)
-      .where(and(...bookingConditions));
-    const bookingCount = Number((bookingCountResult[0] as { count: number })?.count ?? 0);
+    async function countByKind(kind: 'accommodation' | 'conference' | 'campsite') {
+      const rows = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(bookings)
+        .where(and(...baseBookingConditions, eq(bookings.bookingKind, kind)));
+      return Number((rows[0] as { count: number })?.count ?? 0);
+    }
+
+    const stayCount = await countByKind('accommodation');
+    const conferenceCount = await countByKind('conference');
+    const campsiteCount = await countByKind('campsite');
 
     const orderConditions = [eq(restaurantOrders.status, ORDER_SERVED)];
     if (filters.dateFrom) orderConditions.push(gte(restaurantOrders.orderedAt, filters.dateFrom));
@@ -512,12 +520,14 @@ export class AnalyticsService {
       .where(and(eq(properties.tenantId, filters.tenantId), ...orderConditions));
     const restaurantOrderCount = ordersWithTenant.length;
 
-    const total = bookingCount + restaurantOrderCount;
+    const total = stayCount + conferenceCount + campsiteCount + restaurantOrderCount;
+    const pct = (n: number) => (total > 0 ? (n / total) * 100 : 0);
 
     return [
-      { category: 'Room Bookings', revenue: 0, percentage: total > 0 ? (bookingCount / total) * 100 : 0 },
-      { category: 'Restaurant', revenue: 0, percentage: total > 0 ? (restaurantOrderCount / total) * 100 : 0 },
-      { category: 'Other Services', revenue: 0, percentage: 0 },
+      { category: 'Room stays', revenue: 0, percentage: pct(stayCount) },
+      { category: 'Conference', revenue: 0, percentage: pct(conferenceCount) },
+      { category: 'Campsite', revenue: 0, percentage: pct(campsiteCount) },
+      { category: 'Restaurant', revenue: 0, percentage: pct(restaurantOrderCount) },
     ];
   }
 
@@ -525,6 +535,7 @@ export class AnalyticsService {
     try {
       const roomConditions = [
         eq(properties.tenantId, tenantId),
+        eq(rooms.inventoryKind, 'guest_room'),
         notInArray(rooms.status, [ROOM_OUT_OF_ORDER, ROOM_MAINTENANCE]),
       ];
       if (propertyId) roomConditions.push(eq(properties.id, propertyId));
@@ -536,7 +547,7 @@ export class AnalyticsService {
         .where(and(...roomConditions));
       return Number((result[0] as { count: number })?.count ?? 0);
     } catch (error) {
-      console.error('Error getting total rooms:', error);
+      securityLogger.error('Error getting total rooms:', error);
       return 0;
     }
   }
@@ -547,14 +558,18 @@ export class AnalyticsService {
     dateFrom?: Date,
     dateTo?: Date
   ): Promise<number> {
-    const brConditions = [eq(bookings.status, BOOKING_CONFIRMED)];
+    const brConditions = [
+      eq(bookings.status, BOOKING_CONFIRMED),
+      accommodationBookingCondition(),
+      eq(rooms.inventoryKind, 'guest_room'),
+    ];
     if (dateFrom && dateTo) {
       brConditions.push(sql`${bookings.checkInDate} <= ${dateTo.toISOString().slice(0, 10)}`);
       brConditions.push(sql`${bookings.checkOutDate} >= ${dateFrom.toISOString().slice(0, 10)}`);
     }
 
     const result = await db
-      .select({ count: sql<number>`count(*)::int` })
+      .select({ count: sql<number>`count(distinct ${bookingRooms.roomId})::int` })
       .from(bookingRooms)
       .innerJoin(bookings, eq(bookingRooms.bookingId, bookings.id))
       .innerJoin(rooms, eq(bookingRooms.roomId, rooms.id))
@@ -577,6 +592,7 @@ export class AnalyticsService {
     const conditions = [
       eq(bookings.tenantId, tenantId),
       eq(bookings.status, BOOKING_CONFIRMED),
+      accommodationBookingCondition(),
     ];
     if (propertyId) conditions.push(eq(bookings.propertyId, propertyId));
     if (dateFilter?.createdAt?.gte) conditions.push(gte(bookings.createdAt, dateFilter.createdAt.gte));
@@ -779,6 +795,7 @@ export class AnalyticsService {
     const conditions = [
       eq(bookings.tenantId, filters.tenantId),
       eq(bookings.status, BOOKING_CONFIRMED),
+      accommodationBookingCondition(),
     ];
     if (filters.propertyId) conditions.push(eq(bookings.propertyId, filters.propertyId));
     if (dateFilter.createdAt?.gte) conditions.push(gte(bookings.createdAt, dateFilter.createdAt.gte));

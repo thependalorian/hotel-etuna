@@ -64,7 +64,7 @@ Reference: [PostHog Next.js docs](https://posthog.com/docs/libraries/next-js). O
 
 **SSL:** Automatic via Vercel once DNS validates.
 
-**Email (transactional, not web DNS):** `info@hoteletuna.com`, `concierge@hoteletuna.com` — configure **MX / SPF / DKIM** at the mail host (e.g. Private Email per `.env.example` `SMTP_*`). Web app DNS does not send mail.
+**Email (transactional, not web DNS):** `admin@hoteletuna.com`, `frontdesk@hoteletuna.com` — configure **MX / SPF / DKIM** at the mail host (e.g. Private Email per `.env.example` `SMTP_*`). Web app DNS does not send mail.
 
 #### Local `.env.local` vs production (Vercel)
 
@@ -179,11 +179,51 @@ Hotel Etuna (hub)
 - Return URLs: `/payment/success`, `/payment/failed`; webhook: `POST /api/webhooks/adumo`
 - `payment_sessions` maps `merchantReference` → `bookingId` (`0012_adumo_virtual_payment_sessions.sql`)
 - UI: `components/payments/AdumoVirtualPaymentForm.tsx`, `AdumoPaymentReturn.tsx`
-- Purposes: `booking_deposit`, `folio_settle` → `completeAdumoVirtualPayment.ts`
-- **Wired:** guest folio settle (`AdumoVirtualPaymentForm`, `BookingDepositPayCard` on stay/folio UI)
-- **Remaining gap:** public/admin `BookingForm` online checkout deposit (not folio)
+- Purposes: `booking_deposit`, `folio_settle`, `dining_deposit` → `completeAdumoVirtualPayment.ts`
 - **Card rail:** Adumo Virtual only (`initialisevirtual`, JWT, `_RESPONSE_TOKEN` + webhook). No Stripe, RealPay, or Enterprise PAN API in repo.
 - **Go-live:** live `ADUMO_*` credentials, Adumo portal payment page branding, one live test transaction
+
+**Adumo Test Configuration (staging only):**
+
+| Key | Value |
+|-----|-------|
+| `ADUMO_BASE_URL` | `https://staging-apiv3.adumoonline.com` |
+| `ADUMO_MERCHANT_UID` | `9BA5008C-08EE-4286-A349-54AF91A621B0` |
+| `ADUMO_APPLICATION_UID` | `23ADADC0-DA2D-4DAC-A128-4845A5D71293` (3DS) |
+| `ADUMO_JWT_SECRET` | `yglTxLCSMm7PEsfaMszAKf2LSRvM2qVW` |
+| 3DS OTP | `test123` or `1234` (shown on ACS page) |
+
+**Test Cards — 3D Secure (Application: `23ADADC0-DA2D-4DAC-A128-4845A5D71293`):**
+
+| Card | Number | Result |
+|------|--------|--------|
+| Visa | `4000000000001091` | ✅ Success |
+| Visa | `4000000000001109` | ❌ Fail |
+| MasterCard | `5200000000001096` | ✅ Success |
+| MasterCard | `5200000000001104` | ❌ Fail |
+| Visa Frictionless | `4000000000001000` | ✅ Success (no ACS) |
+| Visa Frictionless | `4000000000001018` | ❌ Fail (no ACS) |
+| MC Frictionless | `5200000000001005` | ✅ Success (no ACS) |
+| MC Frictionless | `5200000000001013` | ❌ Fail (no ACS) |
+
+All test cards: Name = Joe Soap, any future expiry, any CVV.
+
+**Non-3DS Test Cards (Application: `904A34AF-0CE9-42B1-9C98-B69E6329D154`):**
+
+| Card | Number | Result |
+|------|--------|--------|
+| Visa | `4111111111111111` | ✅ Success |
+| Visa | `4242424242424242` | ❌ Declined |
+| MasterCard | `5100080000000000` | ✅ Success |
+| MasterCard | `5404000000000001` | ❌ Declined |
+
+**JWT Validation (MUST validate all 4 fields in `_RESPONSE_TOKEN` per Adumo docs):**
+1. ✅ Signature verified against `ADUMO_JWT_SECRET`
+2. ✅ `mref` matches session `merchantReference`
+3. ✅ `amount` matches session amount (±0.005 tolerance for float)
+4. ✅ `cuid` = `ADUMO_MERCHANT_UID`, `auid` = `ADUMO_APPLICATION_UID`
+
+Use `result` field (`0` = success, `1` = success-with-warning, `-1` = failed). Parse `_STATUS` (`APPROVED` / `DECLINED` / `USER_CANCELLED`) for user-facing messages.
 
 **Audit Requirements:**
 - All cash state transitions logged to `audit_trail`
@@ -752,7 +792,7 @@ ORDER BY tablename, indexname;
 **Seeded Data:**
 - 1 hub tenant (Hotel Etuna)
 - 1 property (Hotel Etuna, Ongwediva)
-- 5 room types (Standard, Luxury, Family, Executive Suite, Premier)
+- Standard Room (Types A/B/C), Executive Room, Premiere Room
 - 1 restaurant (Etuna Restaurant)
 - 12 menu categories (from `etuna-restaurant-menu-catalog.ts`)
 - 136+ menu items in catalog; **live public menu** from `cms_menu_items` (~110+ available rows typical)
@@ -955,7 +995,7 @@ Configure per environment (Production / Preview):
 With `RAG_ENABLED=true`, ask doc-specific questions:
 - "What does Etuna mean?" → Should cite Oshiwambo meaning
 - "What time is breakfast?" → Should return **07:00–10:00** (lunch/dinner/bar **10:00–22:00**)
-- "What room types are available?" → Should list 5 room types
+- "What room types are available?" → Standard A/B/C, Executive, Premiere
 
 ---
 

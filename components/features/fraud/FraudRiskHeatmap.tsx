@@ -9,6 +9,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface RiskData {
   fraudType: string;
@@ -66,7 +67,7 @@ export function FraudRiskHeatmap({ tenantId }: FraudRiskHeatmapProps) {
         
         setRiskData(mockData);
       } catch (error) {
-        console.error('Error fetching risk data:', error);
+        securityLogger.error('Error fetching risk data:', error);
       } finally {
         setLoading(false);
       }

@@ -31,7 +31,7 @@ test.describe('Gated Pricing', () => {
     await page.goto('/login');
     await page.waitForLoadState('load');
     
-    await page.getByLabel(/email/i).fill('manager@hoteletuna.com');
+    await page.getByLabel(/email/i).fill('admin@hoteletuna.com');
     await page.getByLabel(/password/i).fill('Test1234!');
     await page.getByRole('button', { name: /sign in/i }).click();
     

@@ -23,8 +23,9 @@ import { eq, and } from 'drizzle-orm';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   return withApiAuth(
     request,
     async (req, user) => {
@@ -35,7 +36,7 @@ export async function GET(
       const [introducer] = await db
         .select({ id: introducers.id, tenantId: introducers.tenantId, name: introducers.name })
         .from(introducers)
-        .where(eq(introducers.id, params.id))
+        .where(eq(introducers.id, id))
         .limit(1);
 
       if (!introducer) {
@@ -65,7 +66,7 @@ export async function GET(
         .leftJoin(guests, eq(bookings.guestId, guests.id))
         .where(
           and(
-            eq(bookings.introducerId, params.id),
+            eq(bookings.introducerId, id),
             eq(bookings.tenantId, user.tenantId)
           )
         )

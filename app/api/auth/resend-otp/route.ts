@@ -4,6 +4,7 @@ import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { EmailService } from '@/lib/services/sofia/EmailService';
 import { EmailTemplateService } from '@/lib/services/sofia/EmailTemplateService';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 import * as z from 'zod';
 
 const resendSchema = z.object({
@@ -71,7 +72,10 @@ export async function POST(request: Request) {
       message: 'Verification code has been resent to your email.',
     }, { status: 200 });
   } catch (error) {
-    console.error('Resend OTP error:', error);
+    securityLogger.error('[ResendOTP] Resend OTP error', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack?.substring(0, 500) : undefined,
+    });
     return NextResponse.json({
       message: 'An unexpected error occurred.',
     }, { status: 500 });

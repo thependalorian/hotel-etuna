@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { db, properties } from '@/lib/db';
 import { and, eq } from 'drizzle-orm';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json(property, { status: 200 });
   } catch (error) {
-    console.error('Error fetching property by slug:', error);
+    securityLogger.error('Error fetching property by slug:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }

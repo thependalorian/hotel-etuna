@@ -9,6 +9,7 @@
 
 import { NextResponse, NextRequest } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/utils/api-helpers';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export async function GET(request: NextRequest) {
   try {
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest) {
       },
       EMAIL_SENDER_EMAIL: {
         configured: !!process.env.EMAIL_SENDER_EMAIL,
-        value: process.env.EMAIL_SENDER_EMAIL || 'Not set (defaults to concierge@hoteletuna.com)',
+        value: process.env.EMAIL_SENDER_EMAIL || 'Not set (defaults to frontdesk@hoteletuna.com)',
       },
       EMAIL_SENDER_NAME: {
         configured: !!process.env.EMAIL_SENDER_NAME,
@@ -63,7 +64,7 @@ export async function GET(request: NextRequest) {
     }, { status: 200 });
 
   } catch (error: any) {
-    console.error('Error checking email configuration:', error);
+    securityLogger.error('Error checking email configuration:', error);
     return NextResponse.json({
       message: 'Failed to check email configuration',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,

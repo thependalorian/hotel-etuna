@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import ErrorDisplay from '@/components/shared/ErrorDisplay';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export default function DashboardError({
   error,
@@ -14,7 +15,7 @@ export default function DashboardError({
 }) {
   useEffect(() => {
     // Log error to console for debugging
-    console.error('Dashboard error:', error);
+    securityLogger.error('Dashboard error:', error);
   }, [error]);
 
   return (

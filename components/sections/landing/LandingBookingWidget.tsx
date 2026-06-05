@@ -139,11 +139,11 @@ export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
           <label className="block text-sm font-semibold text-terracotta-900 mb-2">Room Type</label>
           <select value={roomType} onChange={(e) => setRoomType(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-nude-300 text-terracotta-900 focus:ring-2 focus:ring-khaki-600 focus:border-transparent">
             <option value="">Any Room Type</option>
-            <option value="standard">Standard Room</option>
-            <option value="luxury">Luxury Room</option>
-            <option value="family">Family Room</option>
-            <option value="executive">Executive Suite</option>
-            <option value="premier">Premier Room</option>
+            <option value="standard-a">Standard Room (Type A)</option>
+            <option value="standard-b">Standard Room (Type B)</option>
+            <option value="standard-c">Standard Room (Type C)</option>
+            <option value="executive">Executive Room</option>
+            <option value="premiere">Premiere Room</option>
           </select>
         </div>
         <div className="md:col-span-2">

@@ -7,29 +7,27 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { LoyaltyService } from '@/lib/services/loyalty/LoyaltyService';
-import { getCurrentUserTenantContext } from '@/lib/middleware/withApiAuth';
+import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const loyaltyService = new LoyaltyService();
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const context = await getCurrentUserTenantContext();
-    
-    if (!context) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const context = await requireTenantSessionUser(req);
+    const { id } = await params;
 
-    const reward = await loyaltyService.getReward(params.id, context.tenantId);
+    const reward = await loyaltyService.getReward(id, context.tenantId);
 
     return NextResponse.json({
       success: true,
       reward,
     });
   } catch (error: any) {
-    console.error('Error fetching reward:', error);
+    securityLogger.error('Error fetching reward:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to fetch reward' },
       { status: error.status || 500 }
@@ -39,18 +37,15 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const context = await getCurrentUserTenantContext();
-    
-    if (!context) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const context = await requireTenantSessionUser(req);
+    const { id } = await params;
 
     // Check if user is staff
     const staffRoles = ['owner', 'manager', 'admin', 'staff'];
-    if (!staffRoles.includes(context.user.role)) {
+    if (!staffRoles.includes(context.role)) {
       return NextResponse.json(
         { error: 'Only staff can update rewards' },
         { status: 403 }
@@ -72,14 +67,14 @@ export async function PATCH(
       updateData.maxRedemptionsPerGuest = parseInt(body.maxRedemptionsPerGuest, 10);
     }
 
-    const reward = await loyaltyService.updateReward(params.id, context.tenantId, updateData);
+    const reward = await loyaltyService.updateReward(id, context.tenantId, updateData);
 
     return NextResponse.json({
       success: true,
       reward,
     });
   } catch (error: any) {
-    console.error('Error updating reward:', error);
+    securityLogger.error('Error updating reward:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to update reward' },
       { status: error.status || 500 }

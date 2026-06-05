@@ -20,6 +20,7 @@ import { drizzle as drizzleNode } from 'drizzle-orm/node-postgres';
 import { neon } from '@neondatabase/serverless';
 import { Pool } from 'pg';
 import * as schema from './schema';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const databaseUrl =
   process.env.NODE_ENV === 'test'
@@ -57,7 +58,7 @@ async function executeWithRetry<T>(
       return await fn();
     } catch (error) {
       lastError = error as Error;
-      console.error(`Database attempt ${attempt}/${retries} failed:`, lastError.message);
+      securityLogger.error(`Database attempt ${attempt}/${retries} failed:`, lastError.message);
       
       if (attempt < retries) {
         // Wait before retrying (exponential backoff)
@@ -155,7 +156,7 @@ export const executeRawSql = sql;
  * 
  * @example
  * const isHealthy = await healthCheck();
- * if (!isHealthy) console.error('Database connection failed');
+ * if (!isHealthy) securityLogger.error('Database connection failed');
  */
 export async function healthCheck(): Promise<boolean> {
   try {
@@ -166,7 +167,7 @@ export async function healthCheck(): Promise<boolean> {
     const result = await executeWithRetry(() => sql`SELECT NOW()`);
     return !!result;
   } catch (error) {
-    console.error('Database health check failed:', error);
+    securityLogger.error('Database health check failed:', error);
     return false;
   }
 }
@@ -178,7 +179,7 @@ export async function healthCheck(): Promise<boolean> {
  * 
  * @example
  * const stats = await getDatabaseStats();
- * console.log(`Tables: ${stats.tableCount}, Size: ${stats.databaseSize}`);
+ * securityLogger.info(`Tables: ${stats.tableCount}, Size: ${stats.databaseSize}`);
  */
 export interface DbStats {
   tableCount: number;

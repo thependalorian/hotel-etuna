@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, bookings, users, properties } from '@/lib/db';
 import { gte, ne, and, inArray, count } from 'drizzle-orm';
 import { getCurrentPlatformAdmin, isPlatformAdmin } from '@/lib/auth/platform-admin';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export const dynamic = 'force-dynamic';
 
@@ -163,7 +164,7 @@ export async function GET(request: NextRequest) {
       })),
     });
   } catch (err) {
-    console.error('[Platform Admin Analytics]', err);
+    securityLogger.error('[Platform Admin Analytics]', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

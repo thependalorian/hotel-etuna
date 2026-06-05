@@ -15,6 +15,7 @@ import GuestCrmFactsSection from '@/components/features/crm/GuestCrmFactsSection
 import GuestCrmGraphEdgesSection from '@/components/features/crm/GuestCrmGraphEdgesSection';
 import GuestCrmMem0Section from '@/components/features/crm/GuestCrmMem0Section';
 import GuestCrmOutreachSection from '@/components/features/crm/GuestCrmOutreachSection';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 import type {
   GuestCrmMemoryBundle,
   GuestCrmOutreachTouch,
@@ -66,7 +67,7 @@ export default function GuestCrmMemoryPanel({ guestId }: { guestId: string }) {
         setTouches([]);
       }
     } catch (e) {
-      console.error(e);
+      securityLogger.error("[GuestCrmMemoryPanel] error", e);
       setError('Could not load CRM data.');
       setBundle(null);
     } finally {
@@ -96,7 +97,7 @@ export default function GuestCrmMemoryPanel({ guestId }: { guestId: string }) {
       setFactText('');
       await loadAll();
     } catch (e) {
-      console.error(e);
+      securityLogger.error("[GuestCrmMemoryPanel] error", e);
       setError('Failed to save fact.');
     } finally {
       setSavingFact(false);
@@ -118,7 +119,7 @@ export default function GuestCrmMemoryPanel({ guestId }: { guestId: string }) {
       }
       await loadAll();
     } catch (e) {
-      console.error(e);
+      securityLogger.error("[GuestCrmMemoryPanel] error", e);
       setError('Failed to create outreach touch.');
     } finally {
       setCreatingTouch(false);
@@ -140,7 +141,7 @@ export default function GuestCrmMemoryPanel({ guestId }: { guestId: string }) {
       }
       await loadAll();
     } catch (e) {
-      console.error(e);
+      securityLogger.error("[GuestCrmMemoryPanel] error", e);
       setError('Failed to update touch.');
     } finally {
       setActionTouchId(null);

@@ -14,6 +14,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import bcrypt from 'bcryptjs';
 import { Pool } from 'pg';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 type PartnerRoomSeed = {
   roomNumber: string;
@@ -64,7 +65,7 @@ function loadEnv(): void {
 }
 
 function logStep(message: string): void {
-  console.log(`- ${message}`);
+  securityLogger.info(`- ${message}`);
 }
 
 async function main() {
@@ -431,10 +432,10 @@ async function main() {
     }
 
     if (dryRun) {
-      console.log('Dry-run complete. No database changes were made.');
+      securityLogger.info('Dry-run complete. No database changes were made.');
     } else {
-      console.log('Partner seed complete.');
-      console.log(`Default partner seed password: ${defaultPassword}`);
+      securityLogger.info('Partner seed complete.');
+      securityLogger.info(`Default partner seed password: ${defaultPassword}`);
     }
   } finally {
     await pool.end();
@@ -442,6 +443,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(error instanceof Error ? error.message : error);
+  securityLogger.error(error instanceof Error ? error.message : error);
   process.exit(1);
 });

@@ -4,6 +4,7 @@ import { RoomService } from '@/lib/services/room/RoomService';
 import { PropertyService } from '@/lib/services/property/PropertyService';
 import * as z from 'zod';
 import { AppError } from '@/lib/utils/errors';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const roomSchema = z.object({
   room_number: z.string().min(1),
@@ -54,7 +55,7 @@ export async function POST(
     return NextResponse.json(newRoom, { status: 201 });
 
   } catch (error) {
-    console.error('Create room error:', error);
+    securityLogger.error('Create room error:', error);
     if (typeof error === 'object' && error !== null && 'statusCode' in error && 'message' in error) {
         return NextResponse.json({ message: error.message }, { status: (error as AppError).statusCode });
     }

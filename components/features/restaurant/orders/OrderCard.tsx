@@ -75,7 +75,7 @@ export default function OrderCard({ order, index }: OrderCardProps) {
   );
   useEffect(() => {
     if (!orderedAtMs) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- interval-driven elapsed timer for kitchen SLA badge
+     
     const update = () =>
       setTimeElapsed(Math.floor((Date.now() - orderedAtMs) / 60000));
     const interval = window.setInterval(update, 60_000);

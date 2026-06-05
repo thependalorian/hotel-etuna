@@ -14,6 +14,7 @@ import { sendWhatsAppTextMessage } from '@/lib/integrations/whatsapp/whatsapp-gr
 import { getTenantWhatsappByPhoneNumberId } from '@/lib/services/whatsapp/tenantWhatsappLookup';
 import { findGuestIdByWhatsappPhone } from '@/lib/services/whatsapp/findGuestByWhatsappPhone';
 import { checkRateLimit } from '@/lib/utils/rate-limit';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,11 +56,11 @@ export async function POST(request: NextRequest) {
   if (appSecret) {
     const sig = request.headers.get('x-hub-signature-256');
     if (!verifyMetaWebhookSignature(rawBody, sig, appSecret)) {
-      console.error('[whatsapp-webhook] Invalid X-Hub-Signature-256');
+      securityLogger.error('[whatsapp-webhook] Invalid X-Hub-Signature-256');
       return new NextResponse('Unauthorized', { status: 401 });
     }
   } else if (process.env.NODE_ENV === 'production') {
-    console.error('[whatsapp-webhook] META_APP_SECRET is required in production');
+    securityLogger.error('[whatsapp-webhook] META_APP_SECRET is required in production');
     return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
   }
 
@@ -95,13 +96,13 @@ export async function POST(request: NextRequest) {
 
     const phoneNumberId = value.metadata?.phone_number_id;
     if (!phoneNumberId) {
-      console.warn('[whatsapp-webhook] missing metadata.phone_number_id');
+      securityLogger.warn('[whatsapp-webhook] missing metadata.phone_number_id');
       return new NextResponse('OK', { status: 200 });
     }
 
     const routing = await getTenantWhatsappByPhoneNumberId(phoneNumberId);
     if (!routing) {
-      console.warn('[whatsapp-webhook] unmapped phone_number_id', phoneNumberId);
+      securityLogger.warn('[whatsapp-webhook] unmapped phone_number_id', phoneNumberId);
       return new NextResponse('OK', { status: 200 });
     }
 
@@ -120,7 +121,7 @@ export async function POST(request: NextRequest) {
       process.env.WHATSAPP_ACCESS_TOKEN ||
       '';
     if (!accessToken) {
-      console.error('[whatsapp-webhook] missing access token (row or WHATSAPP_ACCESS_TOKEN)');
+      securityLogger.error('[whatsapp-webhook] missing access token (row or WHATSAPP_ACCESS_TOKEN)');
       return new NextResponse('OK', { status: 200 });
     }
 
@@ -149,16 +150,12 @@ export async function POST(request: NextRequest) {
     });
 
     if (!sendResult.ok) {
-      console.error(
-        '[whatsapp-webhook] Graph API send failed',
-        sendResult.status,
-        sendResult.body
-      );
+      securityLogger.error('[whatsapp-webhook] Graph API send failed', { status: sendResult.status, body: sendResult.body });
     }
 
     return new NextResponse('OK', { status: 200 });
   } catch (error) {
-    console.error('[whatsapp-webhook] handler error', error);
+    securityLogger.error('[whatsapp-webhook] handler error', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

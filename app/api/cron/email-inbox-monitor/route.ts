@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { runEmailInboxMonitor } from '@/lib/cron/email-inbox-monitor';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 function unauthorized() {
   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
     }
     return await executeMonitor();
   } catch (error) {
-    console.error('Error in email inbox monitor endpoint:', error);
+    securityLogger.error('Error in email inbox monitor endpoint:', error);
     return NextResponse.json(
       {
         error: 'Internal server error',
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
     }
     return await executeMonitor();
   } catch (error) {
-    console.error('Error in email inbox monitor endpoint:', error);
+    securityLogger.error('Error in email inbox monitor endpoint:', error);
     return NextResponse.json(
       {
         error: 'Internal server error',

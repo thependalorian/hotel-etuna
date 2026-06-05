@@ -17,6 +17,7 @@ import { TwoFactorAuthService } from '@/lib/services/security/TwoFactorAuthServi
 import { FraudDetectionService } from '@/lib/services/fraud/FraudDetectionService';
 import { EncryptionService } from '@/lib/services/security/EncryptionService';
 import { executeRawSql as sql } from '@/lib/db';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 interface PaymentSecurityRequest {
   userId: string;
@@ -93,10 +94,11 @@ export class PaymentSecurityService {
       // STEP 1: Two-Factor Authentication (PSD-12 MANDATORY)
       // ============================================================================
       
-      console.log('[PaymentSecurity] Validating 2FA for payment:', {
+      securityLogger.info('[PaymentSecurity] Validating 2FA for payment', {
         userId: request.userId,
         amount: request.amount,
         method: request.twoFaMethod,
+        tenantId: request.tenantId,
       });
       
       const twoFaVerification = await TwoFactorAuthService.verify2FA({
@@ -118,7 +120,7 @@ export class PaymentSecurityService {
       // STEP 2: Fraud Detection (PSD-4 CNP)
       // ============================================================================
       
-      console.log('[PaymentSecurity] Running fraud detection checks');
+      securityLogger.info('[PaymentSecurity] Running fraud detection checks', { userId: request.userId, tenantId: request.tenantId });
       
       // Calculate fraud risk score
       const fraudService = new FraudDetectionService(request.tenantId);
@@ -203,12 +205,14 @@ export class PaymentSecurityService {
         processingTimeMs: processingTime,
       });
       
-      console.log('[PaymentSecurity] Validation complete:', {
+      securityLogger.info('[PaymentSecurity] Validation complete', {
         auditId: auditRecord.id,
         securityPassed,
         fraudScore,
         riskLevel,
-        processingTime: `${processingTime}ms`,
+        processingTimeMs: processingTime,
+        tenantId: request.tenantId,
+        userId: request.userId,
       });
       
       return {
@@ -229,7 +233,7 @@ export class PaymentSecurityService {
       };
       
     } catch (error) {
-      console.error('[PaymentSecurity] Validation failed:', error);
+      securityLogger.error('[PaymentSecurity] Validation failed:', error);
       throw new Error('Payment security validation failed');
     }
   }

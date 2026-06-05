@@ -26,6 +26,7 @@ import {
   type AmlSuspiciousTransactionReport,
 } from '@/lib/db/schema';
 import { addBusinessDays, addYears, format } from 'date-fns';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export interface STRCreateRequest {
   tenantId: string;
@@ -306,7 +307,7 @@ export class STRGenerationService {
 
     // In production, this would integrate with FIC's submission system
     // For now, we'll log the submission
-    console.log(`[STRGenerationService] STR ${str.strReference} submitted to FIC`);
+    securityLogger.info(`[STRGenerationService] STR ${str.strReference} submitted to FIC`, { strId: str.id, ficSubmissionReference: request.ficSubmissionReference });
   }
 
   /**

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import type { Staff, Property } from '@/lib/db/schema';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Plus, Search, Edit, Trash2, Users, Calendar, Mail, Phone } from 'lucide-react';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 type StaffWithProperty = Staff & {
   property?: Property | null;
@@ -44,7 +45,7 @@ export default function StaffList({ initialStaff, properties }: StaffListProps) 
         setStaff(staff.filter((s) => s.id !== staffId));
       }
     } catch (error) {
-      console.error('Error deleting staff member:', error);
+      securityLogger.error('Error deleting staff member:', error);
     }
   };
   

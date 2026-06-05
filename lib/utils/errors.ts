@@ -1,3 +1,5 @@
+import { securityLogger } from '@/lib/utils/security-logger';
+
 export class AppError extends Error {
   statusCode: number;
 
@@ -12,8 +14,6 @@ export const handleServiceError = (error: unknown, defaultMessage: string): neve
   if (error instanceof AppError) {
     throw error;
   }
-  // Log the error for debugging purposes
-  console.error(error);
-  // Throw a generic error to the client
+  securityLogger.error('Service error', error);
   throw new AppError(500, defaultMessage);
 };

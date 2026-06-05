@@ -27,6 +27,7 @@ import { cn } from '@/lib/utils/cn';
 import { apiUrl } from '@/lib/utils/api-url';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { MessageCircle, X, Minimize2 } from 'lucide-react';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -132,7 +133,7 @@ export function PublicSofiaChat({ propertySlug, className }: PublicSofiaChatProp
 
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('Error sending message:', error);
+      securityLogger.error('Error sending message:', error);
       const errorMessage: ChatMessage = {
         role: 'assistant',
         content: 'I apologize, but I encountered an error. Please try again or contact us directly.',

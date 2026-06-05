@@ -7,6 +7,7 @@
 import { randomUUID } from 'node:crypto';
 import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 function loadEnv(): void {
   const root = resolve(process.cwd());
@@ -28,24 +29,24 @@ function loadEnv(): void {
 
 async function main() {
   loadEnv();
-  console.log('DATABASE_URL set:', !!process.env.DATABASE_URL);
+  securityLogger.info('DATABASE_URL set:', !!process.env.DATABASE_URL);
   if (!process.env.DATABASE_URL) {
-    console.error('Set DATABASE_URL in .env.local');
+    securityLogger.error('Set DATABASE_URL in .env.local');
     process.exit(1);
   }
 
   const { healthCheck, sql } = await import('../../lib/db');
 
-  console.log('\n1. Health check (SELECT NOW())...');
+  securityLogger.info('\n1. Health check (SELECT NOW())...');
   const ok = await healthCheck();
-  console.log(ok ? '   OK' : '   FAIL');
+  securityLogger.info(ok ? '   OK' : '   FAIL');
   if (!ok) process.exit(1);
 
-  console.log('\n2. Raw sql SELECT 1...');
+  securityLogger.info('\n2. Raw sql SELECT 1...');
   const raw = await sql`SELECT 1 as n`;
-  console.log('   Result:', raw);
+  securityLogger.info('   Result:', raw);
 
-  console.log('\n3. Canonical compliance baseline tables...');
+  securityLogger.info('\n3. Canonical compliance baseline tables...');
   const expected = [
     'payment_security_audit',
     'bon_incident_reports',
@@ -82,24 +83,24 @@ async function main() {
   const names = new Set((present as { table_name: string }[]).map((r) => r.table_name));
   const missing = expected.filter((t) => !names.has(t));
   if (missing.length) {
-    console.error('   MISSING tables:', missing.join(', '));
+    securityLogger.error('   MISSING tables:', missing.join(', '));
     process.exit(1);
   }
-  console.log('   OK —', expected.length, 'expected baseline tables found');
+  securityLogger.info('   OK —', expected.length, 'expected baseline tables found');
 
   const ruleCount = await sql`SELECT count(*)::int AS c FROM fraud_detection_rules`;
   const rules = Number((ruleCount as { c: number }[])[0]?.c ?? 0);
-  console.log(`\n4. fraud_detection_rules rows: ${rules}`);
+  securityLogger.info(`\n4. fraud_detection_rules rows: ${rules}`);
   if (rules === 0) {
-    console.error('   Run: psql $DATABASE_URL -f database/drizzle/0016_fraud_detection_rules_seed.sql');
+    securityLogger.error('   Run: psql $DATABASE_URL -f database/drizzle/0016_fraud_detection_rules_seed.sql');
     process.exit(1);
   }
-  console.log('   OK');
+  securityLogger.info('   OK');
 
-  console.log('\nDone. Database and Drizzle baseline verification OK.');
+  securityLogger.info('\nDone. Database and Drizzle baseline verification OK.');
 }
 
 main().catch((e) => {
-  console.error(e);
+  securityLogger.error(e);
   process.exit(1);
 });

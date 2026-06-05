@@ -16,11 +16,12 @@
 
 import React, { useState } from 'react';
 import { apiUrl } from '@/lib/utils/api-url';
-import { 
-  Settings, 
-  Shield, 
-  Bell, 
-  ToggleLeft, 
+import { securityLogger } from '@/lib/utils/security-logger.client';
+import {
+  Settings,
+  Shield,
+  Bell,
+  ToggleLeft,
   ToggleRight,
   Save,
   RefreshCw,
@@ -83,7 +84,7 @@ export default function PlatformSettings({ userRole }: PlatformSettingsProps) {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (error) {
-      console.error('Error saving settings:', error);
+      securityLogger.error('Error saving settings:', error);
     }
 
     setLoading(false);
@@ -105,7 +106,7 @@ export default function PlatformSettings({ userRole }: PlatformSettingsProps) {
         }),
       });
     } catch (e) {
-      console.error('Failed to record platform audit', e);
+      securityLogger.error('Failed to record platform audit', e);
     }
   };
 

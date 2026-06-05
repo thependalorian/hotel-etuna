@@ -23,6 +23,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { OAuthService, TokenRequest } from '@/lib/services/openbanking/OAuthService';
 import { db, obApiTransactions } from '@/lib/db';
 import crypto from 'crypto';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -105,6 +106,6 @@ async function logApiTransaction(
       errorCode,
     });
   } catch (logError) {
-    console.error('Failed to log API transaction:', logError);
+    securityLogger.error('Failed to log API transaction:', logError);
   }
 }

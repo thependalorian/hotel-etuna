@@ -158,16 +158,7 @@ export default function IntroducersListPage() {
                   : 'Add your first introducer partner to start tracking referrals and commissions'
               }
               size="md"
-              action={
-                !searchQuery ? (
-                  <Link 
-                    href="/crm/introducers/new" 
-                    className="btn btn-primary min-h-[44px]"
-                  >
-                    Add First Introducer
-                  </Link>
-                ) : undefined
-              }
+              action={!searchQuery ? { label: 'Add First Introducer', href: '/crm/introducers/new' } : undefined}
             />
           ) : (
             <div className="overflow-x-auto">

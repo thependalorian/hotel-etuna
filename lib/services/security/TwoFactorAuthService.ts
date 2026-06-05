@@ -29,6 +29,7 @@
 import { db, users, twoFactorAuth, auditTrail } from '@/lib/db';
 import { eq, and, sql } from 'drizzle-orm';
 import crypto from 'crypto';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 // ============================================================================
 // TYPES
@@ -176,7 +177,7 @@ export class TwoFactorAuthService {
         qrCodeUrl,
       };
     } catch (error: any) {
-      console.error('[TwoFactorAuthService] Enable 2FA error:', error);
+      securityLogger.error('[TwoFactorAuthService] Enable 2FA error:', error);
       throw new Error(`Failed to enable 2FA: ${error.message}`);
     }
   }
@@ -256,7 +257,7 @@ export class TwoFactorAuthService {
         remainingAttempts: rateLimitCheck.remaining - 1,
       };
     } catch (error: any) {
-      console.error('[TwoFactorAuthService] Verify 2FA error:', error);
+      securityLogger.error('[TwoFactorAuthService] Verify 2FA error:', error);
       return {
         success: false,
         verified: false,
@@ -300,7 +301,7 @@ export class TwoFactorAuthService {
       if (config?.phoneNumber) {
         await this.sendSMS(config.phoneNumber, code, purpose);
       } else {
-        console.warn('[TwoFactorAuthService] SMS 2FA enabled but phone number missing', {
+        securityLogger.warn('[TwoFactorAuthService] SMS 2FA enabled but phone number missing', {
           userId,
         });
       }
@@ -325,7 +326,7 @@ export class TwoFactorAuthService {
         expiresAt,
       };
     } catch (error: any) {
-      console.error('[TwoFactorAuthService] Generate code error:', error);
+      securityLogger.error('[TwoFactorAuthService] Generate code error:', error);
       return {
         success: false,
         codeSent: false,
@@ -362,7 +363,7 @@ export class TwoFactorAuthService {
 
       return true;
     } catch (error: any) {
-      console.error('[TwoFactorAuthService] Disable 2FA error:', error);
+      securityLogger.error('[TwoFactorAuthService] Disable 2FA error:', error);
       return false;
     }
   }
@@ -649,7 +650,7 @@ export class TwoFactorAuthService {
     const providerKey = process.env.SMS_PROVIDER_KEY;
 
     if (!providerUrl || !providerKey) {
-      console.warn('[TwoFactorAuthService] SMS provider not configured; OTP generated only', {
+      securityLogger.warn('[TwoFactorAuthService] SMS provider not configured; OTP generated only', {
         purpose,
       });
       return;

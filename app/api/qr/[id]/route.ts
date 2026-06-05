@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { NamQrService } from '@/lib/services/qr/NAMQRService';
 import { getAuthenticatedUser } from '@/lib/utils/api-helpers';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const qrService = new NamQrService();
 
@@ -24,7 +25,7 @@ export async function GET(
 
     return NextResponse.json(qrCode, { status: 200 });
   } catch (error) {
-    console.error('Error fetching QR code:', error);
+    securityLogger.error('Error fetching QR code:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }
@@ -50,7 +51,7 @@ export async function PUT(
 
     return NextResponse.json(qrCode, { status: 200 });
   } catch (error) {
-    console.error('Error updating QR code:', error);
+    securityLogger.error('Error updating QR code:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }
@@ -71,7 +72,7 @@ export async function DELETE(
     
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
-    console.error('Error deleting QR code:', error);
+    securityLogger.error('Error deleting QR code:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }

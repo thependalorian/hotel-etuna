@@ -2,6 +2,7 @@
  * Cloudflare Turnstile verification for public registration (production bot protection).
  * Location: lib/auth/verify-turnstile.ts
  */
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export function isTurnstileConfigured(): boolean {
   return Boolean(process.env.TURNSTILE_SECRET_KEY?.trim());
@@ -47,13 +48,13 @@ export async function verifyTurnstileToken(
   });
 
   if (!res.ok) {
-    console.error('[Turnstile] siteverify HTTP error', res.status);
+    securityLogger.error('[Turnstile] siteverify HTTP error', res.status);
     return false;
   }
 
   const data = (await res.json()) as TurnstileVerifyResponse;
   if (!data.success) {
-    console.error('[Turnstile] verification failed', data['error-codes']);
+    securityLogger.error('[Turnstile] verification failed', data['error-codes']);
   }
   return Boolean(data.success);
 }

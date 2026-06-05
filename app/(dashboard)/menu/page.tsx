@@ -33,6 +33,7 @@ import MenuStatsCards from '@/components/features/menu/MenuStatsCards';
 import MenuFilters from '@/components/features/menu/MenuFilters';
 import MenuItemCard from '@/components/features/menu/MenuItemCard';
 import { apiUrl } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface MenuItem {
   id: string;
@@ -97,7 +98,7 @@ export default function MenuPage() {
         setStats(statsData);
       }
     } catch (error) {
-      console.error('Error fetching menu data:', error);
+      securityLogger.error('Error fetching menu data:', error);
     } finally {
       setLoading(false);
     }
@@ -115,7 +116,7 @@ export default function MenuPage() {
         fetchMenuData();
       }
     } catch (error) {
-      console.error('Error updating menu item:', error);
+      securityLogger.error('Error updating menu item:', error);
     }
   };
 
@@ -131,7 +132,7 @@ export default function MenuPage() {
         fetchMenuData();
       }
     } catch (error) {
-      console.error('Error deleting menu item:', error);
+      securityLogger.error('Error deleting menu item:', error);
     }
   };
 

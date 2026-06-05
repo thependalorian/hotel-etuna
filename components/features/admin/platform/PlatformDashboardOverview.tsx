@@ -25,6 +25,7 @@ import {
   CheckCircle,
   Shield
 } from 'lucide-react';
+import PlatformIntelligenceDigest from '@/components/features/admin/platform/PlatformIntelligenceDigest';
 
 interface ComplianceSnapshot {
   openSupportTickets: number;
@@ -150,6 +151,8 @@ export default function PlatformDashboardOverview({
           </div>
         </div>
       </div>
+
+      <PlatformIntelligenceDigest />
 
       {/* Compliance & reporting */}
       <div className="rounded-lg border border-nude-200 bg-surface-elevated shadow-nude-soft">

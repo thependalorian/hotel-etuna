@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export default function ServiceWorkerRegistration() {
   useEffect(() => {
@@ -14,7 +15,7 @@ export default function ServiceWorkerRegistration() {
         const registrations = await navigator.serviceWorker.getRegistrations();
         await Promise.all(registrations.map((registration) => registration.unregister()));
       } catch (error) {
-        console.error('[SW] Unregister failed:', error);
+        securityLogger.error('[SW] Unregister failed:', error);
       }
 
       if ('caches' in window) {
@@ -23,7 +24,7 @@ export default function ServiceWorkerRegistration() {
           const targets = keys.filter((key) => key.startsWith('hotel-etuna-'));
           await Promise.all(targets.map((key) => caches.delete(key)));
         } catch (error) {
-          console.error('[SW] Cache cleanup failed:', error);
+          securityLogger.error('[SW] Cache cleanup failed:', error);
         }
       }
     };

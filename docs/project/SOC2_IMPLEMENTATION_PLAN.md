@@ -12,7 +12,7 @@ Hotel Etuna will pursue **SOC 2 Type II certification** for the hospitality plat
 
 **Current Compliance:** ~45% (Security baseline complete, evidence automation needed)  
 **Target:** 95%+ by audit engagement  
-**Budget Estimate:** N$50,000 - N$150,000 (CPA fees, tooling, staff time)
+**Budget Estimate:** N$238,500 - N$298,500 (CPA fees, tooling, staff time, penetration test — see §9 for full breakdown)
 
 ### Quick start (Week 1)
 

@@ -1,11 +1,17 @@
 import { BookingService } from '@/lib/services/booking/BookingService';
 import { Card, CardContent } from '@/components/ui/Card';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils/cn';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import EmptyState from '@/components/shared/EmptyState';
 import Link from 'next/link';
 import { Calendar, User, MapPin } from 'lucide-react';
+import {
+  bookingKindBadgeClass,
+  bookingKindLabel,
+  checkInDateLabel,
+  checkOutDateLabel,
+  type BookingKind,
+} from '@/lib/bookings/booking-kind';
 
 type BookingListRow = {
   id: string;
@@ -19,11 +25,16 @@ type BookingListRow = {
   checkOutDate?: string | Date | null;
   room_count?: number | null;
   roomCount?: number | null;
+  booking_kind?: string | null;
+  bookingKind?: string | null;
+  room_type?: string | null;
+  roomType?: string | null;
 };
 
 interface BookingListProps {
   propertyId: string;
   tenantId: string;
+  bookingKindFilter?: BookingKind;
 }
 
 function formatBookingDate(value: string | Date | null | undefined): string {
@@ -34,10 +45,16 @@ function formatBookingDate(value: string | Date | null | undefined): string {
   return format(new Date(value), 'PPP');
 }
 
-export async function BookingList({ propertyId, tenantId }: BookingListProps) {
+export async function BookingList({
+  propertyId,
+  tenantId,
+  bookingKindFilter,
+}: BookingListProps) {
   const bookingService = new BookingService();
   const bookings = propertyId
-    ? await bookingService.getBookingsForProperty(propertyId, tenantId) as BookingListRow[]
+    ? (await bookingService.getBookingsForProperty(propertyId, tenantId, {
+        bookingKind: bookingKindFilter,
+      })) as BookingListRow[]
     : [];
 
   if (!propertyId) {
@@ -79,15 +96,27 @@ export async function BookingList({ propertyId, tenantId }: BookingListProps) {
                       <span>Guest: {booking.guest_id ?? 'Not assigned'}</span>
                     </div>
                   </div>
-                  <StatusBadge status={booking.status} showDot />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={bookingKindBadgeClass(
+                        booking.bookingKind ?? booking.booking_kind
+                      )}
+                    >
+                      {bookingKindLabel(booking.bookingKind ?? booking.booking_kind)}
+                    </span>
+                    <StatusBadge status={booking.status} showDot />
+                  </div>
                 </div>
+                {(booking.roomType ?? booking.room_type) ? (
+                  <p className="text-sm text-nude-600 mb-2">{booking.roomType ?? booking.room_type}</p>
+                ) : null}
                 
                 {/* Date Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 bg-nude-50 rounded-lg border border-nude-200">
                   <div>
                     <p className="text-xs font-semibold text-nude-700 mb-1 flex items-center gap-1">
                       <Calendar className="w-3 h-3" aria-hidden="true" />
-                      Check-in
+                      {checkInDateLabel(booking.bookingKind ?? booking.booking_kind)}
                     </p>
                     <p className="font-medium text-nude-900">
                       {formatBookingDate(booking.checkInDate ?? booking.check_in_date)}
@@ -96,7 +125,7 @@ export async function BookingList({ propertyId, tenantId }: BookingListProps) {
                   <div>
                     <p className="text-xs font-semibold text-nude-700 mb-1 flex items-center gap-1">
                       <Calendar className="w-3 h-3" aria-hidden="true" />
-                      Check-out
+                      {checkOutDateLabel(booking.bookingKind ?? booking.booking_kind)}
                     </p>
                     <p className="font-medium text-nude-900">
                       {formatBookingDate(booking.checkOutDate ?? booking.check_out_date)}

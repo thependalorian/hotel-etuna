@@ -9,6 +9,7 @@ import { SofiaConciergeService } from '@/lib/services/ai/SofiaConciergeService';
 import type { UserRole } from '@/lib/services/ai/DataFilterService';
 import type { AIConversationChannel, AIRequest, AIResponse } from '@/lib/types/ai';
 import { isStaffRole, isPlatformAdminRole } from '@/lib/auth/roles';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export const SOFIA_SENSITIVE_PRICING_PATTERN =
   /\b(price|pricing|rate|rates|cost|costs|nad|availability|available|book|booking)\b/i;
@@ -112,7 +113,7 @@ export async function findOrCreateGuestIdByEmail(
       .returning({ id: guests.id });
     return created?.id;
   } catch (error) {
-    console.error('[sofia-concierge-handler] findOrCreateGuestIdByEmail:', error);
+    securityLogger.error('[sofia-concierge-handler] findOrCreateGuestIdByEmail:', error);
     return undefined;
   }
 }

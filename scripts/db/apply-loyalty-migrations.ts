@@ -7,6 +7,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Pool } from 'pg';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 function loadEnv(): void {
   const root = resolve(process.cwd());
@@ -32,14 +33,14 @@ async function applyMigration(pool: Pool, filename: string): Promise<void> {
     throw new Error(`Migration file not found: ${filepath}`);
   }
   
-  console.log(`Applying ${filename}...`);
+  securityLogger.info(`Applying ${filename}...`);
   const sql = readFileSync(filepath, 'utf8');
   
   try {
     await pool.query(sql);
-    console.log(`✅ ${filename} applied successfully`);
+    securityLogger.info(`✅ ${filename} applied successfully`);
   } catch (err) {
-    console.error(`❌ Error applying ${filename}:`, err);
+    securityLogger.error(`❌ Error applying ${filename}:`, err);
     throw err;
   }
 }
@@ -49,14 +50,14 @@ async function main() {
   const databaseUrl = process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL;
   
   if (!databaseUrl) {
-    console.error('❌ DATABASE_URL or DATABASE_URL_UNPOOLED is not set');
+    securityLogger.error('❌ DATABASE_URL or DATABASE_URL_UNPOOLED is not set');
     process.exit(1);
   }
   
   const pool = new Pool({ connectionString: databaseUrl });
   
   try {
-    console.log('🚀 Applying loyalty system migrations...\n');
+    securityLogger.info('🚀 Applying loyalty system migrations...\n');
     
     const migrations = [
       '0033_loyalty_transactions.sql',
@@ -70,9 +71,9 @@ async function main() {
       await applyMigration(pool, migration);
     }
     
-    console.log('\n✅ All loyalty migrations applied successfully!');
+    securityLogger.info('\n✅ All loyalty migrations applied successfully!');
   } catch (err) {
-    console.error('\n❌ Migration failed:', err);
+    securityLogger.error('\n❌ Migration failed:', err);
     process.exit(1);
   } finally {
     await pool.end();

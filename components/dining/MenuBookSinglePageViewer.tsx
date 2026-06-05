@@ -8,7 +8,7 @@
 import { useState, useEffect, useCallback, type ReactNode } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
-import type { MenuBookPage } from '@/components/dining/MenuPageTurner';
+import type { MenuBookPage } from '@/lib/dining/menu-book-pagination';
 
 export type MenuBookFlatPage = {
   id: string;

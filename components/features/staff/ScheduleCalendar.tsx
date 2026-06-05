@@ -21,6 +21,7 @@ import { ChevronLeft, ChevronRight, Clock, User } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { apiUrl } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface Shift {
   id: string;
@@ -105,7 +106,7 @@ export default function ScheduleCalendar({
           setShifts(shiftsMap);
         }
       } catch (error) {
-        console.error('Error fetching shifts:', error);
+        securityLogger.error('Error fetching shifts:', error);
       } finally {
         setLoading(false);
       }

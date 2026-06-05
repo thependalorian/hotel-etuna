@@ -3,6 +3,14 @@
  * Location: lib/config/adumo.ts
  *
  * Namibia product uses Virtual only (initialisevirtual). 3DS runs on Adumo's page.
+ *
+ * Test env: ADUMO_BASE_URL=https://staging-apiv3.adumoonline.com
+ * Production: ADUMO_BASE_URL=https://apiv3.adumoonline.com
+ *
+ * IMPORTANT: ADUMO_WEBHOOK_URL must be a public HTTPS URL in production.
+ * Adumo cannot reach localhost — webhooks are skipped in local dev (redirect confirm handles it).
+ *
+ * ADUMO_PAYMENT_MODE env var is NOT used by code — remove it from .env.local if present.
  */
 
 const stagingBase = 'https://staging-apiv3.adumoonline.com';

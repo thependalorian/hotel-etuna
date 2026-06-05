@@ -3,6 +3,7 @@
  * Usage: npx tsx scripts/print-email-signature.ts ["Staff Name"] ["Job title"]
  */
 
+import { securityLogger } from '@/lib/utils/security-logger';
 import {
   getHotelEtunaEmailSignatureHtml,
   getHotelEtunaEmailSignaturePlainText,
@@ -19,7 +20,7 @@ const opts = {
   includeLogo: true,
 };
 
-console.log('<!-- Paste below into Gmail / Outlook / Apple Mail (HTML mode) -->\n');
-console.log(getHotelEtunaEmailSignatureHtml(opts));
-console.log('\n\n--- PLAIN TEXT ---\n\n');
-console.log(getHotelEtunaEmailSignaturePlainText(opts));
+securityLogger.info('<!-- Paste below into Gmail / Outlook / Apple Mail (HTML mode) -->\n');
+securityLogger.info(getHotelEtunaEmailSignatureHtml(opts));
+securityLogger.info('\n\n--- PLAIN TEXT ---\n\n');
+securityLogger.info(getHotelEtunaEmailSignaturePlainText(opts));

@@ -23,6 +23,7 @@ import { withApiAuth, errorResponse, successResponse } from '@/lib/utils/api-hel
 import { MenuService } from '@/lib/services/menu/MenuService';
 import { entityId, entityIdOptional } from '@/lib/validation/entity-ids';
 import * as z from 'zod';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const menuService = new MenuService();
 
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
         );
         return successResponse(newMenuItem, 201);
       } catch (error: any) {
-        console.error('Error creating menu item:', error);
+        securityLogger.error('Error creating menu item:', error);
         return errorResponse(
           error.message || 'Internal server error',
           500,
@@ -126,7 +127,7 @@ export async function GET(request: NextRequest) {
           return successResponse(stats);
         }
       } catch (error: any) {
-        console.error('Error fetching menu items:', error);
+        securityLogger.error('Error fetching menu items:', error);
         return errorResponse(
           error.message || 'Internal server error',
           500,

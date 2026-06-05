@@ -11,6 +11,7 @@ import {
 } from '@/lib/db/schema';
 import { and, desc, eq, gte, isNotNull, notInArray, sum } from 'drizzle-orm';
 import { cache } from 'react';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const DEFAULT_LOOKBACK_DAYS = 90;
 const DEFAULT_LIMIT = 6;
@@ -99,7 +100,7 @@ export const getCachedPopularMenuItemIds = cache(
         limit: DEFAULT_LIMIT,
       });
     } catch (error) {
-      console.error('[getCachedPopularMenuItemIds]', error);
+      securityLogger.error('[getCachedPopularMenuItemIds]', error);
       return [];
     }
   },

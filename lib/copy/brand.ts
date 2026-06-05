@@ -18,7 +18,17 @@ export const brand = {
   },
   address: '5544 Valley Street, Ongwediva, Namibia',
   phones: '+264 65 231 177 | +264 81 802 4833',
-  email: 'info@hoteletuna.com',
+  /** Administration, legal, partner onboarding */
+  email: 'admin@hoteletuna.com',
+  emailAdmin: 'admin@hoteletuna.com',
+  /** Reservations, check-in, stay queries, Sofia guest replies */
+  emailFrontDesk: 'frontdesk@hoteletuna.com',
+  /** Events, conferences, campaigns, referral partners */
+  emailMarketing: 'marketing@hoteletuna.com',
+  /** Website, guest portal, and technical support */
+  emailSupport: 'support@hoteletuna.com',
+  /** Executive / ownership inquiries */
+  emailFounder: 'founder@hoteletuna.com',
   /** Staff + transactional footers: `lib/email/hotel-etuna-email-signature.ts` */
   proofPoints: {
     tradeFair: 'About 500 metres from the Ongwediva Trade Fair Centre',

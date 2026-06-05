@@ -51,6 +51,7 @@ import {
   type NewCmsMenuItem,
 } from '@/lib/db/schema';
 import { eq, and, inArray, asc } from 'drizzle-orm';
+import { securityLogger } from '@/lib/utils/security-logger';
 import type {
   MenuItemData as RestaurantMenuItemPayload,
   MenuCategoryData as RestaurantMenuCategoryPayload,
@@ -143,7 +144,7 @@ export class MenuService {
         },
       };
     } catch (error) {
-      console.error('Error creating menu item:', error);
+      securityLogger.error('Error creating menu item:', error);
       throw error;
     }
   }
@@ -171,7 +172,7 @@ export class MenuService {
         },
       }));
     } catch (error) {
-      console.error('Error fetching menu items:', error);
+      securityLogger.error('Error fetching menu items:', error);
       throw error;
     }
   }
@@ -230,7 +231,7 @@ export class MenuService {
         cart_items: formattedCartItems,
       };
     } catch (error) {
-      console.error('Error fetching menu item:', error);
+      securityLogger.error('Error fetching menu item:', error);
       throw error;
     }
   }
@@ -280,7 +281,7 @@ export class MenuService {
         },
       };
     } catch (error) {
-      console.error('Error updating menu item:', error);
+      securityLogger.error('Error updating menu item:', error);
       throw error;
     }
   }
@@ -318,7 +319,7 @@ export class MenuService {
       await db.delete(cmsMenuItems).where(eq(cmsMenuItems.id, menuItemId));
       return { success: true, message: 'Menu item deleted successfully' };
     } catch (error) {
-      console.error('Error deleting menu item:', error);
+      securityLogger.error('Error deleting menu item:', error);
       throw error;
     }
   }
@@ -345,7 +346,7 @@ export class MenuService {
 
       return updated ?? existing;
     } catch (error) {
-      console.error('Error toggling menu item availability:', error);
+      securityLogger.error('Error toggling menu item availability:', error);
       throw error;
     }
   }
@@ -372,7 +373,7 @@ export class MenuService {
         return { category: c?.name ?? cat.category_id, count: Number(cat.count) };
       });
     } catch (error) {
-      console.error('Error fetching menu categories:', error);
+      securityLogger.error('Error fetching menu categories:', error);
       throw error;
     }
   }
@@ -413,7 +414,7 @@ export class MenuService {
         }),
       };
     } catch (error) {
-      console.error('Error fetching menu stats:', error);
+      securityLogger.error('Error fetching menu stats:', error);
       throw error;
     }
   }
@@ -451,7 +452,7 @@ export class MenuService {
       if (filters?.isAvailable !== undefined) list = list.filter((item) => item.is_available === filters!.isAvailable);
       return list;
     } catch (error) {
-      console.error('Error searching menu items:', error);
+      securityLogger.error('Error searching menu items:', error);
       throw error;
     }
   }
@@ -496,7 +497,7 @@ export class MenuService {
         },
       }));
     } catch (error) {
-      console.error('Error fetching popular menu items:', error);
+      securityLogger.error('Error fetching popular menu items:', error);
       throw error;
     }
   }

@@ -14,6 +14,7 @@ import React, { Component, type ErrorInfo, type ReactNode } from 'react';
 import Link from 'next/link';
 import { AlertCircle, Home, RefreshCw } from 'lucide-react';
 import { captureClientException } from '@/lib/monitoring/capture-client-exception';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export interface ErrorBoundaryProps {
   children: ReactNode;
@@ -42,7 +43,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    securityLogger.error('ErrorBoundary caught an error', { message: error.message, componentStack: errorInfo.componentStack });
     captureClientException(error, { componentStack: errorInfo.componentStack ?? '' });
 
     // Self-heal stale client/runtime states after deploys:
@@ -63,7 +64,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               await Promise.all(keys.map((key) => caches.delete(key)));
             }
           } catch (cleanupError) {
-            console.error('Client recovery cleanup failed:', cleanupError);
+            securityLogger.error('Client recovery cleanup failed:', cleanupError);
           } finally {
             const next = new URL(window.location.href);
             next.searchParams.set('__rsc_recover', Date.now().toString());

@@ -16,6 +16,7 @@ import { db, bookings, properties, bookingRooms, rooms, restaurantOrders, restau
 import { eq, desc } from 'drizzle-orm';
 import { AppError } from '@/lib/utils/errors';
 import { formatDistanceToNow } from 'date-fns';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export const dynamic = 'force-dynamic';
 
@@ -93,7 +94,7 @@ export async function GET(request: NextRequest) {
     if (error instanceof AppError) {
       return NextResponse.json({ message: error.message }, { status: error.statusCode });
     }
-    console.error('Error fetching recent activity:', error);
+    securityLogger.error('Error fetching recent activity:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }

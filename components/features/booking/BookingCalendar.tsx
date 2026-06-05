@@ -21,6 +21,8 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-reac
 import { cn } from '@/lib/utils/cn';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { apiUrl } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger.client';
+import { expandBookingDateStrings } from '@/lib/bookings/booking-kind';
 
 interface BookingCalendarProps {
   propertyId: string;
@@ -45,7 +47,9 @@ export default function BookingCalendar({
   const [calendarMonth, setCalendarMonth] = useState<CalendarMonth | null>(null);
   const [loading, setLoading] = useState(true);
   const [bookings, setBookings] = useState<Map<string, number>>(new Map());
+  const [stayBookings, setStayBookings] = useState<Map<string, number>>(new Map());
   const [occupancy, setOccupancy] = useState<Map<string, number>>(new Map());
+  const GUEST_ROOM_DENOMINATOR = 35;
 
   // Fetch bookings for the current month
   useEffect(() => {
@@ -59,39 +63,44 @@ export default function BookingCalendar({
         
         // Fetch bookings for this month
         const response = await fetch(
-          apiUrl(`/api/bookings?propertyId=${propertyId}&startDate=${dateStr}`)
+          apiUrl(`/api/bookings?propertyId=${propertyId}&startDate=${dateStr}`),
+          { credentials: 'include' }
         );
         
         if (response.ok) {
           const json = await response.json();
           const list = Array.isArray(json) ? json : Array.isArray(json?.data) ? json.data : [];
           const bookingsMap = new Map<string, number>();
+          const staysMap = new Map<string, number>();
           const occupancyMap = new Map<string, number>();
           
           if (list.length > 0) {
-            list.forEach((booking: any) => {
-              // Count bookings per date
-              // Expand date ranges for multi-day bookings
-              const checkIn = calendarService.startOfDay(new Date(booking.checkInDate || booking.startDate));
-              const checkOut = booking.checkOutDate || booking.endDate 
-                ? calendarService.startOfDay(new Date(booking.checkOutDate || booking.endDate))
-                : calendarService.addDays(checkIn, 1);
-              
-              // Count each day in the booking range
-              let currentDay = new Date(checkIn);
-              while (currentDay < checkOut) {
-                const dateStr = calendarService.formatDate(currentDay);
-                bookingsMap.set(dateStr, (bookingsMap.get(dateStr) || 0) + 1);
-                currentDay = calendarService.addDays(currentDay, 1);
+            list.forEach((booking: Record<string, unknown>) => {
+              const kind = String(booking.bookingKind ?? 'accommodation');
+              const checkInRaw = booking.checkInDate ?? booking.startDate;
+              const checkOutRaw = booking.checkOutDate ?? booking.endDate ?? checkInRaw;
+              const dateKeys = expandBookingDateStrings(
+                String(checkInRaw),
+                checkOutRaw ? String(checkOutRaw) : String(checkInRaw),
+                kind
+              );
+              for (const dayKey of dateKeys) {
+                bookingsMap.set(dayKey, (bookingsMap.get(dayKey) || 0) + 1);
+                if (kind === 'accommodation') {
+                  staysMap.set(dayKey, (staysMap.get(dayKey) || 0) + 1);
+                  const pct = Math.min(100, ((staysMap.get(dayKey) || 0) / GUEST_ROOM_DENOMINATOR) * 100);
+                  occupancyMap.set(dayKey, pct);
+                }
               }
             });
           }
           
           setBookings(bookingsMap);
+          setStayBookings(staysMap);
           setOccupancy(occupancyMap);
         }
       } catch (error) {
-        console.error('Error fetching bookings:', error);
+        securityLogger.error('Error fetching bookings:', error);
       } finally {
         setLoading(false);
       }
@@ -244,6 +253,10 @@ export default function BookingCalendar({
             </tbody>
           </table>
         </div>
+
+        <p className="text-sm text-nude-600 mt-4">
+          Guest room occupancy uses {GUEST_ROOM_DENOMINATOR} keys; conference and campsite events count in the day total but not in the occupancy bar.
+        </p>
 
         {/* Legend */}
         <div className="flex flex-wrap items-center gap-6 mt-6 pt-4 border-t border-nude-200 text-sm">

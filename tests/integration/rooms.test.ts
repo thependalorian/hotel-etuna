@@ -172,7 +172,7 @@ describe('RoomService Integration Tests', () => {
 });
 
 describe('Hub room seed validation', () => {
-  it('hub property should have exactly 5 rooms with expected slugs', async () => {
+  it('hub property should have 35 guest rooms and 5 distinct room types', async () => {
     const hubTenantId = process.env.HUB_TENANT_ID;
     expect(hubTenantId).toBeTruthy();
 
@@ -184,17 +184,34 @@ describe('Hub room seed validation', () => {
     expect(hubProperty).toBeTruthy();
 
     const hubRooms = await db
-      .select({ roomType: rooms.roomType, amenities: rooms.amenities })
+      .select({ roomType: rooms.roomType, roomNumber: rooms.roomNumber, inventoryKind: rooms.inventoryKind })
       .from(rooms)
       .where(eq(rooms.propertyId, hubProperty!.id));
 
-    expect(hubRooms.length).toBe(5);
+    const guestRooms = hubRooms.filter(
+      (r) => (r.inventoryKind ?? 'guest_room') === 'guest_room' && !r.roomNumber.startsWith('ET-'),
+    );
+    expect(guestRooms.length).toBe(35);
 
     const slugify = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    const slugs = hubRooms.map((room) => slugify(room.roomType));
-    expect(slugs.sort()).toEqual(
-      ['standard-room', 'luxury-room', 'family-room', 'executive-suite', 'premier-room'].sort(),
+    const distinctSlugs = [...new Set(guestRooms.map((room) => slugify(room.roomType)))];
+    expect(distinctSlugs.sort()).toEqual(
+      [
+        'standard-room-type-a',
+        'standard-room-type-b',
+        'standard-room-type-c',
+        'executive-room',
+        'premiere-room',
+      ].sort(),
     );
+  });
+
+  it('getHubRoomTypeCatalog returns 5 marketing categories', async () => {
+    const { getHubRoomTypeCatalog } = await import('@/lib/data/room-type-catalog');
+    const catalog = await getHubRoomTypeCatalog();
+    expect(catalog.length).toBe(5);
+    const totalUnits = catalog.reduce((sum, entry) => sum + entry.unitCount, 0);
+    expect(totalUnits).toBe(35);
   });
 
   it('room amenities should not include removed fictional entries', async () => {
@@ -207,11 +224,15 @@ describe('Hub room seed validation', () => {
     expect(hubProperty).toBeTruthy();
 
     const hubRooms = await db
-      .select({ amenities: rooms.amenities })
+      .select({ amenities: rooms.amenities, inventoryKind: rooms.inventoryKind, roomNumber: rooms.roomNumber })
       .from(rooms)
       .where(eq(rooms.propertyId, hubProperty!.id));
 
-    const flattened = hubRooms.flatMap((room) => room.amenities ?? []).map((entry) => entry.toLowerCase());
+    const guestOnly = hubRooms.filter(
+      (r) => (r.inventoryKind ?? 'guest_room') === 'guest_room' && !r.roomNumber.startsWith('ET-'),
+    );
+
+    const flattened = guestOnly.flatMap((room) => room.amenities ?? []).map((entry) => entry.toLowerCase());
     expect(flattened).not.toContain('private pool');
     expect(flattened).not.toContain('butler service');
     expect(flattened).not.toContain('spa bath');

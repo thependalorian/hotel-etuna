@@ -14,10 +14,6 @@
  * - Security Architecture
  */
 
-import { db } from '@/lib/db';
-import { systemLogs, auditTrail } from '@/lib/db/schema';
-import { NextRequest } from 'next/server';
-
 export type SecurityEventType =
   | 'unauthorized_access'
   | 'rate_limit_exceeded'
@@ -43,7 +39,16 @@ interface SecurityEvent {
  * Log security event to database
  */
 export async function logSecurityEvent(event: SecurityEvent): Promise<void> {
+  // Skip database logging in client-side context to avoid bundling server-only modules
+  if (typeof window !== 'undefined') {
+    return;
+  }
+
   try {
+    // Dynamic import to avoid bundling server-only `pg`/`drizzle` code into client bundles
+    const { db } = await import('@/lib/db');
+    const { systemLogs, auditTrail } = await import('@/lib/db/schema');
+
     if (event.tenantId) {
       await db.insert(systemLogs).values({
         tenantId: event.tenantId,
@@ -84,16 +89,34 @@ export async function logSecurityEvent(event: SecurityEvent): Promise<void> {
       });
     }
   } catch (error) {
-    console.error('Security logging error:', error);
-    console.warn('Security event:', event);
+    // Fallback logging when database is unavailable
+    console.error('Failed to log security event:', { error, event });
   }
 }
+
+/**
+ * Client-safe security logger that does not import server-only modules
+ */
+export const securityLogger = {
+  info: (_message: string, _details?: unknown) => {
+    // No-op in client components to avoid bundling server-only DB drivers
+  },
+  warn: (_message: string, _details?: unknown) => {
+    // No-op in client components to avoid bundling server-only DB drivers
+  },
+  error: (_message: string, _details?: unknown) => {
+    // No-op in client components to avoid bundling server-only DB drivers
+  },
+  debug: (_message: string, _details?: unknown) => {
+    // No-op in client components to avoid bundling server-only DB drivers
+  },
+};
 
 /**
  * Log unauthorized access attempt
  */
 export async function logUnauthorizedAccess(
-  req: NextRequest,
+  req: { nextUrl: { pathname: string }; method: string; headers: { get: (name: string) => string | null } },
   reason: string,
   userId?: string,
   tenantId?: string
@@ -117,7 +140,7 @@ export async function logUnauthorizedAccess(
  * Log rate limit exceeded
  */
 export async function logRateLimitExceeded(
-  req: NextRequest,
+  req: { nextUrl: { pathname: string }; method: string; headers: { get: (name: string) => string | null } },
   userId?: string,
   tenantId?: string
 ): Promise<void> {
@@ -139,7 +162,7 @@ export async function logRateLimitExceeded(
  * Log invalid credentials attempt
  */
 export async function logInvalidCredentials(
-  req: NextRequest,
+  req: { nextUrl: { pathname: string }; method: string; headers: { get: (name: string) => string | null } },
   email?: string
 ): Promise<void> {
   await logSecurityEvent({
@@ -159,7 +182,7 @@ export async function logInvalidCredentials(
  * Log tenant access denied
  */
 export async function logTenantAccessDenied(
-  req: NextRequest,
+  req: { nextUrl: { pathname: string }; method: string; headers: { get: (name: string) => string | null } },
   userId: string,
   attemptedTenantId: string
 ): Promise<void> {

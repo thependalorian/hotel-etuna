@@ -18,6 +18,7 @@ import { db, kycUpgradePrompts } from '@/lib/db';
 import { getAuthenticatedUser } from '@/lib/utils/api-helpers';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 // ============================================================================
 // REQUEST VALIDATION SCHEMAS
@@ -101,7 +102,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error: unknown) {
-    console.error('Error fetching upgrade prompts:', error);
+    securityLogger.error('Error fetching upgrade prompts:', error);
 
     return NextResponse.json(
       {
@@ -190,7 +191,7 @@ export async function POST(request: NextRequest) {
       message: `Prompt ${action}ed successfully`,
     });
   } catch (error: unknown) {
-    console.error('Error updating upgrade prompt:', error);
+    securityLogger.error('Error updating upgrade prompt:', error);
 
     return NextResponse.json(
       {

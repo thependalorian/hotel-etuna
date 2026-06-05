@@ -29,6 +29,12 @@ import {
 import { RAGSearchService, type RagSearchChunk } from '@/lib/services/documents/RAGSearchService';
 import { LLMProviderRouter, type LlmChatMessage } from '@/lib/services/ai/LLMProviderRouter';
 import { FolioService } from '@/lib/services/folio/FolioService';
+import { securityLogger } from '@/lib/utils/security-logger';
+import {
+  isAccommodationBookingKind,
+  isFacilityBookingKind,
+  bookingKindLabel,
+} from '@/lib/bookings/booking-kind';
 
 export class SofiaConciergeService {
   private knowledgeBase: KnowledgeBaseService;
@@ -127,7 +133,7 @@ export class SofiaConciergeService {
             emailConfirmation = " I've sent the " + emailIntent.type + " to your email" + ccMessage + ".";
           }
         } catch (emailError) {
-          console.error('Error sending email automatically:', emailError);
+          securityLogger.error('Error sending email automatically:', emailError);
           // Don't fail the entire request if email sending fails
         }
       }
@@ -206,7 +212,7 @@ ${otp ? `<p>Cancellation OTP: <strong>${otp}</strong> (valid 24h)</p>` : ''}`,
             textContent: `Booking ${flowState.bookingCode}. Deposit ${flowState.currency ?? 'NAD'} ${((flowState.depositCents ?? 0) / 100).toFixed(2)}. Pay at ${payPath}.${otp ? ` Cancel OTP: ${otp}` : ''}`,
           });
         } catch (emailErr) {
-          console.error('[SofiaConciergeService] restaurant reservation email:', emailErr);
+          securityLogger.error('[SofiaConciergeService] restaurant reservation email:', emailErr);
         }
       }
       const entities = this.extractEntities(finalResponse);
@@ -355,6 +361,7 @@ ${otp ? `<p>Cancellation OTP: <strong>${otp}</strong> (valid 24h)</p>` : ''}`,
           .select({
             id: bookings.id,
             status: bookings.status,
+            bookingKind: bookings.bookingKind,
             checkInDate: bookings.checkInDate,
             checkOutDate: bookings.checkOutDate,
             propertyName: properties.name,
@@ -365,14 +372,24 @@ ${otp ? `<p>Cancellation OTP: <strong>${otp}</strong> (valid 24h)</p>` : ''}`,
           .limit(1);
 
         if (bookingRow) {
+          const kind = bookingRow.bookingKind;
           contextString += `\nBooking: ${bookingRow.id}\n`;
+          contextString += `Kind: ${bookingKindLabel(kind)}\n`;
           contextString += `Status: ${bookingRow.status}\n`;
           contextString += `Property: ${bookingRow.propertyName ?? 'Unknown'}\n`;
           if (bookingRow.checkInDate && bookingRow.checkOutDate) {
             contextString += `Dates: ${bookingRow.checkInDate} to ${bookingRow.checkOutDate}\n`;
           }
 
-          if (bookingRow.status === 'checked_in') {
+          if (isFacilityBookingKind(kind)) {
+            contextString +=
+              kind === 'conference'
+                ? 'Facility booking — direct guests to /facilities/conference for changes or new sessions.\n'
+                : 'Facility booking — direct guests to /facilities/campsite for changes or new hires.\n';
+          } else if (
+            isAccommodationBookingKind(kind) &&
+            bookingRow.status === 'checked_in'
+          ) {
             try {
               const folioService = new FolioService();
               const folio = await folioService.getFolio(bookingRow.id);
@@ -385,7 +402,7 @@ ${otp ? `<p>Cancellation OTP: <strong>${otp}</strong> (valid 24h)</p>` : ''}`,
                   '\n';
               }
             } catch (folioErr) {
-              console.error('[SofiaConciergeService] folio context:', folioErr);
+              securityLogger.error('[SofiaConciergeService] folio context:', folioErr);
             }
           }
         }
@@ -489,10 +506,15 @@ ${otp ? `<p>Cancellation OTP: <strong>${otp}</strong> (valid 24h)</p>` : ''}`,
           aiModel: result.model,
           aiProviderFallback: result.degraded,
           aiAttemptedProviders: result.attemptedProviders,
+          ...(result.usage
+            ? {
+                tokenUsage: result.usage,
+              }
+            : {}),
         },
       };
     } catch (error) {
-      console.error('[SofiaConciergeService] LLM provider router failed:', error);
+      securityLogger.error('[SofiaConciergeService] LLM provider router failed:', error);
       const response = this.generateFallbackResponse(message, context);
       return {
         response,
@@ -514,11 +536,11 @@ ${otp ? `<p>Cancellation OTP: <strong>${otp}</strong> (valid 24h)</p>` : ''}`,
     return `You are Sofia, the AI concierge for Hotel Etuna, a premium luxury guesthouse in Ongwediva, Namibia.
 ABOUT HOTEL ETUNA:
 - Hotel Etuna is located at 5544 Valley Street, Ongwediva, Namibia
-- We offer five room tiers: Standard, Luxury, Family, Executive Suite, and Premier
-- Room rates start from N$850 per night, with fair seasonal packages and direct booking support
+- We offer Premiere Room, Executive Room, and Standard Room in three layouts (Type A double bed, Type B two singles, Type C double plus single)
+- Guest rooms: Standard A/B N$800, Standard C N$1200, Executive N$1000, Premiere N$2000; Conference N$1200/session; Campsite from N$1200 whole-site
 - Check-in starts at 14:00 and check-out is by 11:00
 - Key guest amenities include free WiFi, outdoor pool, free parking, on-site restaurant, and 24-hour security
-- Support is available 24/7 via Sofia AI at concierge@hoteletuna.com
+- Support is available 24/7 via Sofia AI at frontdesk@hoteletuna.com
 - We operate in Namibia and use NAD (Namibian Dollar) currency
 
 YOUR ROLE:
@@ -712,7 +734,7 @@ Current user message: ${message}`;
       }
       return null;
     } catch (error) {
-      console.error('Error getting email from conversation:', error);
+      securityLogger.error('Error getting email from conversation:', error);
       return null;
     }
   }
@@ -747,7 +769,7 @@ Current user message: ${message}`;
       const [fallback] = await db.select().from(guests).where(eq(guests.email, email)).limit(1);
       return fallback ?? null;
     } catch (error) {
-      console.error('Error finding or creating guest:', error);
+      securityLogger.error('Error finding or creating guest:', error);
       try {
         const [byEmail] = await db.select().from(guests).where(eq(guests.email, email)).limit(1);
         return byEmail ?? null;
@@ -796,7 +818,7 @@ Current user message: ${message}`;
 
       return true;
     } catch (error) {
-      console.error('Error sending email automatically:', error);
+      securityLogger.error('Error sending email automatically:', error);
       return false;
     }
   }
@@ -821,7 +843,7 @@ Current user message: ${message}`;
           .limit(1);
         if (property) propertyName = property.name;
       } catch (error) {
-        console.warn('Failed to fetch property name:', error);
+        securityLogger.warn('Failed to fetch property name:', error);
       }
     }
 
@@ -1041,6 +1063,11 @@ Current user message: ${message}`;
         booking_id: context.bookingId,
         ...(emailFromMessage && { guest_email: emailFromMessage }),
         ...(aiResponse.rag ? { rag: aiResponse.rag } : {}),
+        ...(aiResponse.entities &&
+        typeof aiResponse.entities === 'object' &&
+        'tokenUsage' in aiResponse.entities
+          ? { token_usage: (aiResponse.entities as { tokenUsage?: unknown }).tokenUsage }
+          : {}),
       };
 
       await db.insert(aiMessages).values({
@@ -1056,7 +1083,7 @@ Current user message: ${message}`;
         metadata: assistantMeta,
       });
     } catch (error) {
-      console.error('Error saving conversation:', error);
+      securityLogger.error('Error saving conversation:', error);
     }
   }
 

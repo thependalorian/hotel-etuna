@@ -94,10 +94,20 @@ export class FolioService {
     }
   }
 
-  /** Idempotent room line when booking has a total (prepay / on-arrival room rate). */
-  async ensureRoomChargeForBooking(booking: Booking): Promise<void> {
+  /** Idempotent primary charge when booking has a total (accommodation, conference, campsite). */
+  async ensureBookingChargeForBooking(booking: Booking): Promise<void> {
     const total = toNumber(booking.totalAmount);
     if (total <= 0) return;
+
+    const kind = booking.bookingKind ?? 'accommodation';
+    const chargeType =
+      kind === 'conference' || kind === 'campsite' ? 'adjustment' : 'room';
+    const description =
+      kind === 'conference'
+        ? `Conference hall — ${booking.bookingReference}`
+        : kind === 'campsite'
+          ? `Campsite hire — ${booking.bookingReference}`
+          : `Room stay ${booking.bookingReference}`;
 
     const existing = await db
       .select({ id: bookingCharges.id })
@@ -105,24 +115,29 @@ export class FolioService {
       .where(
         and(
           eq(bookingCharges.bookingId, booking.id),
-          eq(bookingCharges.chargeType, 'room')
+          eq(bookingCharges.chargeType, chargeType)
         )
       )
       .limit(1);
 
     if (existing.length > 0) return;
 
-    const roomSettled = booking.paymentStatus === 'paid';
+    const settled = booking.paymentStatus === 'paid';
     await db.insert(bookingCharges).values({
       tenantId: booking.tenantId!,
       bookingId: booking.id,
-      chargeType: 'room',
-      description: `Room stay ${booking.bookingReference}`,
+      chargeType,
+      description,
       amount: total.toFixed(2),
       currency: booking.currency ?? 'NAD',
-      status: roomSettled ? 'settled' : 'open',
-      settledAt: roomSettled ? new Date() : null,
+      status: settled ? 'settled' : 'open',
+      settledAt: settled ? new Date() : null,
     });
+  }
+
+  /** @deprecated Use ensureBookingChargeForBooking */
+  async ensureRoomChargeForBooking(booking: Booking): Promise<void> {
+    return this.ensureBookingChargeForBooking(booking);
   }
 
   async createRoomServiceOrder(

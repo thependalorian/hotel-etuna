@@ -7,6 +7,7 @@ import {
   restaurants,
 } from '@/lib/db';
 import { and, asc, eq } from 'drizzle-orm';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
@@ -51,7 +52,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
     return NextResponse.json(menu, { status: 200 });
   } catch (error) {
-    console.error('Error fetching public menu:', error);
+    securityLogger.error('Error fetching public menu:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }

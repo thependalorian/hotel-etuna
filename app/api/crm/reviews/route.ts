@@ -15,6 +15,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { db, guestReviews, guests, properties, and, desc, eq } from '@/lib/db';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export async function GET(request: NextRequest) {
   try {
@@ -69,7 +70,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error: unknown) {
-    console.error('[GET /api/crm/reviews] Error:', error);
+    securityLogger.error('[GET /api/crm/reviews] Error:', error);
     if (process.env.NODE_ENV !== 'production' && error instanceof Error) {
       return NextResponse.json(
         { error: 'Internal server error', details: error.message },

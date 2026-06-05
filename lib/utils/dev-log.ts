@@ -2,15 +2,16 @@
  * Development-only logging — avoid credential noise in production logs.
  * Location: lib/utils/dev-log.ts
  */
+import { securityLogger } from '@/lib/utils/security-logger';
 
-export function devLog(...args: unknown[]): void {
+export function devLog(message: string, details?: unknown): void {
   if (process.env.NODE_ENV === 'development') {
-    console.log(...args);
+    securityLogger.info(message, details);
   }
 }
 
-export function devError(...args: unknown[]): void {
+export function devError(message: string, details?: unknown): void {
   if (process.env.NODE_ENV === 'development') {
-    console.error(...args);
+    securityLogger.error(message, details);
   }
 }

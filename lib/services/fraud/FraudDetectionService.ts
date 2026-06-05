@@ -43,6 +43,7 @@ import {
 } from '@/lib/db/schema';
 import { eq, and, gte, lte, desc, sql, inArray } from 'drizzle-orm';
 import crypto from 'crypto';
+import { securityLogger } from '@/lib/utils/security-logger';
 import {
   evaluateTenantFraudRule,
   type TenantRuleEvaluationContext,
@@ -130,10 +131,11 @@ export class FraudDetectionService {
    */
   async analyzeTransaction(context: TransactionContext): Promise<FraudScore> {
     try {
-      console.log('[FraudDetectionService] Starting fraud analysis', {
+      securityLogger.info('[FraudDetectionService] Starting fraud analysis', {
         transactionId: context.transactionId,
         amount: context.amount,
         tenantId: this.tenantId,
+        guestId: context.guestId,
       });
 
       // Step 1: Get or create device fingerprint
@@ -170,11 +172,13 @@ export class FraudDetectionService {
         await this.generateAlert(profile.id, context, riskLevel, decision.decisionReason || '');
       }
 
-      console.log('[FraudDetectionService] Fraud analysis complete', {
+      securityLogger.info('[FraudDetectionService] Fraud analysis complete', {
         transactionId: context.transactionId,
         riskScore,
         riskLevel,
         decision: decision.decision,
+        tenantId: this.tenantId,
+        guestId: context.guestId,
       });
 
       return {
@@ -184,7 +188,7 @@ export class FraudDetectionService {
         scores,
       };
     } catch (error) {
-      console.error('[FraudDetectionService] Error in fraud analysis:', error);
+      securityLogger.error('[FraudDetectionService] Error in fraud analysis:', error);
       
       // Fail-safe: On error, flag for manual review
       return {
@@ -273,7 +277,7 @@ export class FraudDetectionService {
 
       return deviceId;
     } catch (error) {
-      console.error('[FraudDetectionService] Error processing device fingerprint:', error);
+      securityLogger.error('[FraudDetectionService] Error processing device fingerprint:', error);
       return deviceId;
     }
   }
@@ -359,7 +363,7 @@ export class FraudDetectionService {
       if (count >= 2) return 40; // Medium: Elevated activity
       return 10; // Low: Normal velocity
     } catch (error) {
-      console.error('[FraudDetectionService] Error calculating velocity score:', error);
+      securityLogger.error('[FraudDetectionService] Error calculating velocity score:', error);
       return 50; // Default to medium risk on error
     }
   }
@@ -432,7 +436,7 @@ export class FraudDetectionService {
 
       return 5; // Low risk: Normal geographic pattern
     } catch (error) {
-      console.error('[FraudDetectionService] Error calculating geographic score:', error);
+      securityLogger.error('[FraudDetectionService] Error calculating geographic score:', error);
       return 30;
     }
   }
@@ -480,7 +484,7 @@ export class FraudDetectionService {
 
       return Math.min(100, riskScore);
     } catch (error) {
-      console.error('[FraudDetectionService] Error calculating device score:', error);
+      securityLogger.error('[FraudDetectionService] Error calculating device score:', error);
       return 40;
     }
   }
@@ -537,7 +541,7 @@ export class FraudDetectionService {
 
       return 10; // Normal behavioral pattern
     } catch (error) {
-      console.error('[FraudDetectionService] Error calculating behavioral score:', error);
+      securityLogger.error('[FraudDetectionService] Error calculating behavioral score:', error);
       return 30;
     }
   }
@@ -596,7 +600,7 @@ export class FraudDetectionService {
 
       return 5; // Normal amount
     } catch (error) {
-      console.error('[FraudDetectionService] Error calculating amount score:', error);
+      securityLogger.error('[FraudDetectionService] Error calculating amount score:', error);
       return 30;
     }
   }
@@ -644,7 +648,7 @@ export class FraudDetectionService {
 
       return results;
     } catch (error) {
-      console.error('[FraudDetectionService] Error applying fraud rules:', error);
+      securityLogger.error('[FraudDetectionService] Error applying fraud rules:', error);
       return [];
     }
   }
@@ -693,7 +697,7 @@ export class FraudDetectionService {
       }
       return false;
     } catch (error) {
-      console.error('[FraudDetectionService] Error evaluating rule:', error);
+      securityLogger.error('[FraudDetectionService] Error evaluating rule:', error);
       return false;
     }
   }
@@ -879,10 +883,13 @@ export class FraudDetectionService {
       })
       .returning();
 
-    console.log('[FraudDetectionService] Alert generated', {
+    securityLogger.info('[FraudDetectionService] Alert generated', {
       alertId: alert.id,
       type: alertData.type,
       severity: alertData.severity,
+      tenantId: this.tenantId,
+      guestId: context.guestId,
+      transactionId: context.transactionId,
     });
 
     return alert;
@@ -955,7 +962,7 @@ export class FraudDetectionService {
       const alerts = options?.limit ? await baseQuery.limit(options.limit) : await baseQuery;
       return alerts;
     } catch (error) {
-      console.error('[FraudDetectionService] Error fetching alerts:', error);
+      securityLogger.error('[FraudDetectionService] Error fetching alerts:', error);
       throw error;
     }
   }
@@ -990,7 +997,7 @@ export class FraudDetectionService {
 
       return alert;
     } catch (error) {
-      console.error('[FraudDetectionService] Error updating alert:', error);
+      securityLogger.error('[FraudDetectionService] Error updating alert:', error);
       throw error;
     }
   }
@@ -1070,7 +1077,7 @@ export class FraudDetectionService {
         topFraudTypes,
       };
     } catch (error) {
-      console.error('[FraudDetectionService] Error getting statistics:', error);
+      securityLogger.error('[FraudDetectionService] Error getting statistics:', error);
       throw error;
     }
   }

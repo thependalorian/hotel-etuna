@@ -49,6 +49,8 @@ export interface TrialBalanceRow {
 export interface IncomeStatementReport {
   currency: string;
   roomRevenueExVat: number;
+  conferenceRevenueExVat: number;
+  campsiteRevenueExVat: number;
   fnbRevenueExVat: number;
   otherRevenueExVat: number;
   totalRevenueExVat: number;

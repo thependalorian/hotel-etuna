@@ -10,6 +10,7 @@
 import 'server-only';
 
 import { PostHog } from 'posthog-node';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 let client: PostHog | null | undefined;
 
@@ -66,6 +67,6 @@ export async function captureServerException(
     }
     await ph.flush();
   } catch (e) {
-    console.error('[PostHog] captureServerException failed', e);
+    securityLogger.error('[PostHog] captureServerException failed', e);
   }
 }

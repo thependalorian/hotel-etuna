@@ -169,7 +169,7 @@ Hotel Etuna recognizes the following rights for data subjects:
 
 ### 6.1 Right to Access (Subject Access Request)
 
-- **Process:** Submit request via email to privacy@hoteletuna.com
+- **Process:** Submit request via email to admin@hoteletuna.com
 - **Response Time:** 30 days (free of charge)
 - **Format:** JSON export of all personal data
 - **Implementation:** `GET /api/guest/export` endpoint
@@ -182,7 +182,7 @@ Hotel Etuna recognizes the following rights for data subjects:
 
 ### 6.3 Right to Erasure ("Right to be Forgotten")
 
-- **Process:** Submit deletion request via privacy@hoteletuna.com
+- **Process:** Submit deletion request via admin@hoteletuna.com
 - **Response Time:** 30 days
 - **Exceptions:** Cannot delete if legal retention applies (tax, PSD-12)
 - **Implementation:** `DELETE /api/guest/account` (soft delete/anonymization)
@@ -220,7 +220,7 @@ Hotel Etuna recognizes the following rights for data subjects:
 
 ### 6.8 Right to Complain
 
-- **Internal:** Contact privacy@hoteletuna.com or CTO
+- **Internal:** Contact admin@hoteletuna.com or CTO
 - **Supervisory Authority:** Namibia Data Protection Supervisory Authority (once established)
 - **Alternative:** South African Information Regulator (POPIA) for cross-border complaints
 
@@ -510,7 +510,7 @@ To verify your identity, please provide:
 - Last booking confirmation email
 
 **Submission:**
-- Email: privacy@hoteletuna.com
+- Email: admin@hoteletuna.com
 - Subject: "Data Subject Request - [Request Type]"
 
 **Response Timeline:** 30 days from verified submission

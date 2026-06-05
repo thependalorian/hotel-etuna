@@ -19,6 +19,7 @@ import {
   transactions,
 } from '@/lib/db';
 import { count, eq, gte, notInArray, and, or, isNotNull } from 'drizzle-orm';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export interface ComplianceSnapshot {
   openSupportTickets: number;
@@ -37,7 +38,7 @@ async function safeCount(label: string, run: () => Promise<number>): Promise<num
   try {
     return await run();
   } catch (err) {
-    console.warn(`[compliance-snapshot] ${label} skipped`, err);
+    securityLogger.warn(`[compliance-snapshot] ${label} skipped`, err);
     return 0;
   }
 }

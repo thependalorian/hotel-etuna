@@ -7,7 +7,7 @@
  * Platform fees: platform_fee_accruals → expense (+ input VAT when Buffr tax invoice).
  */
 
-import { db, bookingCharges, transactions, platformFeeAccruals } from '@/lib/db';
+import { db, bookingCharges, bookings, transactions, platformFeeAccruals } from '@/lib/db';
 import { HOSPITALITY_REPORT_FIELD_LABELS } from '@/lib/domain/accounting/accounting-terminology';
 import {
   cashAccountForPayment,
@@ -30,6 +30,12 @@ import {
   NAMIBIA_NON_MINING_CORPORATE_TAX_RATE_2025,
 } from '@/lib/platform/namibia-tax';
 import { and, eq, gte, inArray, lte } from 'drizzle-orm';
+
+function bookingKindById(
+  rows: { id: string; bookingKind: string | null }[]
+): Map<string, string> {
+  return new Map(rows.map((r) => [r.id, r.bookingKind ?? 'accommodation']));
+}
 
 const HOSPITALITY_CHARGE_TYPES = ['room', 'fnb', 'adjustment'] as const;
 
@@ -137,8 +143,22 @@ export class HospitalityAccountingService {
         )
       );
 
+    const bookingIds = [...new Set(settledCharges.map((c) => c.bookingId))];
+    const bookingKindRows =
+      bookingIds.length > 0
+        ? await db
+            .select({ id: bookings.id, bookingKind: bookings.bookingKind })
+            .from(bookings)
+            .where(
+              and(eq(bookings.tenantId, tenantId), inArray(bookings.id, bookingIds))
+            )
+        : [];
+    const kindByBooking = bookingKindById(bookingKindRows);
+
     const journalLines: JournalLine[] = [];
     let roomExVat = 0;
+    let conferenceExVat = 0;
+    let campsiteExVat = 0;
     let fnbExVat = 0;
     let otherExVat = 0;
     let vatOutput = 0;
@@ -148,10 +168,19 @@ export class HospitalityAccountingService {
       const vat = computeHospitalityVatBreakdown(gross, profile);
       const revCode = revenueAccountForChargeType(charge.chargeType);
       const date = charge.settledAt?.toISOString() ?? from.toISOString();
+      const bKind = kindByBooking.get(charge.bookingId) ?? 'accommodation';
 
-      if (charge.chargeType === 'room') roomExVat += vat.amountExVat;
-      else if (charge.chargeType === 'fnb') fnbExVat += vat.amountExVat;
-      else otherExVat += vat.amountExVat;
+      if (charge.chargeType === 'room') {
+        roomExVat += vat.amountExVat;
+      } else if (charge.chargeType === 'fnb') {
+        fnbExVat += vat.amountExVat;
+      } else if (charge.chargeType === 'adjustment') {
+        if (bKind === 'conference') conferenceExVat += vat.amountExVat;
+        else if (bKind === 'campsite') campsiteExVat += vat.amountExVat;
+        else otherExVat += vat.amountExVat;
+      } else {
+        otherExVat += vat.amountExVat;
+      }
       vatOutput += vat.vatAmount;
 
       pushLine(journalLines, {
@@ -260,7 +289,9 @@ export class HospitalityAccountingService {
       });
     }
 
-    const totalRevenueExVat = roundMoney(roomExVat + fnbExVat + otherExVat);
+    const totalRevenueExVat = roundMoney(
+      roomExVat + conferenceExVat + campsiteExVat + fnbExVat + otherExVat
+    );
     const totalRevenueInclVat = roundMoney(totalRevenueExVat + vatOutput);
     const totalExpensesInclVat = roundMoney(platformFeesExVat + vatInput);
     const netBeforeTax = roundMoney(totalRevenueExVat - platformFeesExVat);
@@ -271,6 +302,8 @@ export class HospitalityAccountingService {
     const incomeStatement: IncomeStatementReport = {
       currency,
       roomRevenueExVat: roundMoney(roomExVat),
+      conferenceRevenueExVat: roundMoney(conferenceExVat),
+      campsiteRevenueExVat: roundMoney(campsiteExVat),
       fnbRevenueExVat: roundMoney(fnbExVat),
       otherRevenueExVat: roundMoney(otherExVat),
       totalRevenueExVat,

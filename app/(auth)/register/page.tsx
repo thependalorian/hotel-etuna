@@ -1,3 +1,10 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Create Account',
+  description: 'Create your Hotel Etuna guest account.',
+};
+
 import React from 'react';
 import Link from 'next/link';
 import { RegisterForm } from '@/components/features/auth/RegisterForm';

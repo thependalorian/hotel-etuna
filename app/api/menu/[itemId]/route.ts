@@ -12,6 +12,7 @@ import { withApiAuth, errorResponse, successResponse } from '@/lib/utils/api-hel
 import { MenuService } from '@/lib/services/menu/MenuService';
 import { entityId } from '@/lib/validation/entity-ids';
 import * as z from 'zod';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const menuService = new MenuService();
 
@@ -50,7 +51,7 @@ export async function GET(
         }
         return successResponse(item);
       } catch (error: unknown) {
-        console.error('[GET /api/menu/[itemId]]', error);
+        securityLogger.error('[GET /api/menu/[itemId]]', error);
         return errorResponse('Internal server error', 500, 'INTERNAL_ERROR');
       }
     },
@@ -119,7 +120,7 @@ export async function PATCH(
         if (message.includes('not found')) {
           return errorResponse('Menu item not found', 404, 'NOT_FOUND');
         }
-        console.error('[PATCH /api/menu/[itemId]]', error);
+        securityLogger.error('[PATCH /api/menu/[itemId]]', error);
         return errorResponse(message, 500, 'INTERNAL_ERROR');
       }
     },
@@ -155,7 +156,7 @@ export async function DELETE(
         if (message.includes('not found')) {
           return errorResponse('Menu item not found', 404, 'NOT_FOUND');
         }
-        console.error('[DELETE /api/menu/[itemId]]', error);
+        securityLogger.error('[DELETE /api/menu/[itemId]]', error);
         return errorResponse(message, 500, 'INTERNAL_ERROR');
       }
     },

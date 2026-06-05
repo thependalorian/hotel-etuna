@@ -55,8 +55,8 @@ export function BookingForm() {
       }
 
       const newBooking = await response.json();
-      // Redirect to a confirmation page or the user's dashboard
-      router.push(`/bookings/${newBooking.id}`);
+      // Redirect to deposit payment page for online bookings
+      router.push(`/payment/booking-deposit?bookingId=${newBooking.id}`);
 
     } catch {
       setError('An unexpected error occurred. Please try again.');

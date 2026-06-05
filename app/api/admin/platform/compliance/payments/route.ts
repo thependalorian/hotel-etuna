@@ -10,6 +10,7 @@ import { getCurrentPlatformAdmin, isPlatformAdmin } from '@/lib/auth/platform-ad
 import { getPaymentsByRailSince } from '@/lib/compliance/payments-by-rail';
 import { enforcePlatformAdminRateLimit } from '@/lib/compliance/with-admin-rate-limit';
 import { labelForRailBucket } from '@/lib/payments/namibia-payment-rails';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
       rows: labeled,
     });
   } catch (err) {
-    console.error('[compliance/payments]', err);
+    securityLogger.error('[compliance/payments]', err);
     return NextResponse.json({ error: 'Failed to aggregate payments' }, { status: 500 });
   }
 }

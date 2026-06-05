@@ -27,6 +27,7 @@ import { eq, and, desc } from 'drizzle-orm';
 import { ImapFlow } from 'imapflow';
 import { simpleParser, ParsedMail } from 'mailparser';
 import { v4 as uuidv4 } from 'uuid';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 interface EmailAttachment {
   filename: string;
@@ -64,7 +65,7 @@ export class EmailInboxService {
         .limit(1);
 
       if (!configRow || !configRow.isActive) {
-        console.log(`Inbox config ${configId} not found or inactive`);
+        securityLogger.info(`Inbox config ${configId} not found or inactive`, { configId });
         return 0;
       }
 
@@ -89,19 +90,19 @@ export class EmailInboxService {
         });
 
         await client.connect();
-        console.log(`Connected to IMAP server for ${emailAddress}`);
+        securityLogger.info(`Connected to IMAP server for ${emailAddress}`, { emailAddress });
 
         const folderName = config.folderName ?? 'INBOX';
         const mailbox = await client.mailboxOpen(folderName);
-        console.log(`Opened mailbox: ${folderName}`);
-        console.log(`Mailbox has ${mailbox.exists} messages`);
+        securityLogger.info(`Opened mailbox: ${folderName}`, { folderName, emailAddress });
+        securityLogger.info(`Mailbox has ${mailbox.exists} messages`, { mailboxExists: mailbox.exists, emailAddress });
 
         let messages: number[] = [];
         const lastUid = config.lastEmailUid != null ? Number(config.lastEmailUid) : null;
 
         try {
           if (lastUid != null && lastUid > 0) {
-            console.log(`Fetching emails with UID > ${lastUid}`);
+            securityLogger.info(`Fetching emails with UID > ${lastUid}`, { lastUid, emailAddress });
             const searchResult = await client.search({ uid: `${lastUid + 1}:*` }, { uid: true });
             messages = Array.isArray(searchResult) ? searchResult : [];
           } else {
@@ -116,7 +117,7 @@ export class EmailInboxService {
             }
           }
         } catch (searchError: unknown) {
-          console.error('Search error, trying alternative method:', (searchError as Error).message);
+          securityLogger.error('Search error, trying alternative method:', (searchError as Error).message);
           try {
             const allMessages = await client.search({ all: true }, { uid: true });
             messages = Array.isArray(allMessages) ? allMessages : [];
@@ -128,7 +129,7 @@ export class EmailInboxService {
           }
         }
 
-        console.log(`Found ${messages.length} new emails`);
+        securityLogger.info(`Found ${messages.length} new emails`, { newEmailsCount: messages.length, emailAddress });
 
         let maxUid = lastUid ?? 0;
 
@@ -152,7 +153,7 @@ export class EmailInboxService {
               maxUid = Math.max(maxUid, Number(uid));
             }
           } catch (error) {
-            console.error(`Error processing email UID ${uid}:`, error);
+            securityLogger.error(`Error processing email UID ${uid}:`, error);
           }
         }
 
@@ -165,7 +166,7 @@ export class EmailInboxService {
           })
           .where(eq(sofiaEmailInboxConfig.id, configId));
 
-        console.log(`Fetched ${fetchedCount} new emails for ${emailAddress}`);
+        securityLogger.info(`Fetched ${fetchedCount} new emails for ${emailAddress}`, { fetchedCount, emailAddress });
       } finally {
         if (client) {
           await client.logout();
@@ -174,7 +175,7 @@ export class EmailInboxService {
 
       return fetchedCount;
     } catch (error) {
-      console.error(`Error fetching emails for config ${configId}:`, error);
+      securityLogger.error(`Error fetching emails for config ${configId}:`, error);
       throw error;
     }
   }
@@ -325,7 +326,7 @@ export class EmailInboxService {
         .limit(1);
 
       if (existingEmail) {
-        console.log(`Email with message_id ${emailData.messageId} already exists, skipping...`);
+        securityLogger.info(`Email with message_id ${emailData.messageId} already exists, skipping...`, { messageId: emailData.messageId, emailAddress: config.emailAddress });
         return;
       }
 
@@ -353,7 +354,7 @@ export class EmailInboxService {
         metadata: {},
       });
     } catch (error) {
-      console.error('Error storing incoming email:', error);
+      securityLogger.error('Error storing incoming email:', error);
       throw error;
     }
   }
@@ -386,7 +387,7 @@ export class EmailInboxService {
           await this.processEmail(email);
           processedCount++;
         } catch (error) {
-          console.error(`Error processing email ${email.id}:`, error);
+          securityLogger.error(`Error processing email ${email.id}:`, error);
           await db
             .update(sofiaIncomingEmails)
             .set({
@@ -401,7 +402,7 @@ export class EmailInboxService {
 
       return processedCount;
     } catch (error) {
-      console.error('Error processing pending emails:', error);
+      securityLogger.error('Error processing pending emails:', error);
       throw error;
     }
   }

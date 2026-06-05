@@ -15,10 +15,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
+import { AppError } from '@/lib/utils/errors';
 import { BonIncidentReportingService } from '@/lib/services/compliance/BonIncidentReportingService';
 import { neon } from '@neondatabase/serverless';
 import { entityId } from '@/lib/validation/entity-ids';
 import { z } from 'zod';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 // Preliminary report schema (24-hour notification)
 const preliminaryReportSchema = z.object({
@@ -65,14 +68,15 @@ const reportSchema = z.discriminatedUnion('reportType', [
  */
 export async function POST(req: NextRequest) {
   try {
+    const user = await requireTenantSessionUser(req);
     // Parse and validate request
     const body = await req.json();
     const validatedData = reportSchema.parse(body);
     
-    console.log('[API:BonIncident] Processing incident report:', {
+    securityLogger.info('[API:BonIncident] Processing incident report', {
       reportType: validatedData.reportType,
       incidentId: validatedData.incidentId,
-      tenantId: validatedData.tenantId,
+      tenantId: user.tenantId,
     });
     
     // Initialize service
@@ -146,7 +150,7 @@ export async function POST(req: NextRequest) {
     
     // Submit to Bank of Namibia
     const submissionResult = await bonService.submitToBoN(
-      validatedData.tenantId,
+      user.tenantId,
       report,
       validatedData.submittedBy
     );
@@ -162,9 +166,10 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    console.log('[API:BonIncident] Report submitted successfully:', {
+    securityLogger.info('[API:BonIncident] Report submitted successfully', {
       bonReference: submissionResult.bonReference,
       reportType: validatedData.reportType,
+      tenantId: user.tenantId,
     });
     
     return NextResponse.json({
@@ -190,7 +195,7 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    console.error('[API:BonIncident] Error:', error);
+    securityLogger.error('[API:BonIncident] Error:', error);
     
     return NextResponse.json(
       {
@@ -255,7 +260,7 @@ export async function GET(req: NextRequest) {
     });
     
   } catch (error) {
-    console.error('[API:BonIncident:Stats] Error:', error);
+    securityLogger.error('[API:BonIncident:Stats] Error:', error);
     
     return NextResponse.json(
       {

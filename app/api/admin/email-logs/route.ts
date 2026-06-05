@@ -12,6 +12,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { db, sofiaEmailLogs } from '@/lib/db';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { getAuthenticatedUser } from '@/lib/utils/api-helpers';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export async function GET(request: NextRequest) {
   try {
@@ -72,7 +73,7 @@ export async function GET(request: NextRequest) {
       total: emailLogs.length,
     }, { status: 200 });
   } catch (error: unknown) {
-    console.error('Error fetching email logs:', error);
+    securityLogger.error('Error fetching email logs:', error);
     return NextResponse.json({
       message: 'Failed to fetch email logs',
       error: process.env.NODE_ENV === 'development' && error instanceof Error ? error.message : undefined,

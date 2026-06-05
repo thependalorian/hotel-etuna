@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AdumoVirtualService } from '@/lib/services/payment/AdumoVirtualService';
 import { completeAdumoVirtualPayment } from '@/lib/services/payment/completeAdumoVirtualPayment';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json({ received: true }, { status: 200 });
   } catch (error) {
-    console.error('[Adumo webhook]', error);
+    securityLogger.error('[Adumo webhook]', error);
     if (!AdumoVirtualService.isPaymentSuccess(decoded.result)) {
       return NextResponse.json({ received: true, declined: true }, { status: 200 });
     }

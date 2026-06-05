@@ -6,6 +6,7 @@ import { EmailService } from '@/lib/services/sofia/EmailService';
 import { EmailTemplateService } from '@/lib/services/sofia/EmailTemplateService';
 import bcryptjs from 'bcryptjs';
 import * as z from 'zod';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const resetPasswordSchema = z.object({
   token: z.string().min(1, { message: 'Reset token is required.' }),
@@ -68,14 +69,23 @@ export async function POST(request: Request) {
         htmlContent: notificationEmail.html,
         textContent: notificationEmail.text,
       })
-      .catch((err) => console.error('Failed to send password change notification:', err));
+      .catch((err) => {
+        securityLogger.error('[ResetPassword] Failed to send password change notification', {
+          email: user.email,
+          error: err instanceof Error ? err.message : String(err),
+          stack: err instanceof Error ? err.stack?.substring(0, 500) : undefined,
+        });
+      });
 
     return NextResponse.json({
       message: 'Password has been reset successfully.',
       success: true,
     }, { status: 200 });
   } catch (error) {
-    console.error('Reset password error:', error);
+    securityLogger.error('[ResetPassword] Reset password error', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack?.substring(0, 500) : undefined,
+    });
     return NextResponse.json({
       message: 'An unexpected error occurred.',
     }, { status: 500 });

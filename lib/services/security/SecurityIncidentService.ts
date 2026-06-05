@@ -32,6 +32,7 @@
 import { db, cybersecurityIncidents, auditTrail } from '@/lib/db';
 import { eq, and, gte, desc, sql } from 'drizzle-orm';
 import type { NextRequest } from 'next/server';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 // ============================================================================
 // TYPES
@@ -166,7 +167,7 @@ export class SecurityIncidentService {
 
       return this.formatIncidentReport(incident);
     } catch (error: any) {
-      console.error('[SecurityIncidentService] Create incident error:', error);
+      securityLogger.error('[SecurityIncidentService] Create incident error:', error);
       throw new Error(`Failed to create security incident: ${error.message}`);
     }
   }
@@ -213,7 +214,7 @@ export class SecurityIncidentService {
           current.severity === 'critical' &&
           updates.recoveryTimeMinutes > this.CRITICAL_INCIDENT_RTO_MINUTES
         ) {
-          console.warn(
+          securityLogger.warn(
             `[SecurityIncidentService] Critical incident ${incidentId} exceeded RTO: ${updates.recoveryTimeMinutes} minutes (limit: ${this.CRITICAL_INCIDENT_RTO_MINUTES})`
           );
         }
@@ -245,7 +246,7 @@ export class SecurityIncidentService {
 
       return this.formatIncidentReport(updated);
     } catch (error: any) {
-      console.error('[SecurityIncidentService] Update incident status error:', error);
+      securityLogger.error('[SecurityIncidentService] Update incident status error:', error);
       throw new Error(`Failed to update incident status: ${error.message}`);
     }
   }
@@ -268,7 +269,7 @@ export class SecurityIncidentService {
 
       // Check if already reported
       if (incident.reportedToBonAt) {
-        console.warn(`Incident ${incidentId} already reported to BoN`);
+        securityLogger.warn(`Incident ${incidentId} already reported to BoN`);
         return true;
       }
 
@@ -279,7 +280,7 @@ export class SecurityIncidentService {
       );
 
       if (minutesSinceDetection > this.BON_NOTIFICATION_THRESHOLD_MINUTES) {
-        console.warn(
+        securityLogger.warn(
           `[SecurityIncidentService] Incident ${incidentId} reported to BoN after threshold: ${minutesSinceDetection} minutes (limit: ${this.BON_NOTIFICATION_THRESHOLD_MINUTES})`
         );
       }
@@ -312,7 +313,7 @@ export class SecurityIncidentService {
           throw new Error(`BoN API error (${response.status}): ${text}`);
         }
       } else {
-        console.warn(
+        securityLogger.warn(
           '[SecurityIncidentService] BON_API_URL/BON_API_KEY missing; BoN submission simulated',
           reportPayload
         );
@@ -342,7 +343,7 @@ export class SecurityIncidentService {
 
       return true;
     } catch (error: any) {
-      console.error('[SecurityIncidentService] Report to BoN error:', error);
+      securityLogger.error('[SecurityIncidentService] Report to BoN error:', error);
       return false;
     }
   }
@@ -362,7 +363,7 @@ export class SecurityIncidentService {
 
       return this.formatIncidentReport(incident);
     } catch (error: any) {
-      console.error('[SecurityIncidentService] Get incident error:', error);
+      securityLogger.error('[SecurityIncidentService] Get incident error:', error);
       return null;
     }
   }
@@ -401,7 +402,7 @@ export class SecurityIncidentService {
 
       return incidents.map(this.formatIncidentReport);
     } catch (error: any) {
-      console.error('[SecurityIncidentService] List incidents error:', error);
+      securityLogger.error('[SecurityIncidentService] List incidents error:', error);
       return [];
     }
   }
@@ -492,7 +493,7 @@ export class SecurityIncidentService {
         unresolvedIncidents,
       };
     } catch (error: any) {
-      console.error('[SecurityIncidentService] Get statistics error:', error);
+      securityLogger.error('[SecurityIncidentService] Get statistics error:', error);
       return {
         totalIncidents: 0,
         byType: {} as any,
@@ -529,7 +530,7 @@ export class SecurityIncidentService {
 
       return overdueIncidents.map((i) => i.id);
     } catch (error: any) {
-      console.error('[SecurityIncidentService] Check overdue notifications error:', error);
+      securityLogger.error('[SecurityIncidentService] Check overdue notifications error:', error);
       return [];
     }
   }
@@ -544,7 +545,7 @@ export class SecurityIncidentService {
   private static async triggerBonNotificationWorkflow(
     incidentId: string
   ): Promise<void> {
-    console.warn(
+    securityLogger.warn(
       `[SecurityIncidentService] CRITICAL INCIDENT DETECTED: ${incidentId}. Bank of Namibia must be notified within ${this.BON_NOTIFICATION_THRESHOLD_MINUTES} minutes.`
     );
   }
@@ -644,6 +645,6 @@ export async function logSecurityIncident(
       metadata: options?.metadata,
     });
   } catch (error) {
-    console.error('[logSecurityIncident] Failed to log incident:', error);
+    securityLogger.error('[logSecurityIncident] Failed to log incident:', error);
   }
 }

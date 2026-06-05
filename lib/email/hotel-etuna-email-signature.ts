@@ -22,7 +22,7 @@ const LEGAL_LINE =
   'Etuna Guesthouse and Tours CC · CC/2011/3890 · VAT 05517026-015';
 
 const AMENITIES_LINE =
-  '5 room types · 35 rooms · Conference facilities · Restaurant · Swimming pool · Free Wi‑Fi';
+  'Standard, Executive & Premiere rooms · 35 rooms · Conference facilities · Restaurant · Swimming pool · Free Wi‑Fi';
 
 const SERVICES_LINE = `${brand.proofPoints.shuttle} · ${brand.proofPoints.tradeFair}`;
 
@@ -145,7 +145,7 @@ export function getHotelEtunaEmailSignatureHtml(
               <tr>
                 <td style="vertical-align: top; padding-right: 8px;">✉️</td>
                 <td style="padding-bottom: 6px;">
-                  <a href="mailto:${brand.email}" style="color: ${c.khaki600}; text-decoration: none; border-bottom: 1px solid ${c.nude200};">${brand.email}</a>
+                  <a href="mailto:${brand.emailFrontDesk}" style="color: ${c.khaki600}; text-decoration: none; border-bottom: 1px solid ${c.nude200};">${brand.emailFrontDesk}</a>
                 </td>
               </tr>
               <tr>
@@ -199,7 +199,7 @@ export function getHotelEtunaEmailSignaturePlainText(
   lines.push(
     brand.address,
     brand.phones.replace(' | ', '  |  '),
-    brand.email,
+    brand.emailFrontDesk,
     siteUrl,
     ''
   );

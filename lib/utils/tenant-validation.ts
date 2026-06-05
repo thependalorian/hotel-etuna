@@ -18,6 +18,7 @@ import { db } from '@/lib/db';
 import { tenants } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { NextRequest } from 'next/server';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 /**
  * Extract subdomain from hostname
@@ -72,7 +73,7 @@ export async function validateTenant(
       tenant,
     };
   } catch (error) {
-    console.error('Tenant validation error:', error);
+    securityLogger.error('Tenant validation error:', error);
     return { valid: false };
   }
 }

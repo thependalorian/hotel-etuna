@@ -15,6 +15,7 @@
 
 import { useState, useEffect } from 'react';
 import { Users, Shield, Search, FileCheck, AlertTriangle } from 'lucide-react';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface PEPFlag {
   flag: {
@@ -65,7 +66,7 @@ export default function PEPManagement({ tenantId }: PEPManagementProps) {
         setPepFlags(result.data.pepFlags);
       }
     } catch (error) {
-      console.error('Error fetching PEP flags:', error);
+      securityLogger.error('Error fetching PEP flags:', error);
     } finally {
       setLoading(false);
     }
@@ -93,7 +94,7 @@ export default function PEPManagement({ tenantId }: PEPManagementProps) {
         }
       }
     } catch (error) {
-      console.error('Error screening guest:', error);
+      securityLogger.error('Error screening guest:', error);
     }
   };
 

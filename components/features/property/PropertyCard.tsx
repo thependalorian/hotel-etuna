@@ -5,6 +5,7 @@ import type { Property } from '@/lib/db/schema';
 import Link from 'next/link';
 import { apiUrl } from '@/lib/utils/api-url';
 import { ImagePlaceholder, PropertyAvatar } from '@/components/ui';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 type PropertyCardProps = {
   property: Property & {
@@ -31,7 +32,7 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
           }
         }
       } catch (error) {
-        console.error('Error fetching property media:', error);
+        securityLogger.error('Error fetching property media:', error);
       }
     };
 
@@ -46,7 +47,7 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
           }
         }
       } catch (error) {
-        console.error('Error fetching property content:', error);
+        securityLogger.error('Error fetching property content:', error);
       }
     };
 

@@ -16,9 +16,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
+import { AppError } from '@/lib/utils/errors';
 import { PaymentSecurityService } from '@/lib/services/payment/PaymentSecurityService';
 import { entityId, entityIdOptional } from '@/lib/validation/entity-ids';
 import { z } from 'zod';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 // Request validation schema
 const paymentSecuritySchema = z.object({
@@ -62,14 +65,16 @@ export async function POST(req: NextRequest) {
   
   try {
     // Parse and validate request
+    const user = await requireTenantSessionUser(req);
     const body = await req.json();
     const validatedData = paymentSecuritySchema.parse(body);
     
-    console.log('[API:PaymentSecurity] Validating payment security:', {
+    securityLogger.info('[API:PaymentSecurity] Validating payment security', {
       userId: validatedData.userId,
       amount: validatedData.amount,
       currency: validatedData.currency,
       twoFaMethod: validatedData.twoFaMethod,
+      tenantId: user.tenantId,
     });
     
     // Initialize service
@@ -78,7 +83,7 @@ export async function POST(req: NextRequest) {
     // Run comprehensive security validation
     const result = await securityService.validatePaymentSecurity({
       userId: validatedData.userId,
-      tenantId: validatedData.tenantId,
+      tenantId: user.tenantId,
       bookingId: validatedData.bookingId,
       amount: validatedData.amount,
       currency: validatedData.currency,
@@ -93,12 +98,13 @@ export async function POST(req: NextRequest) {
     
     const processingTime = Date.now() - startTime;
     
-    console.log('[API:PaymentSecurity] Validation complete:', {
+    securityLogger.info('[API:PaymentSecurity] Validation complete', {
       securityPassed: result.securityPassed,
       fraudScore: result.fraudScore,
       riskLevel: result.riskLevel,
-      processingTime: `${processingTime}ms`,
+      processingTimeMs: processingTime,
       psd7Efficient: processingTime < 3000, // PSD-7 target
+      tenantId: user.tenantId,
     });
     
     // Return security assessment
@@ -149,7 +155,7 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    console.error('[API:PaymentSecurity] Error:', error);
+    securityLogger.error('[API:PaymentSecurity] Error:', error);
     
     return NextResponse.json(
       {
@@ -202,7 +208,7 @@ export async function GET(req: NextRequest) {
     });
     
   } catch (error) {
-    console.error('[API:PaymentSecurity:Stats] Error:', error);
+    securityLogger.error('[API:PaymentSecurity:Stats] Error:', error);
     
     return NextResponse.json(
       {

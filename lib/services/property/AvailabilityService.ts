@@ -53,6 +53,7 @@ export class AvailabilityService {
         .where(
           and(
             eq(rooms.propertyId, propertyId),
+            eq(rooms.inventoryKind, 'guest_room'),
             sql`${rooms.status} IS DISTINCT FROM 'OUT_OF_ORDER'`
           )
         );

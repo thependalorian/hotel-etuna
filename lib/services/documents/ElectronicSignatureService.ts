@@ -18,6 +18,8 @@
 
 import crypto from 'crypto';
 import { executeRawSql as sql } from '@/lib/db';
+import { securityLogger } from '@/lib/utils/security-logger';
+import { EncryptionService } from '@/lib/services/security/EncryptionService';
 
 interface SignatureRequest {
   documentType: 
@@ -77,7 +79,7 @@ export class ElectronicSignatureService {
     request: SignatureRequest
   ): Promise<ElectronicSignature> {
     try {
-      console.log('[ElectronicSignature] Capturing signature:', {
+      securityLogger.info('[ElectronicSignature] Capturing signature:', {
         documentType: request.documentType,
         signerId: request.signerId,
         method: request.signatureMethod,
@@ -171,7 +173,7 @@ export class ElectronicSignatureService {
         RETURNING id, document_hash, signature_timestamp, eta_compliant, legally_binding, verified
       `;
       
-      console.log('[ElectronicSignature] Signature captured successfully:', {
+      securityLogger.info('[ElectronicSignature] Signature captured successfully:', {
         signatureId: result[0].id,
         documentHash: result[0].document_hash,
         etaCompliant: result[0].eta_compliant,
@@ -188,7 +190,7 @@ export class ElectronicSignatureService {
       };
       
     } catch (error) {
-      console.error('[ElectronicSignature] Failed to capture signature:', error);
+      securityLogger.error('[ElectronicSignature] Failed to capture signature:', error);
       throw new Error('Electronic signature capture failed');
     }
   }
@@ -221,7 +223,7 @@ export class ElectronicSignatureService {
     // Compare with stored hash
     const verified = currentHash === signature[0].document_hash;
     
-    console.log('[ElectronicSignature] Signature verification:', {
+    securityLogger.info('[ElectronicSignature] Signature verification:', {
       signatureId,
       verified,
       originalHash: signature[0].document_hash,
@@ -275,7 +277,7 @@ export class ElectronicSignatureService {
       WHERE id = ${signatureId}::uuid
     `;
     
-    console.log('[ElectronicSignature] Signature voided:', signatureId);
+    securityLogger.info('[ElectronicSignature] Signature voided:', signatureId);
   }
   
   /**
@@ -318,9 +320,15 @@ export class ElectronicSignatureService {
    * Encrypt signature data (sensitive)
    */
   private encryptSignatureData(signatureData: string): string {
-    // TODO: Use EncryptionService for AES-256-GCM encryption
-    // For now, return as-is (should be encrypted in production)
-    return signatureData;
+    try {
+      const result = EncryptionService.encrypt(signatureData);
+      return result.encrypted;
+    } catch (error) {
+      securityLogger.error('[ElectronicSignatureService] Failed to encrypt signature data', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw new Error('Failed to encrypt signature data');
+    }
   }
   
   /**

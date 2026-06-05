@@ -9,7 +9,6 @@
 
 import posthog from 'posthog-js';
 import { buildPostHogClientOptions, getPostHogApiKey } from '@/lib/posthog-client-options';
-
 export const initPostHog = () => {
   if (typeof window === 'undefined') {
     return null;
@@ -17,6 +16,7 @@ export const initPostHog = () => {
 
   const apiKey = getPostHogApiKey();
   if (!apiKey) {
+    // console.warn intentional: client-side browser warning, securityLogger is no-op in browser
     console.warn('PostHog API key not configured. Analytics disabled.');
     return null;
   }

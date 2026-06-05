@@ -7,7 +7,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
-import { getHubRooms } from '@/lib/data/rooms';
+import { getHubRoomTypeCatalog } from '@/lib/data/room-type-catalog';
 import PublicHero from '@/components/shared/PublicHero';
 import Footer from '@/components/shared/Footer';
 import NavigationHeader from '@/components/sections/landing/NavigationHeader';
@@ -29,8 +29,8 @@ export const metadata: Metadata = {
 export default async function RoomsPage() {
   const session = await getServerSession(authOptions);
   const isAuthenticated = Boolean(session?.user);
-  const roomRows = await getHubRooms();
-  const firstTourSlug = roomRows[0]?.slug ?? 'standard-room';
+  const roomRows = await getHubRoomTypeCatalog();
+  const firstTourSlug = roomRows[0]?.slug ?? 'standard-room-type-a';
 
   return (
     <div className="min-h-screen bg-surface-background">

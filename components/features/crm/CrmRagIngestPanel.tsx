@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { apiUrl } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export type CrmRagIngestPropertyOption = { id: string; name: string };
 
@@ -81,7 +82,7 @@ export default function CrmRagIngestPanel({ properties }: { properties: CrmRagIn
         setError('Unexpected response from server.');
       }
     } catch (e) {
-      console.error(e);
+      securityLogger.error("[error]", e);
       setError('Network error — try again.');
     } finally {
       setSubmitting(false);

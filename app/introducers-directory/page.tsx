@@ -130,22 +130,22 @@ export default async function IntroducersDirectoryPage() {
                       </Button>
                       
                       {partner.website && (
-                        <Button
-                          asChild
-                          variant="outline"
-                          size="md"
-                        >
-                          <a 
-                            href={partner.website} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                          </a>
-                        </a>
-                      )}
-                    </div>
+                         <Button
+                           asChild
+                           variant="outline"
+                           size="md"
+                         >
+                           <a 
+                             href={partner.website} 
+                             target="_blank" 
+                             rel="noopener noreferrer"
+                             className="flex items-center gap-1"
+                           >
+                             <ExternalLink className="w-4 h-4" />
+                           </a>
+                         </Button>
+                       )}
+                     </div>
                   </div>
                 ))}
               </div>

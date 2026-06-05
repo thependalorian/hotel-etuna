@@ -18,6 +18,7 @@
 
 import { db } from '@/lib/db';
 import { eq, and, gte, lte, desc, sql, inArray } from 'drizzle-orm';
+import { securityLogger } from '@/lib/utils/security-logger';
 import {
   transactions,
   amlTransactionAlerts,
@@ -179,7 +180,7 @@ export class AMLMonitoringService {
         shouldBlock,
       };
     } catch (error) {
-      console.error('[AMLMonitoringService] Error monitoring transaction:', error);
+      securityLogger.error('[AMLMonitoringService] Error monitoring transaction:', error);
       throw error;
     }
   }

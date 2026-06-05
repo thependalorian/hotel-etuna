@@ -11,6 +11,7 @@ import { aiConversations, sofiaVoiceSessions } from '@/lib/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { processSofiaConciergeMessage } from '@/lib/services/ai/sofia-concierge-handler';
 import type { UserRole } from '@/lib/services/ai/DataFilterService';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export type VoiceWebhookEventType =
   | 'session.started'
@@ -210,7 +211,7 @@ export class VoiceChannelAdapter {
         intent: ai.intent,
       };
     } catch (e) {
-      console.error('[VoiceChannelAdapter]', e);
+      securityLogger.error('[VoiceChannelAdapter]', e);
       return {
         ok: false,
         error: e instanceof Error ? e.message : 'Voice handler error',

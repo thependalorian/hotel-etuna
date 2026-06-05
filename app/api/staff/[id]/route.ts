@@ -12,6 +12,7 @@ import { createStaffSchema } from '@/lib/utils/validation';
 import { entityId } from '@/lib/validation/entity-ids';
 import { AppError } from '@/lib/utils/errors';
 import type { NewStaff } from '@/lib/db/schema';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const staffService = new StaffService();
 
@@ -110,7 +111,7 @@ export async function PATCH(
         if (error instanceof AppError && error.statusCode === 404) {
           return errorResponse('Staff member not found', 404, 'NOT_FOUND');
         }
-        console.error('[PATCH /api/staff/[id]]', error);
+        securityLogger.error('[PATCH /api/staff/[id]]', error);
         return errorResponse('Internal server error', 500, 'INTERNAL_ERROR');
       }
     },
@@ -141,7 +142,7 @@ export async function DELETE(
         if (error instanceof AppError && error.statusCode === 404) {
           return errorResponse('Staff member not found', 404, 'NOT_FOUND');
         }
-        console.error('[DELETE /api/staff/[id]]', error);
+        securityLogger.error('[DELETE /api/staff/[id]]', error);
         return errorResponse('Internal server error', 500, 'INTERNAL_ERROR');
       }
     },

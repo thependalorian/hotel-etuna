@@ -11,6 +11,7 @@ import { db } from '@/lib/db';
 import { tenants, properties, rooms } from '@/lib/db/schema';
 import { eq, and, ne, asc, count } from 'drizzle-orm';
 import { cache } from 'react';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const HUB_TENANT_ID = process.env.HUB_TENANT_ID!;
 
@@ -102,7 +103,7 @@ export const getReferralPartners = cache(async () => {
 
     return partnersWithDetails;
   } catch (error) {
-    console.error('[getReferralPartners] Error:', error);
+    securityLogger.error('[getReferralPartners] Error:', error);
     return [];
   }
 });
@@ -167,7 +168,7 @@ export const getPartnerBySlug = cache(async (slug: string) => {
       rooms: partnerRooms,
     };
   } catch (error) {
-    console.error('[getPartnerBySlug] Error:', error);
+    securityLogger.error('[getPartnerBySlug] Error:', error);
     return null;
   }
 });

@@ -9,6 +9,7 @@ import { and, desc, eq, or } from 'drizzle-orm';
 import { db, crmGraphEdges, crmGuestMemoryFacts } from '@/lib/db';
 import { mem0ListMemoriesForUser, mem0UserId, isMem0Configured } from '@/lib/integrations/mem0';
 import { factsAreSimilar } from '@/lib/services/crm/SofiaGuestFactExtractor';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const MAX_FACTS = 15;
 const MAX_EDGES = 20;
@@ -46,7 +47,7 @@ export class CrmGraphMemoryService {
           ],
         });
     } catch (e) {
-      console.error('[CrmGraphMemoryService] ensureEdge', e);
+      securityLogger.error('[CrmGraphMemoryService] ensureEdge', e);
     }
   }
 
@@ -91,7 +92,7 @@ export class CrmGraphMemoryService {
         .returning({ id: crmGuestMemoryFacts.id });
       return row?.id ?? null;
     } catch (e) {
-      console.error('[CrmGraphMemoryService] addGuestFact', e);
+      securityLogger.error('[CrmGraphMemoryService] addGuestFact', e);
       return null;
     }
   }

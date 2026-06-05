@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/Form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { apiUrl } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const formSchema = z.object({
   name: z.string().min(3, { message: 'Property name must be at least 3 characters.' }),
@@ -42,7 +43,7 @@ export function CreatePropertyForm() {
         address: values.address.trim(),
       };
 
-      console.log('Sending property creation request:', payload);
+      securityLogger.info('Sending property creation request', { propertyName: payload.name, propertyType: payload.type });
 
       const response = await fetch(apiUrl('/api/properties'), {
         method: 'POST',
@@ -54,7 +55,7 @@ export function CreatePropertyForm() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('Property creation failed:', {
+        securityLogger.error('Property creation failed:', {
           status: response.status,
           statusText: response.statusText,
           errorData,
@@ -89,7 +90,7 @@ export function CreatePropertyForm() {
       }
 
     } catch (err) {
-      console.error('Property creation error:', err);
+      securityLogger.error('Property creation error:', err);
       setError('An unexpected error occurred. Please try again.');
     }
   }

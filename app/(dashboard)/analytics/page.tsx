@@ -36,6 +36,7 @@ import BookingTrends from '@/components/features/analytics/BookingTrends';
 import PerformanceMetrics from '@/components/features/analytics/PerformanceMetrics';
 import { TrendingUp, Users, DollarSign, Calendar } from 'lucide-react';
 import { apiUrl } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface AnalyticsData {
   revenue: {
@@ -108,11 +109,11 @@ export default function AnalyticsPage() {
         setData(analyticsData);
       } else {
         // Handle non-OK responses gracefully
-        console.warn('[AnalyticsPage] API returned non-OK status:', response.status);
+        securityLogger.warn('[AnalyticsPage] API returned non-OK status:', response.status);
         setData(null);
       }
     } catch (error) {
-      console.error('[AnalyticsPage] Error fetching analytics data:', error);
+      securityLogger.error('[AnalyticsPage] Error fetching analytics data:', error);
       // Set data to null to show empty state instead of crashing
       setData(null);
     } finally {
@@ -150,7 +151,7 @@ export default function AnalyticsPage() {
         window.URL.revokeObjectURL(url);
       }
     } catch (error) {
-      console.error('Error exporting report:', error);
+      securityLogger.error('Error exporting report:', error);
     }
   };
 

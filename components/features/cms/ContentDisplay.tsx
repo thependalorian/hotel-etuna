@@ -15,6 +15,7 @@
 
 import { useState, useEffect } from 'react';
 import { apiUrl } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface ContentItem {
   id: string;
@@ -64,7 +65,7 @@ export default function ContentDisplay({
         setContent(Array.isArray(data) ? data : []);
         setError(null);
       } catch (err) {
-        console.error('Error fetching content:', err);
+        securityLogger.error('Error fetching content:', err);
         setError('Failed to load content');
       } finally {
         setLoading(false);

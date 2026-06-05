@@ -15,6 +15,7 @@ import type { CrmRagIngestPropertyOption } from '@/components/features/crm/CrmRa
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import ErrorDisplay from '@/components/shared/ErrorDisplay';
 import { apiUrl } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 function normalizePropertiesPayload(raw: unknown): CrmRagIngestPropertyOption[] {
   const list = Array.isArray(raw)
@@ -51,7 +52,7 @@ export default function CrmKnowledgePage() {
         const raw = await res.json();
         setProperties(normalizePropertiesPayload(raw));
       } catch (e) {
-        console.error(e);
+        securityLogger.error("[KnowledgePage] error", e);
         setError(e instanceof Error ? e.message : 'Failed to load properties');
       } finally {
         setLoading(false);

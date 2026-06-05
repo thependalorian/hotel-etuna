@@ -9,6 +9,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface FraudAlert {
   id: string;
@@ -58,7 +59,7 @@ export function FraudAlertsTable({ tenantId }: FraudAlertsTableProps) {
           setAlerts(data.data);
         }
       } catch (error) {
-        console.error('Error fetching alerts:', error);
+        securityLogger.error('Error fetching alerts:', error);
       } finally {
         setLoading(false);
       }

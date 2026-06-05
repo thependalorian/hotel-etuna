@@ -10,6 +10,7 @@ import { withApiAuth, errorResponse, successResponse } from '@/lib/utils/api-hel
 import { HospitalityNamQrPaymentService } from '@/lib/services/payment/HospitalityNamQrPaymentService';
 import { entityId } from '@/lib/validation/entity-ids';
 import { AppError } from '@/lib/utils/errors';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const bodySchema = z.object({
   reason: z.string().max(500).optional(),
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         if (e instanceof AppError) {
           return errorResponse(e.message, e.statusCode, 'NAMQR_REJECT_FAILED');
         }
-        console.error('[namqr/pending/reject]', e);
+        securityLogger.error('[namqr/pending/reject]', e);
         return errorResponse('Reject failed', 500, 'NAMQR_REJECT_FAILED');
       }
     },

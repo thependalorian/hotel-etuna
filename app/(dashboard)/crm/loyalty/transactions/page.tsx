@@ -133,7 +133,7 @@ export default function LoyaltyTransactionsPage() {
   }
 
   if (error) {
-    return <ErrorDisplay message={error} />;
+    return <ErrorDisplay error={error} />;
   }
 
   return (

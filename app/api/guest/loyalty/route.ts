@@ -7,18 +7,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { LoyaltyService } from '@/lib/services/loyalty/LoyaltyService';
 import { db, guests } from '@/lib/db';
-import { getCurrentUserTenantContext } from '@/lib/middleware/withApiAuth';
+import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
 import { and, eq } from 'drizzle-orm';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const loyaltyService = new LoyaltyService();
 
 export async function GET(req: NextRequest) {
   try {
-    const context = await getCurrentUserTenantContext();
-    
-    if (!context) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const context = await requireTenantSessionUser(req);
 
     // Find guest by email
     const guestResult = await db
@@ -26,7 +23,7 @@ export async function GET(req: NextRequest) {
       .from(guests)
       .where(
         and(
-          eq(guests.email, context.user.email.toLowerCase()),
+          eq(guests.email, (context.email ?? '').toLowerCase()),
           eq(guests.tenantId, context.tenantId)
         )
       )
@@ -58,7 +55,7 @@ export async function GET(req: NextRequest) {
       pointsValue: loyaltyService.calculatePointsValue(balance.points),
     });
   } catch (error: any) {
-    console.error('Error fetching guest loyalty:', error);
+    securityLogger.error('Error fetching guest loyalty:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to fetch loyalty information' },
       { status: error.status || 500 }

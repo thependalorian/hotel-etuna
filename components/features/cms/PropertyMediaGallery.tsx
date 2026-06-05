@@ -16,6 +16,7 @@
 import { useState, useEffect } from 'react';
 import { ImagePlaceholder } from '@/components/ui';
 import { apiUrl } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface MediaItem {
   id: string;
@@ -59,7 +60,7 @@ export default function PropertyMediaGallery({
         setMedia(Array.isArray(data) ? data : []);
         setError(null);
       } catch (err) {
-        console.error('Error fetching property media:', err);
+        securityLogger.error('Error fetching property media:', err);
         setError('Failed to load images');
       } finally {
         setLoading(false);

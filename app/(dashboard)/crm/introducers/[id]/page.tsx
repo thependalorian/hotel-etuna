@@ -206,7 +206,7 @@ export default function EditIntroducerPage() {
         </div>
 
         {error && (
-          <ErrorDisplay error={error} title="Error" variant="inline" />
+          <ErrorDisplay error={error} title="Error" variant="minimal" />
         )}
 
         <Card variant="elevated">

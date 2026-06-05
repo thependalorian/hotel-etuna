@@ -30,6 +30,7 @@
 import { db, fraudRiskProfiles, fraudAlerts, fraudDeviceFingerprints, transactions } from '@/lib/db';
 import { eq, and, gte, sql } from 'drizzle-orm';
 import { applyTenantFraudRules } from '@/lib/services/fraud/tenant-fraud-rules';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 // ============================================================================
 // TYPES
@@ -252,9 +253,9 @@ export class PsdFraudGate {
       const riskLevel = this.getRiskLevel(riskScore);
 
       // Determine if transaction should be blocked / reviewed
-      let blocked =
+      const blocked =
         riskScore >= this.RISK_THRESHOLD_CRITICAL || tenantRuleFlags.blocked;
-      let requiresReview =
+      const requiresReview =
         (riskScore >= this.RISK_THRESHOLD_HIGH && !blocked) ||
         (tenantRuleFlags.requiresReview && !blocked);
 
@@ -276,7 +277,7 @@ export class PsdFraudGate {
         requiresReview,
       };
     } catch (error: unknown) {
-      console.error('[PsdFraudGate] Check transaction error:', error);
+      securityLogger.error('[PsdFraudGate] Check transaction error:', error);
 
       const failClosed =
         process.env.NODE_ENV === 'production' ||
@@ -593,7 +594,7 @@ export class PsdFraudGate {
         });
       }
     } catch (error) {
-      console.error('[FraudDetectionService] Log fraud alerts error:', error);
+      securityLogger.error('[FraudDetectionService] Log fraud alerts error:', error);
     }
   }
 
@@ -636,7 +637,7 @@ export class PsdFraudGate {
         });
       }
     } catch (error) {
-      console.error('[FraudDetectionService] Update risk profile error:', error);
+      securityLogger.error('[FraudDetectionService] Update risk profile error:', error);
     }
   }
 
@@ -689,7 +690,7 @@ export class PsdFraudGate {
         updatedAt: new Date(),
       });
     } catch (error) {
-      console.error('[FraudDetectionService] Register device error:', error);
+      securityLogger.error('[FraudDetectionService] Register device error:', error);
     }
   }
 
@@ -706,7 +707,7 @@ export class PsdFraudGate {
         })
         .where(eq(fraudDeviceFingerprints.deviceId, deviceId));
     } catch (error) {
-      console.error('[FraudDetectionService] Block device error:', error);
+      securityLogger.error('[FraudDetectionService] Block device error:', error);
     }
   }
 }

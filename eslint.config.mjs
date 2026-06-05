@@ -9,6 +9,9 @@ const eslintConfig = defineConfig([
     rules: {
       "@typescript-eslint/no-explicit-any": "warn",
       "react/no-unescaped-entities": "warn",
+      // Downgrade from error: valid React pattern — setState in useEffect is intentional
+      // in components like MenuBook pagination reset, Adumo return processing, etc.
+      "react-hooks/set-state-in-effect": "warn",
     },
   },
   {

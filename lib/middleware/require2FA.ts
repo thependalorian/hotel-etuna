@@ -32,6 +32,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { TwoFactorAuthService, type TwoFactorMethod } from '@/lib/services/security/TwoFactorAuthService';
 import { recordAuditTrail } from '@/lib/compliance/record-audit';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 // ============================================================================
 // TYPES
@@ -150,7 +151,7 @@ export async function require2FA(
         },
         request: req,
       }).catch((err) => {
-        console.error('[require2FA] Audit logging failed:', err);
+        securityLogger.error('[require2FA] Audit logging failed:', err);
       });
 
       return {
@@ -187,7 +188,7 @@ export async function require2FA(
       },
       request: req,
     }).catch((err) => {
-      console.error('[require2FA] Audit logging failed:', err);
+      securityLogger.error('[require2FA] Audit logging failed:', err);
     });
 
     // Return success
@@ -196,7 +197,7 @@ export async function require2FA(
       userId,
     };
   } catch (error: any) {
-    console.error('[require2FA] Unexpected error:', error);
+    securityLogger.error('[require2FA] Unexpected error:', error);
 
     return {
       verified: false,
@@ -283,7 +284,7 @@ export async function check2FAEnabled(userId: string): Promise<boolean> {
 
     return configs.length > 0 && Boolean(configs[0].isEnabled);
   } catch (error) {
-    console.error('[check2FAEnabled] Error:', error);
+    securityLogger.error('[check2FAEnabled] Error:', error);
     return false;
   }
 }
@@ -307,7 +308,7 @@ export async function getEnabled2FAMethods(userId: string): Promise<TwoFactorMet
 
     return configs.map((config) => config.method as TwoFactorMethod);
   } catch (error) {
-    console.error('[getEnabled2FAMethods] Error:', error);
+    securityLogger.error('[getEnabled2FAMethods] Error:', error);
     return [];
   }
 }

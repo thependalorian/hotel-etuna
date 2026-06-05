@@ -26,6 +26,8 @@ jobs:
         working-directory: hotel-etuna
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+          HUB_TENANT_ID: ${{ secrets.HUB_TENANT_ID }}
         run: npx tsx scripts/soc2/collect-evidence.ts
 
       - uses: actions/upload-artifact@v4

@@ -12,6 +12,7 @@ import { randomUUID } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Pool } from 'pg';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 function loadEnv(): void {
   const root = resolve(process.cwd());
@@ -32,7 +33,7 @@ function loadEnv(): void {
 }
 
 function pass(message: string): void {
-  console.log(`✅ ${message}`);
+  securityLogger.info(`✅ ${message}`);
 }
 
 function fail(message: string): never {
@@ -237,6 +238,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(error instanceof Error ? error.message : error);
+  securityLogger.error(error instanceof Error ? error.message : error);
   process.exit(1);
 });

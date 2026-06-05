@@ -12,6 +12,7 @@ import { enforcePlatformAdminRateLimit } from '@/lib/compliance/with-admin-rate-
 import { REGULATORY_PACK_FOLDER } from '@/lib/compliance/regulatory-context';
 import { getNamibiaPaymentRailsSummary, labelForRailBucket } from '@/lib/payments/namibia-payment-rails';
 import { getPaymentsByRailSince } from '@/lib/compliance/payments-by-rail';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export const dynamic = 'force-dynamic';
 
@@ -66,7 +67,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (err) {
-    console.error('[compliance/summary]', err);
+    securityLogger.error('[compliance/summary]', err);
     return NextResponse.json({ error: 'Failed to build compliance snapshot' }, { status: 500 });
   }
 }

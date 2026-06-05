@@ -21,9 +21,13 @@ import {
   fraudAlerts,
   users,
   guests,
+  systemSettings,
   type FraudAlert,
 } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
+import { securityLogger } from '@/lib/utils/security-logger';
+import { EmailService } from '@/lib/services/sofia/EmailService';
+import { SmsService } from '@/lib/services/notifications/SmsService';
 
 // ============================================================================
 // TYPES
@@ -85,7 +89,7 @@ export class FraudAlertNotificationService {
     webhookSent: boolean;
     errors: string[];
   }> {
-    console.log('[FraudNotification] Sending notifications for alert', { alertId });
+    securityLogger.info('[FraudNotification] Sending notifications for alert', { alertId, tenantId: this.tenantId });
 
     const errors: string[] = [];
     let emailSent = false;
@@ -147,17 +151,18 @@ export class FraudAlertNotificationService {
           )
         );
 
-      console.log('[FraudNotification] Notifications sent', {
+      securityLogger.info('[FraudNotification] Notifications sent', {
         alertId,
         emailSent,
         smsSent,
         webhookSent,
         errorCount: errors.length,
+        tenantId: this.tenantId,
       });
 
       return { emailSent, smsSent, webhookSent, errors };
     } catch (error) {
-      console.error('[FraudNotification] Error sending notifications:', error);
+      securityLogger.error('[FraudNotification] Error sending notifications:', error);
       errors.push(`General: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return { emailSent, smsSent, webhookSent, errors };
     }
@@ -179,24 +184,30 @@ export class FraudAlertNotificationService {
       const recipients = await this.getEmailRecipients(alert.severity);
 
       if (recipients.length === 0) {
-        console.log('[FraudNotification] No email recipients configured');
+        securityLogger.info('[FraudNotification] No email recipients configured', { tenantId: this.tenantId });
         return false;
       }
 
       const emailData = this.buildEmailNotification(alert, payload, recipients);
 
-      // Send via email service (placeholder - integrate with actual email service)
-      console.log('[FraudNotification] Sending email notification', {
+      securityLogger.info('[FraudNotification] Sending email notification', {
         to: emailData.to,
         subject: emailData.subject,
+        tenantId: this.tenantId,
       });
 
-      // TODO: Integrate with EmailService or NodeMailer
-      // await emailService.send(emailData);
+      const emailService = new EmailService();
+      await emailService.sendEmail(this.tenantId, {
+        to: emailData.to[0],
+        subject: emailData.subject,
+        htmlContent: emailData.body,
+        textContent: emailData.body,
+        bcc: emailData.to.slice(1),
+      });
 
       return true;
     } catch (error) {
-      console.error('[FraudNotification] Error sending email:', error);
+      securityLogger.error('[FraudNotification] Error sending email:', error);
       throw error;
     }
   }
@@ -325,15 +336,40 @@ This is an automated notification from the Hotel Etuna Fraud Detection System.
         .map((r) => r.email)
         .filter(Boolean) as string[];
 
-      // For critical alerts, add additional stakeholders
+      // For critical alerts, add additional stakeholders from system settings
       if (severity === 'critical') {
-        // Add tenant-specific critical alert emails
-        // TODO: Fetch from tenant settings
+        const criticalEmails = await this.getCriticalAlertEmails();
+        emails.push(...criticalEmails);
       }
 
       return emails;
     } catch (error) {
-      console.error('[FraudNotification] Error getting email recipients:', error);
+      securityLogger.error('[FraudNotification] Error getting email recipients:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get critical alert emails from system settings
+   */
+  private async getCriticalAlertEmails(): Promise<string[]> {
+    try {
+      const [setting] = await db
+        .select({ settingValue: systemSettings.settingValue })
+        .from(systemSettings)
+        .where(
+          and(
+            eq(systemSettings.tenantId, this.tenantId),
+            eq(systemSettings.category, 'fraud_notifications'),
+            eq(systemSettings.settingKey, 'critical_alert_emails')
+          )
+        )
+        .limit(1);
+
+      const emails = (setting?.settingValue as Record<string, unknown>)?.emails as string[] | undefined;
+      return emails ?? [];
+    } catch (error) {
+      securityLogger.error('[FraudNotification] Error getting critical alert emails:', error);
       return [];
     }
   }
@@ -358,23 +394,31 @@ This is an automated notification from the Hotel Etuna Fraud Detection System.
       const recipients = await this.getSMSRecipients();
 
       if (recipients.length === 0) {
-        console.log('[FraudNotification] No SMS recipients configured');
+        securityLogger.info('[FraudNotification] No SMS recipients configured', { tenantId: this.tenantId });
         return false;
       }
 
       const smsData = this.buildSMSNotification(alert, payload);
 
-      console.log('[FraudNotification] Sending SMS notification', {
+      securityLogger.info('[FraudNotification] Sending SMS notification', {
         to: smsData.to,
         messageLength: smsData.message.length,
+        tenantId: this.tenantId,
       });
 
-      // TODO: Integrate with SMS service (Twilio, AWS SNS, etc.)
-      // await smsService.send(smsData);
+      const smsService = SmsService.getInstance();
+      const result = await smsService.send({
+        to: smsData.to[0],
+        message: smsData.message,
+      });
 
-      return true;
+      if (!result.success) {
+        securityLogger.warn('[FraudNotification] SMS send failed', { error: result.error });
+      }
+
+      return result.success;
     } catch (error) {
-      console.error('[FraudNotification] Error sending SMS:', error);
+      securityLogger.error('[FraudNotification] Error sending SMS:', error);
       throw error;
     }
   }
@@ -414,7 +458,7 @@ This is an automated notification from the Hotel Etuna Fraud Detection System.
         .map((u) => u.phone)
         .filter(Boolean) as string[];
     } catch (error) {
-      console.error('[FraudNotification] Error getting SMS recipients:', error);
+      securityLogger.error('[FraudNotification] Error getting SMS recipients:', error);
       return [];
     }
   }
@@ -434,7 +478,7 @@ This is an automated notification from the Hotel Etuna Fraud Detection System.
       const webhookUrls = await this.getWebhookUrls();
 
       if (webhookUrls.length === 0) {
-        console.log('[FraudNotification] No webhooks configured');
+        securityLogger.info('[FraudNotification] No webhooks configured', { tenantId: this.tenantId });
         return false;
       }
 
@@ -445,14 +489,15 @@ This is an automated notification from the Hotel Etuna Fraud Detection System.
 
       const successCount = results.filter((r) => r.status === 'fulfilled').length;
 
-      console.log('[FraudNotification] Webhook notifications sent', {
+      securityLogger.info('[FraudNotification] Webhook notifications sent', {
         total: webhookUrls.length,
         success: successCount,
+        tenantId: this.tenantId,
       });
 
       return successCount > 0;
     } catch (error) {
-      console.error('[FraudNotification] Error sending webhooks:', error);
+      securityLogger.error('[FraudNotification] Error sending webhooks:', error);
       throw error;
     }
   }
@@ -482,9 +527,9 @@ This is an automated notification from the Hotel Etuna Fraud Detection System.
         throw new Error(`Webhook failed: ${response.status} ${response.statusText}`);
       }
 
-      console.log('[FraudNotification] Webhook sent successfully', { url });
+      securityLogger.info('[FraudNotification] Webhook sent successfully', { url, tenantId: this.tenantId });
     } catch (error) {
-      console.error('[FraudNotification] Webhook request failed:', error);
+      securityLogger.error('[FraudNotification] Webhook request failed:', error);
       throw error;
     }
   }
@@ -494,11 +539,22 @@ This is an automated notification from the Hotel Etuna Fraud Detection System.
    */
   private async getWebhookUrls(): Promise<string[]> {
     try {
-      // TODO: Fetch from tenant settings or system_settings table
-      // For now, return empty array
-      return [];
+      const [setting] = await db
+        .select({ settingValue: systemSettings.settingValue })
+        .from(systemSettings)
+        .where(
+          and(
+            eq(systemSettings.tenantId, this.tenantId),
+            eq(systemSettings.category, 'fraud_notifications'),
+            eq(systemSettings.settingKey, 'webhook_urls')
+          )
+        )
+        .limit(1);
+
+      const urls = (setting?.settingValue as Record<string, unknown>)?.urls as string[] | undefined;
+      return urls ?? [];
     } catch (error) {
-      console.error('[FraudNotification] Error getting webhook URLs:', error);
+      securityLogger.error('[FraudNotification] Error getting webhook URLs:', error);
       return [];
     }
   }
@@ -525,7 +581,7 @@ This is an automated notification from the Hotel Etuna Fraud Detection System.
 
       return alert || null;
     } catch (error) {
-      console.error('[FraudNotification] Error fetching alert:', error);
+      securityLogger.error('[FraudNotification] Error fetching alert:', error);
       return null;
     }
   }
@@ -575,7 +631,7 @@ This is an automated notification from the Hotel Etuna Fraud Detection System.
         ...result,
       };
     } catch (error) {
-      console.error('[FraudNotification] Error resending notifications:', error);
+      securityLogger.error('[FraudNotification] Error resending notifications:', error);
       
       return {
         success: false,

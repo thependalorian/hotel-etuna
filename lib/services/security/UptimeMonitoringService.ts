@@ -30,6 +30,7 @@
 import { db, systemLogs } from '@/lib/db';
 import { and, eq, gte, sql } from 'drizzle-orm';
 import { SecurityIncidentService } from './SecurityIncidentService';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 // ============================================================================
 // TYPES
@@ -311,8 +312,13 @@ export class UptimeMonitoringService {
 
       // Check if downtime exceeded RTO
       if (downtimeDurationMs > this.RTO_MS) {
-        console.warn(
-          `[UptimeMonitoringService] Service ${service} exceeded RTO: ${(downtimeDurationMs / (1000 * 60)).toFixed(2)} minutes (limit: ${this.RTO_MS / (1000 * 60)} minutes)`
+        securityLogger.warn(
+          `[UptimeMonitoringService] Service ${service} exceeded RTO`,
+          {
+            service,
+            downtimeDurationMinutes: (downtimeDurationMs / (1000 * 60)).toFixed(2),
+            rtoLimitMinutes: this.RTO_MS / (1000 * 60),
+          }
         );
       }
     }
@@ -333,8 +339,12 @@ export class UptimeMonitoringService {
       const minAlertInterval = 5 * 60 * 1000; // 5 minutes
 
       if (timeSinceLastAlert < minAlertInterval) {
-        console.log(
-          `[UptimeMonitoringService] Alert rate limited for ${alert.service} (${(timeSinceLastAlert / 1000).toFixed(0)}s since last alert)`
+        securityLogger.info(
+          `[UptimeMonitoringService] Alert rate limited for ${alert.service}`,
+          {
+            service: alert.service,
+            timeSinceLastAlertSeconds: (timeSinceLastAlert / 1000).toFixed(0),
+          }
         );
         return;
       }
@@ -342,7 +352,7 @@ export class UptimeMonitoringService {
       this.lastAlertTime.set(alert.service, Date.now());
 
       // Log alert
-      console.warn('[UptimeMonitoringService] ALERT:', alert);
+      securityLogger.warn('[UptimeMonitoringService] ALERT', alert);
 
       const webhookUrl = process.env.ALERT_WEBHOOK_URL;
       if (webhookUrl) {
@@ -370,7 +380,7 @@ export class UptimeMonitoringService {
         },
       });
     } catch (error: any) {
-      console.error('[UptimeMonitoringService] Failed to send alert:', error);
+      securityLogger.error('[UptimeMonitoringService] Failed to send alert:', error);
     }
   }
 
@@ -398,7 +408,7 @@ export class UptimeMonitoringService {
         });
       }
     } catch (error) {
-      console.error('[UptimeMonitoringService] Failed to log health check results:', error);
+      securityLogger.error('[UptimeMonitoringService] Failed to log health check results:', error);
     }
   }
 
@@ -474,7 +484,7 @@ export class UptimeMonitoringService {
         downtimeIncidents,
       };
     } catch (error: any) {
-      console.error('[UptimeMonitoringService] Get uptime metrics error:', error);
+      securityLogger.error('[UptimeMonitoringService] Get uptime metrics error:', error);
       return {
         uptimePercentage: 0,
         totalChecks: 0,
@@ -535,7 +545,7 @@ export class UptimeMonitoringService {
         downtimeIncidents,
       };
     } catch (error: any) {
-      console.error('[UptimeMonitoringService] Get system uptime error:', error);
+      securityLogger.error('[UptimeMonitoringService] Get system uptime error:', error);
       return {
         uptimePercentage: 0,
         totalChecks: 0,
@@ -617,19 +627,19 @@ export class UptimeMonitoringService {
  */
 export async function runUptimeMonitoringCheck(): Promise<void> {
   try {
-    console.log('[UptimeMonitoringService] Running health checks...');
+    securityLogger.info('[UptimeMonitoringService] Running health checks...');
     const results = await UptimeMonitoringService.checkAllServices();
 
     const downServices = results.filter((r) => r.status === 'down');
     if (downServices.length > 0) {
-      console.warn(
-        `[UptimeMonitoringService] ${downServices.length} services are down:`,
-        downServices.map((r) => r.service)
+      securityLogger.warn(
+        `[UptimeMonitoringService] ${downServices.length} services are down`,
+        { services: downServices.map((r) => r.service) }
       );
     } else {
-      console.log('[UptimeMonitoringService] All services operational');
+      securityLogger.info('[UptimeMonitoringService] All services operational');
     }
   } catch (error: any) {
-    console.error('[UptimeMonitoringService] Health check failed:', error);
+    securityLogger.error('[UptimeMonitoringService] Health check failed:', error);
   }
 }

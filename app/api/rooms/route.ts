@@ -23,6 +23,7 @@ import { withApiAuth, errorResponse, successResponse } from '@/lib/utils/api-hel
 import { RoomService } from '@/lib/services/room/RoomService';
 import { entityIdOptional } from '@/lib/validation/entity-ids';
 import * as z from 'zod';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const roomService = new RoomService();
 
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
         const newRoom = await roomService.createRoom(roomData);
         return successResponse(newRoom, 201);
       } catch (error: any) {
-        console.error('Error creating room:', error);
+        securityLogger.error('Error creating room:', error);
         return errorResponse(
           error.message || 'Internal server error',
           500,
@@ -133,7 +134,7 @@ export async function GET(request: NextRequest) {
           return successResponse(stats);
         }
       } catch (error: any) {
-        console.error('Error fetching rooms:', error);
+        securityLogger.error('Error fetching rooms:', error);
         return errorResponse(
           error.message || 'Internal server error',
           500,

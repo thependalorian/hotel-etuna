@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { withApiAuth, errorResponse, successResponse } from '@/lib/utils/api-helpers';
 import { HospitalityNamQrPaymentService } from '@/lib/services/payment/HospitalityNamQrPaymentService';
 import { entityId } from '@/lib/validation/entity-ids';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const bodySchema = z.object({
   bookingId: entityId(),
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
 
         return successResponse(result);
       } catch (e) {
-        console.error('[namqr/confirm]', e);
+        securityLogger.error('[namqr/confirm]', e);
         const message = e instanceof Error ? e.message : 'Confirm failed';
         return errorResponse(message, 400, 'NAMQR_CONFIRM_FAILED');
       }

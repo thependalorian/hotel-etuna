@@ -10,6 +10,7 @@ import type { Property, Staff } from '@/lib/db/schema';
 import { EmploymentType, StaffStatus } from '@/lib/db/schema';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { apiUrl } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 type StaffFormData = z.infer<typeof createStaffSchema>;
 
@@ -51,7 +52,7 @@ const StaffForm = () => {
 
       router.push('/staff');
     } catch (error) {
-      console.error(error);
+      securityLogger.error("[StaffForm] submit error", error);
     }
   };
 

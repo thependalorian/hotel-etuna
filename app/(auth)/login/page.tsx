@@ -1,3 +1,10 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Sign In',
+  description: 'Sign in to your Hotel Etuna account.',
+};
+
 import React from 'react';
 import Link from 'next/link';
 import { ShieldCheck, MapPin } from 'lucide-react';

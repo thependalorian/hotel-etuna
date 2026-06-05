@@ -11,6 +11,7 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { normalizeWorkflowStatus } from '@/lib/workflows/domainTransitions';
 import { cn } from '@/lib/utils/cn';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 type WorkflowStatusActionsProps = {
   currentStatus?: string | null;
@@ -71,7 +72,7 @@ export function WorkflowStatusActions({
       onUpdated?.(status);
       router.refresh();
     } catch (err) {
-      console.error('[WorkflowStatusActions]', err);
+      securityLogger.error('[WorkflowStatusActions]', err);
       setError('Could not update status. Please try again.');
     } finally {
       setPendingStatus(null);

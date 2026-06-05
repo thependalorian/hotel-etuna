@@ -21,6 +21,7 @@ import { NextRequest } from 'next/server';
 import { PropertyService } from '@/lib/services/property/PropertyService';
 import { withApiAuth, errorResponse, successResponse } from '@/lib/utils/api-helpers';
 import * as z from 'zod';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const propertySchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters').max(255, 'Name must be less than 255 characters'),
@@ -52,17 +53,17 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  console.log('[POST /api/properties] Request received');
+  securityLogger.info('[POST /api/properties] Request received', { ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0] ?? 'unknown' });
   return withApiAuth(
     request,
     async (req, user) => {
-      console.log('[POST /api/properties] Inside handler, user:', user?.email);
+      securityLogger.info('[POST /api/properties] Inside handler', { userEmail: user?.email, userId: user?.id, tenantId: user?.tenantId });
       let body;
       try {
         body = await request.json();
-        console.log('[POST /api/properties] Request body parsed:', JSON.stringify(body, null, 2));
+        securityLogger.debug('[POST /api/properties] Request body parsed', { body: JSON.stringify(body) });
       } catch (error) {
-        console.error('[POST /api/properties] JSON parse error:', error);
+        securityLogger.error('[POST /api/properties] JSON parse error:', error);
         return errorResponse('Invalid JSON in request body', 400, 'INVALID_JSON');
       }
 
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
 
       if (!validation.success) {
         const fieldErrors = validation.error.flatten().fieldErrors;
-        console.error('Property validation failed:', {
+        securityLogger.error('Property validation failed:', {
           received: body,
           errors: fieldErrors,
           issues: validation.error.issues,
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest) {
       // Store the DB enum/check value consistently while still accepting API enum input.
       const dbType = type.toLowerCase() as 'hotel' | 'restaurant' | 'airbnb' | 'lodge' | 'both';
       
-      console.log('[POST /api/properties] Calling PropertyService.createProperty with:', {
+      securityLogger.info('[POST /api/properties] Calling PropertyService.createProperty', {
         name,
         type: dbType,
         ownerId: user.id,
@@ -111,10 +112,10 @@ export async function POST(request: NextRequest) {
           amenities, // Pass amenities array if provided
         });
 
-        console.log('[POST /api/properties] Property created successfully:', newProperty.id);
+        securityLogger.info('[POST /api/properties] Property created successfully', { propertyId: newProperty.id, tenantId: user.tenantId });
         return successResponse(newProperty, 201);
       } catch (error: any) {
-        console.error('[POST /api/properties] PropertyService error:', {
+        securityLogger.error('[POST /api/properties] PropertyService error:', {
           message: error.message,
           code: error.code,
           meta: error.meta,

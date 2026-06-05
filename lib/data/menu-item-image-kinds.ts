@@ -7,6 +7,7 @@
  */
 
 import type { MenuCatalogItem } from '@/lib/data/etuna-restaurant-menu-catalog';
+import { securityLogger } from '@/lib/utils/security-logger';
 import {
   buildUnsplashMenuThumbUrl,
   buildWikimediaMenuThumbUrl,
@@ -354,7 +355,7 @@ export function resolveMenuImageKind(item: MenuCatalogItem): MenuImageKind {
     return 'whisky-bottle';
   }
 
-  console.warn(`[menu-image] No image kind for "${item.name}" (${category}); using sauce-bowl fallback`);
+  securityLogger.warn(`[menu-image] No image kind for "${item.name}" (${category}); using sauce-bowl fallback`);
   return 'sauce-bowl';
 }
 

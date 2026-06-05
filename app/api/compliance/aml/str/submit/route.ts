@@ -13,9 +13,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
+import { AppError } from '@/lib/utils/errors';
 import { STRGenerationService } from '@/lib/services/compliance/STRGenerationService';
 import { entityId } from '@/lib/validation/entity-ids';
 import { z } from 'zod';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const submitSTRSchema = z.object({
   strId: entityId(),
@@ -25,6 +28,8 @@ const submitSTRSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await requireTenantSessionUser(request);
+
     const body = await request.json();
     
     const validatedData = submitSTRSchema.parse(body);
@@ -36,7 +41,7 @@ export async function POST(request: NextRequest) {
       message: 'STR submitted to FIC successfully',
     }, { status: 200 });
   } catch (error) {
-    console.error('[STR Submit API] Error:', error);
+    securityLogger.error('[STR Submit API] Error:', error);
     
     if (error instanceof z.ZodError) {
       return NextResponse.json({

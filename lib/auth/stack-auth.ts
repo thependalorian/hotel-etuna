@@ -15,6 +15,7 @@
  */
 
 import { stackServerApp } from '@/stack';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 // Helper function to get current user
 export async function getCurrentUser() {
@@ -25,7 +26,7 @@ export async function getCurrentUser() {
     const user = await stackServerApp.getUser();
     return user;
   } catch (error) {
-    console.error('[Stack Auth] Error getting current user:', error);
+    securityLogger.error('[Stack Auth] Error getting current user:', error);
     return null;
   }
 }
@@ -50,7 +51,7 @@ export async function isAdmin(): Promise<boolean> {
     // For now, check by email - can be enhanced with database role lookup
     return user.primaryEmail === 'george@buffr.ai' || user.primaryEmail === 'pendanek@gmail.com';
   } catch (error) {
-    console.error('[Stack Auth] Error checking admin:', error);
+    securityLogger.error('[Stack Auth] Error checking admin:', error);
     return false;
   }
 }
@@ -76,7 +77,7 @@ export async function getSession() {
     const user = await stackServerApp.getUser();
     return user ? { user } : null;
   } catch (error) {
-    console.error('[Stack Auth] Error getting session:', error);
+    securityLogger.error('[Stack Auth] Error getting session:', error);
     return null;
   }
 }

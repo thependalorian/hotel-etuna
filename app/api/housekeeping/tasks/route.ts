@@ -16,6 +16,7 @@ import { eq, and, desc } from 'drizzle-orm';
 import { z } from 'zod';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 // Input validation schema
 const createTaskSchema = z.object({
@@ -56,8 +57,13 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
 
-    // Query tasks
-    let query = db
+    // Build where conditions (Drizzle requires composing conditions before calling .where)
+    const conditions = [eq(housekeepingTasks.propertyId, propertyId!)];
+    if (status && ['dirty', 'cleaning', 'inspecting', 'clean'].includes(status)) {
+      conditions.push(eq(housekeepingTasks.status, status as 'dirty' | 'cleaning' | 'inspecting' | 'clean'));
+    }
+
+    const tasks = await db
       .select({
         task: housekeepingTasks,
         room: rooms,
@@ -68,18 +74,12 @@ export async function GET(request: NextRequest) {
       .leftJoin(rooms, eq(housekeepingTasks.roomId, rooms.id))
       .leftJoin(bookings, eq(housekeepingTasks.bookingId, bookings.id))
       .leftJoin(staff, eq(housekeepingTasks.assignedTo, staff.id))
-      .where(eq(housekeepingTasks.propertyId, propertyId));
-
-    // Apply status filter if provided
-    if (status && ['dirty', 'cleaning', 'inspecting', 'clean'].includes(status)) {
-      query = query.where(eq(housekeepingTasks.status, status as any));
-    }
-
-    const tasks = await query.orderBy(desc(housekeepingTasks.createdAt));
+      .where(and(...conditions))
+      .orderBy(desc(housekeepingTasks.createdAt));
 
     return NextResponse.json({ tasks });
   } catch (error) {
-    console.error('Error fetching housekeeping tasks:', error);
+    securityLogger.error('Error fetching housekeeping tasks:', error);
     return NextResponse.json(
       { error: 'Failed to fetch tasks' },
       { status: 500 }
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
     const staffData = staffRecord[0];
     
     // Only managers, admin, and housekeeping supervisors can create tasks
-    if (!['manager', 'admin', 'housekeeping_supervisor'].includes(staffData.role)) {
+    if (!['manager', 'admin', 'housekeeping_supervisor'].includes(staffData.position ?? '')) {
       return NextResponse.json(
         { error: 'Insufficient permissions' },
         { status: 403 }
@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
     const [newTask] = await db
       .insert(housekeepingTasks)
       .values({
-        propertyId: staffData.propertyId,
+        propertyId: staffData.propertyId!,
         roomId: validatedData.roomId,
         bookingId: validatedData.bookingId,
         assignedTo: validatedData.assignedTo,
@@ -159,12 +159,12 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
+        { error: 'Invalid input', details: error.issues },
         { status: 400 }
       );
     }
 
-    console.error('Error creating housekeeping task:', error);
+    securityLogger.error('Error creating housekeeping task:', error);
     return NextResponse.json(
       { error: 'Failed to create task' },
       { status: 500 }

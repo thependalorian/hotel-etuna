@@ -108,7 +108,7 @@ export default function CreateIntroducerPage() {
           <ErrorDisplay
             error={error}
             title="Error Creating Introducer"
-            variant="inline"
+            variant="minimal"
           />
         )}
 

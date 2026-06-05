@@ -13,9 +13,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
+import { AppError } from '@/lib/utils/errors';
 import { AMLMonitoringService } from '@/lib/services/compliance/AMLMonitoringService';
 import { entityId } from '@/lib/validation/entity-ids';
 import { z } from 'zod';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const monitorRequestSchema = z.object({
   transactionId: entityId(),
@@ -36,6 +39,8 @@ const monitorRequestSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await requireTenantSessionUser(request);
+
     const body = await request.json();
     
     // Validate request
@@ -58,7 +63,7 @@ export async function POST(request: NextRequest) {
       },
     }, { status: 200 });
   } catch (error) {
-    console.error('[AML Monitor API] Error:', error);
+    securityLogger.error('[AML Monitor API] Error:', error);
     
     if (error instanceof z.ZodError) {
       return NextResponse.json({
@@ -77,15 +82,10 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const tenantId = searchParams.get('tenantId');
+    const user = await requireTenantSessionUser(request);
 
-    if (!tenantId) {
-      return NextResponse.json({
-        success: false,
-        error: 'Tenant ID is required',
-      }, { status: 400 });
-    }
+    const { searchParams } = new URL(request.url);
+    const tenantId = user.tenantId;
 
     // Get pending alerts
     const alerts = await AMLMonitoringService.getPendingAlerts(tenantId);
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
       },
     }, { status: 200 });
   } catch (error) {
-    console.error('[AML Monitor API] Error fetching alerts:', error);
+    securityLogger.error('[AML Monitor API] Error fetching alerts:', error);
     
     return NextResponse.json({
       success: false,

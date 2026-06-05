@@ -26,6 +26,7 @@ import { useRouter } from 'next/navigation';
 import EmptyState from '@/components/shared/EmptyState';
 import NoticeState from '@/components/shared/NoticeState';
 import { Building2, Search, Plus, Eye, CheckCircle, XCircle } from 'lucide-react';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface TenantWithCounts {
   id: string;
@@ -85,7 +86,7 @@ export default function TenantManagement({ tenants: initialTenants, userRole }: 
         showToast({ variant: 'error', title: 'Could not update tenant', message: msg });
       }
     } catch (error) {
-      console.error('Error updating tenant status:', error);
+      securityLogger.error('Error updating tenant status:', error);
       showToast({
         variant: 'error',
         title: 'Could not update tenant',
@@ -121,7 +122,7 @@ export default function TenantManagement({ tenants: initialTenants, userRole }: 
         showToast({ variant: 'error', title: 'Could not delete tenant', message: msg });
       }
     } catch (error) {
-      console.error('Error deleting tenant:', error);
+      securityLogger.error('Error deleting tenant:', error);
       showToast({
         variant: 'error',
         title: 'Could not delete tenant',

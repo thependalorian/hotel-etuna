@@ -21,6 +21,7 @@ import { db } from '@/lib/db';
 import { auditTrail, bookings, cashReconciliations } from '@/lib/db/schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
 import { z } from 'zod';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const reconciliationSchema = z.object({
   reconciliationDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)'),
@@ -186,7 +187,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('[GET RECONCILIATION ERROR]', error);
+    securityLogger.error('[GET RECONCILIATION ERROR]', error);
     return NextResponse.json(
       { error: 'Internal server error', message: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
@@ -361,7 +362,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('[POST RECONCILIATION ERROR]', error);
+    securityLogger.error('[POST RECONCILIATION ERROR]', error);
     return NextResponse.json(
       { error: 'Internal server error', message: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

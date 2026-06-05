@@ -23,6 +23,7 @@ import { FraudStatisticsCard } from './FraudStatisticsCard';
 import { FraudAlertsTable } from './FraudAlertsTable';
 import { FraudTrendChart } from './FraudTrendChart';
 import { FraudRiskHeatmap } from './FraudRiskHeatmap';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 // Types
 interface FraudStatistics {
@@ -67,7 +68,7 @@ export function FraudDashboard({ tenantId }: FraudDashboardProps) {
           throw new Error(data.error || 'Unknown error');
         }
       } catch (err) {
-        console.error('Error fetching fraud statistics:', err);
+        securityLogger.error('Error fetching fraud statistics:', err);
         setError(err instanceof Error ? err.message : 'Failed to load statistics');
       } finally {
         setLoading(false);

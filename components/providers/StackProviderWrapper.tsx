@@ -11,6 +11,7 @@
 import { StackProvider, StackTheme, StackClientApp } from '@stackframe/stack';
 import { ReactNode, useMemo } from 'react';
 import { isStackAuthClientConfigured, readStackAuthEnv } from '@/lib/auth/stack-env';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface StackProviderWrapperProps {
   children: ReactNode;
@@ -22,7 +23,7 @@ export function StackProviderWrapper({ children }: StackProviderWrapperProps) {
 
     if (!isStackAuthClientConfigured(env)) {
       if (process.env.NODE_ENV === 'development' && env.projectId) {
-        console.info(
+        securityLogger.info(
           '[Stack Auth] Disabled — set NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY (and STACK_SECRET_SERVER_KEY on the server) from your Stack dashboard. Using NextAuth.',
         );
       }
@@ -45,7 +46,7 @@ export function StackProviderWrapper({ children }: StackProviderWrapperProps) {
     } catch (error: unknown) {
       if (process.env.NODE_ENV === 'development') {
         const message = error instanceof Error ? error.message : String(error);
-        console.warn('[Stack Auth] Failed to initialize client:', message);
+        securityLogger.warn('[Stack Auth] Failed to initialize client', { error: message });
       }
       return null;
     }

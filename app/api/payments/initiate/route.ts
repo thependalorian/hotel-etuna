@@ -30,6 +30,7 @@ import { recordAuditTrail } from '@/lib/compliance/record-audit';
 import { adumoVirtualIsConfigured } from '@/lib/config/adumo';
 import { entityId } from '@/lib/validation/entity-ids';
 import { z } from 'zod';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 // ============================================================================
 // REQUEST VALIDATION
@@ -93,7 +94,7 @@ export async function POST(req: NextRequest) {
     // 2. TWO-FACTOR AUTHENTICATION (PSD-12 REQUIREMENT)
     // ========================================================================
 
-    console.log('[Payment] Verifying 2FA for user:', userId);
+    securityLogger.info('[Payment] Verifying 2FA for user', { userId });
     const twoFactorAuth = await require2FAForPayment(req, paymentData);
 
     if (!twoFactorAuth.verified) {
@@ -117,13 +118,13 @@ export async function POST(req: NextRequest) {
       return twoFactorAuth.response!;
     }
 
-    console.log('[Payment] 2FA verified successfully');
+    securityLogger.info('[Payment] 2FA verified successfully', { userId });
 
     // ========================================================================
     // 3. FRAUD DETECTION (PSD-12 REQUIREMENT)
     // ========================================================================
 
-    console.log('[Payment] Running fraud detection checks...');
+    securityLogger.info('[Payment] Running fraud detection checks...', { userId });
     const fraudCheck = await PsdFraudGate.checkTransaction({
       userId,
       tenantId: tenantId || undefined,
@@ -144,9 +145,12 @@ export async function POST(req: NextRequest) {
 
     // Block high-risk transactions
     if (fraudCheck.blocked) {
-      console.warn(
-        `[Payment] Transaction blocked due to fraud risk: ${fraudCheck.riskScore}/100`
-      );
+      securityLogger.warn('[Payment] Transaction blocked due to fraud risk', {
+        userId,
+        riskScore: fraudCheck.riskScore,
+        amount: paymentData.amount,
+        currency: paymentData.currency,
+      });
 
       // Log blocked transaction as security incident
       await logSecurityIncident(
@@ -186,9 +190,12 @@ export async function POST(req: NextRequest) {
 
     // Flag for manual review
     if (fraudCheck.requiresReview) {
-      console.warn(
-        `[Payment] Transaction flagged for review: ${fraudCheck.riskScore}/100`
-      );
+      securityLogger.warn('[Payment] Transaction flagged for review', {
+        userId,
+        riskScore: fraudCheck.riskScore,
+        amount: paymentData.amount,
+        currency: paymentData.currency,
+      });
 
       // Log for review
       await logSecurityIncident(
@@ -209,15 +216,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log(
-      `[Payment] Fraud check passed (risk score: ${fraudCheck.riskScore}/100)`
-    );
+    securityLogger.info('[Payment] Fraud check passed', { userId, riskScore: fraudCheck.riskScore });
 
     // ========================================================================
     // 4. ENCRYPT SENSITIVE DATA (PSD-12 REQUIREMENT)
     // ========================================================================
 
-    console.log('[Payment] Encrypting sensitive payment data...');
+    securityLogger.info('[Payment] Encrypting sensitive payment data...', { userId });
     const encryptedAccountNumber = EncryptionService.encrypt(
       paymentData.recipientAccountNumber
     );
@@ -228,9 +233,7 @@ export async function POST(req: NextRequest) {
       paymentData.recipientAccountNumber
     );
 
-    console.log(
-      `[Payment] Account number encrypted: ${maskedAccountNumber.masked}`
-    );
+    securityLogger.info('[Payment] Account number encrypted', { userId, maskedAccountNumber: maskedAccountNumber.masked });
 
     // ========================================================================
     // 5. PROCESS PAYMENT (Business Logic)
@@ -284,9 +287,7 @@ export async function POST(req: NextRequest) {
       request: req,
     });
 
-    console.log(
-      `[Payment] Payment initiated successfully: ${transactionRef} (${Date.now() - startTime}ms)`
-    );
+    securityLogger.info('[Payment] Payment initiated successfully', { userId, transactionRef, processingTimeMs: Date.now() - startTime });
 
     // ========================================================================
     // 7. RETURN SUCCESS RESPONSE
@@ -320,7 +321,10 @@ export async function POST(req: NextRequest) {
       { status: 202 } // Accepted (async processing)
     );
   } catch (error: unknown) {
-    console.error('[Payment] Payment initiation error:', error);
+    securityLogger.error('[Payment] Payment initiation error', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack?.substring(0, 500) : undefined,
+    });
     const message = error instanceof Error ? error.message : 'Unknown error';
     const stack = error instanceof Error ? error.stack : undefined;
 

@@ -18,6 +18,11 @@ import {
 } from '@/lib/db/schema';
 import { and, eq, desc, asc } from 'drizzle-orm';
 import { handleServiceError } from '@/lib/utils/errors';
+import {
+  HOTEL_ETUNA_FACILITY_RATES,
+  HOTEL_ETUNA_FACILITY_TYPES,
+  HOTEL_ETUNA_GUEST_ROOM_COUNT,
+} from '@/lib/constants/hotel-etuna-room-types';
 
 export interface PlatformKnowledge {
   name: string;
@@ -48,6 +53,8 @@ export interface PropertyKnowledge {
     status: string;
   }>;
   amenities?: string[];
+  /** Conference hall + campsite (not counted in guest room inventory). */
+  facilitiesNote?: string;
   policies?: {
     checkInTime: string;
     checkOutTime: string;
@@ -100,8 +107,8 @@ export class KnowledgeBaseService {
         'Business Intelligence & Analytics',
       ],
       pricing:
-        'Room tiers include Standard, Luxury, Family, Executive Suite, and Premier. Rates start from N$850 per night, with fair seasonal packages and direct booking support through our team.',
-      support: { email: 'concierge@hoteletuna.com', responseTime: '24/7 via Sofia AI' },
+        '35 guest rooms in five categories: Standard A/B N$800, Standard C N$1200, Executive N$1000, Premiere N$2000. Conference hall N$1200/session (08:00–17:00). Campsite N$250/N$400 per person, whole-site minimum N$1200.',
+      support: { email: 'frontdesk@hoteletuna.com', responseTime: '24/7 via Sofia AI' },
       location: 'Ongwediva, Namibia',
       currency: 'NAD (Namibian Dollar)',
     };
@@ -146,7 +153,9 @@ export class KnowledgeBaseService {
             amenities: rooms.amenities,
           })
           .from(rooms)
-          .where(eq(rooms.propertyId, propertyId))
+          .where(
+            and(eq(rooms.propertyId, propertyId), eq(rooms.inventoryKind, 'guest_room'))
+          )
           .orderBy(asc(rooms.roomNumber));
         roomsWithPricing = roomRows.map((r) => ({
           id: r.id,
@@ -218,6 +227,10 @@ export class KnowledgeBaseService {
           checkOutTime,
         },
         rooms: roomsWithPricing.length > 0 ? roomsWithPricing : undefined,
+        facilitiesNote:
+          propType === 'HOTEL' || propType === 'BOTH'
+            ? buildHubFacilitiesKnowledgeNote()
+            : undefined,
         amenities: property.amenities ?? undefined,
         policies: {
           checkInTime,
@@ -299,13 +312,16 @@ export class KnowledgeBaseService {
       context += `Check-in: ${knowledge.basicInfo.checkInTime}, Check-out: ${knowledge.basicInfo.checkOutTime}\n`;
     }
     if (knowledge.rooms && knowledge.rooms.length > 0) {
-      context += `\nRooms Available (${knowledge.rooms.length}):\n`;
+      context += `\nGuest rooms (${knowledge.rooms.length} bookable units; ${HOTEL_ETUNA_GUEST_ROOM_COUNT} physical keys):\n`;
       knowledge.rooms.forEach((room) => {
         context += `- ${room.type}: Capacity ${room.capacity}, Status: ${room.status}`;
         if (room.pricePerNight) context += `, Price: N$${room.pricePerNight}/night`;
         if (room.description) context += `\n  ${room.description}`;
         context += '\n';
       });
+    }
+    if (knowledge.facilitiesNote) {
+      context += `\n${knowledge.facilitiesNote}\n`;
     }
     if (knowledge.amenities && knowledge.amenities.length > 0) {
       context += `\nAmenities: ${knowledge.amenities.join(', ')}\n`;
@@ -350,4 +366,16 @@ export class KnowledgeBaseService {
     }
     return context;
   }
+}
+
+function buildHubFacilitiesKnowledgeNote(): string {
+  const conf = HOTEL_ETUNA_FACILITY_TYPES.conference;
+  const camp = HOTEL_ETUNA_FACILITY_TYPES.campsite;
+  const r = HOTEL_ETUNA_FACILITY_RATES;
+  return (
+    `Facilities (separate from ${HOTEL_ETUNA_GUEST_ROOM_COUNT} guest rooms):\n` +
+    `- ${conf}: N$${r.conferenceSession}/session (08:00–17:00). Book at /facilities/conference\n` +
+    `- ${camp}: N$${r.campsiteNamibianPp} (Namibian) / N$${r.campsiteNonNamibianPp} (non-Namibian) per person; ` +
+    `whole-site minimum N$${r.campsiteSiteMinimum}. Book at /facilities/campsite`
+  );
 }

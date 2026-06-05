@@ -10,6 +10,7 @@ import { SupportTicketService } from '@/lib/services/platform/SupportTicketServi
 import { enforcePlatformAdminRateLimit } from '@/lib/compliance/with-admin-rate-limit';
 import { recordAuditTrail } from '@/lib/compliance/record-audit';
 import { AuditActions, AuditResourceTypes } from '@/lib/compliance/regulatory-context';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -61,7 +62,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     if (message.startsWith('Invalid status') || message.startsWith('Invalid transition')) {
       return NextResponse.json({ error: message }, { status: 400 });
     }
-    console.error('[PATCH support ticket]', error);
+    securityLogger.error('[PATCH support ticket]', error);
     return NextResponse.json({ error: 'Failed to update ticket' }, { status: 500 });
   }
 }

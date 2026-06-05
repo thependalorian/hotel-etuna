@@ -24,6 +24,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { runUptimeMonitoringCheck } from '@/lib/services/security/UptimeMonitoringService';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60; // 60 seconds max execution time
@@ -55,7 +56,7 @@ export async function GET(req: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error: any) {
-    console.error('[Cron] Uptime monitoring error:', error);
+    securityLogger.error('[Cron] Uptime monitoring error:', error);
 
     return NextResponse.json(
       {

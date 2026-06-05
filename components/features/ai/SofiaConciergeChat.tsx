@@ -5,6 +5,7 @@ import { MessageCircle, Send, Bot, User, X, Minimize2, Maximize2 } from 'lucide-
 import { SofiaAvatar, Avatar } from '@/components/ui';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { apiUrl } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface Message {
   id: string;
@@ -119,7 +120,7 @@ export default function SofiaConciergeChat({
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('Error sending message:', error);
+      securityLogger.error('Error sending message:', error);
       const errorMessage: Message = {
         id: `error_${Date.now()}`,
         role: 'assistant',
@@ -153,7 +154,7 @@ export default function SofiaConciergeChat({
         window.location.href = `/properties/${action.data.propertyId}`;
         break;
       default:
-        console.log('Unknown action:', action);
+        securityLogger.warn('Unknown action', { actionType: action.type, actionData: action.data });
     }
   };
 

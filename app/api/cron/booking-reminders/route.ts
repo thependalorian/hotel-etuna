@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { runCheckInReminderJob } from '@/lib/services/booking/bookingLifecycleSideEffects';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 function unauthorized() {
   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('[cron/booking-reminders]', error);
+    securityLogger.error('[cron/booking-reminders]', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Reminder job failed' },
       { status: 500 }

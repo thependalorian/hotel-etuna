@@ -10,13 +10,14 @@
  */
 
 import { neon } from '@neondatabase/serverless';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 type Row = Record<string, unknown>;
 
 const DATABASE_URL = process.env.DATABASE_URL;
 
 if (!DATABASE_URL) {
-  console.error('DATABASE_URL is not set');
+  securityLogger.error('DATABASE_URL is not set');
   process.exit(1);
 }
 
@@ -25,11 +26,11 @@ const sql = neon(DATABASE_URL);
 async function query(label: string, q: string) {
   try {
     const rows = (await sql.query(q)) as Row[];
-    console.log(`\n=== ${label} ===`);
+    securityLogger.info(`\n=== ${label} ===`);
     console.table(rows);
   } catch (error) {
-    console.error(`\n=== ${label} (ERROR) ===`);
-    console.error(error);
+    securityLogger.error(`\n=== ${label} (ERROR) ===`);
+    securityLogger.error(error);
     process.exitCode = 1;
   }
 }

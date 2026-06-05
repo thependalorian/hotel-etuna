@@ -17,6 +17,7 @@ import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 // Input validation schema for updates
 const updateTaskSchema = z.object({
@@ -35,9 +36,10 @@ const updateTaskSchema = z.object({
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
     
     if (!session?.user?.id) {
@@ -51,7 +53,7 @@ export async function GET(
       .where(eq(staff.userId, session.user.id))
       .limit(1);
 
-    if (!staffRecord.length) {
+    if (!staffRecord.length || !staffRecord[0].propertyId) {
       return NextResponse.json({ error: 'Staff record not found' }, { status: 403 });
     }
 
@@ -61,7 +63,7 @@ export async function GET(
       .from(housekeepingTasks)
       .where(
         and(
-          eq(housekeepingTasks.id, params.id),
+          eq(housekeepingTasks.id, id),
           eq(housekeepingTasks.propertyId, staffRecord[0].propertyId)
         )
       )
@@ -73,7 +75,7 @@ export async function GET(
 
     return NextResponse.json({ task: task[0] });
   } catch (error) {
-    console.error('Error fetching housekeeping task:', error);
+    securityLogger.error('Error fetching housekeeping task:', error);
     return NextResponse.json(
       { error: 'Failed to fetch task' },
       { status: 500 }
@@ -88,9 +90,10 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
     
     if (!session?.user?.id) {
@@ -104,7 +107,7 @@ export async function PATCH(
       .where(eq(staff.userId, session.user.id))
       .limit(1);
 
-    if (!staffRecord.length) {
+    if (!staffRecord.length || !staffRecord[0].propertyId) {
       return NextResponse.json({ error: 'Staff record not found' }, { status: 403 });
     }
 
@@ -116,8 +119,8 @@ export async function PATCH(
       .from(housekeepingTasks)
       .where(
         and(
-          eq(housekeepingTasks.id, params.id),
-          eq(housekeepingTasks.propertyId, staffData.propertyId)
+          eq(housekeepingTasks.id, id),
+          eq(housekeepingTasks.propertyId, staffData.propertyId!)
         )
       )
       .limit(1);
@@ -127,7 +130,7 @@ export async function PATCH(
     }
 
     // Authorization check: staff can only update their own tasks unless they're a supervisor/manager
-    const isSupervisor = ['manager', 'admin', 'housekeeping_supervisor'].includes(staffData.role);
+    const isSupervisor = ['manager', 'admin', 'housekeeping_supervisor'].includes(staffData.position ?? '');
     const isAssigned = existingTask[0].assignedTo === staffData.id;
 
     if (!isSupervisor && !isAssigned) {
@@ -160,19 +163,19 @@ export async function PATCH(
     const [updatedTask] = await db
       .update(housekeepingTasks)
       .set(updates)
-      .where(eq(housekeepingTasks.id, params.id))
+      .where(eq(housekeepingTasks.id, id))
       .returning();
 
     return NextResponse.json({ task: updatedTask });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
+        { error: 'Invalid input', details: error.issues },
         { status: 400 }
       );
     }
 
-    console.error('Error updating housekeeping task:', error);
+    securityLogger.error('Error updating housekeeping task:', error);
     return NextResponse.json(
       { error: 'Failed to update task' },
       { status: 500 }
@@ -186,9 +189,10 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
     
     if (!session?.user?.id) {
@@ -202,14 +206,14 @@ export async function DELETE(
       .where(eq(staff.userId, session.user.id))
       .limit(1);
 
-    if (!staffRecord.length) {
+    if (!staffRecord.length || !staffRecord[0].propertyId) {
       return NextResponse.json({ error: 'Staff record not found' }, { status: 403 });
     }
 
     const staffData = staffRecord[0];
 
     // Only managers and admins can delete tasks
-    if (!['manager', 'admin', 'housekeeping_supervisor'].includes(staffData.role)) {
+    if (!['manager', 'admin', 'housekeeping_supervisor'].includes(staffData.position ?? '')) {
       return NextResponse.json(
         { error: 'Insufficient permissions' },
         { status: 403 }
@@ -221,14 +225,14 @@ export async function DELETE(
       .delete(housekeepingTasks)
       .where(
         and(
-          eq(housekeepingTasks.id, params.id),
-          eq(housekeepingTasks.propertyId, staffData.propertyId)
+          eq(housekeepingTasks.id, id),
+          eq(housekeepingTasks.propertyId, staffData.propertyId!)
         )
       );
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error deleting housekeeping task:', error);
+    securityLogger.error('Error deleting housekeeping task:', error);
     return NextResponse.json(
       { error: 'Failed to delete task' },
       { status: 500 }

@@ -1,3 +1,9 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'uterms Policy',
+};
+
 /**
  * Terms of Service Page
  * 
@@ -44,7 +50,7 @@ export default function TermsOfServicePage() {
               Hotel Etuna is a premium hotel property in Ongwediva. Subject to availability, we provide:
             </p>
             <ul>
-              <li>Accommodation in room tiers including Standard, Luxury, Family, Executive Suite, and Premier</li>
+              <li>Accommodation in Standard Room (Types A, B, and C), Executive Room, and Premiere Room</li>
               <li>On-site dining, including breakfast and dinner service hours as published</li>
               <li>Guest amenities such as WiFi, parking, pool access, and 24-hour security</li>
               <li>Support services, including concierge assistance and paid airport shuttle options</li>
@@ -209,7 +215,7 @@ export default function TermsOfServicePage() {
             </p>
             <p>
               <strong>Hotel Etuna</strong><br />
-              Email: info@hoteletuna.com<br />
+              Email: admin@hoteletuna.com<br />
               Phone: +264 65 231 177<br />
               Address: 5544 Valley Street, Ongwediva, Namibia
             </p>

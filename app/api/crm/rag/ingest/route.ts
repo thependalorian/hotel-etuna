@@ -16,6 +16,7 @@ import { RagIngestService } from '@/lib/services/documents/RagIngestService';
 import { PropertyService } from '@/lib/services/property/PropertyService';
 import { isQdrantConfigured } from '@/lib/integrations/qdrant';
 import { isRagEmbeddingConfigured } from '@/lib/integrations/embeddings-rag';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const ingestService = new RagIngestService();
 const propertyService = new PropertyService();
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
         return successResponse(result);
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Ingest failed';
-        console.error('[api/crm/rag/ingest]', e);
+        securityLogger.error('[api/crm/rag/ingest]', e);
         return errorResponse(msg, 500, 'RAG_INGEST_FAILED');
       }
     },

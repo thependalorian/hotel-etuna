@@ -1,0 +1,14 @@
+vendor_name,tier,primary_purpose,data_types,regions,contract_status,soc2_type2,pci_dss,last_reviewed,notes
+Vercel Inc.,Critical,Application hosting + CDN,"Application code, request logs, env vars",US (global CDN),Active - ToS,Yes (Vercel Trust),N/A,2026-05-16,Primary deployment platform; data processing addendum via Vercel ToS
+Neon Inc.,Critical,PostgreSQL serverless database,"All guest PII, booking records, payment metadata",US-East (AWS),Active - DPA required,SOC2 in progress,N/A,2026-05-16,Production DB; PITR enabled; review attestation availability
+Adumo (Pty) Ltd,Critical,Card payment processing,Card transaction data (no PAN stored by us),South Africa / Namibia,Active - merchant agreement,PCI DSS AOC required,PCI DSS Level 1,2026-05-16,Buffr Financial Services is merchant; hosted payment page; no PAN in Hotel Etuna systems
+Qdrant Cloud,High,Vector DB for Sofia AI RAG,Property knowledge chunks (no PII),Germany (Hetzner),Active - ToS,Attestation required,N/A,2026-05-16,Only hotel knowledge docs; no guest PII in vectors
+DeepSeek (High-Flyer AI),High,LLM inference for Sofia AI,Chat context (may include guest name/booking ref),China-hosted API,Active - ToS,Attestation required,N/A,2026-05-16,Primary LLM; review data residency policy; minimize PII in prompts
+OpenAI Inc.,High,LLM fallback for Sofia AI,Chat context (may include guest name/booking ref),US,Active - ToS + DPA,SOC2 Type II,N/A,2026-05-16,Fallback only; review data retention settings
+Anthropic PBC,High,LLM fallback,Chat context (may include guest name/booking ref),US,Active - ToS,In progress,N/A,2026-05-16,Second fallback; review API data handling
+PostHog Inc.,Medium,Product analytics,"Anonymous usage events, session data",US/EU,Active - ToS + DPA,SOC2 Type II,N/A,2026-05-16,No PII in events; EU data residency available if needed
+Namecheap / PrivateEmail,Medium,Transactional email SMTP,"Email addresses, email content",US,Active - ToS,N/A,N/A,2026-05-16,concierge@hoteletuna.com; info@hoteletuna.com; TLS enforced
+GitHub (Microsoft),Medium,Source code repository + CI/CD,Application source code (no secrets in code),US,Active - ToS + DPA,SOC2 Type II,N/A,2026-05-16,Secrets in Vercel env vars only; branch protection enabled
+Cloudflare (if used),Low,DNS / DDoS protection,DNS queries; traffic metadata,US,N/A,SOC2 Type II,N/A,2026-05-16,Review if active; not confirmed in prod stack
+1Password,Medium,Secrets management (team),API keys; credentials,US/CA,Active - subscription,SOC2 Type II,N/A,2026-05-16,All production secrets should be stored here AND in Vercel
+Twilio Inc.,High,SMS notifications (fraud alerts),Phone numbers; SMS content,US,Active - ToS (if configured),SOC2 Type II,N/A,2026-05-16,Configured when TWILIO_* env vars set; not yet active in production

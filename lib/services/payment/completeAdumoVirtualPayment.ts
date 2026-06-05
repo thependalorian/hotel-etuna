@@ -72,7 +72,7 @@ export async function completeAdumoVirtualPayment(
   const paidAmount = Number.parseFloat(input.decoded.amount);
   if (
     Number.isFinite(paidAmount) &&
-    Math.abs(paidAmount - sessionAmount) > 0.02
+    Math.abs(paidAmount - sessionAmount) > 0.005
   ) {
     throw new AppError(400, 'Paid amount does not match session amount');
   }

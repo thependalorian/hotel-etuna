@@ -24,7 +24,10 @@ type AccountingReport = {
   journalLineCount: number;
   incomeStatement: {
     roomRevenueExVat: number;
+    conferenceRevenueExVat: number;
+    campsiteRevenueExVat: number;
     fnbRevenueExVat: number;
+    otherRevenueExVat: number;
     totalRevenueExVat: number;
     vatOutput: number;
     platformFeesExVat: number;
@@ -153,6 +156,22 @@ export function HospitalityAccountingPanel() {
                     {c} {is.roomRevenueExVat.toFixed(2)}
                   </dd>
                 </div>
+                {(is.conferenceRevenueExVat ?? 0) > 0 && (
+                  <div className="flex justify-between gap-4">
+                    <dt>Conference revenue (ex VAT)</dt>
+                    <dd className="font-mono">
+                      {c} {(is.conferenceRevenueExVat ?? 0).toFixed(2)}
+                    </dd>
+                  </div>
+                )}
+                {(is.campsiteRevenueExVat ?? 0) > 0 && (
+                  <div className="flex justify-between gap-4">
+                    <dt>Campsite revenue (ex VAT)</dt>
+                    <dd className="font-mono">
+                      {c} {(is.campsiteRevenueExVat ?? 0).toFixed(2)}
+                    </dd>
+                  </div>
+                )}
                 <div className="flex justify-between gap-4">
                   <dt>F&B revenue (ex VAT)</dt>
                   <dd className="font-mono">

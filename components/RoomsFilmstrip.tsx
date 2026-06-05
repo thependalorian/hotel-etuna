@@ -7,12 +7,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Users, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import type { HubRoom } from '@/lib/data/rooms';
+import type { HubRoomTypeCatalogEntry } from '@/lib/data/room-type-catalog';
 import { getPublicRoomDisplay } from '@/lib/rooms/room-display';
 import { publicCopy } from '@/lib/copy/public';
 
 type RoomsFilmstripProps = {
-  rooms: HubRoom[];
+  rooms: HubRoomTypeCatalogEntry[];
   isAuthenticated: boolean;
 };
 
@@ -45,16 +45,19 @@ export default function RoomsFilmstrip({ rooms, isAuthenticated }: RoomsFilmstri
         </p>
         <div className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin sm:gap-5 md:grid md:grid-cols-2 md:overflow-visible md:snap-none md:pb-0 lg:grid-cols-3 xl:grid-cols-5">
           {rooms.map((room) => {
-            const display = getPublicRoomDisplay(room);
+            const display = getPublicRoomDisplay({
+              ...room,
+              roomNumber: room.roomNumbers[0] ?? room.roomNumber,
+            });
             const hero =
               display.tourStops[0]?.imageSrc ??
               room.images[0] ??
               '/images/hospitality/hotel_room.jpeg';
-            const isPremier = room.slug === 'premier-room';
+            const isPremier = room.slug === 'premiere-room';
 
             return (
               <article
-                key={room.id}
+                key={room.slug}
                 className={`w-[min(88vw,320px)] shrink-0 snap-center overflow-hidden rounded-2xl border bg-white shadow-card md:w-full md:shrink ${
                   isPremier ? 'border-khaki-500 ring-2 ring-khaki-500/30' : 'border-nude-200'
                 }`}

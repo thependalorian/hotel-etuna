@@ -8,6 +8,7 @@ import { db } from '@/lib/db';
 import { rooms } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import type { Room } from '@/lib/db/schema';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export class PropertyRoomService {
   async getRoomsByPropertyId(propertyId: string): Promise<Room[]> {
@@ -23,7 +24,7 @@ export class PropertyRoomService {
         );
       return result;
     } catch (error) {
-      console.error('Error fetching rooms by property:', error);
+      securityLogger.error('Error fetching rooms by property:', error);
       throw error;
     }
   }
@@ -42,7 +43,7 @@ export class PropertyRoomService {
         .limit(1);
       return room ?? null;
     } catch (error) {
-      console.error('Error fetching room by ID:', error);
+      securityLogger.error('Error fetching room by ID:', error);
       throw error;
     }
   }

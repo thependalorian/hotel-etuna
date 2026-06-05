@@ -6,7 +6,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { MenuBookPage } from '@/components/dining/MenuPageTurner';
+import type { MenuBookPage } from '@/lib/dining/menu-book-pagination';
 import MenuBookSinglePageViewer, {
   flattenMenuBookPages,
 } from '@/components/dining/MenuBookSinglePageViewer';

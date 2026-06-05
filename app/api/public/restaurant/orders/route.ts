@@ -5,6 +5,7 @@ import { TableService } from '@/lib/services/restaurant/TableService';
 import { db, properties, guests } from '@/lib/db';
 import { eq, and } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const orderService = new OrderService();
 const propertyService = new PropertyService();
@@ -84,7 +85,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(newOrder, { status: 201 });
   } catch (error) {
-    console.error('Error creating public order:', error);
+    securityLogger.error('Error creating public order:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }

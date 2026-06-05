@@ -11,7 +11,7 @@
 **Version:** 2.0.0 (Hotel Etuna Hub-and-Spoke)  
 **Last Updated:** May 16, 2026
 
-**Production:** Deployed on **Vercel** (`hoteletuna.com`). **Canonical docs:** [`docs/project/PRD.md`](docs/project/PRD.md) · [`PLANNING.md`](docs/project/PLANNING.md) · [`TASK.md`](docs/project/TASK.md) (testing, deployment, smoke). Automated tests: **Vitest `334 / 334` passed** (`npm run test`); Playwright E2E: **`npm run test:e2e`**. Sofia RAG uses **Qdrant Cloud Inference** (`intfloat/multilingual-e5-small`, 384d); run `npm run rag:seed` after setting `QDRANT_*` in `.env.local`.
+**Production:** Deployed on **Vercel** (`hoteletuna.com`). **Canonical docs:** [`docs/project/PRD.md`](docs/project/PRD.md) · [`PLANNING.md`](docs/project/PLANNING.md) · [`TASK.md`](docs/project/TASK.md) (testing, deployment, smoke). Automated tests: **Vitest `427+ passed`** (`npm run test`); Playwright E2E: **`npm run test:e2e`**. Sofia RAG uses **Qdrant Cloud Inference** (`intfloat/multilingual-e5-small`, 384d); run `npm run rag:seed` after setting `QDRANT_*` in `.env.local`.
 
 ---
 
@@ -38,7 +38,14 @@ Built on a hub-and-spoke multi-tenant architecture with exclusive AI capabilitie
 | **Guest services** | Airport shuttle, pool, on-site restaurant |
 | **Email Automation** | Booking confirmations, check-in reminders, post-stay follow-ups |
 | **Staff Management** | Roles, permissions, audit logging |
-| **Compliance** | PSD-12, PSD-4, ETA 2019 (Bank of Namibia) |
+| **Housekeeping** | Task board, room status tracking, auto-task on checkout |
+| **Loyalty Program** | 4-tier (Bronze/Silver/Gold/Platinum), earn/burn points, rewards catalog |
+| **CMS** | Block editor for pages; menu item management |
+| **Introducer Partners** | Referral tracking, commission, public directory |
+| **Platform Billing** | Buffr ↔ Hotel Etuna invoicing, fee accruals, VAT |
+| **NamQR Payments** | Namibia QR v5 desk + guest confirmation flows |
+| **Fraud Detection** | Rule engine, alerts, velocity checks (PSD-12) |
+| **Compliance** | PSD-12, PSD-4, ETA 2019, AML/FICA, SOC 2 (in progress) |
 
 ### Partner Network (Jayla, Aquarius)
 
@@ -86,12 +93,12 @@ Built on a hub-and-spoke multi-tenant architecture with exclusive AI capabilitie
 
 | Category | Technology |
 |----------|------------|
-| **Frontend** | Next.js 14, React 18, TypeScript, Tailwind CSS, DaisyUI |
+| **Frontend** | Next.js 16, React 18, TypeScript, Tailwind CSS, DaisyUI |
 | **Backend** | Next.js API Routes, Middleware (tenant routing) |
 | **Database** | Neon (Serverless PostgreSQL), Drizzle ORM |
 | **Vector DB** | Qdrant (Sofia AI knowledge base) |
 | **Authentication** | Stack Auth (primary) + NextAuth.js fallback |
-| **AI** | OpenAI, Anthropic, Google, Groq (multi-provider router) |
+| **AI** | DeepSeek (primary), OpenAI, Anthropic (fallback chain via LLMProviderRouter) |
 | **Email** | Nodemailer (Namecheap PrivateEmail SMTP) |
 | **Deployment** | Vercel |
 
@@ -173,9 +180,9 @@ CREATE TABLE tenants (
    ANTHROPIC_API_KEY=sk-ant-...
 
    # SMTP (Namecheap PrivateEmail)
-   SMTP_HOST=mail.privateemail.com
-   SMTP_USER=concierge@hoteletuna.com
-   SMTP_PASS=<your-password>
+   EMAIL_SMTP_HOST=mail.privateemail.com
+   EMAIL_SMTP_USER=frontdesk@hoteletuna.com
+   EMAIL_SMTP_PASS=<your-password>
 
    # Authentication
    NEXT_PUBLIC_STACK_PROJECT_ID=<stack-project-id>
@@ -202,42 +209,52 @@ CREATE TABLE tenants (
 hotel-etuna/
 ├── app/
 │   ├── (auth)/              # Authentication routes
-│   ├── (dashboard)/         # Hub dashboard (Hotel Etuna)
-│   ├── (partner)/           # Partner dashboard (Jayla, Aquarius)
-│   ├── api/
-│   │   ├── sofia/*          # Sofia AI endpoints (hub only)
-│   │   ├── ai/*             # AI endpoints (hub only)
-│   │   ├── crm/*            # CRM endpoints (hub only)
-│   │   ├── partners/*       # Partner management
-│   │   └── bookings/*       # Booking management
-│   └── partners/
-│       └── [partnerSlug]/   # Public partner listing pages
+│   ├── (dashboard)/         # Hub staff dashboard (Hotel Etuna)
+│   │   ├── bookings/        # PMS booking management
+│   │   ├── crm/             # Guest CRM, loyalty, introducers
+│   │   ├── housekeeping/    # Housekeeping task board
+│   │   ├── cms/             # Content management (pages, menu)
+│   │   ├── payments/        # Desk, reconciliation, platform billing
+│   │   ├── restaurant/      # Tables, orders, menu
+│   │   └── compliance/      # KYC, SOC2
+│   ├── api/                 # 155 API route handlers
+│   │   ├── ai/concierge/    # Sofia AI (hub only)
+│   │   ├── crm/             # CRM + loyalty (hub only)
+│   │   ├── bookings/        # Booking management
+│   │   ├── payments/        # Adumo, NamQR, cash, manual
+│   │   ├── housekeeping/    # Task CRUD
+│   │   ├── introducers/     # Referral partner management
+│   │   └── compliance/      # KYC, AML, PSD, SOC2
+│   ├── dining/              # Public digital menu
+│   ├── guest/               # Guest self-service hub
+│   └── partners/[slug]/     # Public partner listing pages
 ├── components/
-│   ├── features/
-│   │   ├── sofia/           # Sofia AI chat components
-│   │   ├── booking/         # Booking components
-│   │   ├── partner/         # Partner dashboard components
-│   │   └── restaurant/      # Restaurant components
-│   ├── shared/              # Shared UI components
-│   └── ui/                  # Base design system components
+│   ├── features/            # Domain-scoped feature components
+│   │   ├── booking/         # Booking & folio components
+│   │   ├── crm/             # CRM, loyalty, guest memory
+│   │   ├── restaurant/      # Restaurant ops
+│   │   └── fraud/           # Fraud dashboard
+│   ├── dining/              # Public menu book components
+│   └── shared/              # Reusable primitives (ErrorDisplay, etc.)
 ├── lib/
-│   ├── db/                  # Database schema and connection
-│   ├── services/
-│   │   ├── sofia/           # Sofia AI services (hub only)
-│   │   ├── booking/         # Booking services
-│   │   ├── property/        # Property services
-│   │   └── partner/         # Partner services
-│   └── middleware/          # Tenant routing and security
-├── database/
-│   └── drizzle/             # Database migrations
-├── tests/
-│   ├── sofia/               # Sofia AI unit tests
-│   ├── e2e/                 # Playwright E2E tests
-│   └── workflows/           # CI/CD workflow tests
-├── docs/project/PRD.md      # Product requirements (canonical)
-├── docs/project/PLANNING.md # Architecture & phases (canonical)
-├── docs/project/TASK.md     # Testing, deployment, checklists (canonical)
-└── docs/REBRAND_QUESTIONNAIRE_AND_LANDSCAPE.md  # Brand strategy (full)
+│   ├── db/                  # Drizzle schema + Neon connection
+│   ├── services/            # Business logic (domain-organised)
+│   │   ├── ai/              # Sofia concierge + LLM router
+│   │   ├── booking/         # Booking lifecycle
+│   │   ├── loyalty/         # Loyalty tiers + transactions
+│   │   ├── fraud/           # Fraud detection + notifications
+│   │   ├── compliance/      # AML, KYC, SOC2, STR
+│   │   └── payment/         # Adumo, NamQR, manual payments
+│   ├── compliance/          # NamQR, SOC2 agents, security pack
+│   └── auth/                # NextAuth config + middleware
+├── middleware.ts             # Tenant routing + security gate
+├── database/drizzle/         # SQL migration files (0000–0037)
+├── e2e/                      # Playwright E2E specs (10 files)
+├── tests/                    # Vitest unit + integration tests
+├── docs/project/PRD.md       # Product requirements (canonical)
+├── docs/project/PLANNING.md  # Architecture & phases (canonical)
+├── docs/project/TASK.md      # Testing, deployment, checklists (canonical)
+└── docs/compliance/          # Policies, IRP, AML, Namibia framework
 ```
 
 ---
@@ -312,7 +329,7 @@ GET    /api/public/menu         # Public menu endpoint
 
 ### Capabilities (Hotel Etuna Only)
 
-- **Multi-channel:** Web chat, email monitoring (IMAP), SMS/WhatsApp (planned)
+- **Multi-channel:** Web chat, email monitoring (IMAP), WhatsApp webhook (live), voice adapter
 - **Knowledge Base:** Platform info, property details, guest preferences
 - **Email Automation:** Booking confirmations, reminders, follow-ups
 - **Human Escalation:** Based on confidence score or policy keywords
@@ -399,9 +416,8 @@ https://hoteletuna.com/partners/jayla-accommodation
 
 ### Authentication
 
-- **Primary:** Stack Auth (JWT tokens, RBAC)
-- **Fallback:** NextAuth.js (session-based)
-- **MFA:** Optional 2FA support (planned)
+- **Primary:** Stack Auth (JWT tokens, RBAC) + NextAuth.js session fallback
+- **2FA:** `TwoFactorAuthService` implemented (`lib/services/security/`); UI wiring in progress
 
 ### Compliance
 
@@ -469,11 +485,14 @@ npm run test:e2e:ui
 | Document | Purpose |
 |----------|---------|
 | [`docs/project/PRD.md`](docs/project/PRD.md) | Product requirements, design, appendices |
-| [`docs/project/PLANNING.md`](docs/project/PLANNING.md) | Architecture, phases, folio, dev hygiene |
+| [`docs/project/PLANNING.md`](docs/project/PLANNING.md) | Architecture, phases, payment flows, DB design |
 | [`docs/project/TASK.md`](docs/project/TASK.md) | Smoke tests, deployment checklist, open work |
-| [`docs/REBRAND_QUESTIONNAIRE_AND_LANDSCAPE.md`](docs/REBRAND_QUESTIONNAIRE_AND_LANDSCAPE.md) | Full brand & market strategy |
+| [`docs/AUDIT_FINDINGS.md`](docs/AUDIT_FINDINGS.md) | Documentation audit — status matrix + findings |
+| [`docs/naming-conventions.md`](docs/naming-conventions.md) | Naming conventions guide |
+| [`docs/compliance/`](docs/compliance/) | Policies, IRP, AML/KYC, Namibia regulatory framework |
+| [`docs/REBRAND_QUESTIONNAIRE_AND_LANDSCAPE.md`](docs/REBRAND_QUESTIONNAIRE_AND_LANDSCAPE.md) | Brand & market strategy |
 
-Scattered reports and legacy checklists were consolidated and **removed** (May 2026). Edit only the triad above.
+Canonical project docs live in `docs/project/`. Compliance docs live in `docs/compliance/`.
 
 **Quick local setup:** See **Local Development & Knowledge Ingestion** in `docs/project/PLANNING.md`.
 
@@ -493,5 +512,5 @@ Built for Hotel Etuna in Ongwediva, Namibia.
 5544 Valley Street  
 Ongwediva, Namibia  
 Phone: +264 65 231 177  
-Email: info@hoteletuna.com  
+Email: admin@hoteletuna.com  
 Website: https://hoteletuna.com

@@ -7,6 +7,7 @@
  */
 
 import type { PostHogConfig } from 'posthog-js';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export function getPostHogApiKey(): string | undefined {
   return process.env.NEXT_PUBLIC_POSTHOG_KEY?.trim() || undefined;
@@ -50,7 +51,7 @@ export function buildPostHogClientOptions(): Partial<PostHogConfig> {
     },
     loaded: () => {
       if (process.env.NODE_ENV === 'development') {
-        console.log('✅ PostHog initialized');
+        securityLogger.debug('PostHog initialized');
       }
     },
   };

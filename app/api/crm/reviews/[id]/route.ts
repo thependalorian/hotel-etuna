@@ -16,6 +16,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { db, guestReviews, and, eq } from '@/lib/db';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export async function PATCH(
   request: NextRequest,
@@ -88,7 +89,7 @@ export async function PATCH(
     });
 
   } catch (error: any) {
-    console.error('[PATCH /api/crm/reviews/[id]] Error:', error);
+    securityLogger.error('[PATCH /api/crm/reviews/[id]] Error:', error);
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
       { status: 500 }
@@ -129,7 +130,7 @@ export async function GET(
     return NextResponse.json({ review });
 
   } catch (error: any) {
-    console.error('[GET /api/crm/reviews/[id]] Error:', error);
+    securityLogger.error('[GET /api/crm/reviews/[id]] Error:', error);
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
       { status: 500 }

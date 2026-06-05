@@ -31,6 +31,7 @@ import {
   tenants,
 } from '@/lib/db';
 import { resolvePublicHubProperty } from '@/lib/utils/public-property';
+import { getHubRoomTypeCatalog } from '@/lib/data/room-type-catalog';
 import NavigationHeader from '@/components/sections/landing/NavigationHeader';
 import { LandingBookingWidget } from '@/components/sections/landing/LandingBookingWidget';
 import { Button } from '@/components/ui/Button';
@@ -40,6 +41,7 @@ import { Calendar, Check, MapPin, Sparkles, Star, Utensils } from 'lucide-react'
 import { publicCopy } from '@/lib/copy/public';
 import { restaurantHoursLabels } from '@/lib/dining/restaurant-hours';
 import { formatMenuPrice } from '@/lib/dining/menu-display';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export const dynamic = 'force-dynamic';
 
@@ -101,15 +103,7 @@ export default async function LandingPage() {
   const isAuthenticated = Boolean(session?.user);
   let hubTenant: { id: string; name: string | null } | null = null;
   let hubProperty: typeof properties.$inferSelect | null = null;
-  let roomRows: Array<{
-    id: string;
-    roomType: string;
-    maxOccupancy: number | null;
-    baseRate: string | null;
-    currency: string | null;
-    amenities: unknown;
-    images: unknown;
-  }> = [];
+  let roomCatalog: Awaited<ReturnType<typeof getHubRoomTypeCatalog>> = [];
   const rateMap = new Map<string, { amount: number; currency: string }>();
   let restaurant: typeof restaurants.$inferSelect | null = null;
   let categoryRows: Array<{ id: string; name: string; displayOrder: number | null }> = [];
@@ -151,21 +145,9 @@ export default async function LandingPage() {
     const hubTenantId = hubTenant.id;
     const propertyId = hubProperty.id;
 
-    roomRows = await db
-      .select({
-        id: rooms.id,
-        roomType: rooms.roomType,
-        maxOccupancy: rooms.maxOccupancy,
-        baseRate: rooms.baseRate,
-        currency: rooms.currency,
-        amenities: rooms.amenities,
-        images: rooms.images,
-      })
-      .from(rooms)
-      .where(eq(rooms.propertyId, propertyId))
-      .orderBy(asc(rooms.roomType));
+    roomCatalog = await getHubRoomTypeCatalog();
 
-    const roomIds = roomRows.map((room) => room.id);
+    const roomIds = roomCatalog.map((room) => room.id);
     const defaultRoomRates = roomIds.length
       ? await db
           .select({
@@ -265,7 +247,7 @@ export default async function LandingPage() {
     partners = partnerRows.filter((partner) => partner.propertyId).slice(0, 3);
     openingHours = (restaurant?.openingHours as OpeningHours | null) ?? {};
   } catch (error) {
-    console.error('[LandingPage] DB content load failed, rendering safe fallback:', error);
+    securityLogger.error('[LandingPage] DB content load failed, rendering safe fallback:', error);
   }
   const propertyId = hubProperty?.id ?? process.env.DEFAULT_PROPERTY_ID ?? '';
 
@@ -275,7 +257,14 @@ export default async function LandingPage() {
       <main>
         <section className="relative h-[600px] md:h-[700px] flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 bg-linear-to-b from-terracotta-900/60 via-terracotta-900/40 to-nude-900/60 z-10" />
-          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/images/hospitality/hero_hotel_lobby.jpeg')" }} />
+          <Image
+            src="/images/hospitality/hero_hotel_lobby.jpeg"
+            alt="Hotel Etuna lobby — Ongwediva, Namibia"
+            fill
+            priority
+            className="object-cover object-center"
+            sizes="100vw"
+          />
           <div className="relative z-20 container mx-auto px-4 text-center text-white">
             <h1 className="font-display text-5xl md:text-7xl font-bold mb-6">{publicCopy.home.hero.title}</h1>
             <p className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto opacity-95">
@@ -312,13 +301,15 @@ export default async function LandingPage() {
         <section id="rooms" className="py-20 bg-white">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
-              <h2 className="font-display text-4xl md:text-5xl font-bold text-terracotta-900 mb-4">Our Rooms ({roomRows.length})</h2>
+              <h2 className="font-display text-4xl md:text-5xl font-bold text-terracotta-900 mb-4">
+                Our Rooms ({roomCatalog.length} categories)
+              </h2>
               <p className="text-lg text-terracotta-800 max-w-2xl mx-auto">
-                Walk through each room in a photo tour — sign in to view rates and book.
+                Walk through each room type in a photo tour — sign in to view rates and book.
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {roomRows.map((room) => {
+              {roomCatalog.map((room) => {
                 const rate = rateMap.get(room.id);
                 const fallbackAmount = room.baseRate ? Number(room.baseRate) : null;
                 const amount = rate?.amount ?? (Number.isNaN(fallbackAmount) ? null : fallbackAmount);
@@ -327,8 +318,8 @@ export default async function LandingPage() {
                 const roomImage = firstImage(room.images, fallbackImage);
                 return (
                   <Link
-                    key={room.id}
-                    href={`/rooms/${slugify(room.roomType)}#tour`}
+                    key={room.slug}
+                    href={`/rooms/${room.slug}#tour`}
                     className="group bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1"
                   >
                     <div className="aspect-4/3 relative bg-nude-200">
@@ -341,7 +332,9 @@ export default async function LandingPage() {
                       ) : (
                         <p className="text-khaki-600 font-semibold mb-1">{publicCopy.gated.viewPrices}</p>
                       )}
-                      <p className="text-sm text-terracotta-800 mb-4">Up to {room.maxOccupancy ?? 2} guests</p>
+                      <p className="text-sm text-terracotta-800 mb-4">
+                        {room.unitCount} unit{room.unitCount === 1 ? '' : 's'} · up to {room.maxOccupancy ?? 2} guests
+                      </p>
                       <ul className="space-y-2 mb-4">
                         {roomAmenities.map((amenity) => (
                           <li key={amenity} className="flex items-center gap-2 text-sm text-terracotta-800">

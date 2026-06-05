@@ -47,7 +47,9 @@ export default function NavigationHeader() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6" aria-label="Main navigation">
             <Link href="/rooms" className="text-sm font-medium text-base-content hover:text-primary transition-colors">Rooms</Link>
+            <Link href="/facilities" className="text-sm font-medium text-base-content hover:text-primary transition-colors">Facilities</Link>
             <Link href="/dining" className="text-sm font-medium text-base-content hover:text-primary transition-colors">Dining</Link>
+            <Link href="/partners" className="text-sm font-medium text-base-content hover:text-primary transition-colors">Partners</Link>
             <Link href="/about" className="text-sm font-medium text-base-content hover:text-primary transition-colors">About</Link>
             <Link href="/contact" className="text-sm font-medium text-base-content hover:text-primary transition-colors">Contact</Link>
             <GuestNavLink className="text-sm font-medium text-base-content hover:text-primary transition-colors" />
@@ -95,7 +97,9 @@ export default function NavigationHeader() {
             >
               Rooms
             </Link>
+            <Link href="/facilities" className="py-3 text-base font-medium text-base-content hover:text-primary transition-colors min-h-[44px] flex items-center" onClick={() => setMobileMenuOpen(false)}>Facilities</Link>
             <Link href="/dining" className="py-3 text-base font-medium text-base-content hover:text-primary transition-colors min-h-[44px] flex items-center" onClick={() => setMobileMenuOpen(false)}>Dining</Link>
+            <Link href="/partners" className="py-3 text-base font-medium text-base-content hover:text-primary transition-colors min-h-[44px] flex items-center" onClick={() => setMobileMenuOpen(false)}>Partners</Link>
             <Link href="/about" className="py-3 text-base font-medium text-base-content hover:text-primary transition-colors min-h-[44px] flex items-center" onClick={() => setMobileMenuOpen(false)}>About</Link>
             <Link href="/contact" className="py-3 text-base font-medium text-base-content hover:text-primary transition-colors min-h-[44px] flex items-center" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
             <GuestNavLink

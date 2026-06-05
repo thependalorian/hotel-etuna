@@ -7,6 +7,8 @@
  * Location: lib/integrations/mem0.ts
  */
 
+import { securityLogger } from '@/lib/utils/security-logger';
+
 const DEFAULT_BASE = 'https://api.mem0.ai';
 
 function memHeaders(): HeadersInit {
@@ -57,10 +59,10 @@ export async function mem0AddTurn(
     });
     if (!res.ok) {
       const t = await res.text().catch(() => '');
-      console.error('[mem0] add failed', res.status, t);
+      securityLogger.error('[mem0] add failed', { status: res.status, body: t });
     }
   } catch (e) {
-    console.error('[mem0] add error', e);
+    securityLogger.error('[mem0] add error', e);
   }
 }
 
@@ -114,13 +116,13 @@ export async function mem0ListMemoriesForUser(userId: string, limit = 12): Promi
     const url = `${base}/v1/memories/?user_id=${encodeURIComponent(userId)}`;
     const res = await fetch(url, { headers: memHeaders() });
     if (!res.ok) {
-      console.warn('[mem0] list failed v2:', resV2.status, 'v1:', res.status);
+      securityLogger.warn('[mem0] list failed', { v2Status: resV2.status, v1Status: res.status });
       return [];
     }
     const data: unknown = await res.json();
     return toStrings(parseMemoryRows(data));
   } catch (e) {
-    console.warn('[mem0] list error', e);
+    securityLogger.warn('[mem0] list error', e);
     return [];
   }
 }

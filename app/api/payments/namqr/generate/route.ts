@@ -10,6 +10,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { withApiAuth, errorResponse, successResponse } from '@/lib/utils/api-helpers';
 import { HospitalityNamQrPaymentService } from '@/lib/services/payment/HospitalityNamQrPaymentService';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const bodySchema = z.object({
   amount: z.number().positive().optional(),
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
             'mba-agent/documents/mba-agent/regulatory/namibia/namibia_qr_code_standards.md v5.0',
         });
       } catch (e) {
-        console.error('[namqr/generate]', e);
+        securityLogger.error('[namqr/generate]', e);
         return errorResponse('Failed to generate NamQR', 500, 'NAMQR_GENERATE_FAILED');
       }
     },

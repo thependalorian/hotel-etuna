@@ -30,6 +30,14 @@ import { BookingFolioSection } from '@/components/features/bookings/BookingFolio
 import { Card } from '@/components/ui/Card';
 import PageHeader from '@/components/shared/PageHeader';
 import { Calendar, MapPin, User, Mail, Phone } from 'lucide-react';
+import { securityLogger } from '@/lib/utils/security-logger.client';
+import {
+  bookingKindBadgeClass,
+  bookingKindLabel,
+  checkInDateLabel,
+  checkOutDateLabel,
+  isAccommodationBookingKind,
+} from '@/lib/bookings/booking-kind';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,7 +54,7 @@ async function getBooking(id: string) {
     if (error instanceof AppError && error.statusCode === 404) {
       notFound();
     }
-    console.error(error);
+    securityLogger.error("[BookingDetailPage] load error", error);
     return null;
   }
 }
@@ -85,6 +93,14 @@ const BookingDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
     .filter(Boolean)
     .join(' ') || 'Guest not attached';
   const total = Number(booking.total_amount ?? 0);
+  const bookingKind = String(
+    booking.booking_kind ?? booking.bookingKind ?? 'accommodation'
+  );
+  const isStay = isAccommodationBookingKind(bookingKind);
+  const roomType = String(booking.room_type ?? booking.roomType ?? '');
+  const pricingDetails = (booking.pricing_details ?? booking.pricingDetails) as
+    | Record<string, unknown>
+    | undefined;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -104,9 +120,17 @@ const BookingDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
                   <h2 className="font-display text-2xl font-bold text-nude-900 mb-2">
                     Booking #{booking.booking_reference}
                   </h2>
-                  <div className={`badge badge-lg capitalize ${bookingStatusBadgeClass(booking.status)}`}>
-                    {booking.status}
+                  <div className="flex flex-wrap gap-2">
+                    <span className={bookingKindBadgeClass(bookingKind)}>
+                      {bookingKindLabel(bookingKind)}
+                    </span>
+                    <div className={`badge badge-lg capitalize ${bookingStatusBadgeClass(booking.status)}`}>
+                      {booking.status}
+                    </div>
                   </div>
+                  {roomType ? (
+                    <p className="text-sm text-nude-600 mt-2">{roomType}</p>
+                  ) : null}
                 </div>
                 <div className="text-left sm:text-right">
                   <p className="text-xs font-bold uppercase tracking-wider text-nude-600">Total</p>
@@ -119,12 +143,14 @@ const BookingDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
 
               {/* Dates Section */}
               <div className="mb-6">
-                <h3 className="font-display text-lg font-semibold mb-3 text-nude-900">Stay Dates</h3>
+                <h3 className="font-display text-lg font-semibold mb-3 text-nude-900">
+                  {isStay ? 'Stay dates' : 'Booking dates'}
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-nude-50 rounded-lg border border-nude-200">
                   <div className="flex items-start gap-3">
                     <Calendar className="w-5 h-5 text-nude-600 mt-0.5" aria-hidden="true" />
                     <div>
-                      <p className="text-xs text-nude-600 mb-1">Check-in</p>
+                      <p className="text-xs text-nude-600 mb-1">{checkInDateLabel(bookingKind)}</p>
                       <p className="font-semibold text-nude-900">
                         {new Date(booking.check_in_date).toLocaleDateString('en-US', { 
                           weekday: 'long', 
@@ -138,7 +164,7 @@ const BookingDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
                   <div className="flex items-start gap-3">
                     <Calendar className="w-5 h-5 text-nude-600 mt-0.5" aria-hidden="true" />
                     <div>
-                      <p className="text-xs text-nude-600 mb-1">Check-out</p>
+                      <p className="text-xs text-nude-600 mb-1">{checkOutDateLabel(bookingKind)}</p>
                       <p className="font-semibold text-nude-900">
                         {new Date(booking.check_out_date).toLocaleDateString('en-US', { 
                           weekday: 'long', 
@@ -202,6 +228,15 @@ const BookingDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
                 </div>
               </div>
 
+              {pricingDetails && Object.keys(pricingDetails).length > 0 && (
+                <div className="mb-6">
+                  <h3 className="font-display text-lg font-semibold mb-3 text-nude-900">Pricing details</h3>
+                  <pre className="text-sm bg-nude-50 border border-nude-200 rounded-lg p-4 overflow-x-auto">
+                    {JSON.stringify(pricingDetails, null, 2)}
+                  </pre>
+                </div>
+              )}
+
               {booking.special_requests && (
                 <div>
                   <h3 className="font-display text-lg font-semibold mb-3 text-nude-900">Special Requests</h3>
@@ -218,7 +253,9 @@ const BookingDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
             <Card variant="elevated" className="sticky top-6">
               <h3 className="font-display text-lg font-semibold mb-4 text-nude-900">Status Actions</h3>
               <p className="text-sm text-nude-600 mb-4">
-                Change booking status using validated workflows
+                {isStay
+                  ? 'Change booking status using validated PMS workflows'
+                  : 'Update facility booking status (room housekeeping not affected)'}
               </p>
               <WorkflowStatusActions
                 currentStatus={booking.status}

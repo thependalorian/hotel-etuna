@@ -215,7 +215,7 @@ The guest folio and ordering features allow users to view, pay, and order from t
 
 ### Prompt 4.3 – Protect admin-only features
 ```
-The following features are admin-only: partner invite, platform billing, tenant management, system settings. Add role checks on the backend: verify that `session.user.role` is `owner`, `manager`, or `admin` (as defined in `lib/auth/middleware.ts`). Return 403 for unauthorized users. Also check that the user's `tenant_id` is the hub tenant (for platform-wide admin actions) – partners should never access these.
+The following features are admin-only: partner invite, platform billing, tenant management, system settings. Add role checks on the backend: verify that `session.user.role` is `owner`, `manager`, or `admin` (enforced in `proxy.ts` route lists and `lib/utils/api-helpers.ts` session helpers). Return 403 for unauthorized users. Also check that the user's `tenant_id` is the hub tenant (for platform-wide admin actions) – partners should never access these.
 ```
 
 ### Prompt 4.4 – Test for URL tampering (IDOR)
@@ -507,7 +507,7 @@ Scan all frontend code, CSS, and HTML for resources loaded over plain HTTP. Use 
 
 ### Prompt 9.3 – Add security headers
 ```
-Add these HTTP security headers to every response (in `next.config.ts` or `middleware.ts`):
+Add these HTTP security headers to every response (in `next.config.ts` or `proxy.ts`):
 - `Strict-Transport-Security: max-age=31536000; includeSubDomains` (enforce HTTPS for a year)
 - `Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://*.vercel.app; ...` (customize based on app needs)
 - `X-Content-Type-Options: nosniff`
@@ -617,7 +617,7 @@ List everything that needs to change.
 
 ### Prompt 11.2 – Lock down CORS
 ```
-Review CORS configuration in `next.config.ts`, `middleware.ts`, or `proxy.ts`. If any endpoint allows `Access-Control-Allow-Origin: *`, restrict to `https://hoteletuna.com` (and maybe `https://*.vercel.app` for previews). Also ensure that only necessary HTTP methods are allowed (GET, POST, PATCH, DELETE – not OPTIONS or TRACE). Do not allow credentials with wildcard origin.
+Review CORS configuration in `next.config.ts` or `proxy.ts` (canonical edge RBAC is `proxy.ts` + `lib/utils/api-helpers.ts`). If any endpoint allows `Access-Control-Allow-Origin: *`, restrict to `https://hoteletuna.com` (and maybe `https://*.vercel.app` for previews). Also ensure that only necessary HTTP methods are allowed (GET, POST, PATCH, DELETE – not OPTIONS or TRACE). Do not allow credentials with wildcard origin.
 ```
 
 ### Prompt 11.3 – Database security review

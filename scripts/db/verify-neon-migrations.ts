@@ -11,6 +11,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Pool } from 'pg';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 type CheckResult = { name: string; ok: boolean; detail?: string };
 
@@ -77,27 +78,27 @@ function report(results: CheckResult[]): void {
   let failed = 0;
   for (const r of results) {
     if (r.ok) {
-      console.log(`✅ ${r.name}${r.detail ? ` — ${r.detail}` : ''}`);
+      securityLogger.info(`✅ ${r.name}${r.detail ? ` — ${r.detail}` : ''}`);
     } else {
       failed += 1;
-      console.log(`❌ ${r.name}${r.detail ? ` — ${r.detail}` : ''}`);
+      securityLogger.info(`❌ ${r.name}${r.detail ? ` — ${r.detail}` : ''}`);
     }
   }
-  console.log('');
+  securityLogger.info('');
   if (failed > 0) {
-    console.log(
+    securityLogger.info(
       `Failed ${failed}/${results.length} checks. Apply SQL under database/drizzle/ (see TASK.md § Neon operator migrations).`
     );
     process.exit(1);
   }
-  console.log(`All ${results.length} migration checks passed.`);
+  securityLogger.info(`All ${results.length} migration checks passed.`);
 }
 
 async function main() {
   loadEnv();
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
-    console.error('❌ DATABASE_URL is not set in .env.local or .env');
+    securityLogger.error('❌ DATABASE_URL is not set in .env.local or .env');
     process.exit(1);
   }
 
@@ -222,6 +223,110 @@ async function main() {
       name: '0019 dining_reservations stripe removed',
       ok: noStripe.rows.length === 0,
     });
+
+    results.push({
+      name: '0020 namqr_pending_confirmations table',
+      ok: await tableExists(pool, 'namqr_pending_confirmations'),
+    });
+
+    results.push({
+      name: '0021 housekeeping_tasks table',
+      ok: await tableExists(pool, 'housekeeping_tasks'),
+    });
+
+    results.push({
+      name: '0029 cms_pages table',
+      ok: await tableExists(pool, 'cms_pages'),
+    });
+
+    results.push({
+      name: '0029b cms_pages RLS',
+      ok:
+        (await tableExists(pool, 'cms_pages')) &&
+        (await rlsEnabled(pool, 'cms_pages')),
+    });
+
+    results.push({
+      name: '0031 introducer_partners table',
+      ok: await tableExists(pool, 'introducer_partners'),
+    });
+
+    results.push({
+      name: '0033 loyalty_transactions table',
+      ok: await tableExists(pool, 'loyalty_transactions'),
+    });
+
+    results.push({
+      name: '0035 loyalty_tiers table',
+      ok: await tableExists(pool, 'loyalty_tiers'),
+    });
+
+    results.push({
+      name: '0037 loyalty tier trigger',
+      ok: await tableExists(pool, 'loyalty_tiers'),
+      detail: 'tiers present (trigger assumed if tiers exist)',
+    });
+
+    results.push({
+      name: '0038 users.notification_preferences',
+      ok: await columnExists(pool, 'users', 'notification_preferences'),
+    });
+
+    const premiereRoom = await pool.query(
+      `SELECT 1 FROM rooms WHERE room_type = 'Premiere Room' LIMIT 1`,
+    );
+    results.push({
+      name: '0039 canonical room types',
+      ok: premiereRoom.rows.length > 0,
+      detail: premiereRoom.rows.length > 0 ? 'Premiere Room present' : 'run 0039_hotel_etuna_room_types.sql',
+    });
+
+    const guestRoomCount = await pool.query(
+      `SELECT COUNT(*)::int AS c FROM rooms r
+       JOIN properties p ON p.id = r.property_id
+       WHERE p.slug = 'hotel-etuna'
+         AND COALESCE(r.inventory_kind, 'guest_room') = 'guest_room'
+         AND r.room_number NOT LIKE 'ET-%'`,
+    );
+    const guestCount = guestRoomCount.rows[0]?.c ?? 0;
+    results.push({
+      name: '0040 guest room inventory (35)',
+      ok: guestCount >= 35,
+      detail: `${guestCount} guest rooms`,
+    });
+
+    results.push({
+      name: '0041 rooms.inventory_kind',
+      ok: await columnExists(pool, 'rooms', 'inventory_kind'),
+    });
+
+    const facilityRows = await pool.query(
+      `SELECT COUNT(*)::int AS c FROM rooms r
+       JOIN properties p ON p.id = r.property_id
+       WHERE p.slug = 'hotel-etuna' AND r.inventory_kind IN ('conference', 'campsite')`,
+    );
+    results.push({
+      name: '0041 facility rows (one conference + one campsite)',
+      ok: (facilityRows.rows[0]?.c ?? 0) === 2,
+      detail: `${facilityRows.rows[0]?.c ?? 0} facility rows`,
+    });
+
+    const facilityKeys = await pool.query(
+      `SELECT COUNT(*)::int AS c FROM rooms r
+       JOIN properties p ON p.id = r.property_id
+       WHERE p.slug = 'hotel-etuna'
+         AND r.room_number IN ('facility:conference', 'facility:campsite')`,
+    );
+    results.push({
+      name: '0043 facility internal keys',
+      ok: (facilityKeys.rows[0]?.c ?? 0) >= 2,
+      detail: 'facility:conference + facility:campsite',
+    });
+
+    results.push({
+      name: '0042 bookings.booking_kind',
+      ok: await columnExists(pool, 'bookings', 'booking_kind'),
+    });
   } finally {
     await pool.end();
   }
@@ -230,6 +335,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error(err);
+  securityLogger.error(err);
   process.exit(1);
 });

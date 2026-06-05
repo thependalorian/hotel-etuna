@@ -10,6 +10,7 @@ import { getSessionWithTenantContext } from '@/lib/auth/tenant-context';
 import { db, cmsPages } from '@/lib/db';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 const createPageSchema = z.object({
   title: z.string().min(1).max(500),
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(pages);
   } catch (error) {
-    console.error('[CMS Pages API] GET error:', error);
+    securityLogger.error('[CMS Pages API] GET error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -88,12 +89,12 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
+        { error: 'Invalid input', details: error.issues },
         { status: 400 }
       );
     }
 
-    console.error('[CMS Pages API] POST error:', error);
+    securityLogger.error('[CMS Pages API] POST error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

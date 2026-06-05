@@ -10,6 +10,7 @@ import { SupportTicketService } from '@/lib/services/platform/SupportTicketServi
 import { enforcePlatformAdminRateLimit } from '@/lib/compliance/with-admin-rate-limit';
 import { recordAuditTrail } from '@/lib/compliance/record-audit';
 import { AuditActions, AuditResourceTypes } from '@/lib/compliance/regulatory-context';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ data: { ok: true } });
   } catch (error) {
-    console.error('[POST support reply]', error);
+    securityLogger.error('[POST support reply]', error);
     return NextResponse.json({ error: 'Failed to save reply' }, { status: 500 });
   }
 }

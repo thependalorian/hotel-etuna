@@ -22,6 +22,7 @@ import {
   ACTION_FILTER_OPTIONS,
 } from '@/lib/compliance/audit-filters';
 import { apiUrl } from '@/lib/utils/api-url';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 interface AuditLogEntry {
   id: string;
@@ -94,7 +95,7 @@ export default function AuditLogList() {
         setFetchError(msg);
         showToast({ variant: 'error', title: 'Could not load audit log', message: msg });
         setLogs([]);
-        console.error('Error fetching audit logs:', error);
+        securityLogger.error('Error fetching audit logs:', error);
       } finally {
         if (!signal?.aborted) setLoading(false);
       }

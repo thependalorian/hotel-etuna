@@ -27,11 +27,16 @@ import { Button } from '@/components/ui/Button';
 import { ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
 
 const roomTiers = [
-  'Standard - from N$850/night',
-  'Luxury - enhanced comfort and design',
-  'Family - spacious layout for group stays',
-  'Executive Suite - premium business and leisure comfort',
-  'Premier - signature top-tier experience',
+  'Standard (Type A) — N$800/night · double bed',
+  'Standard (Type B) — N$800/night · two single beds',
+  'Standard (Type C) — N$1,200/night · double + single (3 guests)',
+  'Executive Room — N$1,000/night',
+  'Premiere Room — N$2,000/night',
+];
+
+const facilityOffers = [
+  { label: 'Conference Hall — N$1,200 per session (08:00–17:00)', href: '/facilities/conference' },
+  { label: 'Campsite — from N$1,200 whole-site (per-person rates apply)', href: '/facilities/campsite' },
 ];
 
 const packageHighlights = [
@@ -51,8 +56,8 @@ export default function PricingSection() {
             Stay With Us
           </h2>
           <p className="text-xl text-base-content/90 max-w-2xl mx-auto">
-            Discover premium accommodation at Hotel Etuna in Ongwediva, with room tiers from N$850 and fair,
-            flexible packages for every stay.
+            Discover premium accommodation at Hotel Etuna in Ongwediva — five room categories from N$800,
+            plus conference and campsite bookings online.
           </p>
         </div>
 
@@ -63,7 +68,7 @@ export default function PricingSection() {
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-3xl font-bold font-display mb-3">Premium Room Tiers</h3>
-              <p className="text-base-content/80">Rates start from N$850 per night (subject to season and availability).</p>
+              <p className="text-base-content/80">Guest rooms from N$800 per night (35 units across 5 categories).</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
@@ -88,20 +93,36 @@ export default function PricingSection() {
               </div>
             </div>
 
-            <div className="pt-6 border-t border-base-300 text-center">
-              <Link href="/contact">
+            <div className="mb-6 space-y-2">
+              <p className="text-sm font-semibold text-base-content">Facilities</p>
+              {facilityOffers.map((offer) => (
+                <Link
+                  key={offer.href}
+                  href={offer.href}
+                  className="flex items-center justify-between gap-2 rounded-xl border border-base-300 px-4 py-3 text-sm hover:bg-base-200 transition-colors"
+                >
+                  <span>{offer.label}</span>
+                  <ArrowRight className="w-4 h-4 shrink-0" />
+                </Link>
+              ))}
+            </div>
+
+            <div className="pt-6 border-t border-base-300 text-center flex flex-wrap gap-3 justify-center">
+              <Link href="/rooms">
                 <Button
                   variant="primary"
                   size="lg"
-                  className="min-h-[56px] px-8 text-lg font-bold shadow-nude-primary hover:shadow-nude-strong"
+                  className="min-h-[56px] px-8 text-lg font-bold shadow-nude-primary hover:shadow-nude-strong rounded-full"
                 >
-                  Book Directly
+                  View rooms
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
-              <p className="text-xs text-base-content/80 mt-3">
-                Prefer assistance? Contact our team for tailored stay recommendations.
-              </p>
+              <Link href="/contact">
+                <Button variant="outline" size="lg" className="min-h-[56px] px-8 rounded-full">
+                  Contact us
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

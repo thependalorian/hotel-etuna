@@ -7,18 +7,17 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { LoyaltyService } from '@/lib/services/loyalty/LoyaltyService';
-import { getCurrentUserTenantContext } from '@/lib/middleware/withApiAuth';
+import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const loyaltyService = new LoyaltyService();
 
 // List rewards
 export async function GET(req: NextRequest) {
   try {
-    const context = await getCurrentUserTenantContext();
+    const context = await requireTenantSessionUser(req);
     
-    if (!context) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // requireTenantSessionUser throws AppError(401) if not authenticated
 
     const { searchParams } = new URL(req.url);
     const availableOnly = searchParams.get('availableOnly') !== 'false';
@@ -30,7 +29,7 @@ export async function GET(req: NextRequest) {
       rewards,
     });
   } catch (error: any) {
-    console.error('Error fetching rewards:', error);
+    securityLogger.error('Error fetching rewards:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to fetch rewards' },
       { status: error.status || 500 }
@@ -41,15 +40,13 @@ export async function GET(req: NextRequest) {
 // Create reward (staff only)
 export async function POST(req: NextRequest) {
   try {
-    const context = await getCurrentUserTenantContext();
+    const context = await requireTenantSessionUser(req);
     
-    if (!context) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // requireTenantSessionUser throws AppError(401) if not authenticated
 
     // Check if user is staff
     const staffRoles = ['owner', 'manager', 'admin', 'staff'];
-    if (!staffRoles.includes(context.user.role)) {
+    if (!staffRoles.includes(context.role)) {
       return NextResponse.json(
         { error: 'Only staff can create rewards' },
         { status: 403 }
@@ -93,7 +90,7 @@ export async function POST(req: NextRequest) {
       reward,
     }, { status: 201 });
   } catch (error: any) {
-    console.error('Error creating reward:', error);
+    securityLogger.error('Error creating reward:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to create reward' },
       { status: error.status || 500 }

@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentPlatformAdmin, isPlatformAdmin } from '@/lib/auth/platform-admin';
 import { SupportTicketService } from '@/lib/services/platform/SupportTicketService';
 import { enforcePlatformAdminRateLimit } from '@/lib/compliance/with-admin-rate-limit';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data: { tickets } });
   } catch (error) {
-    console.error('[GET /api/admin/platform/support/tickets]', error);
+    securityLogger.error('[GET /api/admin/platform/support/tickets]', error);
     return NextResponse.json({ error: 'Failed to load tickets' }, { status: 500 });
   }
 }
