@@ -86,7 +86,7 @@
     "@radix-ui/react-toast": "^1.2.2",
     "@react-pdf/renderer": "^4.5.1",
     "@stackframe/stack": "^2.8.58",
-    "@supabase/supabase-js": "^2.49.1",
+    "@supabase/supabase-js": "^2.108.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/nodemailer": "^7.0.4",
     "@zxing/browser": "^0.2.0",
