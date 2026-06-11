@@ -1,5 +1,5 @@
 /**
- * PlatformSecretsStatus — API key presence for Buffr Hub (never shows secret values).
+ * PlatformSecretsStatus — API key presence for platform console (never shows secret values).
  * Location: components/features/admin/platform/PlatformSecretsStatus.tsx
  */
 

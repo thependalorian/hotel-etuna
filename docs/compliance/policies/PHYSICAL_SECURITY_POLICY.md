@@ -16,6 +16,15 @@ Protect physical access to Hotel Etuna premises, on-site systems, and staff devi
 
 Hotel Etuna property (Windhoek operations), front-desk workstations, POS/tablet devices, paper records, and staff laptops used for administration.
 
+
+## Definitions
+
+| Term | Definition |
+|------|------------|
+| **Hotel Etuna** | Hub hospitality platform and operating entity |
+| **Personnel** | Employees, contractors, and partners with access to Hotel Etuna systems |
+| **Production** | Live environment serving guests and partners (Vercel + Neon production branch) |
+
 ## 3. On-premises controls
 
 | Control | Requirement |
@@ -41,14 +50,28 @@ Production application and database physical security is **inherited** from Verc
 Theft, break-in, or lost device with work data → report to Incident Commander within 1 hour; follow [`INCIDENT_RESPONSE_PLAN.md`](../INCIDENT_RESPONSE_PLAN.md).
 
 ## 7. Related documents
+- [`INFORMATION_SECURITY_POLICY.md`](INFORMATION_SECURITY_POLICY.md)
+
+- [`NAMIBIA_REGULATORY_FRAMEWORK.md`](../NAMIBIA_REGULATORY_FRAMEWORK.md)
+
+- [`POLICY_IMPLEMENTATION_MATRIX.md`](../../../compliance/evidence/policies/POLICY_IMPLEMENTATION_MATRIX.md)
 
 - [`ASSET_MANAGEMENT_POLICY.md`](ASSET_MANAGEMENT_POLICY.md)  
 - [`ACCEPTABLE_USE_POLICY.md`](ACCEPTABLE_USE_POLICY.md)
+
+## Exceptions
+
+Exceptions require written approval from the Policy Owner and Executive Sponsor. Document compensating controls in the risk register.
+
+## Enforcement
+
+Violations may result in disciplinary action up to termination and reporting to regulators where required.
 
 ## 8. Revision history
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1 | 2026-06-10 | CTO | Template conformance + implementation cross-ref |
 | 1.0 | May 17, 2026 | Operations | Initial policy |
 
 **Approved by:** _________________________ Date: _________

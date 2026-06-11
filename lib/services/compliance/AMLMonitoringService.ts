@@ -10,7 +10,6 @@
  * - Velocity monitoring (>10 transactions/hour)
  * - Geographic pattern detection
  * - Structuring detection (multiple transactions below threshold)
- * - PEP transaction monitoring
  * - Automatic alert generation and escalation
  * 
  * Compliance: Namibian Financial Intelligence Act (FIA)
@@ -23,10 +22,8 @@ import {
   transactions,
   amlTransactionAlerts,
   amlMonitoringRules,
-  amlGuestPepFlags,
   amlTransactionVelocity,
   amlGeographicPatterns,
-  guests,
   type NewAmlTransactionAlert,
   type NewAmlTransactionVelocity,
   type NewAmlGeographicPattern,
@@ -62,10 +59,6 @@ export interface MonitoringResult {
     timeWindowHours: number;
     isSuspicious: boolean;
   };
-  pepCheck: {
-    isPep: boolean;
-    pepCategory?: string;
-  };
   riskScore: number;
   shouldBlock: boolean;
 }
@@ -81,20 +74,7 @@ export class AMLMonitoringService {
     let totalRiskScore = 0;
 
     try {
-      // 1. Check if guest is PEP
-      const pepCheck = await this.checkPEPStatus(context.guestId, context.tenantId);
-      
-      if (pepCheck.isPep) {
-        alerts.push({
-          alertType: 'pep_transaction',
-          riskLevel: 'high',
-          riskScore: 75,
-          message: `Transaction by PEP: ${pepCheck.pepCategory}`,
-        });
-        totalRiskScore += 75;
-      }
-
-      // 2. High-value transaction check (≥N$100,000)
+      // 1. High-value transaction check (≥N$100,000)
       if (context.amount >= 100000 && context.currency === 'NAD') {
         const highValueAlert = await this.createHighValueAlert(context);
         alerts.push({
@@ -175,7 +155,6 @@ export class AMLMonitoringService {
       return {
         alerts,
         velocityCheck,
-        pepCheck,
         riskScore: finalRiskScore,
         shouldBlock,
       };
@@ -183,35 +162,6 @@ export class AMLMonitoringService {
       securityLogger.error('[AMLMonitoringService] Error monitoring transaction:', error);
       throw error;
     }
-  }
-
-  /**
-   * Check if guest is a Politically Exposed Person (PEP)
-   */
-  private static async checkPEPStatus(
-    guestId: string,
-    tenantId: string
-  ): Promise<{ isPep: boolean; pepCategory?: string }> {
-    const pepFlags = await db
-      .select()
-      .from(amlGuestPepFlags)
-      .where(
-        and(
-          eq(amlGuestPepFlags.guestId, guestId),
-          eq(amlGuestPepFlags.tenantId, tenantId),
-          eq(amlGuestPepFlags.isActive, true)
-        )
-      )
-      .limit(1);
-
-    if (pepFlags.length > 0) {
-      return {
-        isPep: true,
-        pepCategory: pepFlags[0].flagType,
-      };
-    }
-
-    return { isPep: false };
   }
 
   /**

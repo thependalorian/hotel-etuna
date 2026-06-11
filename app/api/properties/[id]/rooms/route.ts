@@ -1,10 +1,14 @@
-import { NextResponse, NextRequest } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/utils/api-helpers';
+import { NextRequest } from 'next/server';
+import {
+  withPlatformApiAuth,
+  errorResponse,
+  successResponse,
+} from '@/lib/utils/api-helpers';
 import { RoomService } from '@/lib/services/room/RoomService';
 import { PropertyService } from '@/lib/services/property/PropertyService';
 import * as z from 'zod';
 import { AppError } from '@/lib/utils/errors';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const roomSchema = z.object({
   room_number: z.string().min(1),
@@ -12,53 +16,55 @@ const roomSchema = z.object({
   max_occupancy: z.number().min(1),
 });
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const user = await getAuthenticatedUser(request);
+type RouteParams = { params: Promise<{ id: string }> };
 
-    if (!user) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
+export async function POST(request: NextRequest, { params }: RouteParams) {
+  return withPlatformApiAuth(
+    request,
+    async (req, user) => {
+      try {
+        const { id: propertyId } = await params;
 
-    const { id: propertyId } = await params;
-    
-    // Authorize: Check if the user owns this property
-    const propertyService = new PropertyService();
-    if (!user.tenantId) {
-      return NextResponse.json({ error: 'Tenant ID is required' }, { status: 400 });
-    }
-    const property = await propertyService.getPropertyById(propertyId, user.tenantId);
-    if (!property || !user.id || property.ownerId !== user.id) {
-        return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    }
+        const propertyService = new PropertyService();
+        if (!user.tenantId) {
+          return errorResponse('Tenant ID is required', 400, 'VALIDATION_ERROR');
+        }
+        const property = await propertyService.getPropertyById(propertyId, user.tenantId);
+        if (!property || !user.id || property.ownerId !== user.id) {
+          return errorResponse('Forbidden', 403, 'FORBIDDEN');
+        }
 
-    const body = await request.json();
-    const validation = roomSchema.safeParse(body);
+        const body = await req.json();
+        const validation = roomSchema.safeParse(body);
 
-    if (!validation.success) {
-      return NextResponse.json({ message: 'Invalid input.', errors: validation.error.flatten().fieldErrors }, { status: 400 });
-    }
+        if (!validation.success) {
+          return errorResponse(
+            'Invalid input.',
+            400,
+            'VALIDATION_ERROR',
+            validation.error.flatten().fieldErrors
+          );
+        }
 
-    const { room_number, room_type, max_occupancy } = validation.data;
-    
-    const roomService = new RoomService();
-    const newRoom = await roomService.createRoom({
-      roomNumber: room_number,
-      roomType: room_type,
-      maxOccupancy: max_occupancy,
-      propertyId,
-    });
+        const { room_number, room_type, max_occupancy } = validation.data;
 
-    return NextResponse.json(newRoom, { status: 201 });
+        const roomService = new RoomService();
+        const newRoom = await roomService.createRoom({
+          roomNumber: room_number,
+          roomType: room_type,
+          maxOccupancy: max_occupancy,
+          propertyId,
+        });
 
-  } catch (error) {
-    securityLogger.error('Create room error:', error);
-    if (typeof error === 'object' && error !== null && 'statusCode' in error && 'message' in error) {
-        return NextResponse.json({ message: error.message }, { status: (error as AppError).statusCode });
-    }
-    return NextResponse.json({ message: 'An unexpected error occurred.' }, { status: 500 });
-  }
+        return successResponse(newRoom, 201);
+      } catch (error) {
+        securityLogger.error('Create room error:', error);
+        if (typeof error === 'object' && error !== null && 'statusCode' in error && 'message' in error) {
+          return errorResponse(error.message as string, (error as AppError).statusCode, 'APP_ERROR');
+        }
+        return errorResponse('An unexpected error occurred.', 500, 'INTERNAL_ERROR');
+      }
+    },
+    { rateLimit: true }
+  );
 }

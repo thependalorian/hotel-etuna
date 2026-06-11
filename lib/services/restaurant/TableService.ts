@@ -1,3 +1,7 @@
+/**
+ * @fileoverview TableService — restaurant table CRUD and QR assignment (`restaurant_tables`).
+ * Location: lib/services/restaurant/TableService.ts
+ */
 import { db, restaurantTables as restaurantTablesSchema } from '@/lib/db';
 import { TableData } from '@/lib/types/restaurant';
 import { RestaurantTable, NewRestaurantTable } from '@/lib/db/schema';

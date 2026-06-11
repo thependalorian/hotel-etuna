@@ -13,12 +13,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
-import { AppError } from '@/lib/utils/errors';
+import { withTenantApiAuth } from '@/lib/utils/api-helpers';
 import { AMLMonitoringService } from '@/lib/services/compliance/AMLMonitoringService';
 import { entityId } from '@/lib/validation/entity-ids';
 import { z } from 'zod';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const monitorRequestSchema = z.object({
   transactionId: entityId(),
@@ -38,71 +37,69 @@ const monitorRequestSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  try {
-    const user = await requireTenantSessionUser(request);
+  return withTenantApiAuth(request, async (req, user) => {
+    try {
+      const body = await req.json();
+      
+      // Validate request
+      const validatedData = monitorRequestSchema.parse(body);
 
-    const body = await request.json();
-    
-    // Validate request
-    const validatedData = monitorRequestSchema.parse(body);
+      // Monitor transaction
+      const result = await AMLMonitoringService.monitorTransaction({
+        ...validatedData,
+        timestamp: validatedData.timestamp ? new Date(validatedData.timestamp) : new Date(),
+      });
 
-    // Monitor transaction
-    const result = await AMLMonitoringService.monitorTransaction({
-      ...validatedData,
-      timestamp: validatedData.timestamp ? new Date(validatedData.timestamp) : new Date(),
-    });
+      return NextResponse.json({
+        success: true,
+        data: {
+          riskScore: result.riskScore,
+          shouldBlock: result.shouldBlock,
+          alerts: result.alerts,
+          velocityCheck: result.velocityCheck,
+        },
+      }, { status: 200 });
+    } catch (error) {
+      securityLogger.error('[AML Monitor API] Error:', error);
+      
+      if (error instanceof z.ZodError) {
+        return NextResponse.json({
+          success: false,
+          error: 'Validation error',
+          details: error.issues,
+        }, { status: 400 });
+      }
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        riskScore: result.riskScore,
-        shouldBlock: result.shouldBlock,
-        alerts: result.alerts,
-        velocityCheck: result.velocityCheck,
-        pepCheck: result.pepCheck,
-      },
-    }, { status: 200 });
-  } catch (error) {
-    securityLogger.error('[AML Monitor API] Error:', error);
-    
-    if (error instanceof z.ZodError) {
       return NextResponse.json({
         success: false,
-        error: 'Validation error',
-        details: error.issues,
-      }, { status: 400 });
+        error: 'Internal server error',
+      }, { status: 500 });
     }
-
-    return NextResponse.json({
-      success: false,
-      error: 'Internal server error',
-    }, { status: 500 });
-  }
+  });
 }
 
 export async function GET(request: NextRequest) {
-  try {
-    const user = await requireTenantSessionUser(request);
+  return withTenantApiAuth(request, async (req, user) => {
+    try {
+      const tenantId = user.tenantId;
 
-    const { searchParams } = new URL(request.url);
-    const tenantId = user.tenantId;
+      // Get pending alerts
+      const alerts = await AMLMonitoringService.getPendingAlerts(tenantId);
 
-    // Get pending alerts
-    const alerts = await AMLMonitoringService.getPendingAlerts(tenantId);
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        alerts,
-        count: alerts.length,
-      },
-    }, { status: 200 });
-  } catch (error) {
-    securityLogger.error('[AML Monitor API] Error fetching alerts:', error);
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Internal server error',
-    }, { status: 500 });
-  }
+      return NextResponse.json({
+        success: true,
+        data: {
+          alerts,
+          count: alerts.length,
+        },
+      }, { status: 200 });
+    } catch (error) {
+      securityLogger.error('[AML Monitor API] Error fetching alerts:', error);
+      
+      return NextResponse.json({
+        success: false,
+        error: 'Internal server error',
+      }, { status: 500 });
+    }
+  });
 }

@@ -52,7 +52,7 @@ export default async function BookingDepositPage({ searchParams }: PageProps) {
     <div className="min-h-screen bg-base-100 py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="buffr-page-title mb-4">Secure Deposit Payment</h1>
+          <h1 className="etuna-page-title mb-4">Secure Deposit Payment</h1>
           <p className="text-lg text-base-content/70">
             Complete your deposit payment to confirm your booking. You will be redirected to our
             secure payment partner.

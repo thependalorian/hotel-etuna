@@ -1,19 +1,9 @@
 /**
  * Housekeeping Board
- * 
- * Mobile-first kanban board for housekeeping staff to manage room cleaning tasks.
- * 
+ *
+ * Mobile-first kanban board for housekeeping staff at Hotel Etuna.
  * Columns: dirty → cleaning → inspecting → clean
- * Features:
- * - Touch-friendly task cards (≥44px tap targets)
- * - Status updates via buttons or drag-and-drop
- * - Filter by priority
- * - Claim/assign tasks
- * - Mobile PWA optimized
- * 
- * Authorization: Housekeeping staff only
- * 
- * Blueprint: §19.6 Housekeeping Task Board
+ * RLS: All API calls go through withApiAuth which sets app.tenant_id.
  */
 
 'use client';
@@ -25,24 +15,22 @@ import { useRouter } from 'next/navigation';
 type TaskStatus = 'dirty' | 'cleaning' | 'inspecting' | 'clean';
 type TaskPriority = 'low' | 'normal' | 'high' | 'urgent';
 
-interface HousekeepingTask {
-  id: string;
-  roomId: string;
-  bookingId?: string;
-  assignedTo?: string;
-  status: TaskStatus;
-  priority: TaskPriority;
-  taskType: string;
-  notes?: string;
-  startedAt?: string;
-  completedAt?: string;
-  inspectionNotes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 interface TaskWithDetails {
-  task: HousekeepingTask;
+  task: {
+    id: string;
+    roomId: string;
+    bookingId?: string;
+    assignedTo?: string;
+    status: TaskStatus;
+    priority: TaskPriority;
+    taskType: string;
+    notes?: string;
+    startedAt?: string;
+    completedAt?: string;
+    inspectionNotes?: string;
+    createdAt: string;
+    updatedAt: string;
+  };
   room: {
     roomNumber: string;
     roomType: string;
@@ -62,35 +50,25 @@ interface TaskWithDetails {
 export default function HousekeepingBoard() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  
+
   const [tasks, setTasks] = useState<TaskWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterPriority, setFilterPriority] = useState<TaskPriority | 'all'>('all');
 
-  // Redirect if not authenticated
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
-    }
+    if (status === 'unauthenticated') router.push('/login');
   }, [status, router]);
 
-  // Fetch tasks
   useEffect(() => {
-    if (status === 'authenticated') {
-      fetchTasks();
-    }
+    if (status === 'authenticated') fetchTasks();
   }, [status]);
 
   const fetchTasks = async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/housekeeping/tasks');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch tasks');
-      }
-
+      if (!response.ok) throw new Error('Failed to fetch tasks');
       const data = await response.json();
       setTasks(data.tasks || []);
     } catch (err) {
@@ -107,12 +85,7 @@ export default function HousekeepingBoard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to update task');
-      }
-
-      // Refresh tasks
+      if (!response.ok) throw new Error('Failed to update task');
       await fetchTasks();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update task');
@@ -124,66 +97,55 @@ export default function HousekeepingBoard() {
       const response = await fetch(`/api/housekeeping/tasks/${taskId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          assignedTo: session?.user?.id,
-          status: 'cleaning',
-        }),
+        body: JSON.stringify({ assignedTo: session?.user?.id, status: 'cleaning' }),
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to claim task');
-      }
-
+      if (!response.ok) throw new Error('Failed to claim task');
       await fetchTasks();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to claim task');
     }
   };
 
-  // Filter tasks by status and priority
-  const getTasksByStatus = (status: TaskStatus) => {
-    return tasks.filter(t => {
-      const matchesStatus = t.task.status === status;
-      const matchesPriority = filterPriority === 'all' || t.task.priority === filterPriority;
-      return matchesStatus && matchesPriority;
-    });
-  };
+  const getTasksByStatus = (status: TaskStatus) =>
+    tasks.filter(t => t.task.status === status && (filterPriority === 'all' || t.task.priority === filterPriority));
 
   const columns: { status: TaskStatus; label: string; color: string }[] = [
-    { status: 'dirty', label: 'Dirty', color: 'bg-error' },
-    { status: 'cleaning', label: 'Cleaning', color: 'bg-warning' },
-    { status: 'inspecting', label: 'Inspecting', color: 'bg-info' },
-    { status: 'clean', label: 'Clean', color: 'bg-success' },
+    { status: 'dirty', label: 'Dirty', color: 'bg-semantic-error' },
+    { status: 'cleaning', label: 'Cleaning', color: 'bg-semantic-warning' },
+    { status: 'inspecting', label: 'Inspecting', color: 'bg-semantic-info' },
+    { status: 'clean', label: 'Clean', color: 'bg-semantic-success' },
   ];
 
   const priorityColors: Record<TaskPriority, string> = {
-    urgent: 'badge-error',
-    high: 'badge-warning',
-    normal: 'badge-info',
-    low: 'badge-ghost',
+    urgent: 'bg-semantic-error text-white',
+    high: 'bg-semantic-warning text-white',
+    normal: 'bg-nude-300 text-nude-800',
+    low: 'bg-nude-100 text-nude-600',
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <span className="loading loading-spinner loading-lg"></span>
+        <span className="loading loading-spinner loading-lg text-khaki-600"></span>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-base-200 p-4 md:p-6">
-      {/* Header */}
+    <div className="min-h-screen bg-nude-50 p-4 md:p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Housekeeping Board</h1>
-        <p className="text-base-content/70">Manage room cleaning tasks</p>
+        <h1 className="font-display text-3xl font-bold text-nude-900 mb-2">Housekeeping Board</h1>
+        <p className="text-nude-600">Manage room cleaning tasks at Hotel Etuna</p>
       </div>
 
-      {/* Filter Controls */}
       <div className="mb-6 flex flex-wrap gap-2">
         <button
           onClick={() => setFilterPriority('all')}
-          className={`btn btn-sm ${filterPriority === 'all' ? 'btn-primary' : 'btn-outline'}`}
+          className={`px-4 py-2 rounded-full text-sm font-medium min-h-[44px] transition-colors ${
+            filterPriority === 'all'
+              ? 'bg-khaki-600 text-white'
+              : 'bg-white border border-nude-200 text-nude-700 hover:bg-nude-100'
+          }`}
         >
           All
         </button>
@@ -191,148 +153,91 @@ export default function HousekeepingBoard() {
           <button
             key={priority}
             onClick={() => setFilterPriority(priority)}
-            className={`btn btn-sm ${filterPriority === priority ? 'btn-primary' : 'btn-outline'}`}
+            className={`px-4 py-2 rounded-full text-sm font-medium min-h-[44px] transition-colors ${
+              filterPriority === priority
+                ? 'bg-khaki-600 text-white'
+                : 'bg-white border border-nude-200 text-nude-700 hover:bg-nude-100'
+            }`}
           >
             {priority.charAt(0).toUpperCase() + priority.slice(1)}
           </button>
         ))}
       </div>
 
-      {/* Error Alert */}
       {error && (
-        <div className="alert alert-error mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span>{error}</span>
+        <div className="bg-semantic-error-light border border-semantic-error text-semantic-error-dark rounded-lg p-4 mb-4">
+          <p className="font-medium">{error}</p>
         </div>
       )}
 
-      {/* Kanban Board - Horizontal scroll on mobile */}
       <div className="overflow-x-auto pb-4">
         <div className="flex gap-4 min-w-max md:grid md:grid-cols-4">
           {columns.map(column => {
             const columnTasks = getTasksByStatus(column.status);
-            
             return (
-              <div
-                key={column.status}
-                className="w-80 md:w-full flex-shrink-0"
-              >
-                {/* Column Header */}
+              <div key={column.status} className="w-80 md:w-full flex-shrink-0">
                 <div className={`${column.color} text-white p-4 rounded-t-lg`}>
                   <h2 className="font-bold text-lg">
                     {column.label}
-                    <span className="ml-2 badge badge-ghost text-white">
+                    <span className="ml-2 bg-white/30 text-white px-2 py-0.5 rounded-full text-sm">
                       {columnTasks.length}
                     </span>
                   </h2>
                 </div>
-
-                {/* Column Tasks */}
-                <div className="bg-base-100 rounded-b-lg p-4 min-h-[200px] space-y-3">
+                <div className="bg-white rounded-b-lg p-4 min-h-[200px] space-y-3 border-x border-b border-nude-200">
                   {columnTasks.length === 0 ? (
-                    <p className="text-base-content/50 text-center py-8">
-                      No tasks
-                    </p>
+                    <p className="text-nude-500 text-center py-8">No tasks</p>
                   ) : (
                     columnTasks.map(({ task, room, booking, assignedStaff }) => (
-                      <div
-                        key={task.id}
-                        className="card bg-base-200 shadow-sm hover:shadow-md transition-shadow"
-                      >
-                        <div className="card-body p-4">
-                          {/* Room Info */}
-                          <h3 className="card-title text-base">
-                            Room {room.roomNumber}
-                            <span className={`badge badge-sm ${priorityColors[task.priority]}`}>
-                              {task.priority}
-                            </span>
-                          </h3>
-                          
-                          <p className="text-sm text-base-content/70">
-                            {room.roomType} • Floor {room.floor}
+                      <div key={task.id} className="bg-nude-50 rounded-lg p-4 border border-nude-200 hover:shadow-sm transition-shadow">
+                        <h3 className="font-semibold text-nude-900 text-base mb-1">
+                          Room {room.roomNumber}
+                          <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${priorityColors[task.priority]}`}>
+                            {task.priority}
+                          </span>
+                        </h3>
+                        <p className="text-sm text-nude-600 mb-1">{room.roomType}</p>
+                        {booking && (
+                          <p className="text-xs text-nude-500 mb-1">Booking: {booking.bookingReference}</p>
+                        )}
+                        {assignedStaff && (
+                          <p className="text-xs text-nude-500 mb-1">
+                            Assigned: {assignedStaff.firstName} {assignedStaff.lastName}
                           </p>
-
-                          {/* Booking Reference */}
-                          {booking && (
-                            <p className="text-xs text-base-content/60">
-                              Booking: {booking.bookingReference}
-                            </p>
+                        )}
+                        {task.notes && (
+                          <p className="text-xs text-nude-600 mt-2 italic">{task.notes}</p>
+                        )}
+                        <div className="flex gap-2 mt-3">
+                          {task.status === 'dirty' && !task.assignedTo && (
+                            <button onClick={() => claimTask(task.id)} className="px-4 py-2 rounded-full bg-khaki-600 text-white font-medium text-sm hover:bg-khaki-700 transition-colors min-h-[44px]">
+                              Claim
+                            </button>
                           )}
-
-                          {/* Assigned Staff */}
-                          {assignedStaff && (
-                            <p className="text-xs text-base-content/60">
-                              Assigned: {assignedStaff.firstName} {assignedStaff.lastName}
-                            </p>
+                          {task.status === 'dirty' && task.assignedTo && (
+                            <button onClick={() => updateTaskStatus(task.id, 'cleaning')} className="px-4 py-2 rounded-full bg-khaki-600 text-white font-medium text-sm hover:bg-khaki-700 transition-colors min-h-[44px]">
+                              Start Cleaning
+                            </button>
                           )}
-
-                          {/* Notes */}
-                          {task.notes && (
-                            <p className="text-xs text-base-content/70 mt-2">
-                              {task.notes}
-                            </p>
+                          {task.status === 'cleaning' && (
+                            <button onClick={() => updateTaskStatus(task.id, 'inspecting')} className="px-4 py-2 rounded-full bg-khaki-600 text-white font-medium text-sm hover:bg-khaki-700 transition-colors min-h-[44px]">
+                              Ready for Inspection
+                            </button>
                           )}
-
-                          {/* Action Buttons - Touch-friendly ≥44px */}
-                          <div className="card-actions justify-end mt-3">
-                            {/* Claim button for dirty tasks */}
-                            {task.status === 'dirty' && !task.assignedTo && (
-                              <button
-                                onClick={() => claimTask(task.id)}
-                                className="btn btn-primary btn-sm min-h-[44px]"
-                              >
-                                Claim
+                          {task.status === 'inspecting' && (
+                            <>
+                              <button onClick={() => updateTaskStatus(task.id, 'cleaning')} className="px-4 py-2 rounded-full border border-semantic-warning text-semantic-warning-dark font-medium text-sm hover:bg-semantic-warning-light transition-colors min-h-[44px]">
+                                Re-clean
                               </button>
-                            )}
-
-                            {/* Status progression buttons */}
-                            {task.status === 'dirty' && task.assignedTo && (
-                              <button
-                                onClick={() => updateTaskStatus(task.id, 'cleaning')}
-                                className="btn btn-primary btn-sm min-h-[44px]"
-                              >
-                                Start Cleaning
+                              <button onClick={() => updateTaskStatus(task.id, 'clean')} className="px-4 py-2 rounded-full bg-semantic-success text-white font-medium text-sm hover:bg-semantic-success-dark transition-colors min-h-[44px]">
+                                Approve
                               </button>
-                            )}
-
-                            {task.status === 'cleaning' && (
-                              <button
-                                onClick={() => updateTaskStatus(task.id, 'inspecting')}
-                                className="btn btn-primary btn-sm min-h-[44px]"
-                              >
-                                Ready for Inspection
-                              </button>
-                            )}
-
-                            {task.status === 'inspecting' && (
-                              <>
-                                <button
-                                  onClick={() => updateTaskStatus(task.id, 'cleaning')}
-                                  className="btn btn-warning btn-sm min-h-[44px]"
-                                >
-                                  Re-clean
-                                </button>
-                                <button
-                                  onClick={() => updateTaskStatus(task.id, 'clean')}
-                                  className="btn btn-success btn-sm min-h-[44px]"
-                                >
-                                  Approve
-                                </button>
-                              </>
-                            )}
-                          </div>
-
-                          {/* Timestamps */}
-                          <div className="text-xs text-base-content/50 mt-2">
-                            {task.startedAt && (
-                              <p>Started: {new Date(task.startedAt).toLocaleTimeString()}</p>
-                            )}
-                            {task.completedAt && (
-                              <p>Completed: {new Date(task.completedAt).toLocaleTimeString()}</p>
-                            )}
-                          </div>
+                            </>
+                          )}
+                        </div>
+                        <div className="text-xs text-nude-400 mt-2">
+                          {task.startedAt && <p>Started: {new Date(task.startedAt).toLocaleTimeString()}</p>}
+                          {task.completedAt && <p>Completed: {new Date(task.completedAt).toLocaleTimeString()}</p>}
                         </div>
                       </div>
                     ))
@@ -344,17 +249,16 @@ export default function HousekeepingBoard() {
         </div>
       </div>
 
-      {/* Refresh Button - Fixed bottom on mobile */}
       <div className="fixed bottom-4 right-4 md:static md:mt-6 md:text-right">
         <button
           onClick={fetchTasks}
-          className="btn btn-circle btn-primary shadow-lg md:btn-wide min-h-[56px]"
+          className="w-14 h-14 md:w-auto md:px-6 md:py-3 rounded-full bg-khaki-600 text-white shadow-lg hover:bg-khaki-700 transition-colors flex items-center justify-center md:gap-2 min-h-[44px]"
           title="Refresh tasks"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
-          <span className="hidden md:inline ml-2">Refresh</span>
+          <span className="hidden md:inline">Refresh</span>
         </button>
       </div>
     </div>

@@ -1,139 +1,93 @@
 /**
  * Guest Review Approval API Endpoint
- * 
+ *
  * Purpose: Toggle public visibility of guest reviews
  * Location: app/api/crm/reviews/[id]/route.ts
- * Method: PATCH
- * 
- * Features:
- * - Authentication required
- * - Role-based access (owner, manager, admin only)
- * - Updates is_public boolean flag
- * - Returns updated review
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+import {
+  withPlatformApiAuth,
+  errorResponse,
+} from '@/lib/utils/api-helpers';
 import { db, guestReviews, and, eq } from '@/lib/db';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    // Await params (Next.js 15+)
-    const { id: reviewId } = await params;
-    
-    // Check authentication
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Please log in' },
-        { status: 401 }
-      );
-    }
+const REVIEW_MANAGER_ROLES = ['owner', 'manager', 'admin'] as const;
 
-    // Check role-based authorization
-    const allowedRoles = ['owner', 'manager', 'admin'];
-    if (!allowedRoles.includes(session.user.role)) {
-      return NextResponse.json(
-        { error: 'Forbidden - Insufficient permissions' },
-        { status: 403 }
-      );
-    }
+type RouteParams = { params: Promise<{ id: string }> };
 
-    // Parse request body
-    const body = await request.json();
-    const { is_public } = body;
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  return withPlatformApiAuth(
+    request,
+    async (req, user) => {
+      try {
+        const { id: reviewId } = await params;
 
-    // Validate input
-    if (typeof is_public !== 'boolean') {
-      return NextResponse.json(
-        { error: 'Bad Request - is_public must be a boolean' },
-        { status: 400 }
-      );
-    }
+        const body = await req.json();
+        const { is_public } = body;
 
-    if (!session.user.tenantId) {
-      return NextResponse.json(
-        { error: 'Missing tenant context' },
-        { status: 400 }
-      );
-    }
+        if (typeof is_public !== 'boolean') {
+          return errorResponse('is_public must be a boolean', 400, 'VALIDATION_ERROR');
+        }
 
-    // Update review scoped to tenant
-    const [updatedReview] = await db
-      .update(guestReviews)
-      .set({ 
-        isPublic: is_public,
-        updatedAt: new Date(),
-      })
-      .where(and(eq(guestReviews.id, reviewId), eq(guestReviews.tenantId, session.user.tenantId)))
-      .returning();
+        if (!user.tenantId) {
+          return errorResponse('Missing tenant context', 400, 'VALIDATION_ERROR');
+        }
 
-    if (!updatedReview) {
-      return NextResponse.json(
-        { error: 'Review not found' },
-        { status: 404 }
-      );
-    }
+        const [updatedReview] = await db
+          .update(guestReviews)
+          .set({
+            isPublic: is_public,
+            updatedAt: new Date(),
+          })
+          .where(and(eq(guestReviews.id, reviewId), eq(guestReviews.tenantId, user.tenantId)))
+          .returning();
 
-    return NextResponse.json({
-      success: true,
-      review: updatedReview,
-      message: is_public
-        ? 'Review approved and is now public'
-        : 'Review hidden from public view',
-    });
+        if (!updatedReview) {
+          return errorResponse('Review not found', 404, 'NOT_FOUND');
+        }
 
-  } catch (error: any) {
-    securityLogger.error('[PATCH /api/crm/reviews/[id]] Error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
-      { status: 500 }
-    );
-  }
+        // Reason: consumers read top-level `review`; keep the original contract (not the
+        // successResponse `data` envelope) so the moderation UI and tests stay in sync.
+        return NextResponse.json({
+          review: updatedReview,
+          message: is_public
+            ? 'Review approved and is now public'
+            : 'Review hidden from public view',
+        });
+      } catch (error: unknown) {
+        securityLogger.error('[PATCH /api/crm/reviews/[id]] Error:', error);
+        return errorResponse('Internal server error', 500, 'INTERNAL_ERROR');
+      }
+    },
+    { rateLimit: true, requireRole: [...REVIEW_MANAGER_ROLES] }
+  );
 }
 
-// GET single review
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    // Await params (Next.js 15+)
-    const { id: reviewId } = await params;
-    
-    // Check authentication
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Please log in' },
-        { status: 401 }
-      );
-    }
+export async function GET(request: NextRequest, { params }: RouteParams) {
+  return withPlatformApiAuth(
+    request,
+    async (_req, user) => {
+      try {
+        const { id: reviewId } = await params;
 
-    // Fetch the review
-    const review = await db.query.guestReviews.findFirst({
-      where: eq(guestReviews.id, reviewId),
-    });
+        const review = await db.query.guestReviews.findFirst({
+          where: user.tenantId
+            ? and(eq(guestReviews.id, reviewId), eq(guestReviews.tenantId, user.tenantId))
+            : eq(guestReviews.id, reviewId),
+        });
 
-    if (!review) {
-      return NextResponse.json(
-        { error: 'Review not found' },
-        { status: 404 }
-      );
-    }
+        if (!review) {
+          return errorResponse('Review not found', 404, 'NOT_FOUND');
+        }
 
-    return NextResponse.json({ review });
-
-  } catch (error: any) {
-    securityLogger.error('[GET /api/crm/reviews/[id]] Error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
-      { status: 500 }
-    );
-  }
+        return NextResponse.json({ review });
+      } catch (error: unknown) {
+        securityLogger.error('[GET /api/crm/reviews/[id]] Error:', error);
+        return errorResponse('Internal server error', 500, 'INTERNAL_ERROR');
+      }
+    },
+    { rateLimit: true }
+  );
 }

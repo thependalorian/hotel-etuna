@@ -1,25 +1,22 @@
 /**
  * Individual Housekeeping Task API
- * 
+ *
  * Endpoints:
- * - GET /api/housekeeping/tasks/[id] - Get task details
- * - PATCH /api/housekeeping/tasks/[id] - Update task status and details
- * - DELETE /api/housekeeping/tasks/[id] - Delete task (managers only)
- * 
- * Authorization: Staff can view and update assigned tasks, managers can delete
- * Rate Limit: Part 11 Gap 8 - Applied via middleware
+ * - GET /api/housekeeping/tasks/[id] — Get task details
+ * - PATCH /api/housekeeping/tasks/[id] — Update task status and details
+ * - DELETE /api/housekeeping/tasks/[id] — Delete task (managers only)
+ *
+ * RLS: Active via withApiAuth wrapper.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { housekeepingTasks, staff } from '@/lib/db/schema';
+import { housekeepingTasks } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { withApiAuth } from '@/lib/utils/api-helpers';
+import { securityLogger } from '@/lib/utils/security-logger';
 
-// Input validation schema for updates
 const updateTaskSchema = z.object({
   status: z.enum(['dirty', 'cleaning', 'inspecting', 'clean']).optional(),
   assignedTo: z.string().uuid().optional(),
@@ -30,212 +27,104 @@ const updateTaskSchema = z.object({
   completedAt: z.string().datetime().optional(),
 });
 
+function hasMgmtRole(role: string | null | undefined): boolean {
+  return ['owner', 'manager', 'admin'].includes((role ?? '').toLowerCase());
+}
+
 /**
  * GET /api/housekeeping/tasks/[id]
- * Get a single housekeeping task
  */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id } = await params;
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Get staff record
-    const staffRecord = await db
-      .select()
-      .from(staff)
-      .where(eq(staff.userId, session.user.id))
-      .limit(1);
-
-    if (!staffRecord.length || !staffRecord[0].propertyId) {
-      return NextResponse.json({ error: 'Staff record not found' }, { status: 403 });
-    }
-
-    // Get task
-    const task = await db
+  const { id } = await params;
+  return withApiAuth(request, async (_req, _user) => {
+    const [task] = await db
       .select()
       .from(housekeepingTasks)
-      .where(
-        and(
-          eq(housekeepingTasks.id, id),
-          eq(housekeepingTasks.propertyId, staffRecord[0].propertyId)
-        )
-      )
+      .where(eq(housekeepingTasks.id, id))
       .limit(1);
 
-    if (!task.length) {
+    if (!task) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ task: task[0] });
-  } catch (error) {
-    securityLogger.error('Error fetching housekeeping task:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch task' },
-      { status: 500 }
-    );
-  }
+    return NextResponse.json({ task });
+  });
 }
 
 /**
  * PATCH /api/housekeeping/tasks/[id]
- * Update a housekeeping task
- * Staff can update tasks they're assigned to or tasks in their property (if supervisor/manager)
+ * Staff can update tasks they're assigned to; managers can update any.
  */
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id } = await params;
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+  const { id } = await params;
+  return withApiAuth(request, async (_req, user) => {
+    const body = await _req.json();
+    const validatedData = updateTaskSchema.parse(body);
 
-    // Get staff record
-    const staffRecord = await db
-      .select()
-      .from(staff)
-      .where(eq(staff.userId, session.user.id))
-      .limit(1);
-
-    if (!staffRecord.length || !staffRecord[0].propertyId) {
-      return NextResponse.json({ error: 'Staff record not found' }, { status: 403 });
-    }
-
-    const staffData = staffRecord[0];
-
-    // Get the task
-    const existingTask = await db
+    // Get existing task
+    const [existing] = await db
       .select()
       .from(housekeepingTasks)
-      .where(
-        and(
-          eq(housekeepingTasks.id, id),
-          eq(housekeepingTasks.propertyId, staffData.propertyId!)
-        )
-      )
+      .where(eq(housekeepingTasks.id, id))
       .limit(1);
 
-    if (!existingTask.length) {
+    if (!existing) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
     }
 
-    // Authorization check: staff can only update their own tasks unless they're a supervisor/manager
-    const isSupervisor = ['manager', 'admin', 'housekeeping_supervisor'].includes(staffData.position ?? '');
-    const isAssigned = existingTask[0].assignedTo === staffData.id;
-
-    if (!isSupervisor && !isAssigned) {
+    // Authorisation: assigned staff or manager role
+    const isAssigned = existing.assignedTo === user.id;
+    if (!isAssigned && !hasMgmtRole(user.role)) {
       return NextResponse.json(
         { error: 'You can only update tasks assigned to you' },
         { status: 403 }
       );
     }
 
-    // Parse and validate input
-    const body = await request.json();
-    const validatedData = updateTaskSchema.parse(body);
-
-    // Auto-set startedAt when status changes to 'cleaning'
-    const updates: any = {
-      ...validatedData,
-      updatedBy: session.user.id,
-    };
-
-    if (validatedData.status === 'cleaning' && !existingTask[0].startedAt) {
+    // Auto-set timestamps on status transitions
+    const updates: Record<string, unknown> = { ...validatedData, updatedBy: user.id };
+    if (validatedData.status === 'cleaning' && !existing.startedAt) {
       updates.startedAt = new Date().toISOString();
     }
-
-    // Auto-set completedAt when status changes to 'clean'
-    if (validatedData.status === 'clean' && !existingTask[0].completedAt) {
+    if (validatedData.status === 'clean' && !existing.completedAt) {
       updates.completedAt = new Date().toISOString();
+      updates.startedAt = updates.startedAt ?? existing.startedAt ?? new Date().toISOString();
     }
 
-    // Update the task
-    const [updatedTask] = await db
+    const [updated] = await db
       .update(housekeepingTasks)
       .set(updates)
       .where(eq(housekeepingTasks.id, id))
       .returning();
 
-    return NextResponse.json({ task: updatedTask });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid input', details: error.issues },
-        { status: 400 }
-      );
-    }
-
-    securityLogger.error('Error updating housekeeping task:', error);
-    return NextResponse.json(
-      { error: 'Failed to update task' },
-      { status: 500 }
-    );
-  }
+    return NextResponse.json({ task: updated });
+  });
 }
 
 /**
  * DELETE /api/housekeeping/tasks/[id]
- * Delete a housekeeping task (managers only)
+ * Managers only.
  */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id } = await params;
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const { id } = await params;
+  return withApiAuth(request, async (_req, user) => {
+    if (!hasMgmtRole(user.role)) {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
-    // Get staff record and verify role
-    const staffRecord = await db
-      .select()
-      .from(staff)
-      .where(eq(staff.userId, session.user.id))
-      .limit(1);
-
-    if (!staffRecord.length || !staffRecord[0].propertyId) {
-      return NextResponse.json({ error: 'Staff record not found' }, { status: 403 });
-    }
-
-    const staffData = staffRecord[0];
-
-    // Only managers and admins can delete tasks
-    if (!['manager', 'admin', 'housekeeping_supervisor'].includes(staffData.position ?? '')) {
-      return NextResponse.json(
-        { error: 'Insufficient permissions' },
-        { status: 403 }
-      );
-    }
-
-    // Delete the task
     await db
       .delete(housekeepingTasks)
-      .where(
-        and(
-          eq(housekeepingTasks.id, id),
-          eq(housekeepingTasks.propertyId, staffData.propertyId!)
-        )
-      );
+      .where(and(eq(housekeepingTasks.id, id)));
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    securityLogger.error('Error deleting housekeeping task:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete task' },
-      { status: 500 }
-    );
-  }
+  });
 }

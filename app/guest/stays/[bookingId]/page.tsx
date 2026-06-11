@@ -9,6 +9,9 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { GuestFolioPanel } from '@/components/features/guest/GuestFolioPanel';
+import { GuestServiceRequestCard } from '@/components/features/guest/GuestServiceRequestCard';
+import { GuestDocumentVaultCard } from '@/components/features/guest/GuestDocumentVaultCard';
+import { GuestFinancialDocumentsCard } from '@/components/features/guest/GuestFinancialDocumentsCard';
 import { GuestStayService } from '@/lib/services/folio/GuestStayService';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
@@ -60,17 +63,25 @@ export default async function GuestStayDetailPage({ params }: PageProps) {
       ? { amount: dueAmount, currency: access.currency }
       : undefined;
 
+  const bookingStatus = 'status' in access ? access.status : 'confirmed';
+
   return (
-    <div>
+    <div className="space-y-6">
       <Link href="/guest" className="text-sm text-terracotta-700 hover:underline mb-4 inline-block">
         ← All stays
       </Link>
       <GuestFolioPanel
         bookingId={access.bookingId}
         bookingReference={access.bookingReference}
-        bookingStatus={'status' in access ? access.status : 'confirmed'}
+        bookingStatus={bookingStatus}
         roomNumbers={'roomNumbers' in access ? access.roomNumbers : []}
         depositDue={depositDue}
+      />
+      <GuestFinancialDocumentsCard bookingId={access.bookingId} />
+      <GuestDocumentVaultCard bookingId={access.bookingId} />
+      <GuestServiceRequestCard
+        bookingId={access.bookingId}
+        canRequest={bookingStatus === 'checked_in'}
       />
     </div>
   );

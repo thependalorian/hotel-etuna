@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/Form';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { apiUrl } from '@/lib/utils/api-url';
+import { extractBookingId } from '@/lib/bookings/booking-response';
 
 const formSchema = z.object({
   checkInDate: z.string().nonempty({ message: 'Check-in date is required.' }),
@@ -55,8 +56,13 @@ export function BookingForm() {
       }
 
       const newBooking = await response.json();
+      const bookingId = extractBookingId(newBooking);
+      if (!bookingId) {
+        setError('Booking created but no reference returned. Please check your stays.');
+        return;
+      }
       // Redirect to deposit payment page for online bookings
-      router.push(`/payment/booking-deposit?bookingId=${newBooking.id}`);
+      router.push(`/payment/booking-deposit?bookingId=${bookingId}`);
 
     } catch {
       setError('An unexpected error occurred. Please try again.');

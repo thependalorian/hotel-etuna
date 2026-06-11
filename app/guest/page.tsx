@@ -6,7 +6,7 @@
  */
 
 import { Metadata } from 'next';
-import { GuestStaysList } from '@/components/features/guest/GuestStaysList';
+import { GuestDashboard } from '@/components/features/guest/GuestDashboard';
 import { guestCopy } from '@/lib/copy/guest';
 
 export const metadata: Metadata = {
@@ -14,12 +14,6 @@ export const metadata: Metadata = {
   description: guestCopy.hub.description,
 };
 
-export default function GuestStaysPage() {
-  return (
-    <div>
-      <h1 className="buffr-page-title">{guestCopy.hub.title}</h1>
-      <p className="buffr-page-desc mb-8">{guestCopy.hub.description}</p>
-      <GuestStaysList />
-    </div>
-  );
+export default function GuestHomePage() {
+  return <GuestDashboard />;
 }

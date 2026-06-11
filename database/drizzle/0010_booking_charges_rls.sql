@@ -1,4 +1,5 @@
 -- RLS for booking_charges (table added in 0009 after bulk tenant_id policies in 0004)
+-- Uses app.tenant_type session variable pattern (aligned with 0006 fix)
 
 BEGIN;
 
@@ -10,21 +11,11 @@ CREATE POLICY tenant_access_booking_charges ON public.booking_charges
 FOR ALL
 USING (
   tenant_id::text = current_setting('app.tenant_id', true)
-  OR EXISTS (
-    SELECT 1
-    FROM public.tenants hub_tenant
-    WHERE hub_tenant.id::text = current_setting('app.tenant_id', true)
-      AND hub_tenant.type = 'hub'
-  )
+  OR current_setting('app.tenant_type', true) = 'hub'
 )
 WITH CHECK (
   tenant_id::text = current_setting('app.tenant_id', true)
-  OR EXISTS (
-    SELECT 1
-    FROM public.tenants hub_tenant
-    WHERE hub_tenant.id::text = current_setting('app.tenant_id', true)
-      AND hub_tenant.type = 'hub'
-  )
+  OR current_setting('app.tenant_type', true) = 'hub'
 );
 
 COMMIT;

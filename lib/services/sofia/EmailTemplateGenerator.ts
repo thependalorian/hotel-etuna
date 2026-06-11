@@ -1,3 +1,10 @@
+/**
+ * @fileoverview SofiaEmailTemplateGenerator — branded HTML/plain-text email rendering.
+ *
+ * Builds sanitized (DOMPurify) Hotel Etuna emails with the standard signature
+ * for Sofia AI and transactional flows.
+ * Location: lib/services/sofia/EmailTemplateGenerator.ts
+ */
 import DOMPurify from 'isomorphic-dompurify';
 import { EMAIL_SIGNATURE_COLORS } from '@/lib/email/hotel-etuna-email-signature';
 import {

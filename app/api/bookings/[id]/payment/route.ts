@@ -1,30 +1,35 @@
 /**
  * Cash Payment API Endpoint
- * 
+ *
  * Purpose: Mark cash bookings as paid with amount tracking
  * Location: app/api/bookings/[id]/payment/route.ts
- * 
+ *
  * Features:
  * - PATCH: Mark cash payment as received
  * - Tracks amount tendered and change given
  * - Generates unique receipt number
  * - Updates booking status to confirmed
  * - Requires staff authentication
- * 
+ *
  * @version 1.0.0
  * @since April 28, 2026
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+import { NextRequest } from 'next/server';
+import {
+  withPlatformApiAuth,
+  errorResponse,
+  successResponse,
+} from '@/lib/utils/api-helpers';
 import { db } from '@/lib/db';
-import { auditTrail, bookings } from '@/lib/db/schema';
+import { auditTrail, bookings, transactions } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { FolioService } from '@/lib/services/folio/FolioService';
 import { schedulePaymentReceiptEmail } from '@/lib/services/booking/bookingLifecycleSideEffects';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
+
+const STAFF_ROLES = ['admin', 'staff', 'manager'] as const;
 
 const markAsPaidSchema = z.object({
   amountTendered: z.number().positive('Amount tendered must be positive'),
@@ -32,287 +37,249 @@ const markAsPaidSchema = z.object({
   notes: z.string().max(500, 'Notes must be at most 500 characters').optional(),
 });
 
+type RouteParams = { params: Promise<{ id: string }> };
+
 /**
  * PATCH /api/bookings/[id]/payment
  * Mark a cash booking as paid
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<any> }
-) {
-  try {
-    const { id } = await params;
-    
-    // 1. Authentication check (staff only)
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  return withPlatformApiAuth(
+    request,
+    async (req, user) => {
+      try {
+        const { id } = await params;
 
-    // 2. Staff authorization check
-    const userRole = session.user.role;
-    if (!['admin', 'staff', 'manager'].includes(userRole)) {
-      return NextResponse.json(
-        { error: 'Forbidden: Only staff can mark payments as paid' },
-        { status: 403 }
-      );
-    }
+        const body = await req.json();
+        const validation = markAsPaidSchema.safeParse(body);
 
-    // 3. Validate request body
-    const body = await request.json();
-    const validation = markAsPaidSchema.safeParse(body);
-    
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: validation.error.issues },
-        { status: 400 }
-      );
-    }
+        if (!validation.success) {
+          return errorResponse('Validation failed', 400, 'VALIDATION_ERROR', validation.error.issues);
+        }
 
-    const { amountTendered, changeGiven, notes } = validation.data;
+        const { amountTendered, changeGiven, notes } = validation.data;
 
-    // 4. Fetch booking
-    const [booking] = await db
-      .select()
-      .from(bookings)
-      .where(eq(bookings.id, id))
-      .limit(1);
+        const [booking] = await db.select().from(bookings).where(eq(bookings.id, id)).limit(1);
 
-    if (!booking) {
-      return NextResponse.json(
-        { error: 'Booking not found' },
-        { status: 404 }
-      );
-    }
+        if (!booking) {
+          return errorResponse('Booking not found', 404, 'NOT_FOUND');
+        }
 
-    const sessionTenantId = session.user.tenantId as string | undefined;
-    if (!sessionTenantId || booking.tenantId !== sessionTenantId) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      );
-    }
+        if (!user.tenantId || booking.tenantId !== user.tenantId) {
+          return errorResponse('Forbidden', 403, 'FORBIDDEN');
+        }
 
-    // 5. Verify booking is for cash payment
-    if (booking.paymentMethod !== 'cash') {
-      return NextResponse.json(
-        { 
-          error: 'Invalid operation', 
-          message: 'This endpoint is only for cash payments. Payment method is: ' + booking.paymentMethod 
-        },
-        { status: 400 }
-      );
-    }
+        if (booking.paymentMethod !== 'cash') {
+          return errorResponse(
+            `This endpoint is only for cash payments. Payment method is: ${booking.paymentMethod}`,
+            400,
+            'INVALID_OPERATION'
+          );
+        }
 
-    // 6. Verify booking is not already marked as paid
-    if (booking.paymentStatus === 'paid') {
-      return NextResponse.json(
-        { 
-          error: 'Already paid', 
-          message: 'This booking has already been marked as paid',
-          receiptNumber: booking.receiptNumber
-        },
-        { status: 400 }
-      );
-    }
+        if (booking.paymentStatus === 'paid') {
+          return errorResponse('This booking has already been marked as paid', 400, 'ALREADY_PAID', {
+            receiptNumber: booking.receiptNumber,
+          });
+        }
 
-    // 7. Validate amounts
-    const totalAmount = parseFloat(booking.totalAmount);
-    if (amountTendered < totalAmount) {
-      return NextResponse.json(
-        { 
-          error: 'Insufficient payment', 
-          message: `Amount tendered (${amountTendered}) is less than total amount (${totalAmount})` 
-        },
-        { status: 400 }
-      );
-    }
+        const totalAmount = parseFloat(booking.totalAmount);
+        if (amountTendered < totalAmount) {
+          return errorResponse(
+            `Amount tendered (${amountTendered}) is less than total amount (${totalAmount})`,
+            400,
+            'INSUFFICIENT_PAYMENT'
+          );
+        }
 
-    const expectedChange = amountTendered - totalAmount;
-    const changeDifference = Math.abs(changeGiven - expectedChange);
-    
-    // Allow up to 0.01 difference for floating point precision
-    if (changeDifference > 0.01) {
-      return NextResponse.json(
-        { 
-          error: 'Change mismatch', 
-          message: `Change given (${changeGiven}) does not match expected change (${expectedChange.toFixed(2)})` 
-        },
-        { status: 400 }
-      );
-    }
+        const expectedChange = amountTendered - totalAmount;
+        const changeDifference = Math.abs(changeGiven - expectedChange);
 
-    // 8. Generate unique receipt number
-    const receiptNumber = generateReceiptNumber(booking.propertyId ?? 'XX', booking.bookingReference);
+        if (changeDifference > 0.01) {
+          return errorResponse(
+            `Change given (${changeGiven}) does not match expected change (${expectedChange.toFixed(2)})`,
+            400,
+            'CHANGE_MISMATCH'
+          );
+        }
 
-    // 9. Update booking
-    await db
-      .update(bookings)
-      .set({
-        paymentStatus: 'paid',
-        amountTendered: amountTendered.toString(),
-        changeGiven: changeGiven.toString(),
-        receiptNumber,
-        status: 'confirmed', // Move from pending_payment to confirmed
-        updatedAt: new Date(),
-      })
-      .where(eq(bookings.id, id));
+        const receiptNumber = generateReceiptNumber(
+          booking.propertyId ?? 'XX',
+          booking.bookingReference
+        );
 
-    // 10. Fetch updated booking
-    const [updatedBooking] = await db
-      .select()
-      .from(bookings)
-      .where(eq(bookings.id, id))
-      .limit(1);
+        await db
+          .update(bookings)
+          .set({
+            paymentStatus: 'paid',
+            amountTendered: amountTendered.toString(),
+            changeGiven: changeGiven.toString(),
+            receiptNumber,
+            status: 'confirmed',
+            updatedAt: new Date(),
+          })
+          .where(eq(bookings.id, id));
 
-    if (updatedBooking) {
-      const folioService = new FolioService();
-      await folioService.ensureRoomChargeForBooking(updatedBooking);
-    }
+        const [updatedBooking] = await db
+          .select()
+          .from(bookings)
+          .where(eq(bookings.id, id))
+          .limit(1);
 
-    if (updatedBooking?.guestId) {
-      const paidTotal = Number.parseFloat(String(updatedBooking.totalAmount ?? amountTendered));
-      schedulePaymentReceiptEmail({
-        tenantId: booking.tenantId,
-        bookingId: id,
-        guestId: updatedBooking.guestId,
-        propertyId: updatedBooking.propertyId,
-        amount: Number.isFinite(paidTotal) ? paidTotal : amountTendered,
-        currency: 'NAD',
-        paymentMethod: 'cash',
-        bookingReference: updatedBooking.bookingReference ?? undefined,
-      });
-    }
+        if (!updatedBooking) {
+          return errorResponse('Booking update failed', 500, 'INTERNAL_ERROR');
+        }
 
-    // 11. Persist audit trail for payment update
-    await db.insert(auditTrail).values({
-      tenantId: booking.tenantId,
-      userId: session.user.id,
-      action: 'cash_payment_marked_paid',
-      resourceType: 'booking',
-      resourceId: booking.id,
-      oldValues: {
-        paymentStatus: booking.paymentStatus,
-        paymentMethod: booking.paymentMethod,
-        amountTendered: booking.amountTendered,
-        changeGiven: booking.changeGiven,
-        receiptNumber: booking.receiptNumber,
-      },
-      newValues: {
-        paymentStatus: 'paid',
-        paymentMethod: booking.paymentMethod,
-        amountTendered,
-        changeGiven,
-        receiptNumber,
-        notes: notes ?? null,
-      },
-      ipAddress: request.headers.get('x-forwarded-for') ?? null,
-      userAgent: request.headers.get('user-agent') ?? null,
-    });
+        const folioService = new FolioService();
+        await folioService.ensureRoomChargeForBooking(updatedBooking);
 
-    return NextResponse.json({
-      success: true,
-      message: 'Payment marked as received',
-      booking: {
-        id: updatedBooking.id,
-        bookingReference: updatedBooking.bookingReference,
-        status: updatedBooking.status,
-        paymentStatus: updatedBooking.paymentStatus,
-        paymentMethod: updatedBooking.paymentMethod,
-        totalAmount: updatedBooking.totalAmount,
-        amountTendered: updatedBooking.amountTendered,
-        changeGiven: updatedBooking.changeGiven,
-        receiptNumber: updatedBooking.receiptNumber,
-      },
-    });
+        const [transaction] = await db
+          .insert(transactions)
+          .values({
+            tenantId: booking.tenantId,
+            bookingId: id,
+            guestId: updatedBooking.guestId,
+            transactionReference: `CASH-${receiptNumber}`,
+            type: 'booking_payment',
+            amount: updatedBooking.totalAmount,
+            currency: updatedBooking.currency ?? 'NAD',
+            status: 'completed',
+            paymentGateway: 'cash',
+            gatewayTransactionId: receiptNumber,
+            description: `Cash payment for booking ${updatedBooking.bookingReference}`,
+            metadata: {
+              amountTendered,
+              changeGiven,
+              receiptNumber,
+              notes: notes ?? null,
+              markedByUserId: user.id,
+            },
+            processedAt: new Date(),
+          })
+          .returning({ id: transactions.id });
 
-  } catch (error) {
-    securityLogger.error('[MARK PAYMENT AS PAID ERROR]', error);
-    return NextResponse.json(
-      { error: 'Internal server error', message: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    );
-  }
+        if (updatedBooking.guestId) {
+          const paidTotal = Number.parseFloat(String(updatedBooking.totalAmount ?? amountTendered));
+          schedulePaymentReceiptEmail({
+            tenantId: booking.tenantId,
+            bookingId: id,
+            guestId: updatedBooking.guestId,
+            propertyId: updatedBooking.propertyId,
+            amount: Number.isFinite(paidTotal) ? paidTotal : amountTendered,
+            currency: updatedBooking.currency ?? 'NAD',
+            paymentMethod: 'cash',
+            bookingReference: updatedBooking.bookingReference ?? undefined,
+            transactionId: transaction?.id,
+          });
+        }
+
+        await db.insert(auditTrail).values({
+          tenantId: booking.tenantId,
+          userId: user.id,
+          action: 'cash_payment_marked_paid',
+          resourceType: 'booking',
+          resourceId: booking.id,
+          oldValues: {
+            paymentStatus: booking.paymentStatus,
+            paymentMethod: booking.paymentMethod,
+            amountTendered: booking.amountTendered,
+            changeGiven: booking.changeGiven,
+            receiptNumber: booking.receiptNumber,
+          },
+          newValues: {
+            paymentStatus: 'paid',
+            paymentMethod: booking.paymentMethod,
+            amountTendered,
+            changeGiven,
+            receiptNumber,
+            notes: notes ?? null,
+            transactionId: transaction?.id ?? null,
+          },
+          ipAddress: req.headers.get('x-forwarded-for') ?? null,
+          userAgent: req.headers.get('user-agent') ?? null,
+        });
+
+        return successResponse({
+          message: 'Payment marked as received',
+          booking: {
+            id: updatedBooking.id,
+            bookingReference: updatedBooking.bookingReference,
+            status: updatedBooking.status,
+            paymentStatus: updatedBooking.paymentStatus,
+            paymentMethod: updatedBooking.paymentMethod,
+            totalAmount: updatedBooking.totalAmount,
+            amountTendered: updatedBooking.amountTendered,
+            changeGiven: updatedBooking.changeGiven,
+            receiptNumber: updatedBooking.receiptNumber,
+          },
+          transactionId: transaction?.id ?? null,
+        });
+      } catch (error) {
+        securityLogger.error('[MARK PAYMENT AS PAID ERROR]', error);
+        return errorResponse(
+          error instanceof Error ? error.message : 'Unknown error',
+          500,
+          'INTERNAL_ERROR'
+        );
+      }
+    },
+    { rateLimit: true, requireRole: [...STAFF_ROLES] }
+  );
 }
 
 /**
  * GET /api/bookings/[id]/payment
  * Retrieve payment details for a booking
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<any> }
-) {
-  try {
-    const { id } = await params;
-    
-    // 1. Authentication check
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+export async function GET(request: NextRequest, { params }: RouteParams) {
+  return withPlatformApiAuth(
+    request,
+    async (_req, _user) => {
+      try {
+        const { id } = await params;
 
-    // 2. Fetch booking
-    const [booking] = await db
-      .select({
-        id: bookings.id,
-        bookingReference: bookings.bookingReference,
-        status: bookings.status,
-        paymentStatus: bookings.paymentStatus,
-        paymentMethod: bookings.paymentMethod,
-        totalAmount: bookings.totalAmount,
-        amountTendered: bookings.amountTendered,
-        changeGiven: bookings.changeGiven,
-        receiptNumber: bookings.receiptNumber,
-        currency: bookings.currency,
-        createdAt: bookings.createdAt,
-        updatedAt: bookings.updatedAt,
-      })
-      .from(bookings)
-      .where(eq(bookings.id, id))
-      .limit(1);
+        const [booking] = await db
+          .select({
+            id: bookings.id,
+            bookingReference: bookings.bookingReference,
+            status: bookings.status,
+            paymentStatus: bookings.paymentStatus,
+            paymentMethod: bookings.paymentMethod,
+            totalAmount: bookings.totalAmount,
+            amountTendered: bookings.amountTendered,
+            changeGiven: bookings.changeGiven,
+            receiptNumber: bookings.receiptNumber,
+            currency: bookings.currency,
+            createdAt: bookings.createdAt,
+            updatedAt: bookings.updatedAt,
+          })
+          .from(bookings)
+          .where(eq(bookings.id, id))
+          .limit(1);
 
-    if (!booking) {
-      return NextResponse.json(
-        { error: 'Booking not found' },
-        { status: 404 }
-      );
-    }
+        if (!booking) {
+          return errorResponse('Booking not found', 404, 'NOT_FOUND');
+        }
 
-    return NextResponse.json({
-      success: true,
-      payment: booking,
-    });
-
-  } catch (error) {
-    securityLogger.error('[GET PAYMENT DETAILS ERROR]', error);
-    return NextResponse.json(
-      { error: 'Internal server error', message: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    );
-  }
+        return successResponse({ payment: booking });
+      } catch (error) {
+        securityLogger.error('[GET PAYMENT DETAILS ERROR]', error);
+        return errorResponse(
+          error instanceof Error ? error.message : 'Unknown error',
+          500,
+          'INTERNAL_ERROR'
+        );
+      }
+    },
+    { rateLimit: true, requireRole: [...STAFF_ROLES] }
+  );
 }
 
-/**
- * Generate unique receipt number
- * Format: RCPT-{PROPERTY_ABBR}-{BOOKING_REF}-{TIMESTAMP}
- * Example: RCPT-HE-BK001-20260428
- */
 function generateReceiptNumber(propertyId: string, bookingReference: string): string {
   const timestamp = new Date().toISOString().split('T')[0].replace(/-/g, '');
   const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-  
-  // Extract property abbreviation (first 2 chars or 'XX')
   const propertyAbbr = propertyId.substring(0, 2).toUpperCase() || 'XX';
-  
-  // Clean booking reference (remove spaces/special chars)
   const cleanRef = bookingReference.replace(/[^A-Z0-9]/gi, '').substring(0, 10);
-  
+
   return `RCPT-${propertyAbbr}-${cleanRef}-${timestamp}-${random}`;
 }

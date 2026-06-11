@@ -16,6 +16,15 @@ Identify, track, and protect Hotel Etuna information assets throughout their lif
 
 Software (application, repos, dependencies), cloud resources, data stores, cryptographic keys, and company-issued or BYOD devices used for work.
 
+
+## Definitions
+
+| Term | Definition |
+|------|------------|
+| **Hotel Etuna** | Hub hospitality platform and operating entity |
+| **Personnel** | Employees, contractors, and partners with access to Hotel Etuna systems |
+| **Production** | Live environment serving guests and partners (Vercel + Neon production branch) |
+
 ## 3. Asset categories
 
 | Category | Inventory source | Owner |
@@ -54,14 +63,28 @@ Software (application, repos, dependencies), cloud resources, data stores, crypt
 | All staff | Report lost devices; no unapproved shadow IT |
 
 ## 6. Related documents
+- [`INFORMATION_SECURITY_POLICY.md`](INFORMATION_SECURITY_POLICY.md)
+
+- [`NAMIBIA_REGULATORY_FRAMEWORK.md`](../NAMIBIA_REGULATORY_FRAMEWORK.md)
+
+- [`POLICY_IMPLEMENTATION_MATRIX.md`](../../../compliance/evidence/policies/POLICY_IMPLEMENTATION_MATRIX.md)
 
 - [`CHANGE_MANAGEMENT_POLICY.md`](CHANGE_MANAGEMENT_POLICY.md)  
 - [`BUSINESS_CONTINUITY_PLAN.md`](../BUSINESS_CONTINUITY_PLAN.md)
+
+## Exceptions
+
+Exceptions require written approval from the Policy Owner and Executive Sponsor. Document compensating controls in the risk register.
+
+## Enforcement
+
+Violations may result in disciplinary action up to termination and reporting to regulators where required.
 
 ## 7. Revision history
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1 | 2026-06-10 | CTO | Template conformance + implementation cross-ref |
 | 1.0 | May 17, 2026 | CTO | Initial policy |
 
 **Approved by:** _________________________ Date: _________

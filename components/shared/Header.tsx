@@ -19,6 +19,8 @@ import { useSession, signOut } from 'next-auth/react';
 import { Bell, Search, User, LogOut, Settings, ChevronDown, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import Link from 'next/link';
+import { dashboardCopy } from '@/lib/copy/dashboard';
+import { PropertySwitcher } from '@/components/features/property/PropertySwitcher';
 
 interface HeaderProps {
   onMobileMenuToggle?: () => void;
@@ -47,13 +49,14 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
           {/* Breadcrumbs - Desktop Only */}
           <div className="hidden md:flex items-center gap-2 text-sm">
             <Link href="/dashboard" className="text-nude-600 hover:text-nude-800 transition-colors">
-              Dashboard
+              {dashboardCopy.breadcrumbToday}
             </Link>
           </div>
         </div>
 
         {/* Right Section */}
         <div className="flex items-center gap-2 md:gap-3 shrink-0">
+          <PropertySwitcher />
           {/* Search */}
           <div className="hidden md:flex relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-nude-600 pointer-events-none" aria-hidden="true" />

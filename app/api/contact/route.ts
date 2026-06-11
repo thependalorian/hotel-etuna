@@ -9,7 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { checkRateLimit } from '@/lib/utils/rate-limit';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 import { EmailService } from '@/lib/services/sofia/EmailService';
 import { brand } from '@/lib/copy/brand';
 import { contactFormRecipient } from '@/lib/copy/contact-emails';

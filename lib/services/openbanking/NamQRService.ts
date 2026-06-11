@@ -1,8 +1,12 @@
 /**
- * NamQR Service - Bank of Namibia QR Code Standards v5.0
- * 
+ * @fileoverview NamQR Service - Bank of Namibia QR Code Standards v5.0 (payments).
+ *
  * Purpose: Generate and process NamQR codes for payments
  * Location: /lib/services/openbanking/NamQRService.ts
+ *
+ * Not to be confused with `lib/services/qr/NAMQRService.ts`, which generates
+ * hospitality room/table QR codes (room_qr_codes table). Shared NRTC payload
+ * encoding lives in `lib/compliance/namqr/nrtc-payload.ts`.
  * 
  * Implements:
  * - NamQR Code Standards v5.0 (Bank of Namibia, May 2025)
@@ -25,7 +29,7 @@
 import { db, namqrCodes, eq } from '@/lib/db';
 import crypto from 'crypto';
 import QRCode from 'qrcode';
-import { buildNamQrTlv, encodeNamQrPayloadV5 } from '@/lib/services/qr/namqr-core';
+import { buildNamQrTlv } from '@/lib/services/qr/namqr-core';
 import {
   buildNamQrPayeePresentedPayload,
   generateNref,
@@ -153,10 +157,11 @@ export class NamQRService {
       ? this.generateTokenVaultId() 
       : undefined;
 
-    const qrPayload =
-      request.paymentStream === 'NRTC'
-        ? this.buildNrtcPayload(request, qrReference)
-        : this.buildQRPayload(request, qrReference, tokenVaultId);
+    // Single canonical encoder for ALL live issuance: BoN tag-17 NRTC
+    // payee-presented payload (NamClear-registered for Hotel Etuna).
+    // Payment stream (NRTC/EnCR/IPP) affects settlement routing, not the
+    // on-the-wire QR structure, so every stream uses the same payload.
+    const qrPayload = this.buildNrtcPayload(request, qrReference);
 
     const standardsCheck = validateNamQrPayload(qrPayload);
     if (!standardsCheck.valid) {
@@ -345,29 +350,6 @@ export class NamQRService {
       nref: qrReference,
       payeeIdentifier: request.payeeAccountNumber ?? request.payeeIdentifier,
       purposeLabel: 'Hotel Etuna guest payment',
-    });
-  }
-
-  private static buildQRPayload(
-    request: NamQRGenerateRequest,
-    qrReference: string,
-    tokenVaultId?: string
-  ): string {
-    return encodeNamQrPayloadV5({
-      presentationMode: request.qrType === 'static' ? 'static' : 'dynamic',
-      merchantName: request.merchantName || request.payeeName,
-      merchantCity: request.merchantCity ?? 'Ongwediva',
-      merchantCategoryCode: request.merchantCategoryCode ?? NAMQR_STANDARDS.mccHotel,
-      amount: request.amount,
-      referenceLabel: qrReference,
-      payeeIdentifier: request.payeeIdentifier,
-      payeeAccountType: request.payeeAccountType,
-      merchantId: request.merchantId,
-      tokenVaultId,
-      postalCode: request.merchantPostalCode,
-      purpose: 'Payment via Hotel Etuna',
-      discountPercent: request.discountPercentage,
-      cashbackPercent: request.cashbackPercentage,
     });
   }
 

@@ -5,19 +5,22 @@
  * Reference: mba-agent/documents/mba-agent/regulatory/namibia/namibia_qr_code_standards.md
  */
 
-/** ISO 4217 numeric code for NAD */
-export const NAMQR_CURRENCY_NAD = '516';
+import {
+  NAMQR_CURRENCY_NAD,
+  NAMQR_PAYLOAD_FORMAT,
+  NAMQR_POI_DYNAMIC,
+  NAMQR_POI_STATIC,
+  NAMQR_STANDARDS,
+} from '@/lib/compliance/namqr/standards';
+
+export { NAMQR_CURRENCY_NAD, NAMQR_POI_STATIC, NAMQR_POI_DYNAMIC };
 
 /** Payload format indicator for merchant-presented NAMQR (tag 00) */
-export const NAMQR_PAYLOAD_FORMAT_V5 = '01';
+export const NAMQR_PAYLOAD_FORMAT_V5 = NAMQR_PAYLOAD_FORMAT;
 
-/** Point of initiation — payee-presented static / dynamic (tag 01) */
-export const NAMQR_POI_STATIC = '11';
-export const NAMQR_POI_DYNAMIC = '12';
-
-/** Hospitality MCC defaults */
-export const MCC_HOTEL = '7011';
-export const MCC_RESTAURANT = '5812';
+/** Hospitality MCC defaults — canonical values live in lib/compliance/namqr/standards.ts */
+export const MCC_HOTEL = NAMQR_STANDARDS.mccHotel;
+export const MCC_RESTAURANT = NAMQR_STANDARDS.mccRestaurant;
 
 export const NamQrTag = {
   PAYLOAD_FORMAT: '00',
@@ -86,75 +89,26 @@ export function calculateNamQrCrc(payloadWithoutCrc: string): string {
   return crc.toString(16).toUpperCase().padStart(4, '0');
 }
 
-function buildMerchantAccountInfo(input: NamQrEncodeInput): string {
-  let inner = '';
-  inner += buildNamQrTlv('00', input.globalUniqueId ?? 'com.buffr.hoteletuna');
-  inner += buildNamQrTlv('01', input.payeeIdentifier);
-  inner += buildNamQrTlv('02', input.payeeAccountType ?? 'bank');
-  if (input.merchantId) {
-    inner += buildNamQrTlv('03', input.merchantId);
-  }
-  return inner;
-}
-
-function buildAdditionalData(input: NamQrEncodeInput): string {
-  let inner = '';
-  inner += buildNamQrTlv('01', input.referenceLabel.slice(0, 25));
-  inner += buildNamQrTlv('05', input.referenceLabel.slice(0, 25));
-  if (input.purpose) {
-    inner += buildNamQrTlv('08', input.purpose.slice(0, 50));
-  }
-  return inner;
-}
-
 /**
- * Build full payee-presented NAMQR payload string (includes tag 63 CRC).
+ * @deprecated DO NOT USE FOR LIVE QR ISSUANCE.
+ *
+ * This tag-26 (merchant-account-information template) encoder is NOT the
+ * NamClear-registered on-the-wire format for Hotel Etuna. The single canonical
+ * payee-presented encoder is `buildNamQrPayeePresentedPayload` in
+ * `lib/compliance/namqr/nrtc-payload.ts`, which emits the tag-17 NRTC payee
+ * account template that every live desk / guest-folio QR path uses
+ * (HospitalityNamQrPaymentService → NamQRService.generateQR → buildNrtcPayload).
+ *
+ * Calling this function throws to prevent a second divergent payload from ever
+ * being issued. It is retained only so historical references/tests resolve;
+ * the shared TLV/CRC helpers in this module (buildNamQrTlv, calculateNamQrCrc,
+ * parseNamQrTlv, validateNamQrCrc) remain the live, reused implementations.
  */
-export function encodeNamQrPayloadV5(input: NamQrEncodeInput): string {
-  let payload = '';
-
-  payload += buildNamQrTlv(NamQrTag.PAYLOAD_FORMAT, NAMQR_PAYLOAD_FORMAT_V5);
-  payload += buildNamQrTlv(
-    NamQrTag.POINT_OF_INITIATION,
-    input.presentationMode === 'static' ? NAMQR_POI_STATIC : NAMQR_POI_DYNAMIC
+export function encodeNamQrPayloadV5(_input: NamQrEncodeInput): string {
+  throw new Error(
+    'encodeNamQrPayloadV5 (tag-26 template) is deprecated and must not be used for live NamQR issuance. ' +
+      'Use buildNamQrPayeePresentedPayload (tag-17 NRTC) from lib/compliance/namqr/nrtc-payload.ts.'
   );
-
-  payload += buildNamQrTlv(NamQrTag.MERCHANT_ACCOUNT_INFO, buildMerchantAccountInfo(input));
-  payload += buildNamQrTlv(NamQrTag.MERCHANT_CATEGORY, input.merchantCategoryCode);
-  payload += buildNamQrTlv(NamQrTag.TRANSACTION_CURRENCY, NAMQR_CURRENCY_NAD);
-
-  if (input.amount != null && input.amount > 0) {
-    payload += buildNamQrTlv(NamQrTag.TRANSACTION_AMOUNT, input.amount.toFixed(2));
-  }
-
-  payload += buildNamQrTlv(NamQrTag.COUNTRY, input.countryCode ?? 'NA');
-  payload += buildNamQrTlv(NamQrTag.MERCHANT_NAME, input.merchantName.slice(0, 25));
-  payload += buildNamQrTlv(NamQrTag.MERCHANT_CITY, input.merchantCity.slice(0, 15));
-
-  if (input.postalCode) {
-    payload += buildNamQrTlv(NamQrTag.POSTAL_CODE, input.postalCode.slice(0, 10));
-  }
-
-  payload += buildNamQrTlv(NamQrTag.ADDITIONAL_DATA, buildAdditionalData(input));
-
-  if (input.tokenVaultId) {
-    payload += buildNamQrTlv(NamQrTag.TOKEN_VAULT, input.tokenVaultId);
-  }
-  if (input.discountPercent != null) {
-    payload += buildNamQrTlv(NamQrTag.DISCOUNT, input.discountPercent.toFixed(2));
-  }
-  if (input.cashbackPercent != null) {
-    payload += buildNamQrTlv(NamQrTag.CASHBACK, input.cashbackPercent.toFixed(2));
-  }
-
-  const crc = calculateNamQrCrc(payload + NamQrTag.CRC + '04');
-  payload += buildNamQrTlv(NamQrTag.CRC, crc);
-
-  if (payload.length > 512) {
-    throw new Error('NamQR payload exceeds 512 character limit (BoN v5.0)');
-  }
-
-  return payload;
 }
 
 export type ParsedNamQrField = { tag: string; value: string };

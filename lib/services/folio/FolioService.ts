@@ -26,16 +26,107 @@ import type { FolioSummary, RoomServiceOrderItemInput } from '@/lib/types/folio'
 import { buildFolioVatSummary } from '@/lib/services/tax/PropertyVatService';
 import { assertCheckedIn, loadBookingWithGuest } from '@/lib/services/folio/guestStayAccess';
 import { and, eq, gte, inArray, lte } from 'drizzle-orm';
+import { scheduleInvoicePdfEmail } from '@/lib/services/documents/documentLifecycleHooks';
+import { toNumber } from '@/lib/utils/money';
 
 const CHARGE_TYPES = ['room', 'fnb', 'tax', 'adjustment'] as const;
 const STAFF_SETTLE_ROLES = new Set(['owner', 'manager', 'admin', 'staff']);
 
-function toNumber(value: string | number | null | undefined): number {
-  if (value == null) return 0;
-  return typeof value === 'number' ? value : Number.parseFloat(String(value)) || 0;
-}
-
 export class FolioService {
+  /**
+   * Void a folio transaction (immutable pattern).
+   * Creates a reversal line instead of deleting or modifying the original.
+   * Requires reason code for PSD-12 audit trail.
+   * 
+   * @param chargeId - ID of the charge to void
+   * @param input - Void transaction input
+   * @returns The reversal charge record
+   */
+  async voidTransaction(
+    chargeId: string,
+    input: {
+      userId: string;
+      reasonCode: string;
+      remark?: string;
+    }
+  ): Promise<{
+    originalCharge: typeof bookingCharges.$inferSelect;
+    reversalCharge: typeof bookingCharges.$inferSelect;
+  }> {
+    try {
+      const [originalCharge] = await db
+        .select()
+        .from(bookingCharges)
+        .where(eq(bookingCharges.id, chargeId))
+        .limit(1);
+
+      if (!originalCharge) {
+        throw new AppError(404, 'Charge not found');
+      }
+
+      if (originalCharge.status === 'voided') {
+        throw new AppError(400, 'Charge is already voided');
+      }
+
+      // Check if booking folio is closed
+      const [booking] = await db
+        .select({ folioClosedAt: bookings.folioClosedAt })
+        .from(bookings)
+        .where(eq(bookings.id, originalCharge.bookingId))
+        .limit(1);
+
+      if (booking?.folioClosedAt) {
+        throw new AppError(400, 'Cannot void charges on a closed folio');
+      }
+
+      const amount = toNumber(originalCharge.amount);
+      const reversalAmount = -amount;
+
+      const result = await db.transaction(async (tx) => {
+        // Mark original as voided
+        await tx
+          .update(bookingCharges)
+          .set({ status: 'voided' })
+          .where(eq(bookingCharges.id, chargeId));
+
+        // Create reversal line
+        const [reversal] = await tx
+          .insert(bookingCharges)
+          .values({
+            tenantId: originalCharge.tenantId,
+            bookingId: originalCharge.bookingId,
+            chargeType: 'adjustment',
+            description: `VOID: ${originalCharge.description} [Reason: ${input.reasonCode}]${input.remark ? ` - ${input.remark}` : ''}`,
+            amount: reversalAmount.toFixed(2),
+            currency: originalCharge.currency,
+            status: 'open',
+            referenceId: chargeId,
+            createdBy: input.userId,
+          })
+          .returning();
+
+        if (!reversal) {
+          throw new AppError(500, 'Failed to create reversal charge');
+        }
+
+        return { reversal };
+      });
+
+      const updatedOriginal = {
+        ...originalCharge,
+        status: 'voided' as const,
+      };
+
+      return {
+        originalCharge: updatedOriginal,
+        reversalCharge: result.reversal,
+      };
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      throw handleServiceError(error, 'Error voiding transaction');
+    }
+  }
+
   async getFolio(bookingId: string): Promise<FolioSummary> {
     try {
       const { booking } = await loadBookingWithGuest(bookingId);
@@ -403,6 +494,15 @@ export class FolioService {
           await this.applyLoyaltyInTx(tx, booking.tenantId!, guest.id, pointsEarned, amountSettled);
         }
       });
+
+      if (folioClosed && booking.guestId && booking.tenantId) {
+        scheduleInvoicePdfEmail({
+          tenantId: booking.tenantId,
+          bookingId: booking.id,
+          guestId: booking.guestId,
+          propertyId: booking.propertyId,
+        });
+      }
 
       return {
         amountSettled,

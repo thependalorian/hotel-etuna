@@ -5,10 +5,26 @@
  * Location: scripts/soc2/collect-evidence.ts
  */
 
-import { writeFileSync, mkdirSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
-import { soc2AuditOrchestrator } from '../../lib/compliance/soc2/Soc2AuditOrchestrator';
-import { securityLogger } from '@/lib/utils/security-logger';
+
+function loadEnv(): void {
+  for (const file of ['.env.local', '.env']) {
+    const path = join(process.cwd(), file);
+    if (!existsSync(path)) continue;
+    for (const line of readFileSync(path, 'utf8').split('\n')) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const idx = trimmed.indexOf('=');
+      if (idx <= 0) continue;
+      const key = trimmed.slice(0, idx).trim();
+      const value = trimmed.slice(idx + 1).trim().replace(/^["']|["']$/g, '');
+      if (!(key in process.env)) process.env[key] = value;
+    }
+  }
+}
+
+loadEnv();
 
 function parseArg(name: string): string | undefined {
   const prefix = `--${name}=`;
@@ -17,6 +33,11 @@ function parseArg(name: string): string | undefined {
 }
 
 async function main() {
+  const { soc2AuditOrchestrator } = await import(
+    '../../lib/compliance/soc2/Soc2AuditOrchestrator'
+  );
+  const { securityLogger } = await import('@/lib/utils/security-logger');
+
   const to = parseArg('to') ? new Date(parseArg('to')!) : new Date();
   const from = parseArg('from')
     ? new Date(parseArg('from')!)
@@ -40,6 +61,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  securityLogger.error(err);
+  console.error(err);
   process.exit(1);
 });

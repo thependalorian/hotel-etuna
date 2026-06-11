@@ -31,20 +31,20 @@ jobs:
         run: npm run security:preflight
         continue-on-error: true
 
-      - name: Run npm audit
-        run: npm audit --audit-level=moderate
+      - name: Capture npm audit evidence (Gap 12)
+        run: npm run security:audit-report
         continue-on-error: true
 
-      - name: Check for known vulnerabilities
-        run: |
-          echo "🔍 Running security audit..."
-          npm audit --json > audit-results.json || true
-          echo "✅ Security audit completed"
+      - name: Run npm audit (fail on critical only)
+        run: npm audit --audit-level=critical
+        continue-on-error: true
 
       - name: Upload audit results
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: security-audit-results
-          path: audit-results.json
+          path: |
+            compliance/evidence/security/npm-audit-*.json
+            audit-results.json
           retention-days: 30

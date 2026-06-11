@@ -82,6 +82,9 @@ export class EncryptionService {
   private static readonly TOKEN_PREFIX = 'tok_';
   private static readonly TOKEN_LENGTH = 32; // 32 characters (excluding prefix)
 
+  /** In-process vault: token → serialized EncryptionResult (AES-256-GCM at rest). */
+  private static readonly tokenVault = new Map<string, string>();
+
   /**
    * Get encryption key from environment
    * PSD-12 REQUIREMENT: Secure key storage
@@ -249,8 +252,12 @@ export class EncryptionService {
       // Extract last 4 digits (if applicable)
       const last4 = this.extractLast4(value);
 
+      const fullToken = `${this.TOKEN_PREFIX}${token}`;
+      const encryptedPayload = this.encrypt(value);
+      this.tokenVault.set(fullToken, JSON.stringify(encryptedPayload));
+
       return {
-        token: `${this.TOKEN_PREFIX}${token}`,
+        token: fullToken,
         last4,
         type,
       };
@@ -271,12 +278,28 @@ export class EncryptionService {
         throw new Error('Invalid token format');
       }
 
-      // In production, lookup token in secure vault and decrypt
-      // For now, we'll return an error as we don't have a token vault
+      const stored = this.tokenVault.get(token);
+      if (!stored) {
+        return {
+          value: '',
+          success: false,
+          error: 'Token not found in vault',
+        };
+      }
+
+      const payload = JSON.parse(stored) as EncryptionResult;
+      const decrypted = this.decrypt(payload.encrypted, payload.iv, payload.authTag);
+      if (!decrypted.success) {
+        return {
+          value: '',
+          success: false,
+          error: decrypted.error ?? 'Decryption failed',
+        };
+      }
+
       return {
-        value: '',
-        success: false,
-        error: 'Token vault not implemented. Use encryption for data storage.',
+        value: decrypted.decrypted,
+        success: true,
       };
     } catch (error: any) {
       securityLogger.error('[EncryptionService] Detokenization error:', error);

@@ -1,3 +1,7 @@
+/**
+ * @fileoverview CRM domain DTOs (guest profiles, reviews, loyalty).
+ * Location: lib/types/crm.ts
+ */
 export interface GuestProfileData {
   guestId: string;
   loyaltyTier?: string;

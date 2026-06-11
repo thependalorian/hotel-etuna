@@ -9,7 +9,26 @@ import { properties, users, sofiaEmailLogs } from '@/lib/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import nodemailer from 'nodemailer';
+import { brand } from '@/lib/copy/brand';
 import { securityLogger } from '@/lib/utils/security-logger';
+
+/** Guest-facing mail must never send from @buffr.ai — rebrand guard. */
+function resolveGuestSenderEmail(): string {
+  const configured = process.env.EMAIL_SENDER_EMAIL?.trim().toLowerCase();
+  if (!configured || configured.endsWith('@buffr.ai')) {
+    if (configured?.endsWith('@buffr.ai')) {
+      securityLogger.warn('EMAIL_SENDER_EMAIL uses @buffr.ai; using frontdesk@hoteletuna.com for guest mail');
+    }
+    return brand.emailFrontDesk;
+  }
+  return configured;
+}
+
+export type EmailAttachment = {
+  filename: string;
+  content: Buffer | string;
+  contentType?: string;
+};
 
 interface EmailData {
   to: string;
@@ -21,6 +40,7 @@ interface EmailData {
   propertyId?: string;
   templateId?: string;
   metadata?: Record<string, unknown>;
+  attachments?: EmailAttachment[];
 }
 
 export class EmailService {
@@ -81,9 +101,9 @@ export class EmailService {
     }
 
     try {
-      /** Must match SMTP-authenticated mailbox (e.g. Namecheap/Buffr). Override via EMAIL_SENDER_EMAIL. */
-      const senderEmail = process.env.EMAIL_SENDER_EMAIL || 'concierge@buffr.ai';
-      const senderName = process.env.EMAIL_SENDER_NAME || 'Sofia Concierge';
+      /** Must match SMTP-authenticated mailbox. Never @buffr.ai on guest surfaces. */
+      const senderEmail = resolveGuestSenderEmail();
+      const senderName = process.env.EMAIL_SENDER_NAME || `${brand.name} Concierge`;
 
       const ccRecipients = data.cc ?? [];
       if (data.propertyId && ccRecipients.length === 0) {
@@ -115,6 +135,15 @@ export class EmailService {
         text: data.textContent,
         ...(ccRecipients.length > 0 && { cc: ccRecipients }),
         ...(data.bcc && data.bcc.length > 0 && { bcc: data.bcc }),
+        ...(data.attachments?.length
+          ? {
+              attachments: data.attachments.map((att) => ({
+                filename: att.filename,
+                content: att.content,
+                contentType: att.contentType ?? 'application/octet-stream',
+              })),
+            }
+          : {}),
       };
 
       const info = await this.transporter.sendMail(mailOptions);

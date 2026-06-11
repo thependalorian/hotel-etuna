@@ -16,6 +16,15 @@ Set minimum requirements for user and administrator passwords and authentication
 
 All accounts on production, staging, and staff tools (GitHub, Vercel, Neon, 1Password, Google Workspace, admin dashboard).
 
+
+## Definitions
+
+| Term | Definition |
+|------|------------|
+| **Hotel Etuna** | Hub hospitality platform and operating entity |
+| **Personnel** | Employees, contractors, and partners with access to Hotel Etuna systems |
+| **Production** | Live environment serving guests and partners (Vercel + Neon production branch) |
+
 ## 3. Password requirements
 
 | Requirement | Standard |
@@ -42,15 +51,29 @@ Guest self-registration SHALL enforce the same rules via `lib/auth/password-vali
 - Reset SHALL verify email ownership; suspicious resets logged to `audit_trail`.
 
 ## 6. Related documents
+- [`INFORMATION_SECURITY_POLICY.md`](INFORMATION_SECURITY_POLICY.md)
+
+- [`NAMIBIA_REGULATORY_FRAMEWORK.md`](../NAMIBIA_REGULATORY_FRAMEWORK.md)
+
+- [`POLICY_IMPLEMENTATION_MATRIX.md`](../../../compliance/evidence/policies/POLICY_IMPLEMENTATION_MATRIX.md)
 
 - [`ACCESS_CONTROL_POLICY.md`](ACCESS_CONTROL_POLICY.md)  
 - [`CRYPTOGRAPHY_POLICY.md`](CRYPTOGRAPHY_POLICY.md)  
 - [`ACCEPTABLE_USE_POLICY.md`](ACCEPTABLE_USE_POLICY.md)
 
+## Exceptions
+
+Exceptions require written approval from the Policy Owner and Executive Sponsor. Document compensating controls in the risk register.
+
+## Enforcement
+
+Violations may result in disciplinary action up to termination and reporting to regulators where required.
+
 ## 7. Revision history
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1 | 2026-06-10 | CTO | Template conformance + implementation cross-ref |
 | 1.0 | May 17, 2026 | CTO | Initial policy; aligned with app validation |
 
 **Approved by:** _________________________ Date: _________

@@ -5,6 +5,7 @@
 
 import { db, bookingCharges, transactions } from '@/lib/db';
 import {
+  calculateAccommodationTax,
   computeHospitalityVatBreakdown,
   getHotelEtunaNamraRegistration,
   getHotelEtunaPropertyTaxProfile,
@@ -12,6 +13,7 @@ import {
   type TaxProfile,
   type VatBreakdown,
 } from '@/lib/platform/namibia-tax';
+import { roundMoney, toNumber } from '@/lib/utils/money';
 import type { FolioLineItem } from '@/lib/types/folio';
 import { and, eq, gte, inArray, lte } from 'drizzle-orm';
 
@@ -78,13 +80,16 @@ export type PropertyVatPeriodReport = {
   /** Combined estimate for NamRA workbook (may overlap folio + payments — review with accountant) */
   combinedTaxableGross: number;
   combinedVat: VatBreakdown;
+  /** NTB tourism levy 2% on accommodation lines only (room charges in period) */
+  accommodationNtbLevy: {
+    roomLineCount: number;
+    roomGross: number;
+    ntbLevyAmount: number;
+    vatOnRooms: number;
+    taxableBaseRooms: number;
+  };
   disclaimer: string;
 };
-
-function toNumber(value: string | number | null | undefined): number {
-  if (value == null) return 0;
-  return typeof value === 'number' ? value : Number.parseFloat(String(value)) || 0;
-}
 
 export function sumTaxableFolioLines(lines: FolioLineItem[]): number {
   return lines
@@ -162,6 +167,10 @@ export class PropertyVatService {
     const folioTaxableGross = rows.reduce((sum, row) => sum + toNumber(row.amount), 0);
     const folioVat = computeHospitalityVatBreakdown(folioTaxableGross, profile);
 
+    const roomRows = rows.filter((row) => row.chargeType === 'room');
+    const roomGross = roomRows.reduce((sum, row) => sum + toNumber(row.amount), 0);
+    const roomTax = calculateAccommodationTax(roomGross, profile);
+
     const paymentRows = await db
       .select({
         transactionReference: transactions.transactionReference,
@@ -238,6 +247,13 @@ export class PropertyVatService {
       },
       combinedTaxableGross,
       combinedVat,
+      accommodationNtbLevy: {
+        roomLineCount: roomRows.length,
+        roomGross: roundMoney(roomGross),
+        ntbLevyAmount: roomTax.ntbLevy2,
+        vatOnRooms: roomTax.vat15,
+        taxableBaseRooms: roomTax.taxableBase,
+      },
       disclaimer:
         'Hotel Etuna hospitality VAT (guest room, F&B, deposits). For NamRA return preparation only — confirm tax points with your accountant. Folio-settled lines and payment transactions may overlap; do not double-count on your return. Buffr platform fees are on separate Buffr tax invoices.',
     };
@@ -259,8 +275,4 @@ export function buildHospitalityVatDisplay(
     supplierVatNumber: profile.vatRegistrationNumber,
     currency,
   };
-}
-
-function roundMoney(value: number): number {
-  return Math.round(value * 100) / 100;
 }

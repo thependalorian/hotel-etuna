@@ -209,10 +209,10 @@ export default function GuestProfilePage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h2 className="buffr-heading-display mb-2">
+        <h2 className="etuna-heading-display mb-2">
           Guest Profile: {guest.first_name} {guest.last_name}
         </h2>
-        <p className="buffr-page-desc">View and edit guest information</p>
+        <p className="etuna-page-desc">View and edit guest information</p>
       </div>
 
       {error && <MessageAlert message={error} type="error" onDismiss={() => setError('')} />}

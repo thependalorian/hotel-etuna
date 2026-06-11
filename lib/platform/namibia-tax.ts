@@ -8,6 +8,8 @@
  * NamRA business tax guidance (namra.org.na). Not tax advice — counsel to confirm.
  */
 
+import { roundMoney } from '@/lib/utils/money';
+
 /** Standard VAT rate — unchanged per Budget 2025/2026 (Deloitte). */
 export const NAMIBIA_STANDARD_VAT_RATE_PERCENT = 15;
 
@@ -268,8 +270,141 @@ export function computeHospitalityVatBreakdown(
   };
 }
 
-function roundMoney(value: number): number {
-  return Math.round(value * 100) / 100;
+/** NTB tourism levy on accommodation (GN 137/2004) — 2% of qualifying guest charges. */
+export const NAMIBIA_NTB_TOURISM_LEVY_PERCENT = 2;
+
+export interface TaxBreakdown {
+  taxableBase: number;
+  vat15: number;
+  ntbLevy2: number;
+  totalInclusive: number;
+}
+
+export interface FnbTaxBreakdown {
+  net: number;
+  vat15: number;
+  total: number;
+}
+
+/**
+ * Accommodation supply: VAT 15% + NTB tourism levy 2% on net taxable base.
+ * When prices are VAT-inclusive, back out net first then apply levy on net.
+ */
+export function calculateAccommodationTax(
+  grossOrNetAmount: number,
+  profile: TaxProfile = getHotelEtunaPropertyTaxProfile()
+): TaxBreakdown {
+  if (grossOrNetAmount <= 0) {
+    return { taxableBase: 0, vat15: 0, ntbLevy2: 0, totalInclusive: 0 };
+  }
+
+  const vatBreakdown = computeHospitalityVatBreakdown(grossOrNetAmount, profile);
+  const taxableBase = vatBreakdown.amountExVat;
+  const ntbLevy2 = profile.vatRegistered
+    ? roundMoney(taxableBase * (NAMIBIA_NTB_TOURISM_LEVY_PERCENT / 100))
+    : 0;
+
+  return {
+    taxableBase,
+    vat15: vatBreakdown.vatAmount,
+    ntbLevy2,
+    totalInclusive: roundMoney(taxableBase + vatBreakdown.vatAmount + ntbLevy2),
+  };
+}
+
+/**
+ * Night-audit folio lines for one night's accommodation tariff.
+ * Uses the same VAT / NTB rules as folio reports (`calculateAccommodationTax`).
+ */
+export function computeNightAuditTariffCharges(
+  nightlyRate: number,
+  profile: TaxProfile = getHotelEtunaPropertyTaxProfile()
+): {
+  roomAmount: number;
+  vatAmount: number;
+  ntbLevyAmount: number;
+  vatRatePercent: number;
+} {
+  if (nightlyRate <= 0) {
+    return { roomAmount: 0, vatAmount: 0, ntbLevyAmount: 0, vatRatePercent: 0 };
+  }
+
+  if (!profile.vatRegistered) {
+    return {
+      roomAmount: nightlyRate,
+      vatAmount: 0,
+      ntbLevyAmount: 0,
+      vatRatePercent: 0,
+    };
+  }
+
+  const breakdown = calculateAccommodationTax(nightlyRate, profile);
+  const vatRatePercent = profile.standardVatRatePercent;
+
+  if (profile.pricesVatInclusive) {
+    return {
+      roomAmount: nightlyRate,
+      vatAmount: breakdown.vat15,
+      ntbLevyAmount: breakdown.ntbLevy2,
+      vatRatePercent,
+    };
+  }
+
+  return {
+    roomAmount: breakdown.taxableBase,
+    vatAmount: breakdown.vat15,
+    ntbLevyAmount: breakdown.ntbLevy2,
+    vatRatePercent,
+  };
+}
+
+/** F&B and non-accommodation hospitality — VAT only (no NTB levy). */
+export function calculateFnbTax(
+  grossOrNetAmount: number,
+  profile: TaxProfile = getHotelEtunaPropertyTaxProfile()
+): FnbTaxBreakdown {
+  if (grossOrNetAmount <= 0) {
+    return { net: 0, vat15: 0, total: 0 };
+  }
+  const vatBreakdown = computeHospitalityVatBreakdown(grossOrNetAmount, profile);
+  return {
+    net: vatBreakdown.amountExVat,
+    vat15: vatBreakdown.vatAmount,
+    total: vatBreakdown.totalInclVat,
+  };
+}
+
+export function sumDocumentLineTaxes(
+  lines: Array<{ chargeType: string; amount: number }>,
+  profile: TaxProfile = getHotelEtunaPropertyTaxProfile()
+): TaxBreakdown {
+  let taxableBase = 0;
+  let vat15 = 0;
+  let ntbLevy2 = 0;
+
+  for (const line of lines) {
+    if (line.amount <= 0) continue;
+    const type = line.chargeType;
+    if (type === 'payment' || type === 'tax') continue;
+
+    if (type === 'room') {
+      const t = calculateAccommodationTax(line.amount, profile);
+      taxableBase = roundMoney(taxableBase + t.taxableBase);
+      vat15 = roundMoney(vat15 + t.vat15);
+      ntbLevy2 = roundMoney(ntbLevy2 + t.ntbLevy2);
+    } else if (type === 'fnb' || type === 'adjustment') {
+      const t = calculateFnbTax(line.amount, profile);
+      taxableBase = roundMoney(taxableBase + t.net);
+      vat15 = roundMoney(vat15 + t.vat15);
+    }
+  }
+
+  return {
+    taxableBase,
+    vat15,
+    ntbLevy2,
+    totalInclusive: roundMoney(taxableBase + vat15 + ntbLevy2),
+  };
 }
 
 /** Minimum fields for a NamRA-aligned B2B tax invoice (Buffr → Client). */

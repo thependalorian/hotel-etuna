@@ -1,5 +1,5 @@
 -- Hotel Etuna — consolidated migrations (generated; prefer npm run db:migrate:all)
--- Generated: 2026-06-04T15:01:33.266Z
+-- Generated: 2026-06-09T09:04:50.691Z
 BEGIN;
 
 -- === 0000_equal_lifeguard.sql ===
@@ -3540,6 +3540,7 @@ ALTER TABLE bookings ADD COLUMN IF NOT EXISTS folio_closed_at timestamptz;
 
 -- === 0010_booking_charges_rls.sql ===
 -- RLS for booking_charges (table added in 0009 after bulk tenant_id policies in 0004)
+-- Uses app.tenant_type session variable pattern (aligned with 0006 fix)
 
 BEGIN;
 
@@ -3551,21 +3552,11 @@ CREATE POLICY tenant_access_booking_charges ON public.booking_charges
 FOR ALL
 USING (
   tenant_id::text = current_setting('app.tenant_id', true)
-  OR EXISTS (
-    SELECT 1
-    FROM public.tenants hub_tenant
-    WHERE hub_tenant.id::text = current_setting('app.tenant_id', true)
-      AND hub_tenant.type = 'hub'
-  )
+  OR current_setting('app.tenant_type', true) = 'hub'
 )
 WITH CHECK (
   tenant_id::text = current_setting('app.tenant_id', true)
-  OR EXISTS (
-    SELECT 1
-    FROM public.tenants hub_tenant
-    WHERE hub_tenant.id::text = current_setting('app.tenant_id', true)
-      AND hub_tenant.type = 'hub'
-  )
+  OR current_setting('app.tenant_type', true) = 'hub'
 );
 
 COMMIT;
@@ -3662,11 +3653,12 @@ CREATE INDEX IF NOT EXISTS idx_payment_sessions_booking_id ON payment_sessions(b
 CREATE INDEX IF NOT EXISTS idx_payment_sessions_expires_at ON payment_sessions(expires_at);
 
 -- === 0013_platform_billing.sql ===
--- Buffr platform billing: settlement profiles, fee accruals, monthly invoices (PRD §3.5.3)
+-- Hotel Etuna hub settlement: fee accruals, introducer commissions, monthly invoices (PRD §3.5.3)
+-- Single-property OS — not multi-hotel SaaS. `platform` party = hub operator billing profile.
 
 BEGIN;
 
--- Settlement bank profiles (property guest collections vs Buffr platform billing)
+-- Settlement bank profiles (guest collections vs hub operator billing)
 CREATE TABLE IF NOT EXISTS settlement_accounts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
@@ -3923,7 +3915,7 @@ ON CONFLICT (tenant_id) DO NOTHING;
 COMMIT;
 
 -- === 0014_platform_invoice_vat.sql ===
--- VAT fields on Buffr platform invoices (NamRA tax invoice support)
+-- VAT fields on hub platform invoices (NamRA tax invoice support — Hotel Etuna)
 
 BEGIN;
 
@@ -4251,7 +4243,6 @@ CREATE TYPE "public"."housekeeping_task_status" AS ENUM(
   'inspecting',
   'clean'
 );
---> statement-breakpoint
 
 -- Create housekeeping task priority enum
 CREATE TYPE "public"."housekeeping_task_priority" AS ENUM(
@@ -4260,7 +4251,6 @@ CREATE TYPE "public"."housekeeping_task_priority" AS ENUM(
   'high',
   'urgent'
 );
---> statement-breakpoint
 
 -- Create housekeeping tasks table
 CREATE TABLE IF NOT EXISTS "housekeeping_tasks" (
@@ -4282,76 +4272,52 @@ CREATE TABLE IF NOT EXISTS "housekeeping_tasks" (
   "created_by" uuid REFERENCES "users"("id") ON DELETE SET NULL,
   "updated_by" uuid REFERENCES "users"("id") ON DELETE SET NULL
 );
---> statement-breakpoint
 
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS "idx_housekeeping_tasks_property_id" ON "housekeeping_tasks" ("property_id");
---> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "idx_housekeeping_tasks_room_id" ON "housekeeping_tasks" ("room_id");
---> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "idx_housekeeping_tasks_assigned_to" ON "housekeeping_tasks" ("assigned_to");
---> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "idx_housekeeping_tasks_status" ON "housekeeping_tasks" ("status");
---> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "idx_housekeeping_tasks_booking_id" ON "housekeeping_tasks" ("booking_id");
---> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "idx_housekeeping_tasks_created_at" ON "housekeeping_tasks" ("created_at");
---> statement-breakpoint
 
--- Create RLS policies for housekeeping tasks
+-- Enable RLS (enforced at application layer via nextauth session context)
 ALTER TABLE "housekeeping_tasks" ENABLE ROW LEVEL SECURITY;
---> statement-breakpoint
 
--- Policy: Staff can see tasks for their property
-CREATE POLICY "housekeeping_tasks_staff_select" ON "housekeeping_tasks"
+-- RLS uses app tenant context (set by proxy.ts middleware), NOT auth.uid()
+-- This is compatible with Hotel Etuna's NextAuth + Stack Auth dual-auth setup.
+
+-- Policy: Tenant can see all housekeeping tasks for their property
+CREATE POLICY "housekeeping_tasks_tenant_select" ON "housekeeping_tasks"
   FOR SELECT
-  TO authenticated
   USING (
     property_id IN (
-      SELECT property_id FROM staff WHERE user_id = auth.uid()
+      SELECT p.id FROM properties p
+      WHERE p.tenant_id::text = current_setting('app.tenant_id', true)
     )
   );
---> statement-breakpoint
 
--- Policy: Staff can update tasks they're assigned to or tasks in their property
+-- Policy: Staff can update tasks they're assigned to
 CREATE POLICY "housekeeping_tasks_staff_update" ON "housekeeping_tasks"
   FOR UPDATE
-  TO authenticated
   USING (
-    assigned_to IN (SELECT id FROM staff WHERE user_id = auth.uid())
-    OR property_id IN (
-      SELECT property_id FROM staff 
-      WHERE user_id = auth.uid() 
-      AND role IN ('manager', 'admin', 'housekeeping_supervisor')
-    )
+    assigned_to = current_setting('app.user_id', true)::uuid
+    OR current_setting('app.tenant_type', true) = 'hub'
   );
---> statement-breakpoint
 
--- Policy: Managers and supervisors can insert tasks
-CREATE POLICY "housekeeping_tasks_manager_insert" ON "housekeeping_tasks"
+-- Policy: Hub staff can insert tasks
+CREATE POLICY "housekeeping_tasks_hub_insert" ON "housekeeping_tasks"
   FOR INSERT
-  TO authenticated
   WITH CHECK (
-    property_id IN (
-      SELECT property_id FROM staff 
-      WHERE user_id = auth.uid() 
-      AND role IN ('manager', 'admin', 'housekeeping_supervisor')
-    )
+    current_setting('app.tenant_type', true) = 'hub'
   );
---> statement-breakpoint
 
--- Policy: Managers and supervisors can delete tasks
-CREATE POLICY "housekeeping_tasks_manager_delete" ON "housekeeping_tasks"
+-- Policy: Hub staff can delete tasks
+CREATE POLICY "housekeeping_tasks_hub_delete" ON "housekeeping_tasks"
   FOR DELETE
-  TO authenticated
   USING (
-    property_id IN (
-      SELECT property_id FROM staff 
-      WHERE user_id = auth.uid() 
-      AND role IN ('manager', 'admin', 'housekeeping_supervisor')
-    )
+    current_setting('app.tenant_type', true) = 'hub'
   );
---> statement-breakpoint
 
 -- Create trigger to auto-update updated_at
 CREATE OR REPLACE FUNCTION update_housekeeping_tasks_updated_at()
@@ -4361,18 +4327,25 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
---> statement-breakpoint
 
 CREATE TRIGGER trigger_update_housekeeping_tasks_updated_at
   BEFORE UPDATE ON "housekeeping_tasks"
   FOR EACH ROW
   EXECUTE FUNCTION update_housekeeping_tasks_updated_at();
---> statement-breakpoint
 
 -- Create trigger to auto-create housekeeping task on checkout
 CREATE OR REPLACE FUNCTION create_housekeeping_task_on_checkout()
 RETURNS TRIGGER AS $$
+DECLARE
+  v_user_id uuid;
 BEGIN
+  -- Resolve user from session context (set by proxy.ts middleware)
+  BEGIN
+    v_user_id := current_setting('app.user_id', true)::uuid;
+  EXCEPTION WHEN OTHERS THEN
+    v_user_id := NULL;
+  END;
+
   -- When booking status changes to 'checked_out', create housekeeping tasks
   IF NEW.status = 'checked_out' AND OLD.status != 'checked_out' THEN
     -- Create a task for each room in the booking
@@ -4397,7 +4370,7 @@ BEGIN
       END,
       'checkout_cleaning',
       'Auto-generated after checkout of booking ' || NEW.booking_reference,
-      auth.uid()
+      v_user_id
     FROM booking_rooms br
     WHERE br.booking_id = NEW.id;
   END IF;
@@ -4405,14 +4378,12 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
---> statement-breakpoint
 
 CREATE TRIGGER trigger_create_housekeeping_task_on_checkout
   AFTER UPDATE ON "bookings"
   FOR EACH ROW
   WHEN (NEW.status = 'checked_out')
   EXECUTE FUNCTION create_housekeeping_task_on_checkout();
---> statement-breakpoint
 
 -- === 0029_cms_pages_blocks.sql ===
 -- Hotel Etuna CMS Pages & Blocks
@@ -4798,7 +4769,7 @@ CREATE POLICY loyalty_redemptions_guest_view
   );
 
 -- === 0035_loyalty_tiers.sql ===
--- Loyalty tier definitions and thresholds
+-- Loyalty tier definitions and thresholds (hub tenants only — loyalty is hub-exclusive)
 CREATE TABLE IF NOT EXISTS loyalty_tiers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
@@ -4825,13 +4796,13 @@ CREATE TABLE IF NOT EXISTS loyalty_tiers (
 CREATE INDEX IF NOT EXISTS idx_loyalty_tiers_tenant
   ON loyalty_tiers(tenant_id, tier_order);
 
--- Seed default tier thresholds for all tenants (hub-only feature will be enforced at application layer)
--- Note: Will seed for all tenants, but loyalty features are hub-exclusive per business rules
+-- Seed default tier thresholds for hub tenants only (loyalty is hub-exclusive per HOTEL_ETUNA_OS.md)
+-- Partners do not get loyalty features.
 DO $$
 DECLARE
   tenant_rec RECORD;
 BEGIN
-  FOR tenant_rec IN SELECT id FROM tenants LOOP
+  FOR tenant_rec IN SELECT id FROM tenants WHERE type = 'hub' LOOP
     -- Bronze tier
     INSERT INTO loyalty_tiers (tenant_id, tier_name, tier_order, points_threshold, earn_rate_multiplier, description)
     VALUES (
@@ -5655,7 +5626,8 @@ CREATE INDEX IF NOT EXISTS idx_bookings_booking_kind ON bookings (booking_kind);
 CREATE INDEX IF NOT EXISTS idx_rooms_inventory_kind ON rooms (inventory_kind);
 
 -- === 0043_facility_internal_keys.sql ===
--- Facilities are singular; room_number is internal DB key only.
+-- 0043: Facilities are singular (one conference hall, one campsite).
+-- room_number is an internal DB key only — not a guest room number.
 
 UPDATE rooms r
 SET room_number = 'facility:conference', updated_at = NOW()
@@ -5672,5 +5644,853 @@ WHERE r.property_id = p.id
   AND p.slug = 'hotel-etuna'
   AND r.inventory_kind = 'campsite'
   AND r.room_number <> 'facility:campsite';
+
+-- === 0044_schema_cleanup.sql ===
+-- 0044: Schema cleanup — RLS standardisation, missing RLS, indexes, constraints
+-- Applies idempotently to Neon. Run: psql $DATABASE_URL -f database/drizzle/0044_schema_cleanup.sql
+
+BEGIN;
+
+-- ============================================================================
+-- PART 1: Standardise RLS variable name app.current_tenant_id → app.tenant_id
+-- 8 tables used the wrong variable name. connection.ts sets both for backward
+-- compat, but all RLS should use app.tenant_id consistently.
+-- ============================================================================
+
+-- cms_pages (0029b)
+DROP POLICY IF EXISTS cms_pages_staff_full_access ON cms_pages;
+CREATE POLICY cms_pages_staff_full_access ON cms_pages
+  FOR ALL
+  USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+
+-- cms_blocks (0029b)
+DROP POLICY IF EXISTS cms_blocks_staff_full_access ON cms_blocks;
+CREATE POLICY cms_blocks_staff_full_access ON cms_blocks
+  FOR ALL
+  USING (
+    page_id IN (
+      SELECT id FROM cms_pages
+      WHERE tenant_id = current_setting('app.tenant_id', true)::uuid
+    )
+  );
+
+-- introducers (0031b)
+DROP POLICY IF EXISTS introducers_tenant_isolation ON introducers;
+CREATE POLICY introducers_tenant_isolation ON introducers
+  FOR ALL
+  USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+
+DROP POLICY IF EXISTS introducers_public_directory_read ON introducers;
+CREATE POLICY introducers_public_directory_read ON introducers
+  FOR SELECT
+  USING (
+    is_active = true
+    AND show_in_public_directory = true
+    AND tenant_id = current_setting('app.tenant_id', true)::uuid
+  );
+
+-- loyalty_transactions (0033b)
+DROP POLICY IF EXISTS loyalty_transactions_tenant_isolation ON loyalty_transactions;
+CREATE POLICY loyalty_transactions_tenant_isolation ON loyalty_transactions
+  FOR ALL
+  USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+
+-- loyalty_rewards (0033b)
+DROP POLICY IF EXISTS loyalty_rewards_tenant_isolation ON loyalty_rewards;
+CREATE POLICY loyalty_rewards_tenant_isolation ON loyalty_rewards
+  FOR ALL
+  USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+
+-- loyalty_redemptions (0033b)
+DROP POLICY IF EXISTS loyalty_redemptions_tenant_isolation ON loyalty_redemptions;
+CREATE POLICY loyalty_redemptions_tenant_isolation ON loyalty_redemptions
+  FOR ALL
+  USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+
+-- loyalty_tiers (0037)
+DROP POLICY IF EXISTS loyalty_tiers_tenant_isolation ON loyalty_tiers;
+CREATE POLICY loyalty_tiers_tenant_isolation ON loyalty_tiers
+  FOR ALL
+  USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+
+-- loyalty_tier_benefits (0037)
+DROP POLICY IF EXISTS loyalty_tier_benefits_tenant_isolation ON loyalty_tier_benefits;
+CREATE POLICY loyalty_tier_benefits_tenant_isolation ON loyalty_tier_benefits
+  FOR ALL
+  USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+
+-- ============================================================================
+-- PART 2: Add missing RLS to unprotected tables with tenant_id
+-- 4 tables had no RLS at all — cross-tenant read possible.
+-- ============================================================================
+
+ALTER TABLE fraud_detection_rules ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS tenant_access_fraud_detection_rules ON fraud_detection_rules;
+CREATE POLICY tenant_access_fraud_detection_rules ON fraud_detection_rules
+  FOR ALL
+  USING (
+    tenant_id::text = current_setting('app.tenant_id', true)
+    OR current_setting('app.tenant_type', true) = 'hub'
+  )
+  WITH CHECK (
+    tenant_id::text = current_setting('app.tenant_id', true)
+    OR current_setting('app.tenant_type', true) = 'hub'
+  );
+
+ALTER TABLE dining_reservations ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS tenant_access_dining_reservations ON dining_reservations;
+CREATE POLICY tenant_access_dining_reservations ON dining_reservations
+  FOR ALL
+  USING (
+    tenant_id::text = current_setting('app.tenant_id', true)
+    OR current_setting('app.tenant_type', true) = 'hub'
+  )
+  WITH CHECK (
+    tenant_id::text = current_setting('app.tenant_id', true)
+    OR current_setting('app.tenant_type', true) = 'hub'
+  );
+
+ALTER TABLE namqr_pending_confirmations ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS tenant_access_namqr_pending_confirmations ON namqr_pending_confirmations;
+CREATE POLICY tenant_access_namqr_pending_confirmations ON namqr_pending_confirmations
+  FOR ALL
+  USING (
+    tenant_id::text = current_setting('app.tenant_id', true)
+    OR current_setting('app.tenant_type', true) = 'hub'
+  )
+  WITH CHECK (
+    tenant_id::text = current_setting('app.tenant_id', true)
+    OR current_setting('app.tenant_type', true) = 'hub'
+  );
+
+-- ============================================================================
+-- PART 3: Add missing performance indexes for hot query paths
+-- Landing page, dashboard calendar, analytics occupancy, folio lookups
+-- ============================================================================
+
+CREATE INDEX IF NOT EXISTS idx_bookings_check_in_date
+  ON bookings (check_in_date);
+
+CREATE INDEX IF NOT EXISTS idx_bookings_check_out_date
+  ON bookings (check_out_date);
+
+CREATE INDEX IF NOT EXISTS idx_bookings_tenant_status_dates
+  ON bookings (tenant_id, status, check_in_date, check_out_date);
+
+CREATE INDEX IF NOT EXISTS idx_guest_reviews_tenant_public
+  ON guest_reviews (tenant_id, is_public, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_cash_reconciliations_tenant_date
+  ON cash_reconciliations (tenant_id, reconciliation_date);
+
+-- ============================================================================
+-- PART 4: Add CHECK constraints for data integrity on rooms
+-- Prevents typos in inventory_kind and status columns
+-- ============================================================================
+
+DO $$
+BEGIN
+  -- Normalize legacy / out-of-range data BEFORE adding the CHECK constraints.
+  -- ALTER TABLE ... ADD CONSTRAINT validates existing rows immediately, so a single
+  -- pre-existing bad row (NULL or legacy status/kind) would fail the whole migration.
+  -- These UPDATEs are idempotent and map known legacy synonyms to the canonical set.
+  UPDATE rooms SET inventory_kind = 'guest_room'
+    WHERE inventory_kind IS NULL
+       OR inventory_kind NOT IN ('guest_room', 'conference', 'campsite');
+
+  UPDATE rooms SET status = 'cleaning'
+    WHERE status IN ('dirty', 'needs_cleaning', 'clean_in_progress');
+  UPDATE rooms SET status = 'out_of_order'
+    WHERE status IN ('blocked', 'ooo', 'out-of-order');
+  UPDATE rooms SET status = 'available'
+    WHERE status IS NULL
+       OR status NOT IN ('available', 'occupied', 'cleaning', 'maintenance', 'out_of_order');
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'rooms_inventory_kind_check'
+  ) THEN
+    ALTER TABLE rooms ADD CONSTRAINT rooms_inventory_kind_check
+      CHECK (inventory_kind IN ('guest_room', 'conference', 'campsite'));
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'rooms_status_check'
+  ) THEN
+    ALTER TABLE rooms ADD CONSTRAINT rooms_status_check
+      CHECK (status IN ('available', 'occupied', 'cleaning', 'maintenance', 'out_of_order'));
+  END IF;
+END $$;
+
+COMMIT;
+
+-- ============================================================================
+-- Summary of changes:
+-- PART 1: 8 tables — fixed RLS variable name (app.current_tenant_id → app.tenant_id)
+-- PART 2: 3 tables — added missing RLS (fraud_detection_rules, dining_reservations, namqr_pending_confirmations)
+-- PART 3: 5 indexes added — bookings (3), guest_reviews (1), cash_reconciliations (1)
+-- PART 4: 2 CHECK constraints added — rooms.inventory_kind, rooms.status
+-- 
+-- Total RLS policies after 0044: 64 (was 61) on 49 tables (was 46)
+-- Total indexes: 5 new
+-- ============================================================================
+
+-- === 0045_fnb_print_jobs.sql ===
+-- F&B print dispatch jobs (kitchen ticket board)
+-- Aligns with lib/db/schema.ts fnbPrintJobs
+
+DO $$ BEGIN
+  CREATE TYPE print_job_status AS ENUM ('pending', 'printing', 'printed', 'failed', 'cancelled');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE print_station_type AS ENUM ('kitchen', 'bar', 'pastry', 'front_desk', 'back_office');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+CREATE TABLE IF NOT EXISTS fnb_print_jobs (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  property_id uuid NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+  order_id uuid REFERENCES restaurant_orders(id) ON DELETE SET NULL,
+  booking_id uuid REFERENCES bookings(id) ON DELETE SET NULL,
+  station print_station_type NOT NULL,
+  status print_job_status NOT NULL DEFAULT 'pending',
+  printer_id varchar(100),
+  ticket_type varchar(50) NOT NULL DEFAULT 'order_ticket',
+  ticket_data jsonb NOT NULL,
+  attempts integer NOT NULL DEFAULT 0,
+  last_attempt_at timestamptz,
+  error_message text,
+  printed_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  created_by uuid REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_fnb_print_jobs_property_id ON fnb_print_jobs(property_id);
+CREATE INDEX IF NOT EXISTS idx_fnb_print_jobs_order_id ON fnb_print_jobs(order_id);
+CREATE INDEX IF NOT EXISTS idx_fnb_print_jobs_station ON fnb_print_jobs(station);
+CREATE INDEX IF NOT EXISTS idx_fnb_print_jobs_status ON fnb_print_jobs(status);
+CREATE INDEX IF NOT EXISTS idx_fnb_print_jobs_created_at ON fnb_print_jobs(created_at);
+CREATE INDEX IF NOT EXISTS idx_fnb_print_jobs_station_status ON fnb_print_jobs(station, status);
+
+-- === 0046_payment_outbox_events.sql ===
+-- 0046: Transactional outbox for payment side effects (receipt email, notifications)
+-- Hotel Etuna single-property OS. Applies idempotently.
+-- Run: psql $DATABASE_URL -f database/drizzle/0046_payment_outbox_events.sql
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS payment_outbox_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  idempotency_key VARCHAR(255) NOT NULL,
+  aggregate_type VARCHAR(50) NOT NULL DEFAULT 'payment_session',
+  aggregate_id UUID NOT NULL,
+  event_type VARCHAR(100) NOT NULL,
+  payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+  status VARCHAR(50) NOT NULL DEFAULT 'pending',
+  attempts INTEGER NOT NULL DEFAULT 0,
+  max_attempts INTEGER NOT NULL DEFAULT 10,
+  last_error TEXT,
+  next_attempt_at TIMESTAMPTZ,
+  processed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT payment_outbox_events_idempotency_key_unique UNIQUE (idempotency_key),
+  CONSTRAINT payment_outbox_events_status_check CHECK (
+    status IN ('pending', 'processing', 'completed', 'failed')
+  )
+);
+
+CREATE INDEX IF NOT EXISTS idx_payment_outbox_pending_dispatch
+  ON payment_outbox_events (status, next_attempt_at, created_at)
+  WHERE status IN ('pending', 'processing');
+
+CREATE INDEX IF NOT EXISTS idx_payment_outbox_aggregate
+  ON payment_outbox_events (aggregate_type, aggregate_id);
+
+CREATE INDEX IF NOT EXISTS idx_payment_outbox_tenant
+  ON payment_outbox_events (tenant_id);
+
+COMMIT;
+
+-- === 0047_audit_trail_hash_chain.sql ===
+-- 0047: Tamper-evident audit hash chain columns (Hotel Etuna compliance)
+-- Nullable for legacy rows; new inserts populate via AuditHashService when enabled.
+-- Run: psql $DATABASE_URL -f database/drizzle/0047_audit_trail_hash_chain.sql
+
+BEGIN;
+
+ALTER TABLE audit_trail
+  ADD COLUMN IF NOT EXISTS previous_hash varchar(64),
+  ADD COLUMN IF NOT EXISTS event_hash varchar(64);
+
+CREATE INDEX IF NOT EXISTS idx_audit_trail_tenant_chain
+  ON audit_trail (tenant_id, timestamp, id)
+  WHERE event_hash IS NOT NULL;
+
+COMMENT ON COLUMN audit_trail.previous_hash IS 'SHA-256 chain: hash of prior event for this tenant (genesis = 64 zeros)';
+COMMENT ON COLUMN audit_trail.event_hash IS 'SHA-256 integrity hash for this audit row';
+
+COMMIT;
+
+-- === 0048_accounting_period_locks.sql ===
+-- 0048: GL period close locks (Hotel Etuna accounting close)
+CREATE TABLE IF NOT EXISTS accounting_period_locks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  property_id UUID NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+  lock_date DATE NOT NULL,
+  locked_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  reason TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_accounting_period_locks_tenant_property
+  ON accounting_period_locks(tenant_id, property_id);
+
+CREATE INDEX IF NOT EXISTS idx_accounting_period_locks_lock_date
+  ON accounting_period_locks(lock_date);
+
+-- === 0049_durable_scheduling_notifications.sql ===
+-- 0049: Durable scheduling & notification infrastructure (Hotel Etuna)
+-- Purpose: Cron job durability + notification routing with user preferences
+
+-- Scheduler jobs table (for durable cron execution)
+CREATE TABLE IF NOT EXISTS scheduler_jobs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id VARCHAR(255) NOT NULL,
+  job_type VARCHAR(100) NOT NULL,
+  idempotency_key VARCHAR(255) NOT NULL UNIQUE,
+  payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+  status VARCHAR(50) NOT NULL DEFAULT 'pending',
+  attempts INTEGER NOT NULL DEFAULT 0,
+  max_attempts INTEGER NOT NULL DEFAULT 10,
+  scheduled_for TIMESTAMP WITH TIME ZONE NOT NULL,
+  next_attempt_at TIMESTAMP WITH TIME ZONE,
+  last_error TEXT,
+  completed_at TIMESTAMP WITH TIME ZONE,
+  execution_time_ms BIGINT,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_scheduler_jobs_status_scheduled ON scheduler_jobs(status, scheduled_for)
+  WHERE status = 'pending';
+
+CREATE INDEX IF NOT EXISTS idx_scheduler_jobs_tenant_job_type ON scheduler_jobs(tenant_id, job_type);
+
+CREATE INDEX IF NOT EXISTS idx_scheduler_jobs_next_attempt ON scheduler_jobs(next_attempt_at)
+  WHERE status = 'pending' AND next_attempt_at IS NOT NULL;
+
+-- Notification history table
+CREATE TABLE IF NOT EXISTS notification_history (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id VARCHAR(255) NOT NULL,
+  user_id VARCHAR(255) NOT NULL,
+  notification_type VARCHAR(100) NOT NULL,
+  channel VARCHAR(50) NOT NULL,
+  recipient VARCHAR(255) NOT NULL,
+  subject VARCHAR(500),
+  content TEXT,
+  metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+  status VARCHAR(50) NOT NULL DEFAULT 'pending',
+  sent_at TIMESTAMP WITH TIME ZONE,
+  failed_at TIMESTAMP WITH TIME ZONE,
+  error_message TEXT,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_notification_history_user ON notification_history(tenant_id, user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notification_history_type_status ON notification_history(notification_type, status);
+
+-- === 0050_night_audit_runs.sql ===
+-- 0050: Night audit run persistence (Hotel Etuna end-of-day)
+-- Purpose: Store end-of-day audit results per property + business date (idempotent re-runs)
+
+DO $$ BEGIN
+  ALTER TYPE booking_charge_status ADD VALUE 'voided';
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+CREATE TABLE IF NOT EXISTS night_audit_runs (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  property_id uuid NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+  business_date date NOT NULL,
+  result jsonb NOT NULL DEFAULT '{}'::jsonb,
+  status varchar(50) NOT NULL DEFAULT 'completed',
+  run_by uuid REFERENCES users(id) ON DELETE SET NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT night_audit_runs_property_date_unique UNIQUE (property_id, business_date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_night_audit_runs_tenant_id ON night_audit_runs(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_night_audit_runs_property_id ON night_audit_runs(property_id);
+CREATE INDEX IF NOT EXISTS idx_night_audit_runs_business_date ON night_audit_runs(business_date);
+
+ALTER TABLE night_audit_runs ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS tenant_access_night_audit_runs ON public.night_audit_runs;
+CREATE POLICY tenant_access_night_audit_runs ON public.night_audit_runs
+  FOR ALL
+  USING (tenant_id = current_setting('app.tenant_id', true)::uuid)
+  WITH CHECK (tenant_id = current_setting('app.tenant_id', true)::uuid);
+
+-- === 0051_availability_ledger.sql ===
+-- 0051: Room availability ledger (single property — Hotel Etuna)
+-- Daily inventory buckets per room with stop-sell and restriction flags.
+-- Run: psql $DATABASE_URL -f database/drizzle/0051_availability_ledger.sql
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS room_availability_ledger (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  property_id uuid NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+  room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+  business_date date NOT NULL,
+  sold integer NOT NULL DEFAULT 0,
+  blocked integer NOT NULL DEFAULT 0,
+  out_of_order boolean NOT NULL DEFAULT false,
+  stop_sell boolean NOT NULL DEFAULT false,
+  cta boolean NOT NULL DEFAULT false,
+  ctd boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT room_availability_ledger_unique_day
+    UNIQUE (property_id, room_id, business_date),
+  CONSTRAINT room_availability_ledger_sold_nonneg CHECK (sold >= 0),
+  CONSTRAINT room_availability_ledger_blocked_nonneg CHECK (blocked >= 0)
+);
+
+CREATE INDEX IF NOT EXISTS idx_room_availability_ledger_tenant_id
+  ON room_availability_ledger (tenant_id);
+CREATE INDEX IF NOT EXISTS idx_room_availability_ledger_property_date
+  ON room_availability_ledger (property_id, business_date);
+CREATE INDEX IF NOT EXISTS idx_room_availability_ledger_room_date
+  ON room_availability_ledger (room_id, business_date);
+CREATE INDEX IF NOT EXISTS idx_room_availability_ledger_stop_sell
+  ON room_availability_ledger (property_id, business_date)
+  WHERE stop_sell = true;
+
+COMMENT ON TABLE room_availability_ledger IS 'Daily room inventory buckets: sold/blocked counts and restriction flags (stop-sell, CTA, CTD)';
+COMMENT ON COLUMN room_availability_ledger.cta IS 'Closed to arrival on this business date';
+COMMENT ON COLUMN room_availability_ledger.ctd IS 'Closed to departure on this business date';
+
+-- Tenant RLS (matches 0004 hub/partner pattern)
+ALTER TABLE room_availability_ledger ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS tenant_access_room_availability_ledger ON room_availability_ledger;
+
+CREATE POLICY tenant_access_room_availability_ledger ON room_availability_ledger
+  FOR ALL
+  USING (
+    tenant_id::text = current_setting('app.tenant_id', true)
+    OR EXISTS (
+      SELECT 1
+      FROM public.tenants hub_tenant
+      WHERE hub_tenant.id::text = current_setting('app.tenant_id', true)
+        AND hub_tenant.type = 'hub'
+    )
+  )
+  WITH CHECK (
+    tenant_id::text = current_setting('app.tenant_id', true)
+    OR EXISTS (
+      SELECT 1
+      FROM public.tenants hub_tenant
+      WHERE hub_tenant.id::text = current_setting('app.tenant_id', true)
+        AND hub_tenant.type = 'hub'
+    )
+  );
+
+COMMIT;
+
+-- === 0052_sofia_pipeline_runs.sql ===
+-- 0052: Sofia agent pipeline run telemetry (Hotel Etuna agentic CRM)
+-- Purpose: Persist multi-stage pipeline + tool-graph execution metadata (best-effort observability)
+
+CREATE TABLE IF NOT EXISTS sofia_pipeline_runs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id VARCHAR(255) NOT NULL,
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  stages JSONB NOT NULL DEFAULT '{}'::jsonb,
+  total_ms BIGINT NOT NULL DEFAULT 0,
+  status VARCHAR(50) NOT NULL DEFAULT 'completed',
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_sofia_pipeline_runs_session_id
+  ON sofia_pipeline_runs(session_id);
+
+CREATE INDEX IF NOT EXISTS idx_sofia_pipeline_runs_tenant_id
+  ON sofia_pipeline_runs(tenant_id);
+
+CREATE INDEX IF NOT EXISTS idx_sofia_pipeline_runs_created_at
+  ON sofia_pipeline_runs(created_at DESC);
+
+-- === 0053_cal_booking_mirrors.sql ===
+-- 0053: Cal.com booking mirrors (webhook idempotency store)
+-- Purpose: Persist Cal.com webhook payloads for Hotel Etuna scheduling integration
+
+CREATE TABLE IF NOT EXISTS cal_booking_mirrors (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  cal_uid VARCHAR(255) NOT NULL UNIQUE,
+  property_id UUID REFERENCES properties(id) ON DELETE SET NULL,
+  booking_id UUID REFERENCES bookings(id) ON DELETE SET NULL,
+  payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+  status VARCHAR(50) NOT NULL DEFAULT 'active',
+  webhook_received_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_cal_booking_mirrors_property ON cal_booking_mirrors(property_id);
+CREATE INDEX IF NOT EXISTS idx_cal_booking_mirrors_booking ON cal_booking_mirrors(booking_id);
+CREATE INDEX IF NOT EXISTS idx_cal_booking_mirrors_status ON cal_booking_mirrors(status);
+
+-- === 0054_guest_service_requests.sql ===
+-- Hotel Etuna Guest Service & Maintenance Requests (Phase 8 — Guest Command Centre)
+-- Migration: 0054_guest_service_requests
+-- Purpose: Let an in-stay guest raise housekeeping/amenity requests or report a
+--          maintenance issue from /guest; housekeeping/maintenance requests spawn a
+--          linked housekeeping_tasks row so they surface on the staff board immediately.
+-- Reference: PRD §1.1 Goal 1, §3.4a; PLANNING § Agentic CRM & Intelligent OS roadmap.
+
+-- Request type (what the guest is asking for)
+DO $$ BEGIN
+  CREATE TYPE "public"."guest_service_request_type" AS ENUM(
+    'housekeeping',
+    'maintenance',
+    'amenity',
+    'other'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+-- Lifecycle status (staff-driven after the guest opens it)
+DO $$ BEGIN
+  CREATE TYPE "public"."guest_service_request_status" AS ENUM(
+    'open',
+    'acknowledged',
+    'in_progress',
+    'resolved',
+    'cancelled'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+-- Reuses existing housekeeping_task_priority enum (low/normal/high/urgent) from 0021.
+
+CREATE TABLE IF NOT EXISTS "guest_service_requests" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+  "tenant_id" uuid NOT NULL REFERENCES "tenants"("id") ON DELETE CASCADE,
+  "property_id" uuid NOT NULL REFERENCES "properties"("id") ON DELETE CASCADE,
+  "booking_id" uuid NOT NULL REFERENCES "bookings"("id") ON DELETE CASCADE,
+  "room_id" uuid REFERENCES "rooms"("id") ON DELETE SET NULL,
+  "guest_id" uuid REFERENCES "guests"("id") ON DELETE SET NULL,
+  "request_type" guest_service_request_type NOT NULL,
+  "category" varchar(80),
+  "description" text,
+  "photos" text[] DEFAULT '{}',
+  "status" guest_service_request_status DEFAULT 'open' NOT NULL,
+  "priority" housekeeping_task_priority DEFAULT 'normal' NOT NULL,
+  "housekeeping_task_id" uuid REFERENCES "housekeeping_tasks"("id") ON DELETE SET NULL,
+  "resolved_at" timestamp with time zone,
+  "resolved_by" uuid REFERENCES "users"("id") ON DELETE SET NULL,
+  "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+  "updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+  "created_by" uuid REFERENCES "users"("id") ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS "idx_guest_service_requests_tenant_id" ON "guest_service_requests" ("tenant_id");
+CREATE INDEX IF NOT EXISTS "idx_guest_service_requests_property_id" ON "guest_service_requests" ("property_id");
+CREATE INDEX IF NOT EXISTS "idx_guest_service_requests_booking_id" ON "guest_service_requests" ("booking_id");
+CREATE INDEX IF NOT EXISTS "idx_guest_service_requests_status" ON "guest_service_requests" ("status");
+CREATE INDEX IF NOT EXISTS "idx_guest_service_requests_created_at" ON "guest_service_requests" ("created_at");
+
+-- RLS — app tenant context (set by withApiAuth via set_config), not auth.uid().
+-- Mirrors housekeeping_tasks (migration 0021): tenant reads its own rows; hub writes.
+ALTER TABLE "guest_service_requests" ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "guest_service_requests_tenant_select" ON "guest_service_requests"
+  FOR SELECT
+  USING (
+    tenant_id::text = current_setting('app.tenant_id', true)
+  );
+
+-- Hub-tenant sessions (guests live on the hub tenant; staff are hub) may insert.
+-- API layer additionally enforces stay access (guest email match) + guest role.
+CREATE POLICY "guest_service_requests_hub_insert" ON "guest_service_requests"
+  FOR INSERT
+  WITH CHECK (
+    current_setting('app.tenant_type', true) = 'hub'
+    AND tenant_id::text = current_setting('app.tenant_id', true)
+  );
+
+CREATE POLICY "guest_service_requests_hub_update" ON "guest_service_requests"
+  FOR UPDATE
+  USING (
+    current_setting('app.tenant_type', true) = 'hub'
+    AND tenant_id::text = current_setting('app.tenant_id', true)
+  );
+
+CREATE POLICY "guest_service_requests_hub_delete" ON "guest_service_requests"
+  FOR DELETE
+  USING (
+    current_setting('app.tenant_type', true) = 'hub'
+    AND tenant_id::text = current_setting('app.tenant_id', true)
+  );
+
+-- Keep updated_at fresh
+CREATE OR REPLACE FUNCTION update_guest_service_requests_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trigger_update_guest_service_requests_updated_at ON "guest_service_requests";
+CREATE TRIGGER trigger_update_guest_service_requests_updated_at
+  BEFORE UPDATE ON "guest_service_requests"
+  FOR EACH ROW
+  EXECUTE FUNCTION update_guest_service_requests_updated_at();
+
+-- === 0055_staff_hr_extensions.sql ===
+-- Staff HR extensions: tax profiles, leave, timesheets, bank accounts
+-- Idempotent: safe to re-run
+
+CREATE TABLE IF NOT EXISTS staff_tax_profiles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  staff_id UUID NOT NULL REFERENCES staff(id) ON DELETE CASCADE,
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  tax_number VARCHAR(50),
+  ssc_number VARCHAR(50),
+  paye_directive_type VARCHAR(32) DEFAULT 'standard',
+  paye_directive_number VARCHAR(50),
+  part_time_fixed_rate BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (staff_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_staff_tax_profiles_tenant ON staff_tax_profiles(tenant_id);
+
+CREATE TABLE IF NOT EXISTS staff_leave_balances (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  staff_id UUID NOT NULL REFERENCES staff(id) ON DELETE CASCADE,
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  leave_type VARCHAR(32) NOT NULL DEFAULT 'annual',
+  balance_days NUMERIC(6,2) NOT NULL DEFAULT 24,
+  accrued_days NUMERIC(6,2) NOT NULL DEFAULT 0,
+  used_days NUMERIC(6,2) NOT NULL DEFAULT 0,
+  year INTEGER NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (staff_id, leave_type, year)
+);
+
+CREATE INDEX IF NOT EXISTS idx_staff_leave_balances_tenant ON staff_leave_balances(tenant_id);
+
+CREATE TABLE IF NOT EXISTS staff_leave_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  staff_id UUID NOT NULL REFERENCES staff(id) ON DELETE CASCADE,
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  leave_type VARCHAR(32) NOT NULL DEFAULT 'annual',
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  days_requested NUMERIC(6,2) NOT NULL,
+  status VARCHAR(32) NOT NULL DEFAULT 'pending',
+  notes TEXT,
+  approved_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  approved_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_staff_leave_requests_staff ON staff_leave_requests(staff_id);
+CREATE INDEX IF NOT EXISTS idx_staff_leave_requests_tenant ON staff_leave_requests(tenant_id);
+
+CREATE TABLE IF NOT EXISTS staff_timesheets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  staff_id UUID NOT NULL REFERENCES staff(id) ON DELETE CASCADE,
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  period_start DATE NOT NULL,
+  period_end DATE NOT NULL,
+  regular_hours NUMERIC(8,2) NOT NULL DEFAULT 0,
+  overtime_hours NUMERIC(8,2) NOT NULL DEFAULT 0,
+  status VARCHAR(32) NOT NULL DEFAULT 'draft',
+  approved_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  approved_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_staff_timesheets_staff ON staff_timesheets(staff_id);
+CREATE INDEX IF NOT EXISTS idx_staff_timesheets_tenant ON staff_timesheets(tenant_id);
+
+CREATE TABLE IF NOT EXISTS staff_bank_accounts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  staff_id UUID NOT NULL REFERENCES staff(id) ON DELETE CASCADE,
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  account_name VARCHAR(200) NOT NULL,
+  bank_name VARCHAR(100),
+  branch_code VARCHAR(20),
+  account_number_encrypted TEXT NOT NULL,
+  is_primary BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_staff_bank_accounts_staff ON staff_bank_accounts(staff_id);
+
+-- === 0056_payroll_core.sql ===
+-- Namibia payroll core tables (aligned with PayrollService)
+CREATE TABLE IF NOT EXISTS payroll_periods (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  period_label VARCHAR(100) NOT NULL,
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  pay_date DATE NOT NULL,
+  status VARCHAR(32) NOT NULL DEFAULT 'open',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_payroll_periods_tenant ON payroll_periods(tenant_id);
+
+CREATE TABLE IF NOT EXISTS payroll_runs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  period_id UUID NOT NULL REFERENCES payroll_periods(id) ON DELETE CASCADE,
+  status VARCHAR(32) NOT NULL DEFAULT 'draft',
+  run_number INTEGER NOT NULL DEFAULT 1,
+  total_gross NUMERIC(14,2) NOT NULL DEFAULT 0,
+  total_paye NUMERIC(14,2) NOT NULL DEFAULT 0,
+  total_ssc_employee NUMERIC(14,2) NOT NULL DEFAULT 0,
+  total_ssc_employer NUMERIC(14,2) NOT NULL DEFAULT 0,
+  total_net NUMERIC(14,2) NOT NULL DEFAULT 0,
+  approved_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  approved_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_payroll_runs_tenant ON payroll_runs(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_payroll_runs_period ON payroll_runs(period_id);
+
+CREATE TABLE IF NOT EXISTS payroll_lines (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  run_id UUID NOT NULL REFERENCES payroll_runs(id) ON DELETE CASCADE,
+  staff_id UUID NOT NULL REFERENCES staff(id) ON DELETE CASCADE,
+  employee_number VARCHAR(50),
+  staff_name VARCHAR(200),
+  basic_wage NUMERIC(14,2) NOT NULL DEFAULT 0,
+  taxable_earnings NUMERIC(14,2) NOT NULL DEFAULT 0,
+  annual_taxable NUMERIC(14,2) NOT NULL DEFAULT 0,
+  paye_amount NUMERIC(14,2) NOT NULL DEFAULT 0,
+  ssc_employee NUMERIC(14,2) NOT NULL DEFAULT 0,
+  ssc_employer NUMERIC(14,2) NOT NULL DEFAULT 0,
+  gross_pay NUMERIC(14,2) NOT NULL DEFAULT 0,
+  net_pay NUMERIC(14,2) NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_payroll_lines_run ON payroll_lines(run_id);
+CREATE INDEX IF NOT EXISTS idx_payroll_lines_staff ON payroll_lines(staff_id);
+
+CREATE TABLE IF NOT EXISTS payslips (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  run_id UUID NOT NULL REFERENCES payroll_runs(id) ON DELETE CASCADE,
+  line_id UUID NOT NULL REFERENCES payroll_lines(id) ON DELETE CASCADE,
+  staff_id UUID NOT NULL REFERENCES staff(id) ON DELETE CASCADE,
+  period_id UUID NOT NULL REFERENCES payroll_periods(id) ON DELETE CASCADE,
+  payslip_number VARCHAR(50) NOT NULL,
+  issued_at TIMESTAMPTZ DEFAULT NOW(),
+  payload JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (run_id, staff_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_payslips_staff ON payslips(staff_id);
+
+CREATE TABLE IF NOT EXISTS statutory_filings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  period_id UUID NOT NULL REFERENCES payroll_periods(id) ON DELETE CASCADE,
+  filing_type VARCHAR(32) NOT NULL,
+  file_format VARCHAR(16) NOT NULL DEFAULT 'csv',
+  generated_at TIMESTAMPTZ DEFAULT NOW(),
+  content_hash VARCHAR(64),
+  row_count INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_statutory_filings_tenant ON statutory_filings(tenant_id);
+
+-- === 0057_staff_compensation_history.sql ===
+-- Staff compensation change audit trail
+CREATE TABLE IF NOT EXISTS staff_compensation_history (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  staff_id UUID NOT NULL REFERENCES staff(id) ON DELETE CASCADE,
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  effective_date DATE NOT NULL,
+  salary NUMERIC(12,2),
+  hourly_rate NUMERIC(12,2),
+  currency VARCHAR(3) DEFAULT 'NAD',
+  changed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  reason TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_staff_compensation_history_staff ON staff_compensation_history(staff_id);
+
+-- === 0060_booking_deposit_percent.sql ===
+-- Booking deposit percent column (TASK #17)
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS deposit_percent NUMERIC(5,2) DEFAULT 30;
+
+COMMENT ON COLUMN bookings.deposit_percent IS 'Percentage of total_amount required as deposit at checkout (default 30)';
+
+-- === 0061_payment_disputes.sql ===
+-- Payment disputes / chargebacks / reversals (PSD-4 merchant-side dispute handling).
+-- A gateway reversal or cardholder chargeback that reverses a previously-settled payment;
+-- opening one reverses the folio so the ledger never silently desyncs.
+
+CREATE TABLE IF NOT EXISTS payment_disputes (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  booking_id uuid REFERENCES bookings(id) ON DELETE SET NULL,
+  transaction_id uuid REFERENCES transactions(id) ON DELETE SET NULL,
+  guest_id uuid REFERENCES guests(id) ON DELETE SET NULL,
+  merchant_reference varchar(38),
+  gateway_transaction_id varchar(255),
+  payment_gateway varchar(50) DEFAULT 'adumo_virtual',
+  kind varchar(20) NOT NULL DEFAULT 'chargeback',          -- chargeback | refund | reversal
+  status varchar(20) NOT NULL DEFAULT 'opened',            -- opened | under_review | won | lost | refunded | reversed
+  amount numeric(10,2) NOT NULL,
+  currency varchar(3) DEFAULT 'NAD',
+  reason_code varchar(50),
+  reason text,
+  opened_at timestamptz DEFAULT now(),
+  resolved_at timestamptz,
+  resolved_by uuid REFERENCES users(id) ON DELETE SET NULL,
+  metadata jsonb,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_payment_disputes_tenant_id ON payment_disputes (tenant_id);
+CREATE INDEX IF NOT EXISTS idx_payment_disputes_booking_id ON payment_disputes (booking_id);
+CREATE INDEX IF NOT EXISTS idx_payment_disputes_status ON payment_disputes (status);
+CREATE INDEX IF NOT EXISTS idx_payment_disputes_gateway_txn ON payment_disputes (gateway_transaction_id);
+
+COMMENT ON TABLE payment_disputes IS 'Card chargebacks / refunds / reversals; opening reverses the folio (PSD-4 merchant dispute handling)';
 
 COMMIT;

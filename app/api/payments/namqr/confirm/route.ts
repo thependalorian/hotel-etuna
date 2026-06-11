@@ -11,7 +11,7 @@ import { z } from 'zod';
 import { withApiAuth, errorResponse, successResponse } from '@/lib/utils/api-helpers';
 import { HospitalityNamQrPaymentService } from '@/lib/services/payment/HospitalityNamQrPaymentService';
 import { entityId } from '@/lib/validation/entity-ids';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const bodySchema = z.object({
   bookingId: entityId(),

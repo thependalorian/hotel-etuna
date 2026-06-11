@@ -11,6 +11,8 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { brand } from '@/lib/copy/brand';
+import { dashboardCopy } from '@/lib/copy/dashboard';
 
 type VatSection = {
   lineCount: number;
@@ -147,11 +149,11 @@ export function PropertyVatReportPanel() {
     <div className="space-y-6">
       <Card className="p-6 space-y-4">
         <p className="text-sm text-nude-600">
-          This report is for <strong>Hotel Etuna</strong> NamRA VAT on guest room, restaurant, and
-          folio supplies. It does <strong>not</strong> include Buffr platform subscription or card
+          This report is for <strong>{brand.name}</strong> NamRA VAT on guest room, restaurant, and
+          folio supplies. It does <strong>not</strong> include platform subscription or card
           processing fees — those appear on{' '}
           <Link href="/payments/platform-billing" className="link link-primary">
-            Platform billing
+            {dashboardCopy.nav.platformFees}
           </Link>
           . Full P&L and trial balance:{' '}
           <Link href="/reports/accounting" className="link link-primary">

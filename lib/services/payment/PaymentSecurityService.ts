@@ -172,8 +172,9 @@ export class PaymentSecurityService {
       // STEP 4: Compliance Validation
       // ============================================================================
       
-      // PSD-12: 2FA verified + data encrypted
-      const psd12Compliant = twoFaVerified; // Encryption assumed (HTTPS)
+      // PSD-12 §12.1/§12.2: SCA via 3DS/2FA; card data never touches our servers — it is
+      // captured and encrypted on Adumo's hosted TLS payment page (the merchant handles no PAN).
+      const psd12Compliant = twoFaVerified || Boolean(request.threeDSecureProvided);
       
       // PSD-4: Fraud checks passed + card tokenized
       const psd4Compliant = fraudScore < 70 && velocityResult.passed;
@@ -292,7 +293,7 @@ export class PaymentSecurityService {
         ${data.velocityCheckResult}::varchar,
         ${data.geoCheckResult}::varchar,
         ${data.deviceCheckResult}::varchar,
-        ${true}::boolean, -- Always tokenized
+        ${true}::boolean, -- card_tokenized: Adumo hosted page tokenizes every PAN; merchant stores only lastFour
         ${data.psd12Compliant}::boolean,
         ${data.psd4Compliant}::boolean,
         ${data.securityPassed}::boolean,

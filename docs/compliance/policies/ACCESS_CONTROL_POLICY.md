@@ -20,6 +20,15 @@ This policy applies to:
 - All access methods (web, API, database, administrative)
 - Physical and logical access controls
 
+
+## Definitions
+
+| Term | Definition |
+|------|------------|
+| **Hotel Etuna** | Hub hospitality platform and operating entity |
+| **Personnel** | Employees, contractors, and partners with access to Hotel Etuna systems |
+| **Production** | Live environment serving guests and partners (Vercel + Neon production branch) |
+
 ## 3. Policy Statements
 
 ### 3.1 Access Control Principles
@@ -255,6 +264,11 @@ This policy applies to:
 - Automatically expire unless renewed
 
 ## 7. Related Policies
+- [`INFORMATION_SECURITY_POLICY.md`](INFORMATION_SECURITY_POLICY.md)
+
+- [`NAMIBIA_REGULATORY_FRAMEWORK.md`](../NAMIBIA_REGULATORY_FRAMEWORK.md)
+
+- [`POLICY_IMPLEMENTATION_MATRIX.md`](../../../compliance/evidence/policies/POLICY_IMPLEMENTATION_MATRIX.md)
 
 - Information Security Policy
 - Password Policy
@@ -305,4 +319,5 @@ Date: _______________
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1 | 2026-06-10 | CTO | Template conformance + implementation cross-ref |
 | 1.0 | May 16, 2026 | CTO | Initial policy for SOC 2 Type II compliance |

@@ -1,3 +1,10 @@
+/**
+ * @fileoverview SupportTicketService — platform support tickets and replies.
+ *
+ * CRUD + status workflow (domainTransitions) for `support_tickets` and
+ * `support_ticket_replies`, used by tenant and platform-admin support UIs.
+ * Location: lib/services/platform/SupportTicketService.ts
+ */
 import { db, supportTickets, supportTicketReplies, users, tenants } from '@/lib/db';
 import { and, desc, eq } from 'drizzle-orm';
 import { handleServiceError } from '@/lib/utils/errors';

@@ -12,10 +12,10 @@ import { z } from 'zod';
 import { db } from '@/lib/db';
 import { auditTrail, tenants, users } from '@/lib/db';
 import { eq, desc, and } from 'drizzle-orm';
-import { getCurrentPlatformAdmin, isPlatformAdmin, isSuperAdmin } from '@/lib/auth/platform-admin';
+import { withPlatformAdminAuth } from '@/lib/auth/with-platform-admin-auth';
 import { recordAuditTrail } from '@/lib/compliance/record-audit';
 import { entityIdNullableOptional } from '@/lib/validation/entity-ids';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,13 +32,11 @@ const postBodySchema = z.object({
 
 /** Super-admins only — append platform-level audit row (no service role in browser). */
 export async function POST(request: NextRequest) {
+  return withPlatformAdminAuth(
+    request,
+    async (req, user) => {
   try {
-    const user = await getCurrentPlatformAdmin();
-    if (!user || !isSuperAdmin(user)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const json: unknown = await request.json().catch(() => null);
+    const json: unknown = await req!.json().catch(() => null);
     const parsed = postBodySchema.safeParse(json);
     if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid body', details: parsed.error.flatten() }, { status: 400 });
@@ -52,7 +50,7 @@ export async function POST(request: NextRequest) {
       resourceId: parsed.data.resourceId ?? null,
       oldValues: parsed.data.oldValues ?? null,
       newValues: parsed.data.newValues ?? null,
-      request,
+      request: req!,
     });
 
     return NextResponse.json({ ok: true });
@@ -60,16 +58,15 @@ export async function POST(request: NextRequest) {
     securityLogger.error('[Platform Admin Audit POST]', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
+    },
+    { superAdmin: true }
+  );
 }
 
 export async function GET(request: NextRequest) {
+  return withPlatformAdminAuth(request, async (req) => {
   try {
-    const user = await getCurrentPlatformAdmin();
-    if (!user || !isPlatformAdmin(user)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(req!.url);
     const limitRaw = parseInt(searchParams.get('limit') ?? '', 10);
     const limit = Number.isNaN(limitRaw) || limitRaw < 1
       ? DEFAULT_LIMIT
@@ -124,4 +121,5 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+  });
 }

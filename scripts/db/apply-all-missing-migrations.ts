@@ -1,6 +1,6 @@
 /**
  * Apply ALL missing migrations to Neon in correct order.
- * Covers 0003–0037 with idempotency.
+ * Covers 0003–0054 with idempotency (canonical Drizzle journal + operator SQL).
  *
  * Usage: npx tsx scripts/db/apply-all-missing-migrations.ts
  */
@@ -253,6 +253,100 @@ const MIGRATIONS: Migration[] = [
       return (r.rows[0]?.c ?? 0) >= 2;
     },
   },
+  {
+    file: '0044_schema_cleanup.sql',
+    label: 'Schema cleanup (idempotent)',
+  },
+  {
+    file: '0045_fnb_print_jobs.sql',
+    label: 'F&B print dispatch jobs (kitchen ticket board)',
+    skip: async (p) => tableExists(p, 'fnb_print_jobs'),
+  },
+  {
+    file: '0046_payment_outbox_events.sql',
+    label: 'Payment outbox events (transactional side effects)',
+    skip: async (p) => tableExists(p, 'payment_outbox_events'),
+  },
+  {
+    file: '0047_audit_trail_hash_chain.sql',
+    label: 'Audit trail hash chain columns',
+    skip: async (p) => columnExists(p, 'audit_trail', 'event_hash'),
+  },
+  {
+    file: '0048_accounting_period_locks.sql',
+    label: 'Accounting period locks',
+    skip: async (p) => tableExists(p, 'accounting_period_locks'),
+  },
+  {
+    file: '0049_durable_scheduling_notifications.sql',
+    label: 'scheduler_jobs + notification_history',
+    skip: async (p) => tableExists(p, 'scheduler_jobs'),
+  },
+  {
+    file: '0050_night_audit_runs.sql',
+    label: 'Night audit runs + booking_charge voided status',
+    skip: async (p) => tableExists(p, 'night_audit_runs'),
+  },
+  {
+    file: '0051_availability_ledger.sql',
+    label: 'Room availability ledger',
+    skip: async (p) => tableExists(p, 'room_availability_ledger'),
+  },
+  {
+    file: '0052_sofia_pipeline_runs.sql',
+    label: 'Sofia pipeline run telemetry',
+    skip: async (p) => tableExists(p, 'sofia_pipeline_runs'),
+  },
+  {
+    file: '0053_cal_booking_mirrors.sql',
+    label: 'cal_booking_mirrors (Cal.com webhook mirrors)',
+    skip: async (p) => tableExists(p, 'cal_booking_mirrors'),
+  },
+  {
+    file: '0054_guest_service_requests.sql',
+    label: 'Guest service & maintenance requests',
+    skip: async (p) => tableExists(p, 'guest_service_requests'),
+  },
+  {
+    file: '0055_staff_hr_extensions.sql',
+    label: 'Staff HR extensions (tax, leave, timesheets, bank)',
+    skip: async (p) => tableExists(p, 'staff_tax_profiles'),
+  },
+  {
+    file: '0056_payroll_core.sql',
+    label: 'Namibia payroll core tables',
+    skip: async (p) => tableExists(p, 'payroll_periods'),
+  },
+  {
+    file: '0057_staff_compensation_history.sql',
+    label: 'Staff compensation history audit',
+    skip: async (p) => tableExists(p, 'staff_compensation_history'),
+  },
+  {
+    file: '0060_booking_deposit_percent.sql',
+    label: 'Booking deposit_percent column',
+    skip: async (p) => columnExists(p, 'bookings', 'deposit_percent'),
+  },
+  {
+    file: '0061_payment_disputes.sql',
+    label: 'Payment disputes / chargebacks',
+    skip: async (p) => tableExists(p, 'payment_disputes'),
+  },
+  {
+    file: '0062_guest_hub_magic_tokens.sql',
+    label: 'Guest hub magic link tokens',
+    skip: async (p) => tableExists(p, 'guest_hub_magic_tokens'),
+  },
+  {
+    file: '0063_guest_document_vault.sql',
+    label: 'Guest document vault',
+    skip: async (p) => tableExists(p, 'guest_documents'),
+  },
+  {
+    file: '0064_generated_documents.sql',
+    label: 'Generated financial documents audit log',
+    skip: async (p) => tableExists(p, 'generated_documents'),
+  },
 ];
 
 async function main() {
@@ -321,7 +415,13 @@ async function main() {
     'booking_charges', 'inventory_items', 'platform_invoices',
     'dining_reservations', 'housekeeping_tasks', 'cms_pages',
     'introducers', 'loyalty_transactions', 'loyalty_tiers',
-    'consumer_rights_requests',
+    'consumer_rights_requests', 'fnb_print_jobs', 'payment_outbox_events',
+    'accounting_period_locks', 'scheduler_jobs', 'night_audit_runs',
+    'room_availability_ledger', 'sofia_pipeline_runs', 'cal_booking_mirrors',
+    'guest_service_requests',
+    'guest_hub_magic_tokens',
+    'guest_documents',
+    'generated_documents',
   ];
   for (const t of critical) {
     const exists = await tableExists(pool, t);

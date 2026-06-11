@@ -8,7 +8,7 @@
 'use client';
 
 import React from 'react';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 
 export function RootErrorBoundary({ children }: { children: React.ReactNode }) {
   return (

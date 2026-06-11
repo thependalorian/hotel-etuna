@@ -23,7 +23,7 @@ import { withApiAuth, errorResponse, successResponse } from '@/lib/utils/api-hel
 import { MenuService } from '@/lib/services/menu/MenuService';
 import { entityId, entityIdOptional } from '@/lib/validation/entity-ids';
 import * as z from 'zod';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const menuService = new MenuService();
 

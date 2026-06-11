@@ -74,6 +74,26 @@ export interface OperatingCashFlowSummary {
   netCashFromOperations: number;
 }
 
+/** Result of attempting to close an accounting period (GL lock). */
+export interface AccountingPeriodCloseResult {
+  success: boolean;
+  error?: string;
+  draftChargeCount?: number;
+  lockDate?: string;
+  closedAt?: string;
+  closedBy?: string;
+}
+
+/** Persisted period lock for a property (dubbl periodLock pattern). */
+export interface AccountingPeriodLock {
+  id: string;
+  propertyId: string;
+  lockDate: string;
+  lockedAt: string;
+  lockedBy: string | null;
+  reason: string;
+}
+
 export interface HospitalityAccountingPeriodReport {
   period: { from: string; to: string };
   currency: string;

@@ -27,10 +27,13 @@ import {
   type BookingCashRow,
 } from '@/components/features/bookings/BookingCashPaymentSection';
 import { BookingFolioSection } from '@/components/features/bookings/BookingFolioSection';
+import { BookingDocumentsSection } from '@/components/features/bookings/BookingDocumentsSection';
 import { Card } from '@/components/ui/Card';
 import PageHeader from '@/components/shared/PageHeader';
 import { Calendar, MapPin, User, Mail, Phone } from 'lucide-react';
 import { securityLogger } from '@/lib/utils/security-logger.client';
+import { formatDateLong } from '@/lib/formatters';
+import { formatFolioAmount } from '@/lib/utils/money';
 import {
   bookingKindBadgeClass,
   bookingKindLabel,
@@ -135,7 +138,7 @@ const BookingDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
                 <div className="text-left sm:text-right">
                   <p className="text-xs font-bold uppercase tracking-wider text-nude-600">Total</p>
                   <p className="font-display text-2xl font-bold text-nude-900">
-                    {booking.currency ?? 'NAD'} {total.toFixed(2)}
+                    {formatFolioAmount(booking.currency ?? 'NAD', total)}
                   </p>
                   <p className="text-sm text-nude-600">Payment: {booking.payment_status ?? 'pending'}</p>
                 </div>
@@ -152,12 +155,7 @@ const BookingDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
                     <div>
                       <p className="text-xs text-nude-600 mb-1">{checkInDateLabel(bookingKind)}</p>
                       <p className="font-semibold text-nude-900">
-                        {new Date(booking.check_in_date).toLocaleDateString('en-US', { 
-                          weekday: 'long', 
-                          year: 'numeric', 
-                          month: 'long', 
-                          day: 'numeric' 
-                        })}
+                        {formatDateLong(booking.check_in_date)}
                       </p>
                     </div>
                   </div>
@@ -166,12 +164,7 @@ const BookingDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
                     <div>
                       <p className="text-xs text-nude-600 mb-1">{checkOutDateLabel(bookingKind)}</p>
                       <p className="font-semibold text-nude-900">
-                        {new Date(booking.check_out_date).toLocaleDateString('en-US', { 
-                          weekday: 'long', 
-                          year: 'numeric', 
-                          month: 'long', 
-                          day: 'numeric' 
-                        })}
+                        {formatDateLong(booking.check_out_date)}
                       </p>
                     </div>
                   </div>
@@ -265,6 +258,8 @@ const BookingDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
             </Card>
 
             <BookingFolioSection bookingId={booking.id} bookingStatus={booking.status} />
+
+            <BookingDocumentsSection bookingId={booking.id} />
 
             <BookingCashPaymentSection
               booking={booking as unknown as BookingCashRow}

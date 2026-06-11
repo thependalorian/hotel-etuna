@@ -32,6 +32,41 @@ export const NAMQR_RECEIPT_PAYMENT_METHOD = 'NamQR (bank app)';
 /** Nedbank payee alias for NRTC tag 17 payloads */
 export const HOTEL_ETUNA_NAMQR_PAYEE_ID = `${HOTEL_ETUNA_SETTLEMENT.accountNumber}@nedbank.na`;
 
+/** Stored NamQR fields relevant to confirming an off-platform settlement. */
+export interface NamQrSettlementCheckInput {
+  amount: string | number | null;
+  qrType: string | null;
+  isActive: boolean | null;
+  expiresAt: Date | null;
+}
+
+/**
+ * Pure decision for whether a confirmed payment may settle against a stored NamQR code.
+ * A dynamic (payee-presented) code encodes a fixed amount, so settling a different value —
+ * or against an expired/deactivated code — must be rejected (BoN NamQR v5.0). Returns an
+ * error message when the settlement is not allowed, or `null` when it is.
+ */
+export function checkNamQrSettlement(
+  qr: NamQrSettlementCheckInput,
+  amountPaid: number,
+  now: number = Date.now(),
+): string | null {
+  if (qr.isActive === false) {
+    return 'NamQR code has been deactivated — generate a new code before confirming';
+  }
+  if (qr.expiresAt && qr.expiresAt.getTime() < now) {
+    return 'NamQR code has expired — generate a new code before confirming';
+  }
+  // Dynamic QRs carry a fixed amount; the confirmed payment must match it (1 cent tolerance).
+  if (qr.qrType !== 'static' && qr.amount != null) {
+    const encoded = Number(qr.amount);
+    if (Number.isFinite(encoded) && Math.abs(encoded - amountPaid) > 0.01) {
+      return `Confirmed amount (NAD ${amountPaid.toFixed(2)}) does not match the QR amount (NAD ${encoded.toFixed(2)})`;
+    }
+  }
+  return null;
+}
+
 export class HospitalityNamQrPaymentService {
   static async generateDeskQr(input: {
     tenantId: string;
@@ -87,6 +122,13 @@ export class HospitalityNamQrPaymentService {
     qrReference?: string;
     userId?: string;
   }) {
+    // Re-check the stored QR before settling. A dynamic (payee-presented) NamQR encodes a
+    // fixed amount; settling a different value, or against an expired/deactivated code, would
+    // desync the folio from what the guest was actually shown and asked to pay (BoN NamQR v5.0).
+    if (input.qrReference) {
+      await this.assertQrMatchesSettlement(input.qrReference, input.amountPaid);
+    }
+
     const settlement = await settleOffPlatformFolio({
       bookingId: input.bookingId,
       amountPaid: input.amountPaid,
@@ -141,6 +183,7 @@ export class HospitalityNamQrPaymentService {
         currency: bookingRow.currency ?? 'NAD',
         paymentMethod: NAMQR_RECEIPT_PAYMENT_METHOD,
         bookingReference: bookingRow.bookingReference ?? undefined,
+        transactionId: settlement.transactionId,
       });
     }
 
@@ -148,6 +191,32 @@ export class HospitalityNamQrPaymentService {
       ...settlement,
       paymentGateway: PaymentGatewayLabel.NAMQR,
     };
+  }
+
+  /**
+   * Validate a confirmed settlement against the stored NamQR code. Only enforced when the
+   * reference resolves to a known code (free-form bank references for non-QR EFTs are left
+   * untouched). Dynamic codes must settle for their encoded amount; expired/deactivated codes
+   * are rejected so staff regenerate rather than settle stale instructions.
+   */
+  private static async assertQrMatchesSettlement(qrReference: string, amountPaid: number) {
+    const [qr] = await db
+      .select({
+        amount: namqrCodes.amount,
+        qrType: namqrCodes.qrType,
+        isActive: namqrCodes.isActive,
+        expiresAt: namqrCodes.expiresAt,
+      })
+      .from(namqrCodes)
+      .where(eq(namqrCodes.qrReference, qrReference))
+      .limit(1);
+
+    if (!qr) return; // unknown reference → treat as a plain bank reference
+
+    const error = checkNamQrSettlement(qr, amountPaid);
+    if (error) {
+      throw new AppError(400, error);
+    }
   }
 
   /** Guest folio: dynamic QR tied to booking (bank-app pay to Etuna Nedbank). */

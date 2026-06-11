@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, properties, rooms, tenants } from '@/lib/db';
 import { and, asc, eq } from 'drizzle-orm';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 interface Params {
   params: Promise<{ slug: string }>;

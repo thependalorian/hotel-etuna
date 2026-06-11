@@ -78,7 +78,7 @@ export default function CrmKnowledgePage() {
     <div className="space-y-6 animate-fade-in max-w-3xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
         <div>
-          <h1 className="buffr-page-title mb-1">CRM · Knowledge</h1>
+          <h1 className="etuna-page-title mb-1">CRM · Knowledge</h1>
           <p className="text-base-content/70">Add text Sofia can retrieve when RAG is enabled.</p>
         </div>
         <Link href="/crm" className="btn btn-ghost min-h-[44px]">

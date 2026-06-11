@@ -1,16 +1,14 @@
 /**
- * CMS Pages API - List and Create
- *
- * GET /api/cms/pages - List all pages for tenant
- * POST /api/cms/pages - Create new page
+ * CMS Pages API — list and create tenant pages.
+ * Location: /app/api/cms/pages/route.ts
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSessionWithTenantContext } from '@/lib/auth/tenant-context';
 import { db, cmsPages } from '@/lib/db';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { withPlatformApiAuth, errorResponse } from '@/lib/utils/api-helpers';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const createPageSchema = z.object({
   title: z.string().min(1).max(500),
@@ -19,85 +17,68 @@ const createPageSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
-  try {
-    const session = await getSessionWithTenantContext();
+  return withPlatformApiAuth(request, async (_req, user) => {
+    try {
+      if (!user.tenantId) {
+        return errorResponse('Unauthorized', 401);
+      }
 
-    if (!session || !session.user?.tenantId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      const pages = await db
+        .select()
+        .from(cmsPages)
+        .where(eq(cmsPages.tenantId, user.tenantId));
+
+      return NextResponse.json(pages);
+    } catch (error) {
+      securityLogger.error('[CMS Pages API] GET error:', error);
+      return errorResponse('Internal server error', 500);
     }
-
-    const pages = await db
-      .select()
-      .from(cmsPages)
-      .where(eq(cmsPages.tenantId, session.user.tenantId));
-
-    return NextResponse.json(pages);
-  } catch (error) {
-    securityLogger.error('[CMS Pages API] GET error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+  });
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    const session = await getSessionWithTenantContext();
+  return withPlatformApiAuth(request, async (req, user) => {
+    try {
+      if (!user.tenantId || !user.id) {
+        return errorResponse('Unauthorized', 401);
+      }
 
-    if (!session || !session.user?.tenantId || !session.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      const body = await req.json();
+      const validatedData = createPageSchema.parse(body);
+
+      const existingPage = await db
+        .select()
+        .from(cmsPages)
+        .where(eq(cmsPages.slug, validatedData.slug))
+        .limit(1);
+
+      if (existingPage.length > 0) {
+        return errorResponse('A page with this slug already exists', 400);
+      }
+
+      const [newPage] = await db
+        .insert(cmsPages)
+        .values({
+          tenantId: user.tenantId,
+          createdBy: user.id,
+          title: validatedData.title,
+          slug: validatedData.slug,
+          metaDescription: validatedData.metaDescription || null,
+          status: 'draft',
+        })
+        .returning();
+
+      return NextResponse.json(newPage, { status: 201 });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          { error: 'Invalid input', details: error.issues },
+          { status: 400 }
+        );
+      }
+
+      securityLogger.error('[CMS Pages API] POST error:', error);
+      return errorResponse('Internal server error', 500);
     }
-
-    const body = await request.json();
-    const validatedData = createPageSchema.parse(body);
-
-    // Check if slug already exists
-    const existingPage = await db
-      .select()
-      .from(cmsPages)
-      .where(eq(cmsPages.slug, validatedData.slug))
-      .limit(1);
-
-    if (existingPage.length > 0) {
-      return NextResponse.json(
-        { error: 'A page with this slug already exists' },
-        { status: 400 }
-      );
-    }
-
-    // Create page
-    const [newPage] = await db
-      .insert(cmsPages)
-      .values({
-        tenantId: session.user.tenantId,
-        createdBy: session.user.id,
-        title: validatedData.title,
-        slug: validatedData.slug,
-        metaDescription: validatedData.metaDescription || null,
-        status: 'draft',
-      })
-      .returning();
-
-    return NextResponse.json(newPage, { status: 201 });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid input', details: error.issues },
-        { status: 400 }
-      );
-    }
-
-    securityLogger.error('[CMS Pages API] POST error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+  });
 }

@@ -8,6 +8,14 @@ export const GUEST_CONSUMER_ROLES = ['guest', 'user'] as const;
 /** Roles allowed on /api/guest/* consumer endpoints (hub staff use dashboard APIs). */
 export const GUEST_API_ROLES = [...GUEST_CONSUMER_ROLES] as const;
 export const STAFF_ROLES = ['owner', 'manager', 'staff'] as const;
+/** Hub operational personas (API allowlists); treated like staff for page routing. */
+export const OPERATIONAL_STAFF_ROLES = [
+  ...STAFF_ROLES,
+  'desk',
+  'kitchen',
+  'housekeeping_supervisor',
+] as const;
+export const PARTNER_ROLES = ['partner_admin'] as const;
 export const PLATFORM_ADMIN_ROLES = ['super-admin', 'admin'] as const;
 
 export type GuestConsumerRole = (typeof GUEST_CONSUMER_ROLES)[number];
@@ -19,7 +27,12 @@ export function isGuestConsumerRole(role: string | null | undefined): boolean {
 
 export function isStaffRole(role: string | null | undefined): boolean {
   const r = (role ?? '').toLowerCase();
-  return STAFF_ROLES.includes(r as (typeof STAFF_ROLES)[number]);
+  return OPERATIONAL_STAFF_ROLES.includes(r as (typeof OPERATIONAL_STAFF_ROLES)[number]);
+}
+
+export function isPartnerRole(role: string | null | undefined): boolean {
+  const r = (role ?? '').toLowerCase();
+  return r.startsWith('partner') || PARTNER_ROLES.includes(r as (typeof PARTNER_ROLES)[number]);
 }
 
 export function isPlatformAdminRole(role: string | null | undefined): boolean {
@@ -47,6 +60,7 @@ export function sanitizeRedirectPath(value?: string | null): string | undefined 
  */
 export function getDefaultPostLoginPath(role: string | null | undefined): string {
   if (isPlatformAdminRole(role)) return '/admin/platform';
+  if (isPartnerRole(role)) return '/partner/dashboard';
   if (isStaffRole(role)) return '/dashboard';
   return '/guest';
 }

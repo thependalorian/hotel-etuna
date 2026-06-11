@@ -1,4 +1,4 @@
--- Loyalty tier definitions and thresholds
+-- Loyalty tier definitions and thresholds (hub tenants only — loyalty is hub-exclusive)
 CREATE TABLE IF NOT EXISTS loyalty_tiers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
@@ -25,13 +25,13 @@ CREATE TABLE IF NOT EXISTS loyalty_tiers (
 CREATE INDEX IF NOT EXISTS idx_loyalty_tiers_tenant
   ON loyalty_tiers(tenant_id, tier_order);
 
--- Seed default tier thresholds for all tenants (hub-only feature will be enforced at application layer)
--- Note: Will seed for all tenants, but loyalty features are hub-exclusive per business rules
+-- Seed default tier thresholds for hub tenants only (loyalty is hub-exclusive per HOTEL_ETUNA_OS.md)
+-- Partners do not get loyalty features.
 DO $$
 DECLARE
   tenant_rec RECORD;
 BEGIN
-  FOR tenant_rec IN SELECT id FROM tenants LOOP
+  FOR tenant_rec IN SELECT id FROM tenants WHERE type = 'hub' LOOP
     -- Bronze tier
     INSERT INTO loyalty_tiers (tenant_id, tier_name, tier_order, points_threshold, earn_rate_multiplier, description)
     VALUES (

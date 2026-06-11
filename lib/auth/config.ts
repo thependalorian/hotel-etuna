@@ -1,3 +1,11 @@
+/**
+ * @fileoverview NextAuth configuration (credentials provider, session fallback).
+ *
+ * Defines `authOptions` for the NextAuth session-based fallback in the
+ * dual-auth setup (Stack Auth primary). Resolves the user's tenant, role,
+ * and property scope into the JWT/session.
+ * Location: lib/auth/config.ts
+ */
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcryptjs from 'bcryptjs';

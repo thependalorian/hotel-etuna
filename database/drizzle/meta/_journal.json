@@ -260,6 +260,139 @@
       "when": 1777327300000,
       "tag": "0043_facility_internal_keys",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1777327400000,
+      "tag": "0044_schema_cleanup",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1777327500000,
+      "tag": "0045_fnb_print_jobs",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1777327600000,
+      "tag": "0046_payment_outbox_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1777327700000,
+      "tag": "0047_audit_trail_hash_chain",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1777327800000,
+      "tag": "0048_accounting_period_locks",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1777327900000,
+      "tag": "0049_durable_scheduling_notifications",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1777328000000,
+      "tag": "0050_night_audit_runs",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1777328100000,
+      "tag": "0051_availability_ledger",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1777328200000,
+      "tag": "0052_sofia_pipeline_runs",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1777328300000,
+      "tag": "0053_cal_booking_mirrors",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1777328400000,
+      "tag": "0054_guest_service_requests",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1777328500000,
+      "tag": "0055_staff_hr_extensions",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1777328600000,
+      "tag": "0056_payroll_core",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1777328700000,
+      "tag": "0057_staff_compensation_history",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1777328800000,
+      "tag": "0060_booking_deposit_percent",
+      "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1777328900000,
+      "tag": "0061_payment_disputes",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1777329000000,
+      "tag": "0062_guest_hub_magic_tokens",
+      "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1777329100000,
+      "tag": "0063_guest_document_vault",
+      "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1777329200000,
+      "tag": "0064_generated_documents",
+      "breakpoints": true
     }
   ]
 }

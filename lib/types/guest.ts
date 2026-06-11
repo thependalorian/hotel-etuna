@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Guest record DTOs (create/update payloads for `guests`).
+ * Location: lib/types/guest.ts
+ */
 export interface GuestData {
   email: string;
   firstName?: string;

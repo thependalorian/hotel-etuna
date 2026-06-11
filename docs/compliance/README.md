@@ -84,7 +84,7 @@ docs/compliance/
 ├── TAX_AND_NAMRA_COMPLIANCE.md — dual VAT streams (DONE ✅)
 ├── DATA_PROTECTION_AND_PRIVACY_PROGRAM.md — POPIA readiness (DONE ✅)
 ├── CONTRACT_AND_COMMERCIAL_LAW_FRAMEWORK.md — ETA, guest/Buffr contracts (DONE ✅)
-├── AML_FICA_COMPLIANCE_PROGRAM.md — FIC / STR (DONE ✅)
+├── AML_FICA_COMPLIANCE_PROGRAM.md — FIC / STR; PEP screening out of scope (Namibia) (DONE ✅)
 ├── SECURITY_PROMPT_PACK.md — pointer to canonical pack (DONE ✅)
 ├── INCIDENT_RESPONSE_PLAN.md — CC7.3 (DONE ✅)
 ├── BUSINESS_CONTINUITY_PLAN.md — CC7.1 (DONE ✅)
@@ -239,7 +239,7 @@ docs/compliance/
 
 | Role | Name | Contact | Responsibilities |
 |------|------|---------|-----------------|
-| **Incident Commander** | [CTO Name] | [Phone], [Email] | Overall leadership; BoN notification |
+| **Incident Commander** | George Nekwaya (CTO) | pendanek@gmail.com | Overall leadership; BoN notification |
 | **Technical Lead** | [Senior Developer] | [Phone], [Email] | Investigation; containment; forensics |
 | **Communications Lead** | [Operations Manager] | [Phone], [Email] | Internal/external comms; PR |
 | **Legal Liaison** | [External Counsel] | [Phone], [Email] | Regulatory guidance; breach notification |
@@ -290,7 +290,7 @@ docs/compliance/
 
 **Security Review Process:**
 1. **After building any feature:** Run "The Master Security Review" from [`../SECURITY_PROMPT_PACK.md`](../SECURITY_PROMPT_PACK.md) § 14
-2. **Before deploying to production:** Run `npm run security:preflight` and § 15 in [`../SECURITY_PROMPT_PACK.md`](../SECURITY_PROMPT_PACK.md)
+2. **Before deploying to production:** Run `npm run verify:production` (typecheck + full test suite + build), then `npm run security:preflight` and § 15 in [`../SECURITY_PROMPT_PACK.md`](../SECURITY_PROMPT_PACK.md). Post-deploy: spot-check PostHog project **341765** error tracking for ChunkLoad spikes.
 3. **For specific security concerns:** Use relevant section prompts (e.g., § 1 for validation, § 4 for permissions)
 
 **Key Resources:**

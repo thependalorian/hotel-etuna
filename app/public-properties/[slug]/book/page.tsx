@@ -34,7 +34,7 @@ function BookingPageContent() {
         <div className="max-w-2xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="buffr-page-title mb-4">Book Your Stay</h1>
+            <h1 className="etuna-page-title mb-4">Book Your Stay</h1>
             <p className="text-lg text-base-content/70">
               Complete your reservation in just a few steps. Secure booking with instant confirmation.
             </p>

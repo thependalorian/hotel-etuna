@@ -6,11 +6,18 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { eq } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { paymentSessions } from '@/lib/db/schema';
 import { AdumoVirtualService } from '@/lib/services/payment/AdumoVirtualService';
 import { completeAdumoVirtualPayment } from '@/lib/services/payment/completeAdumoVirtualPayment';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { PaymentDisputeService } from '@/lib/services/payment/PaymentDisputeService';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export const dynamic = 'force-dynamic';
+
+/** Adumo post-settlement reversal/chargeback notification statuses. */
+const REVERSAL_STATUSES = new Set(['REVERSED', 'REFUNDED', 'CHARGEBACK', 'CHARGED_BACK']);
 
 type AdumoWebhookBody = {
   token?: string;
@@ -54,6 +61,41 @@ export async function POST(request: NextRequest) {
     payload.transactionId ??
     decoded.transactionIndex ??
     merchantReference;
+
+  // Post-settlement reversal / chargeback: open a dispute (reverses the folio) instead of
+  // re-completing the payment. Requires a known session for tenant/booking context.
+  if (payload.status && REVERSAL_STATUSES.has(payload.status.toUpperCase())) {
+    try {
+      const [session] = await db
+        .select()
+        .from(paymentSessions)
+        .where(eq(paymentSessions.merchantReference, merchantReference))
+        .limit(1);
+
+      if (!session) {
+        securityLogger.warn('[Adumo webhook] reversal for unknown session', { merchantReference });
+        return NextResponse.json({ received: true, ignored: 'unknown_session' }, { status: 200 });
+      }
+
+      const kind = payload.status.toUpperCase() === 'REFUNDED' ? 'refund' : 'chargeback';
+      const result = await PaymentDisputeService.openDispute({
+        tenantId: session.tenantId,
+        bookingId: session.bookingId,
+        merchantReference,
+        gatewayTransactionId: transactionIndex,
+        amount: Number.parseFloat(String(payload.amount ?? decoded.amount ?? session.amount)),
+        currency: 'NAD',
+        kind,
+        reasonCode: payload.status.toUpperCase(),
+        reason: `Adumo ${payload.status} notification`,
+        metadata: { source: 'adumo_webhook' },
+      });
+      return NextResponse.json({ received: true, dispute: result.id }, { status: 200 });
+    } catch (error) {
+      securityLogger.error('[Adumo webhook reversal]', error);
+      return NextResponse.json({ error: 'Reversal processing failed' }, { status: 500 });
+    }
+  }
 
   try {
     await completeAdumoVirtualPayment({

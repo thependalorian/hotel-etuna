@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'uprivacy Policy',
+  title: 'Privacy Policy',
 };
 
 /**
@@ -27,10 +27,10 @@ export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-base-100 py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <article className="buffr-legal-content">
+        <article className="etuna-legal-content">
           <h1>Privacy Policy</h1>
           
-          <p className="buffr-legal-meta">
+          <p className="etuna-legal-meta">
             Last Updated: January 2026
           </p>
 

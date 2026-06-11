@@ -119,7 +119,7 @@ export default function PublicMenuPage() {
       <div className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="buffr-page-title mb-4">Our Menu</h1>
+          <h1 className="etuna-page-title mb-4">Our Menu</h1>
           <p className="text-lg text-base-content/70 max-w-2xl mx-auto">
             Discover our carefully crafted selection of dishes, prepared with the finest ingredients.
           </p>

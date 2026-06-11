@@ -117,6 +117,8 @@ Violations may result in disciplinary action. Misconfiguration that exposes gues
 
 ## 9. Related Documents
 
+- [`POLICY_IMPLEMENTATION_MATRIX.md`](../../../compliance/evidence/policies/POLICY_IMPLEMENTATION_MATRIX.md)
+
 - [`INFORMATION_SECURITY_POLICY.md`](INFORMATION_SECURITY_POLICY.md)
 - [`DATA_PROTECTION_POLICY_NAMIBIA.md`](DATA_PROTECTION_POLICY_NAMIBIA.md)
 - [`DATA_RETENTION_POLICY.md`](DATA_RETENTION_POLICY.md)
@@ -128,6 +130,7 @@ Violations may result in disciplinary action. Misconfiguration that exposes gues
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1 | 2026-06-10 | CTO | Template conformance + implementation cross-ref |
 | 1.0 | 2026-06-02 | CTO | Initial policy; created to address SOC 2 CC6.1 gap for AI data processing |
 
 **Approved by:** _________________________ Date: _________

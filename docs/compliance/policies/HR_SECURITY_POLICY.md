@@ -16,6 +16,15 @@ Integrate personnel security practices into hiring, employment, and termination 
 
 Employees, contractors, and temporary staff at Hotel Etuna and Buffr (platform operator).
 
+
+## Definitions
+
+| Term | Definition |
+|------|------------|
+| **Hotel Etuna** | Hub hospitality platform and operating entity |
+| **Personnel** | Employees, contractors, and partners with access to Hotel Etuna systems |
+| **Production** | Live environment serving guests and partners (Vercel + Neon production branch) |
+
 ## 3. Pre-employment
 
 | Control | Requirement |
@@ -54,16 +63,30 @@ Contractors: same timeline; API keys revoked immediately.
 Security policy violations may result in warning, suspension, termination, and regulatory notification where legally required. Document in HR file (not in public git).
 
 ## 8. Related documents
+- [`INFORMATION_SECURITY_POLICY.md`](INFORMATION_SECURITY_POLICY.md)
+
+- [`NAMIBIA_REGULATORY_FRAMEWORK.md`](../NAMIBIA_REGULATORY_FRAMEWORK.md)
+
+- [`POLICY_IMPLEMENTATION_MATRIX.md`](../../../compliance/evidence/policies/POLICY_IMPLEMENTATION_MATRIX.md)
 
 - [`ACCEPTABLE_USE_POLICY.md`](ACCEPTABLE_USE_POLICY.md)  
 - [`ACCESS_CONTROL_POLICY.md`](ACCESS_CONTROL_POLICY.md)  
 - [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)  
 - [`TRAINING_POLICY.md`](TRAINING_POLICY.md)
 
+## Exceptions
+
+Exceptions require written approval from the Policy Owner and Executive Sponsor. Document compensating controls in the risk register.
+
+## Enforcement
+
+Violations may result in disciplinary action up to termination and reporting to regulators where required.
+
 ## 9. Revision history
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1 | 2026-06-10 | CTO | Template conformance + implementation cross-ref |
 | 1.0 | May 17, 2026 | HR | Initial policy |
 
 **Approved by:** _________________________ Date: _________

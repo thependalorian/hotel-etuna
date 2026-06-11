@@ -1,13 +1,15 @@
 /**
  * HotelEtunaMarkIcon
  *
- * Purpose: Inline SVG monogram (roof + E base) for themeable brand color via currentColor.
+ * Purpose: Official burgundy "he" monogram mark (square) for nav, sidebar, and favicons.
  * Location: /components/brand/HotelEtunaMarkIcon.tsx
  *
- * Geometry matches public/brand/hotel-etuna-mark.svg and hotel-etuna-mark-reference.png.
+ * Asset: public/brand/hotel-etuna-mark.png (cropped from approved logo lockup).
  */
 
+import Image from 'next/image';
 import { cn } from '@/lib/utils/cn';
+import { brand } from '@/lib/copy/brand';
 
 interface HotelEtunaMarkIconProps {
   className?: string;
@@ -15,25 +17,15 @@ interface HotelEtunaMarkIconProps {
 }
 
 export function HotelEtunaMarkIcon({ className, size = 36 }: HotelEtunaMarkIconProps) {
-  const height = Math.round((size * 47) / 88);
-
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 88 47"
+    <Image
+      src={brand.assets.logoMark}
+      alt=""
       width={size}
-      height={height}
-      className={cn('shrink-0 text-terracotta-900', className)}
-      fill="currentColor"
+      height={size}
+      className={cn('shrink-0 object-contain', className)}
       aria-hidden
-    >
-      <path d="M44 0L87.5 21.5H0.3L44 0Z" />
-      <rect x="3.8" y="25.3" width="80.2" height="3.5" />
-      <rect x="3.8" y="28.8" width="6.6" height="14.4" />
-      <rect x="78.1" y="28.8" width="5.9" height="14.4" />
-      <rect x="23.7" y="35.6" width="14.9" height="8.6" />
-      <rect x="52.6" y="35.6" width="14.8" height="8.6" />
-      <rect x="3.8" y="43.2" width="80.2" height="3.6" />
-    </svg>
+      priority={size >= 40}
+    />
   );
 }

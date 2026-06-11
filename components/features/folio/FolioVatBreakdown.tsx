@@ -6,6 +6,7 @@
  */
 
 import type { FolioVatSummary } from '@/lib/types/folio';
+import { formatFolioAmount } from '@/lib/utils/money';
 
 interface FolioVatBreakdownProps {
   vat: FolioVatSummary;
@@ -37,25 +38,25 @@ export function FolioVatBreakdown({ vat, className = '' }: FolioVatBreakdownProp
         <div className="flex justify-between gap-4">
           <dt className="text-nude-600">Taxable supplies (open)</dt>
           <dd className="font-mono text-nude-900">
-            {vat.currency} {vat.taxableGross.toFixed(2)}
+            {formatFolioAmount(vat.currency, vat.taxableGross)}
           </dd>
         </div>
         <div className="flex justify-between gap-4">
           <dt className="text-nude-600">Amount ex VAT</dt>
           <dd className="font-mono text-nude-900">
-            {vat.currency} {vat.amountExVat.toFixed(2)}
+            {formatFolioAmount(vat.currency, vat.amountExVat)}
           </dd>
         </div>
         <div className="flex justify-between gap-4">
           <dt className="text-nude-600">VAT @ {vat.vatRatePercent}%</dt>
           <dd className="font-mono text-nude-900">
-            {vat.currency} {vat.vatAmount.toFixed(2)}
+            {formatFolioAmount(vat.currency, vat.vatAmount)}
           </dd>
         </div>
         <div className="flex justify-between gap-4 border-t border-nude-200 pt-2 font-semibold">
           <dt className="text-nude-800">Total incl. VAT</dt>
           <dd className="font-mono text-nude-900">
-            {vat.currency} {vat.totalInclVat.toFixed(2)}
+            {formatFolioAmount(vat.currency, vat.totalInclVat)}
           </dd>
         </div>
       </dl>

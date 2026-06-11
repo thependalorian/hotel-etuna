@@ -9,20 +9,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { runEmailInboxMonitor } from '@/lib/cron/email-inbox-monitor';
-import { securityLogger } from '@/lib/utils/security-logger.client';
-
-function unauthorized() {
-  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-}
-
-function verifyCronRequest(request: NextRequest): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) {
-    return false;
-  }
-  const auth = request.headers.get('authorization');
-  return auth === `Bearer ${secret}`;
-}
+import { securityLogger } from '@/lib/utils/security-logger';
+import { cronUnauthorizedResponse, verifyCronRequest } from '@/lib/utils/cron-auth';
 
 async function executeMonitor(): Promise<NextResponse> {
   const result = await runEmailInboxMonitor();
@@ -43,7 +31,7 @@ async function executeMonitor(): Promise<NextResponse> {
 export async function GET(request: NextRequest) {
   try {
     if (!verifyCronRequest(request)) {
-      return unauthorized();
+      return cronUnauthorizedResponse();
     }
     return await executeMonitor();
   } catch (error) {
@@ -63,7 +51,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     if (!verifyCronRequest(request)) {
-      return unauthorized();
+      return cronUnauthorizedResponse();
     }
     return await executeMonitor();
   } catch (error) {

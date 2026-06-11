@@ -1,0 +1,1559 @@
+./
+|-- app/
+|   |-- (auth)/
+|   |   |-- forgot-password/
+|   |   |   `-- page.tsx
+|   |   |-- login/
+|   |   |   `-- page.tsx
+|   |   |-- register/
+|   |   |   `-- page.tsx
+|   |   |-- reset-password/
+|   |   |   `-- page.tsx
+|   |   |-- verify-email/
+|   |   |   `-- page.tsx
+|   |   `-- layout.tsx
+|   |-- (dashboard)/
+|   |   |-- admin/
+|   |   |   |-- platform/
+|   |   |   |   |-- ai-observability/
+|   |   |   |   |-- analytics/
+|   |   |   |   |-- audit/
+|   |   |   |   |-- properties/
+|   |   |   |   |-- secrets/
+|   |   |   |   |-- settings/
+|   |   |   |   |-- soc2/
+|   |   |   |   |-- support/
+|   |   |   |   |-- tenants/
+|   |   |   |   |-- users/
+|   |   |   |   |-- layout.tsx
+|   |   |   |   `-- page.tsx
+|   |   |   `-- page.tsx
+|   |   |-- ai/
+|   |   |   `-- page.tsx
+|   |   |-- analytics/
+|   |   |   `-- page.tsx
+|   |   |-- bookings/
+|   |   |   |-- [id]/
+|   |   |   |   `-- page.tsx
+|   |   |   |-- new/
+|   |   |   |   `-- page.tsx
+|   |   |   |-- night-audit/
+|   |   |   |   `-- page.tsx
+|   |   |   `-- page.tsx
+|   |   |-- cms/
+|   |   |   |-- pages/
+|   |   |   |   |-- [id]/
+|   |   |   |   |-- new/
+|   |   |   |   `-- page.tsx
+|   |   |   `-- page.tsx
+|   |   |-- compliance/
+|   |   |   |-- kyc/
+|   |   |   |   |-- [caseId]/
+|   |   |   |   |-- new/
+|   |   |   |   `-- page.tsx
+|   |   |   `-- soc2/
+|   |   |       `-- page.tsx
+|   |   |-- crm/
+|   |   |   |-- guests/
+|   |   |   |   `-- [id]/
+|   |   |   |-- introducers/
+|   |   |   |   |-- [id]/
+|   |   |   |   |-- new/
+|   |   |   |   `-- page.tsx
+|   |   |   |-- knowledge/
+|   |   |   |   `-- page.tsx
+|   |   |   |-- loyalty/
+|   |   |   |   |-- catalog/
+|   |   |   |   `-- transactions/
+|   |   |   |-- reviews/
+|   |   |   |   `-- page.tsx
+|   |   |   `-- page.tsx
+|   |   |-- dashboard/
+|   |   |   `-- page.tsx
+|   |   |-- fraud/
+|   |   |   `-- page.tsx
+|   |   |-- housekeeping/
+|   |   |   `-- page.tsx
+|   |   |-- menu/
+|   |   |   |-- [itemId]/
+|   |   |   |   `-- edit/
+|   |   |   |-- new/
+|   |   |   |   `-- page.tsx
+|   |   |   `-- page.tsx
+|   |   |-- payments/
+|   |   |   |-- desk/
+|   |   |   |   `-- page.tsx
+|   |   |   |-- platform-billing/
+|   |   |   |   `-- page.tsx
+|   |   |   |-- property-vat/
+|   |   |   |   `-- page.tsx
+|   |   |   `-- reconciliation/
+|   |   |       `-- page.tsx
+|   |   |-- profile/
+|   |   |   `-- page.tsx
+|   |   |-- properties/
+|   |   |   |-- [slug]/
+|   |   |   |   `-- page.tsx
+|   |   |   |-- availability/
+|   |   |   |   `-- page.tsx
+|   |   |   |-- new/
+|   |   |   |   `-- page.tsx
+|   |   |   `-- page.tsx
+|   |   |-- reports/
+|   |   |   |-- accounting/
+|   |   |   |   `-- page.tsx
+|   |   |   `-- property-vat/
+|   |   |       `-- page.tsx
+|   |   |-- restaurant/
+|   |   |   |-- kitchen/
+|   |   |   |   `-- page.tsx
+|   |   |   |-- menu/
+|   |   |   |   `-- page.tsx
+|   |   |   |-- orders/
+|   |   |   |   `-- page.tsx
+|   |   |   `-- tables/
+|   |   |       `-- page.tsx
+|   |   |-- settings/
+|   |   |   `-- page.tsx
+|   |   |-- sofia/
+|   |   |   `-- email/
+|   |   |       `-- page.tsx
+|   |   |-- staff/
+|   |   |   |-- new/
+|   |   |   |   `-- page.tsx
+|   |   |   `-- page.tsx
+|   |   |-- error.tsx
+|   |   |-- layout.tsx
+|   |   `-- not-found.tsx
+|   |-- about/
+|   |   `-- page.tsx
+|   |-- api/
+|   |   |-- admin/
+|   |   |   |-- email-config-check/
+|   |   |   |   `-- route.ts
+|   |   |   |-- email-logs/
+|   |   |   |   `-- route.ts
+|   |   |   |-- partners/
+|   |   |   |   |-- claim-invite/
+|   |   |   |   `-- invite/
+|   |   |   `-- platform/
+|   |   |       |-- ai-observability/
+|   |   |       |-- analytics/
+|   |   |       |-- audit/
+|   |   |       |-- compliance/
+|   |   |       |-- intelligence-digest/
+|   |   |       |-- properties/
+|   |   |       |-- secrets-status/
+|   |   |       |-- support/
+|   |   |       |-- tenants/
+|   |   |       `-- users/
+|   |   |-- ai/
+|   |   |   `-- concierge/
+|   |   |       `-- route.ts
+|   |   |-- analytics/
+|   |   |   `-- route.ts
+|   |   |-- auth/
+|   |   |   |-- [...nextauth]/
+|   |   |   |   `-- route.ts
+|   |   |   |-- check-email-verified/
+|   |   |   |   `-- route.ts
+|   |   |   |-- forgot-password/
+|   |   |   |   `-- route.ts
+|   |   |   |-- register/
+|   |   |   |   `-- route.ts
+|   |   |   |-- resend-otp/
+|   |   |   |   `-- route.ts
+|   |   |   |-- reset-password/
+|   |   |   |   `-- route.ts
+|   |   |   |-- verify-email/
+|   |   |   |   `-- route.ts
+|   |   |   `-- verify-old-account/
+|   |   |-- bon/
+|   |   |   `-- v1/
+|   |   |       `-- common/
+|   |   |-- bookings/
+|   |   |   |-- [id]/
+|   |   |   |   |-- payment/
+|   |   |   |   `-- status/
+|   |   |   |-- availability/
+|   |   |   |   `-- route.ts
+|   |   |   |-- facility-availability/
+|   |   |   |   `-- route.ts
+|   |   |   |-- night-audit/
+|   |   |   |   `-- route.ts
+|   |   |   `-- route.ts
+|   |   |-- cms/
+|   |   |   |-- content/
+|   |   |   |   `-- route.ts
+|   |   |   |-- media/
+|   |   |   |   `-- route.ts
+|   |   |   `-- pages/
+|   |   |       |-- [id]/
+|   |   |       `-- route.ts
+|   |   |-- compliance/
+|   |   |   |-- aml/
+|   |   |   |   |-- monitor/
+|   |   |   |   |-- reports/
+|   |   |   |   `-- str/
+|   |   |   |-- audit-chain/
+|   |   |   |   `-- verify/
+|   |   |   |-- consumer-rights/
+|   |   |   |   `-- [id]/
+|   |   |   |-- cyber-incidents/
+|   |   |   |   `-- [id]/
+|   |   |   |-- kyc/
+|   |   |   |   |-- upgrade-prompts/
+|   |   |   |   `-- verify/
+|   |   |   |-- kyc-cases/
+|   |   |   |   |-- [caseId]/
+|   |   |   |   `-- route.ts
+|   |   |   |-- psd/
+|   |   |   |   |-- bon-incident/
+|   |   |   |   `-- payment-security/
+|   |   |   `-- soc2/
+|   |   |       |-- audit/
+|   |   |       `-- route.ts
+|   |   |-- contact/
+|   |   |   `-- route.ts
+|   |   |-- crm/
+|   |   |   |-- guests/
+|   |   |   |   |-- [id]/
+|   |   |   |   `-- route.ts
+|   |   |   |-- loyalty/
+|   |   |   |   |-- catalog/
+|   |   |   |   `-- transactions/
+|   |   |   |-- outreach/
+|   |   |   |   |-- [id]/
+|   |   |   |   `-- route.ts
+|   |   |   |-- rag/
+|   |   |   |   `-- ingest/
+|   |   |   `-- reviews/
+|   |   |       |-- [id]/
+|   |   |       `-- route.ts
+|   |   |-- cron/
+|   |   |   |-- booking-reminders/
+|   |   |   |   `-- route.ts
+|   |   |   |-- email-inbox-monitor/
+|   |   |   |   `-- route.ts
+|   |   |   |-- intelligence-digest/
+|   |   |   |   `-- route.ts
+|   |   |   |-- payment-outbox-dispatch/
+|   |   |   |   `-- route.ts
+|   |   |   |-- scheduler-dispatch/
+|   |   |   |   `-- route.ts
+|   |   |   `-- uptime-monitor/
+|   |   |       `-- route.ts
+|   |   |-- dashboard/
+|   |   |   |-- activity/
+|   |   |   |   `-- route.ts
+|   |   |   `-- stats/
+|   |   |       `-- route.ts
+|   |   |-- debug/
+|   |   |   `-- auth/
+|   |   |       `-- route.ts
+|   |   |-- dining/
+|   |   |   `-- favourites/
+|   |   |       `-- route.ts
+|   |   |-- documents/
+|   |   |   `-- sign/
+|   |   |       `-- route.ts
+|   |   |-- fnb/
+|   |   |   `-- print-jobs/
+|   |   |       |-- [id]/
+|   |   |       `-- route.ts
+|   |   |-- folio/
+|   |   |   `-- charges/
+|   |   |       `-- [id]/
+|   |   |-- fraud/
+|   |   |   |-- alerts/
+|   |   |   |   `-- route.ts
+|   |   |   |-- analyze/
+|   |   |   |   `-- route.ts
+|   |   |   `-- statistics/
+|   |   |       `-- route.ts
+|   |   |-- guest/
+|   |   |   |-- dsar/
+|   |   |   |   `-- route.ts
+|   |   |   |-- loyalty/
+|   |   |   |   |-- redeem/
+|   |   |   |   `-- route.ts
+|   |   |   `-- stays/
+|   |   |       |-- [bookingId]/
+|   |   |       `-- route.ts
+|   |   |-- guests/
+|   |   |   |-- [id]/
+|   |   |   |   `-- route.ts
+|   |   |   `-- route.ts
+|   |   |-- housekeeping/
+|   |   |   `-- tasks/
+|   |   |       |-- [id]/
+|   |   |       `-- route.ts
+|   |   |-- introducers/
+|   |   |   |-- [id]/
+|   |   |   |   |-- bookings/
+|   |   |   |   `-- route.ts
+|   |   |   |-- public/
+|   |   |   |   `-- route.ts
+|   |   |   |-- validate/
+|   |   |   |   |-- route.test.ts
+|   |   |   |   `-- route.ts
+|   |   |   `-- route.ts
+|   |   |-- inventory/
+|   |   |   |-- alerts/
+|   |   |   |   `-- route.ts
+|   |   |   `-- items/
+|   |   |       `-- route.ts
+|   |   |-- menu/
+|   |   |   |-- [itemId]/
+|   |   |   |   `-- route.ts
+|   |   |   `-- route.ts
+|   |   |-- partners/
+|   |   |   |-- [slug]/
+|   |   |   |   `-- route.ts
+|   |   |   `-- route.ts
+|   |   |-- payments/
+|   |   |   |-- adumo/
+|   |   |   |   |-- confirm/
+|   |   |   |   `-- initiate/
+|   |   |   |-- initiate/
+|   |   |   |   `-- route.ts
+|   |   |   |-- manual/
+|   |   |   |   `-- route.ts
+|   |   |   |-- namqr/
+|   |   |   |   |-- confirm/
+|   |   |   |   |-- generate/
+|   |   |   |   `-- pending/
+|   |   |   |-- reconciliation/
+|   |   |   |   `-- route.ts
+|   |   |   `-- virtual/
+|   |   |       |-- confirm/
+|   |   |       `-- initiate/
+|   |   |-- platform/
+|   |   |   `-- billing/
+|   |   |       |-- invoices/
+|   |   |       `-- settlement/
+|   |   |-- properties/
+|   |   |   |-- [id]/
+|   |   |   |   |-- rooms/
+|   |   |   |   `-- route.ts
+|   |   |   |-- availability-ledger/
+|   |   |   |   `-- route.ts
+|   |   |   `-- route.ts
+|   |   |-- public/
+|   |   |   |-- properties/
+|   |   |   |   `-- [slug]/
+|   |   |   |-- restaurant/
+|   |   |   |   |-- menu/
+|   |   |   |   `-- orders/
+|   |   |   |-- room-qr/
+|   |   |   |   `-- [code]/
+|   |   |   `-- sofia/
+|   |   |       `-- chat/
+|   |   |-- qr/
+|   |   |   |-- [id]/
+|   |   |   |   `-- route.ts
+|   |   |   |-- scan/
+|   |   |   |   `-- route.ts
+|   |   |   `-- route.ts
+|   |   |-- reports/
+|   |   |   |-- accounting/
+|   |   |   |   |-- journal-lines/
+|   |   |   |   |-- period-close/
+|   |   |   |   `-- summary/
+|   |   |   `-- property-vat/
+|   |   |       `-- route.ts
+|   |   |-- restaurant/
+|   |   |   |-- details/
+|   |   |   |   `-- route.ts
+|   |   |   |-- menu/
+|   |   |   |   `-- route.ts
+|   |   |   |-- orders/
+|   |   |   |   |-- [id]/
+|   |   |   |   `-- route.ts
+|   |   |   |-- reservations/
+|   |   |   |   |-- cancel/
+|   |   |   |   |-- confirm/
+|   |   |   |   `-- pay/
+|   |   |   `-- tables/
+|   |   |       `-- route.ts
+|   |   |-- rooms/
+|   |   |   |-- available/
+|   |   |   |   `-- route.ts
+|   |   |   `-- route.ts
+|   |   |-- settings/
+|   |   |   `-- route.ts
+|   |   |-- sofia/
+|   |   |   |-- chat/
+|   |   |   |   `-- route.ts
+|   |   |   |-- email/
+|   |   |   |   `-- route.ts
+|   |   |   `-- voice/
+|   |   |       `-- webhook/
+|   |   |-- staff/
+|   |   |   |-- [id]/
+|   |   |   |   |-- shifts/
+|   |   |   |   `-- route.ts
+|   |   |   |-- shifts/
+|   |   |   |   `-- route.ts
+|   |   |   |-- stats/
+|   |   |   |   `-- route.ts
+|   |   |   `-- route.ts
+|   |   |-- support/
+|   |   |   `-- tickets/
+|   |   |       `-- route.ts
+|   |   |-- tax/
+|   |   |   `-- hospitality-vat-display/
+|   |   |       `-- route.ts
+|   |   |-- user/
+|   |   |   `-- profile/
+|   |   |       `-- route.ts
+|   |   `-- webhooks/
+|   |       |-- adumo/
+|   |       |   `-- route.ts
+|   |       |-- cal/
+|   |       |   `-- route.ts
+|   |       `-- whatsapp/
+|   |           `-- route.ts
+|   |-- contact/
+|   |   `-- page.tsx
+|   |-- dining/
+|   |   `-- page.tsx
+|   |-- facilities/
+|   |   |-- campsite/
+|   |   |   `-- page.tsx
+|   |   |-- conference/
+|   |   |   `-- page.tsx
+|   |   `-- page.tsx
+|   |-- guest/
+|   |   |-- dsar/
+|   |   |   `-- page.tsx
+|   |   |-- loyalty/
+|   |   |   `-- page.tsx
+|   |   |-- room/
+|   |   |   |-- GuestRoomQrClient.tsx
+|   |   |   `-- page.tsx
+|   |   |-- stays/
+|   |   |   `-- [bookingId]/
+|   |   |       `-- page.tsx
+|   |   |-- layout.tsx
+|   |   `-- page.tsx
+|   |-- handler/
+|   |   `-- [...stack]/
+|   |       `-- page.tsx
+|   |-- introducers-directory/
+|   |   `-- page.tsx
+|   |-- legal/
+|   |   |-- cookies/
+|   |   |   `-- page.tsx
+|   |   |-- privacy/
+|   |   |   `-- page.tsx
+|   |   |-- security/
+|   |   |   `-- page.tsx
+|   |   `-- terms/
+|   |       `-- page.tsx
+|   |-- offline/
+|   |   `-- page.tsx
+|   |-- partner/
+|   |   |-- bookings/
+|   |   |   `-- page.tsx
+|   |   |-- dashboard/
+|   |   |   `-- page.tsx
+|   |   |-- my-property/
+|   |   |   `-- page.tsx
+|   |   |-- rates/
+|   |   |   `-- page.tsx
+|   |   |-- rooms/
+|   |   |   `-- page.tsx
+|   |   |-- settings/
+|   |   |   `-- page.tsx
+|   |   `-- layout.tsx
+|   |-- partners/
+|   |   |-- [slug]/
+|   |   |   `-- page.tsx
+|   |   `-- page.tsx
+|   |-- payment/
+|   |   |-- booking-deposit/
+|   |   |   `-- page.tsx
+|   |   |-- failed/
+|   |   |   `-- page.tsx
+|   |   `-- success/
+|   |       `-- page.tsx
+|   |-- public-properties/
+|   |   `-- [slug]/
+|   |       |-- book/
+|   |       |   `-- page.tsx
+|   |       |-- menu/
+|   |       |   `-- page.tsx
+|   |       `-- page.tsx
+|   |-- restaurant/
+|   |   `-- reservation/
+|   |       `-- pay/
+|   |           `-- page.tsx
+|   |-- rooms/
+|   |   |-- [slug]/
+|   |   |   `-- page.tsx
+|   |   `-- page.tsx
+|   |-- unauthorized/
+|   |-- favicon.ico
+|   |-- globals.css
+|   |-- icon.png
+|   |-- layout.tsx
+|   |-- loading.tsx
+|   |-- not-found.tsx
+|   `-- page.tsx
+|-- compliance/
+|   `-- evidence/
+|       |-- 2026-05/
+|       |   `-- README.txt
+|       |-- 2026-06/
+|       |-- 2026-07/
+|       |-- 2026-08/
+|       |-- 2026-09/
+|       |-- 2026-10/
+|       |-- 2026-11/
+|       |-- adumo/
+|       |   |-- outbox/
+|       |   |   `-- settlement-confirmation-request.md
+|       |   |-- preflight-2026-05-17.json
+|       |   |-- preflight-2026-05-30.json
+|       |   |-- production-go-live-checklist.md
+|       |   |-- staging-smoke-2026-05-17.md
+|       |   `-- staging-smoke-2026-05-30.md
+|       |-- backup-drills/
+|       |-- csf-profile/
+|       |   |-- README.md
+|       |   |-- asset-inventory-2026-05-19.json
+|       |   |-- csf-eval-2026-05-19.json
+|       |   `-- csf-validation-report-2026-05-19.json
+|       |-- incidents/
+|       |-- log-reviews/
+|       |-- namqr/
+|       |   `-- desk-smoke-2026-05-30.md
+|       |-- policies/
+|       |   |-- README.md
+|       |   `-- README.txt
+|       |-- security/
+|       |   |-- PHASE_1B_COMPLETION_REPORT.md
+|       |   |-- api-coverage-2026-05-17.json
+|       |   |-- api-coverage-2026-05-18.json
+|       |   |-- api-coverage-2026-05-27.json
+|       |   |-- api-coverage-2026-05-28.json
+|       |   |-- api-coverage-2026-05-30.json
+|       |   |-- backup-restore-drill-2026-05-19.json
+|       |   |-- npm-audit-triage-2026-05-17.json
+|       |   |-- npm-audit-triage-2026-05-19.json
+|       |   |-- npm-audit-triage-2026-05-28.json
+|       |   |-- npm-audit-triage-2026-05-30.json
+|       |   |-- phase-1b-final-preflight.json
+|       |   |-- preflight-2026-05-16.json
+|       |   |-- preflight-2026-05-17.json
+|       |   |-- preflight-2026-05-18.json
+|       |   |-- preflight-2026-05-19.json
+|       |   |-- preflight-2026-05-27.json
+|       |   |-- preflight-2026-05-28.json
+|       |   |-- preflight-2026-05-30.json
+|       |   |-- preflight-2026-06-01.json
+|       |   |-- preflight-2026-06-02.json
+|       |   |-- preflight-2026-06-04.json
+|       |   |-- public-routes-2026-05-18.json
+|       |   |-- public-routes-2026-05-19.json
+|       |   |-- public-routes-2026-05-20.json
+|       |   |-- public-routes-2026-05-27.json
+|       |   |-- public-routes-2026-05-28.json
+|       |   |-- public-routes-2026-05-30.json
+|       |   |-- public-routes-2026-05-31.json
+|       |   |-- security-audit-2026-05-18.json
+|       |   `-- security-audit-2026-05-19.json
+|       |-- security-scans/
+|       |-- vendor-assessments/
+|       |-- vendor-attestations/
+|       |   |-- outbox/
+|       |   |   |-- ADUMO_ATTESTATION_REQUEST.md
+|       |   |   |-- NEON_SOC2_REQUEST.md
+|       |   |   |-- VERCEL_SOC2_REQUEST.md
+|       |   |   |-- adumo-pci-soc2-request.md
+|       |   |   |-- neon-soc2-request.md
+|       |   |   `-- vercel-soc2-request.md
+|       |   |-- received/
+|       |   |   `-- README.md
+|       |   |-- README.md
+|       |   `-- REQUEST_TEMPLATE.md
+|       |-- PHASE_2_OPERATOR_QUICK_REFERENCE.md
+|       |-- PHASE_2_PAYMENT_RAIL_COMPLETION_REPORT.md
+|       |-- README.md
+|       |-- access-review-2026-05-18.json
+|       `-- access-review-2026-05-19.json
+|-- components/
+|   |-- analytics/
+|   |   `-- PostHogPageView.tsx
+|   |-- brand/
+|   |   |-- HotelEtunaLogo.tsx
+|   |   `-- HotelEtunaMarkIcon.tsx
+|   |-- compliance/
+|   |   `-- AlertDetailModal.tsx
+|   |-- dining/
+|   |   |-- GuestFavouritesStrip.tsx
+|   |   |-- MenuBookContinueFace.tsx
+|   |   |-- MenuBookFaceRenderer.tsx
+|   |   |-- MenuBookFullMenu.tsx
+|   |   |-- MenuBookFullMenuCoverFace.tsx
+|   |   |-- MenuBookItemDetailDialog.tsx
+|   |   |-- MenuBookItemTile.tsx
+|   |   |-- MenuBookItemsFace.tsx
+|   |   |-- MenuBookSinglePageViewer.tsx
+|   |   |-- MenuDisplay.tsx
+|   |   |-- PublicMenuBoard.tsx
+|   |   `-- PublicMenuFeaturedCard.tsx
+|   |-- features/
+|   |   |-- accounting/
+|   |   |   |-- GlPeriodCloseCard.tsx
+|   |   |   |-- HospitalityAccountingPanel.tsx
+|   |   |   `-- JournalEntryTable.tsx
+|   |   |-- admin/
+|   |   |   `-- platform/
+|   |   |       |-- AuditLogList.tsx
+|   |   |       |-- AuditLogViewer.tsx
+|   |   |       |-- AuditLogs.tsx
+|   |   |       |-- PlatformAdminNavbar.tsx
+|   |   |       |-- PlatformAiObservability.tsx
+|   |   |       |-- PlatformAnalytics.tsx
+|   |   |       |-- PlatformDashboardOverview.tsx
+|   |   |       |-- PlatformIntelligenceDigest.tsx
+|   |   |       |-- PlatformSecretsStatus.tsx
+|   |   |       |-- PlatformSettings.tsx
+|   |   |       |-- PlatformSupport.tsx
+|   |   |       |-- PropertyDetails.tsx
+|   |   |       |-- PropertyList.tsx
+|   |   |       |-- PropertyManagement.tsx
+|   |   |       |-- SystemSettings.tsx
+|   |   |       |-- TenantDetails.tsx
+|   |   |       |-- TenantList.tsx
+|   |   |       |-- TenantManagement.tsx
+|   |   |       |-- UserDetails.tsx
+|   |   |       |-- UserList.tsx
+|   |   |       `-- UserManagement.tsx
+|   |   |-- ai/
+|   |   |   `-- SofiaConciergeChat.tsx
+|   |   |-- analytics/
+|   |   |   |-- AnalyticsFilters.tsx
+|   |   |   |-- BookingTrends.tsx
+|   |   |   |-- DashboardWidget.tsx
+|   |   |   |-- MetricCard.tsx
+|   |   |   |-- OccupancyChart.tsx
+|   |   |   |-- PerformanceMetrics.tsx
+|   |   |   |-- RevenueByProperty.tsx
+|   |   |   `-- RevenueChart.tsx
+|   |   |-- auth/
+|   |   |   |-- LoginForm.tsx
+|   |   |   |-- RegisterForm.tsx
+|   |   |   `-- TurnstileWidget.tsx
+|   |   |-- billing/
+|   |   |   `-- PlatformBillingPanel.tsx
+|   |   |-- booking/
+|   |   |   |-- BookingCalendar.tsx
+|   |   |   |-- BookingForm.tsx
+|   |   |   |-- BookingList.tsx
+|   |   |   |-- BookingsOperationsHub.tsx
+|   |   |   |-- CampsiteBookingForm.tsx
+|   |   |   |-- ConferenceBookingForm.tsx
+|   |   |   |-- NewBookingPage.tsx
+|   |   |   |-- NewBookingTabs.tsx
+|   |   |   `-- NightAuditPanel.tsx
+|   |   |-- bookings/
+|   |   |   |-- BookingCashPaymentSection.tsx
+|   |   |   |-- BookingFolioSection.tsx
+|   |   |   |-- BookingReceipt.tsx
+|   |   |   `-- CashPaymentModal.tsx
+|   |   |-- cms/
+|   |   |   |-- blocks/
+|   |   |   |   |-- BlockCta.tsx
+|   |   |   |   |-- BlockHero.tsx
+|   |   |   |   |-- BlockImage.tsx
+|   |   |   |   |-- BlockTestimonialGrid.tsx
+|   |   |   |   `-- BlockText.tsx
+|   |   |   |-- CmsBlockEditor.tsx
+|   |   |   |-- CmsDashboard.tsx
+|   |   |   |-- CmsPageForm.tsx
+|   |   |   |-- ContentDisplay.tsx
+|   |   |   |-- ContentEditor.tsx
+|   |   |   |-- MediaUploader.tsx
+|   |   |   |-- PreviewPanel.tsx
+|   |   |   `-- PropertyMediaGallery.tsx
+|   |   |-- compliance/
+|   |   |   |-- AuditChainVerifyCard.tsx
+|   |   |   |-- KycCaseReviewPanel.tsx
+|   |   |   |-- Soc2AuditDashboard.tsx
+|   |   |   `-- Soc2CompliancePanel.tsx
+|   |   |-- contact/
+|   |   |   `-- ContactForm.tsx
+|   |   |-- crm/
+|   |   |   |-- forms/
+|   |   |   |   |-- GuestAddressForm.tsx
+|   |   |   |   |-- GuestIdentificationForm.tsx
+|   |   |   |   |-- GuestPersonalInfoForm.tsx
+|   |   |   |   `-- GuestPreferencesForm.tsx
+|   |   |   |-- CrmRagIngestPanel.tsx
+|   |   |   |-- GuestCrmFactsSection.tsx
+|   |   |   |-- GuestCrmGraphEdgesSection.tsx
+|   |   |   |-- GuestCrmMarketingSnapshot.tsx
+|   |   |   |-- GuestCrmMem0Section.tsx
+|   |   |   |-- GuestCrmMemoryPanel.tsx
+|   |   |   |-- GuestCrmOutreachSection.tsx
+|   |   |   |-- GuestsTable.tsx
+|   |   |   |-- ReviewsTable.tsx
+|   |   |   `-- guestCrmPanelTypes.ts
+|   |   |-- dashboard/
+|   |   |   |-- DashboardFocusStrip.tsx
+|   |   |   |-- DashboardStatsCards.tsx
+|   |   |   |-- DashboardWelcome.tsx
+|   |   |   |-- OnboardingWelcome.tsx
+|   |   |   |-- QuickActions.tsx
+|   |   |   `-- RecentActivity.tsx
+|   |   |-- dining/
+|   |   |   |-- GuestFavouritesStrip.tsx
+|   |   |   `-- MenuBookSinglePageViewer.tsx
+|   |   |-- fnb/
+|   |   |   `-- kitchen-ticket-board.tsx
+|   |   |-- folio/
+|   |   |   |-- FolioVatBreakdown.tsx
+|   |   |   `-- FolioVoidTransactionDialog.tsx
+|   |   |-- fraud/
+|   |   |   |-- FraudAlertsTable.tsx
+|   |   |   |-- FraudDashboard.tsx
+|   |   |   |-- FraudRiskHeatmap.tsx
+|   |   |   |-- FraudStatisticsCard.tsx
+|   |   |   `-- FraudTrendChart.tsx
+|   |   |-- guest/
+|   |   |   |-- GuestFolioPanel.tsx
+|   |   |   |-- GuestLoyaltySummary.tsx
+|   |   |   |-- GuestNamQrPayPanel.tsx
+|   |   |   |-- GuestStaysList.tsx
+|   |   |   |-- LoyaltyRedeemModal.tsx
+|   |   |   |-- PastStayCard.tsx
+|   |   |   `-- RoomQRScanner.tsx
+|   |   |-- menu/
+|   |   |   |-- forms/
+|   |   |   |   |-- AllergensSelector.tsx
+|   |   |   |   |-- BasicInfoForm.tsx
+|   |   |   |   `-- MenuItemPreview.tsx
+|   |   |   |-- MenuFilters.tsx
+|   |   |   |-- MenuItemCard.tsx
+|   |   |   `-- MenuStatsCards.tsx
+|   |   |-- payments/
+|   |   |   |-- ManualPaymentForm.tsx
+|   |   |   |-- NamQrDeskPanel.tsx
+|   |   |   `-- NamQrPendingQueue.tsx
+|   |   |-- property/
+|   |   |   |-- AvailabilityLedgerPanel.tsx
+|   |   |   |-- CreatePropertyForm.tsx
+|   |   |   |-- CreateRoomForm.tsx
+|   |   |   |-- PropertyCard.tsx
+|   |   |   |-- PropertyForm.tsx
+|   |   |   |-- PropertySwitcher.tsx
+|   |   |   |-- RoomCard.tsx
+|   |   |   |-- RoomForm.tsx
+|   |   |   |-- RoomManagement.tsx
+|   |   |   `-- UpdatePropertyForm.tsx
+|   |   |-- restaurant/
+|   |   |   |-- menu/
+|   |   |   |   |-- MenuCategoryCard.tsx
+|   |   |   |   `-- MenuItemCard.tsx
+|   |   |   |-- orders/
+|   |   |   |   `-- OrderCard.tsx
+|   |   |   |-- MenuItem.tsx
+|   |   |   |-- OrderForm.tsx
+|   |   |   |-- PropertySelector.tsx
+|   |   |   |-- QRCodeGenerator.tsx
+|   |   |   |-- TableCard.tsx
+|   |   |   `-- TableForm.tsx
+|   |   |-- rooms/
+|   |   |   |-- PublicRoomTourSignInCard.tsx
+|   |   |   |-- RoomCard.tsx
+|   |   |   |-- RoomFilters.tsx
+|   |   |   |-- RoomPhotoTour.tsx
+|   |   |   |-- RoomStatsCards.tsx
+|   |   |   `-- RoomTypeBreakdown.tsx
+|   |   |-- settings/
+|   |   |   |-- AppearanceSettingsForm.tsx
+|   |   |   |-- GeneralSettingsForm.tsx
+|   |   |   |-- NotificationSettingsForm.tsx
+|   |   |   |-- SecuritySettingsForm.tsx
+|   |   |   `-- SettingsTabs.tsx
+|   |   |-- sofia/
+|   |   |   |-- EmailSenderForm.tsx
+|   |   |   |-- PublicSofiaChat.tsx
+|   |   |   `-- SofiaChat.tsx
+|   |   |-- staff/
+|   |   |   |-- PerformanceChart.tsx
+|   |   |   |-- ScheduleCalendar.tsx
+|   |   |   |-- StaffCard.tsx
+|   |   |   |-- StaffForm.tsx
+|   |   |   `-- StaffList.tsx
+|   |   `-- tax/
+|   |       |-- PropertyHospitalityVatNote.tsx
+|   |       `-- PropertyVatReportPanel.tsx
+|   |-- partners/
+|   |   |-- PartnerAvailabilityWidget.tsx
+|   |   |-- PartnerHeader.tsx
+|   |   `-- PartnerSidebar.tsx
+|   |-- payments/
+|   |   |-- AdumoPaymentReturn.tsx
+|   |   |-- AdumoVirtualPaymentForm.tsx
+|   |   |-- BookingDepositPayCard.tsx
+|   |   `-- DiningReservationPayCard.tsx
+|   |-- providers/
+|   |   |-- ActivePropertyProvider.tsx
+|   |   |-- AuthGateProvider.tsx
+|   |   |-- OfflineBanner.tsx
+|   |   |-- PostHogProvider.tsx
+|   |   |-- ServiceWorkerRegistration.tsx
+|   |   |-- SessionProviderWrapper.tsx
+|   |   |-- SessionTimeoutWrapper.tsx
+|   |   `-- StackProviderWrapper.tsx
+|   |-- sections/
+|   |   `-- landing/
+|   |       |-- cards/
+|   |       |   |-- FBCard.tsx
+|   |       |   |-- FeatureCard.tsx
+|   |       |   |-- ProblemCard.tsx
+|   |       |   |-- PropertyTypeCard.tsx
+|   |       |   `-- SofiaChatDemo.tsx
+|   |       |-- AboutSection.tsx
+|   |       |-- AccommodationTypes.tsx
+|   |       |-- ExpansionStagesSection.tsx
+|   |       |-- FinalCTA.tsx
+|   |       |-- FoodBeverageSection.tsx
+|   |       |-- HeroSection.tsx
+|   |       |-- LandingBookingWidget.tsx
+|   |       |-- NavigationHeader.tsx
+|   |       |-- PlatformOverview.tsx
+|   |       |-- PricingSection.tsx
+|   |       |-- ProblemsGrid.tsx
+|   |       |-- ResultsSection.tsx
+|   |       |-- SofiaAISection.tsx
+|   |       |-- TransformationSection.tsx
+|   |       |-- TrustSection.tsx
+|   |       |-- TryItSection.tsx
+|   |       `-- index.ts
+|   |-- shared/
+|   |   |-- DevTestSessionBanner.tsx
+|   |   |-- EmptyState.tsx
+|   |   |-- ErrorBoundary.tsx
+|   |   |-- ErrorDisplay.tsx
+|   |   |-- Footer.tsx
+|   |   |-- GuestNavLink.tsx
+|   |   |-- Header.tsx
+|   |   |-- HotelEtunaTeamEmails.tsx
+|   |   |-- LoadingSpinner.tsx
+|   |   |-- MessageAlert.tsx
+|   |   |-- NotFoundState.tsx
+|   |   |-- NoticeState.tsx
+|   |   |-- PageHeader.tsx
+|   |   |-- PartnerSidebar.tsx
+|   |   |-- PlatformSidebar.tsx
+|   |   |-- PublicAuthNav.tsx
+|   |   |-- PublicFooter.tsx
+|   |   |-- PublicHero.tsx
+|   |   |-- Sidebar.tsx
+|   |   |-- StatusBadge.tsx
+|   |   `-- WorkflowStatusActions.tsx
+|   |-- ui/
+|   |   |-- Alert.tsx
+|   |   |-- Avatar.tsx
+|   |   |-- Button.tsx
+|   |   |-- Card.tsx
+|   |   |-- Form.tsx
+|   |   |-- ImagePlaceholder.tsx
+|   |   |-- Input.tsx
+|   |   |-- Modal.tsx
+|   |   |-- PropertyAvatar.tsx
+|   |   |-- ScrollProgress.tsx
+|   |   |-- Select.tsx
+|   |   |-- SofiaAvatar.tsx
+|   |   |-- Table.tsx
+|   |   |-- Tabs.tsx
+|   |   |-- Textarea.tsx
+|   |   |-- Toast.tsx
+|   |   |-- Toaster.tsx
+|   |   |-- index.ts
+|   |   `-- use-toast.tsx
+|   |-- DashboardErrorBoundary.tsx
+|   |-- ErrorBoundary.tsx
+|   |-- PlatformToastProvider.tsx
+|   |-- ProblemSolutionTabs.tsx
+|   |-- PublicRoomTourSignInCard.tsx
+|   |-- PublicRoomsBrowseBanner.tsx
+|   |-- PublicRoomsSignedInBanner.tsx
+|   |-- RoomBookingCard.tsx
+|   |-- RoomPhotoTour.tsx
+|   |-- RoomsFilmstrip.tsx
+|   |-- RoomsIncludedStrip.tsx
+|   `-- RootErrorBoundary.tsx
+|-- data/
+|   `-- hotel-etuna-knowledge/
+|       |-- hotel-etuna-facts.md
+|       |-- local-area.md
+|       |-- restaurant-menu.md
+|       `-- room-descriptions.md
+|-- database/
+|   |-- drizzle/
+|   |   |-- meta/
+|   |   |   |-- 0000_snapshot.json
+|   |   |   |-- 0001_snapshot.json
+|   |   |   |-- 0002_snapshot.json
+|   |   |   `-- _journal.json
+|   |   |-- 0000_equal_lifeguard.sql
+|   |   |-- 0001_broad_firebird.sql
+|   |   |-- 0002_daffy_silver_surfer.sql
+|   |   |-- 0003_hotel_etuna_partner_network.sql
+|   |   |-- 0004_hotel_etuna_tenant_rls_policies.sql
+|   |   |-- 0005_hotel_etuna_partner_constraints.sql
+|   |   |-- 0006_fix_rls_recursion_with_tenant_type.sql
+|   |   |-- 0007_cash_payments_and_reconciliation.sql
+|   |   |-- 0008_reconcile_neon_baseline.sql
+|   |   |-- 0009_booking_charges_folio.sql
+|   |   |-- 0010_booking_charges_rls.sql
+|   |   |-- 0011_fnb_inventory.sql
+|   |   |-- 0012_adumo_virtual_payment_sessions.sql
+|   |   |-- 0013_platform_billing.sql
+|   |   |-- 0014_platform_invoice_vat.sql
+|   |   |-- 0015_rls_inventory_payment_sessions.sql
+|   |   |-- 0016_fraud_detection_rules_seed.sql
+|   |   |-- 0017_ai_conversations_tenant_session_idx.sql
+|   |   |-- 0018_dining_reservations.sql
+|   |   |-- 0019_dining_adumo_payment_sessions.sql
+|   |   |-- 0020_namqr_pending_confirmations.sql
+|   |   |-- 0021_housekeeping_tasks.sql
+|   |   |-- 0029_cms_pages_blocks.sql
+|   |   |-- 0029b_cms_pages_blocks_rls.sql
+|   |   |-- 0031_introducer_partners.sql
+|   |   |-- 0031b_introducer_partners_rls.sql
+|   |   |-- 0033_loyalty_transactions.sql
+|   |   |-- 0033b_loyalty_transactions_rls.sql
+|   |   |-- 0035_loyalty_tiers.sql
+|   |   |-- 0036_loyalty_tier_benefits.sql
+|   |   |-- 0037_loyalty_auto_tier_up.sql
+|   |   |-- 0038_user_notification_preferences.sql
+|   |   |-- 0039_hotel_etuna_room_types.sql
+|   |   |-- 0040_hotel_etuna_room_inventory.sql
+|   |   |-- 0041_rooms_inventory_kind.sql
+|   |   |-- 0042_bookings_service_kind.sql
+|   |   |-- 0043_facility_internal_keys.sql
+|   |   |-- 0044_schema_cleanup.sql
+|   |   |-- 0045_fnb_print_jobs.sql
+|   |   |-- 0045_payment_outbox_events.sql
+|   |   |-- 0046_accounting_period_locks.sql
+|   |   |-- 0046_audit_trail_hash_chain.sql
+|   |   |-- 0047_durable_scheduling_notifications.sql
+|   |   |-- 0048_night_audit_runs.sql
+|   |   |-- 0049_availability_ledger.sql
+|   |   |-- 0050_sofia_pipeline_runs.sql
+|   |   `-- 0051_cal_booking_mirrors.sql
+|   `-- all-migrations.sql
+|-- docs/
+|   |-- compliance/
+|   |   |-- evidence/
+|   |   |   `-- vendor-register.csv
+|   |   |-- policies/
+|   |   |   |-- ACCEPTABLE_USE_POLICY.md
+|   |   |   |-- ACCESS_CONTROL_POLICY.md
+|   |   |   |-- AI_USAGE_POLICY.md
+|   |   |   |-- ASSET_MANAGEMENT_POLICY.md
+|   |   |   |-- BACKUP_POLICY.md
+|   |   |   |-- BUSINESS_CONTINUITY_POLICY.md
+|   |   |   |-- CHANGE_MANAGEMENT_POLICY.md
+|   |   |   |-- CODE_OF_CONDUCT.md
+|   |   |   |-- CRYPTOGRAPHY_POLICY.md
+|   |   |   |-- DATA_CLASSIFICATION_POLICY.md
+|   |   |   |-- DATA_PROTECTION_POLICY.md
+|   |   |   |-- DATA_PROTECTION_POLICY_NAMIBIA.md
+|   |   |   |-- DATA_RETENTION_POLICY.md
+|   |   |   |-- HR_SECURITY_POLICY.md
+|   |   |   |-- INCIDENT_RESPONSE_POLICY.md
+|   |   |   |-- INFORMATION_SECURITY_POLICY.md
+|   |   |   |-- LOGGING_AND_MONITORING_POLICY.md
+|   |   |   |-- NETWORK_SECURITY_POLICY.md
+|   |   |   |-- PASSWORD_POLICY.md
+|   |   |   |-- PHYSICAL_SECURITY_POLICY.md
+|   |   |   |-- POLICY_TEMPLATE.md
+|   |   |   |-- REMOTE_ACCESS_POLICY.md
+|   |   |   |-- TRAINING_POLICY.md
+|   |   |   `-- VENDOR_MANAGEMENT_POLICY.md
+|   |   |-- AML_FICA_COMPLIANCE_PROGRAM.md
+|   |   |-- BUSINESS_CONTINUITY_PLAN.md
+|   |   |-- CONTRACT_AND_COMMERCIAL_LAW_FRAMEWORK.md
+|   |   |-- DATA_PROTECTION_AND_PRIVACY_PROGRAM.md
+|   |   |-- HOSPITALITY_AND_TOURISM_COMPLIANCE.md
+|   |   |-- INCIDENT_RESPONSE_PLAN.md
+|   |   |-- NAMIBIA_REGULATORY_FRAMEWORK.md
+|   |   |-- README.md
+|   |   |-- SECURITY_PROMPT_PACK.md
+|   |   `-- TAX_AND_NAMRA_COMPLIANCE.md
+|   |-- project/
+|   |   |-- PLANNING.md
+|   |   |-- PRD.md
+|   |   |-- SOC2_IMPLEMENTATION_PLAN.md
+|   |   |-- TASK.md
+|   |   `-- TREE.txt
+|   |-- SECURITY_PROMPT_PACK.md
+|   `-- naming-conventions.md
+|-- e2e/
+|   |-- helpers/
+|   |   |-- db-otp.ts
+|   |   `-- load-env.ts
+|   |-- api-endpoints.spec.ts
+|   |-- auth-journey.spec.ts
+|   |-- authentication.spec.ts
+|   |-- design-system.spec.ts
+|   |-- gated-pricing.spec.ts
+|   |-- homepage.spec.ts
+|   |-- navigation.spec.ts
+|   |-- public-components.spec.ts
+|   `-- responsive-layout.spec.ts
+|-- lib/
+|   |-- adapters/
+|   |   `-- print/
+|   |       `-- network-print-adapter.ts
+|   |-- ai/
+|   |   `-- agent-registry.ts
+|   |-- auth/
+|   |   |-- client.ts
+|   |   |-- config.ts
+|   |   |-- jwks.ts
+|   |   |-- middleware.ts
+|   |   |-- platform-admin.ts
+|   |   |-- public-session-nav.ts
+|   |   |-- roles.ts
+|   |   |-- stack-auth.ts
+|   |   |-- stack-env.ts
+|   |   |-- tenant-context.ts
+|   |   `-- verify-turnstile.ts
+|   |-- bookings/
+|   |   |-- booking-kind.ts
+|   |   `-- booking-response.ts
+|   |-- cache/
+|   |   `-- redis-rate-limit.ts
+|   |-- compliance/
+|   |   |-- namqr/
+|   |   |   |-- index.ts
+|   |   |   |-- nrtc-payload.ts
+|   |   |   `-- standards.ts
+|   |   |-- security-pack/
+|   |   |   |-- index.ts
+|   |   |   |-- preflight-checks.ts
+|   |   |   `-- types.ts
+|   |   |-- soc2/
+|   |   |   |-- agents/
+|   |   |   |   |-- access-control-agent.ts
+|   |   |   |   |-- availability-agent.ts
+|   |   |   |   |-- change-management-agent.ts
+|   |   |   |   |-- confidentiality-agent.ts
+|   |   |   |   |-- monitoring-agent.ts
+|   |   |   |   |-- shared.ts
+|   |   |   |   `-- vendor-agent.ts
+|   |   |   |-- Soc2AuditOrchestrator.ts
+|   |   |   |-- Soc2ComplianceService.ts
+|   |   |   |-- control-catalog.ts
+|   |   |   |-- control-matrix.ts
+|   |   |   |-- hub-compliance-access.ts
+|   |   |   |-- index.ts
+|   |   |   |-- nayaone-tsc-framework.ts
+|   |   |   |-- run-all-soc2-agents.ts
+|   |   |   |-- soc2-audit-engine.ts
+|   |   |   `-- types.ts
+|   |   |-- AuditHashService.ts
+|   |   |-- audit-filters.ts
+|   |   |-- compliance-snapshot.ts
+|   |   |-- payments-by-rail.ts
+|   |   |-- record-audit.ts
+|   |   |-- regulatory-context.ts
+|   |   `-- with-admin-rate-limit.ts
+|   |-- config/
+|   |   |-- adumo.ts
+|   |   |-- compliance-flags.ts
+|   |   |-- constants.ts
+|   |   |-- deepseek.ts
+|   |   |-- hospitality-flags.ts
+|   |   `-- platform-console.ts
+|   |-- constants/
+|   |   `-- hotel-etuna-room-types.ts
+|   |-- copy/
+|   |   |-- auth.ts
+|   |   |-- brand.ts
+|   |   |-- contact-emails.ts
+|   |   |-- dashboard.ts
+|   |   |-- guest.ts
+|   |   |-- index.ts
+|   |   `-- public.ts
+|   |-- cron/
+|   |   |-- email-inbox-monitor.ts
+|   |   `-- intelligence-digest-job.ts
+|   |-- data/
+|   |   |-- dining.ts
+|   |   |-- etuna-inventory-seed.ts
+|   |   |-- etuna-restaurant-menu-catalog.ts
+|   |   |-- hotel-etuna-room-inventory.ts
+|   |   |-- menu-image-thumb.ts
+|   |   |-- menu-item-image-kinds.ts
+|   |   |-- menu-item-image-urls.ts
+|   |   |-- partners.ts
+|   |   |-- room-type-catalog.ts
+|   |   `-- rooms.ts
+|   |-- db/
+|   |   |-- connection.ts
+|   |   |-- index.ts
+|   |   |-- rows.ts
+|   |   |-- schema-types.ts
+|   |   `-- schema.ts
+|   |-- dining/
+|   |   |-- menu-book-pagination.ts
+|   |   |-- menu-display.ts
+|   |   |-- menu-item-images.ts
+|   |   |-- restaurant-hours.ts
+|   |   `-- serialize-public-menu.ts
+|   |-- domain/
+|   |   `-- accounting/
+|   |       |-- accounting-terminology.ts
+|   |       |-- index.ts
+|   |       |-- namibia-hospitality-coa.ts
+|   |       `-- types.ts
+|   |-- email/
+|   |   |-- hotel-etuna-email-signature.ts
+|   |   `-- sofia-email-helpers.ts
+|   |-- folio/
+|   |   `-- void-reason-codes.ts
+|   |-- hooks/
+|   |   `-- useTenant.ts
+|   |-- integrations/
+|   |   |-- whatsapp/
+|   |   |   |-- meta-webhook-signature.ts
+|   |   |   `-- whatsapp-graph-api.ts
+|   |   |-- embeddings-rag.ts
+|   |   |-- internal-support-escalation.ts
+|   |   |-- mem0.ts
+|   |   |-- qdrant-inference.ts
+|   |   `-- qdrant.ts
+|   |-- middleware/
+|   |   `-- require2FA.ts
+|   |-- monitoring/
+|   |   |-- capture-client-exception.ts
+|   |   `-- posthog-server.ts
+|   |-- payments/
+|   |   |-- namibia-payment-rails.ts
+|   |   `-- transaction-metadata.ts
+|   |-- platform/
+|   |   |-- namibia-tax.ts
+|   |   `-- settlement-accounts.ts
+|   |-- rooms/
+|   |   |-- inventory-display.ts
+|   |   |-- public-rate.ts
+|   |   `-- room-display.ts
+|   |-- services/
+|   |   |-- accounting/
+|   |   |   |-- HospitalityAccountingService.ts
+|   |   |   `-- JournalEntryService.ts
+|   |   |-- ai/
+|   |   |   |-- DataFilterService.ts
+|   |   |   |-- KnowledgeBaseService.ts
+|   |   |   |-- LLMProviderRouter.ts
+|   |   |   |-- SofiaConciergeService.ts
+|   |   |   |-- sofia-api-handlers.ts
+|   |   |   `-- sofia-concierge-handler.ts
+|   |   |-- analytics/
+|   |   |   |-- AnalyticsService.ts
+|   |   |   `-- ReportService.ts
+|   |   |-- billing/
+|   |   |   |-- PlatformBillingService.ts
+|   |   |   |-- PlatformFeeService.ts
+|   |   |   `-- SettlementAccountService.ts
+|   |   |-- booking/
+|   |   |   |-- AvailabilityService.ts
+|   |   |   |-- BookingService.ts
+|   |   |   |-- FacilityBookingPricing.ts
+|   |   |   |-- GuestService.ts
+|   |   |   |-- NightAuditService.ts
+|   |   |   |-- ReservationService.ts
+|   |   |   |-- ReservationStateMachine.ts
+|   |   |   |-- bookingLifecycleSideEffects.ts
+|   |   |   `-- linkGuestAccount.ts
+|   |   |-- calendar/
+|   |   |   `-- CalendarService.ts
+|   |   |-- cms/
+|   |   |   |-- ContentService.ts
+|   |   |   |-- MediaService.ts
+|   |   |   `-- SlugService.ts
+|   |   |-- compliance/
+|   |   |   |-- AMLMonitoringService.ts
+|   |   |   |-- BonIncidentReportingService.ts
+|   |   |   |-- ComplianceVerificationService.ts
+|   |   |   |-- RegulatoryLifecycleService.ts
+|   |   |   |-- STRGenerationService.ts
+|   |   |   |-- Soc2AuditService.ts
+|   |   |   `-- TransactionValidator.ts
+|   |   |-- crm/
+|   |   |   |-- CrmConsentService.ts
+|   |   |   |-- CrmGraphMemoryService.ts
+|   |   |   |-- CrmMemoryBridge.ts
+|   |   |   |-- CrmOutreachService.ts
+|   |   |   |-- CustomerService.ts
+|   |   |   |-- SofiaGuestFactExtractor.ts
+|   |   |   `-- crmGuestInsights.ts
+|   |   |-- documents/
+|   |   |   |-- ElectronicSignatureService.ts
+|   |   |   |-- RAGSearchService.ts
+|   |   |   |-- RagIngestService.ts
+|   |   |   `-- rag-chunk.ts
+|   |   |-- fnb/
+|   |   |   `-- fnb-print-dispatch-service.ts
+|   |   |-- folio/
+|   |   |   |-- FolioService.ts
+|   |   |   |-- GuestStayService.ts
+|   |   |   `-- guestStayAccess.ts
+|   |   |-- fraud/
+|   |   |   |-- FraudAlertNotificationService.ts
+|   |   |   |-- FraudDetectionService.ts
+|   |   |   |-- PsdPaymentFraudGate.ts
+|   |   |   `-- tenant-fraud-rules.ts
+|   |   |-- inventory/
+|   |   |   `-- InventoryService.ts
+|   |   |-- loyalty/
+|   |   |   `-- LoyaltyService.ts
+|   |   |-- menu/
+|   |   |   |-- MenuPopularityService.ts
+|   |   |   `-- MenuService.ts
+|   |   |-- notifications/
+|   |   |   |-- NotificationDispatchService.ts
+|   |   |   `-- SmsService.ts
+|   |   |-- openbanking/
+|   |   |   |-- AccountInformationService.ts
+|   |   |   |-- NamQRService.ts
+|   |   |   |-- OAuthService.ts
+|   |   |   `-- PaymentInitiationService.ts
+|   |   |-- payment/
+|   |   |   |-- AdumoVirtualService.ts
+|   |   |   |-- HospitalityNamQrPaymentService.ts
+|   |   |   |-- ManualPaymentService.ts
+|   |   |   |-- PaymentSecurityService.ts
+|   |   |   |-- applyDiningAdumoDeposit.ts
+|   |   |   |-- completeAdumoVirtualPayment.ts
+|   |   |   |-- paymentOutbox.ts
+|   |   |   |-- paymentStateMachine.ts
+|   |   |   `-- settleOffPlatformFolio.ts
+|   |   |-- platform/
+|   |   |   |-- AiObservabilityService.ts
+|   |   |   |-- IntelligenceReportService.ts
+|   |   |   |-- SecretsStatusService.ts
+|   |   |   `-- SupportTicketService.ts
+|   |   |-- property/
+|   |   |   |-- AvailabilityLedgerService.ts
+|   |   |   |-- AvailabilityService.ts
+|   |   |   |-- PropertyService.ts
+|   |   |   `-- RoomService.ts
+|   |   |-- qr/
+|   |   |   |-- NAMQRService.ts
+|   |   |   `-- namqr-core.ts
+|   |   |-- restaurant/
+|   |   |   |-- OrderService.ts
+|   |   |   |-- QRCodeService.ts
+|   |   |   `-- TableService.ts
+|   |   |-- room/
+|   |   |   `-- RoomService.ts
+|   |   |-- scheduling/
+|   |   |   |-- CalWebhookService.ts
+|   |   |   |-- DurableScheduler.ts
+|   |   |   `-- schedulerJobHandlers.ts
+|   |   |-- security/
+|   |   |   |-- EncryptionService.ts
+|   |   |   |-- SecurityIncidentService.ts
+|   |   |   |-- TwoFactorAuthService.ts
+|   |   |   `-- UptimeMonitoringService.ts
+|   |   |-- sofia/
+|   |   |   |-- ConversationService.ts
+|   |   |   |-- DiningReservationService.ts
+|   |   |   |-- EmailInboxService.ts
+|   |   |   |-- EmailService.ts
+|   |   |   |-- EmailTemplateGenerator.ts
+|   |   |   |-- EmailTemplateService.ts
+|   |   |   |-- RestaurantReservationFlowService.ts
+|   |   |   |-- SofiaConciergeService.ts
+|   |   |   |-- SofiaConversationContextService.ts
+|   |   |   |-- SofiaPipelineService.ts
+|   |   |   |-- SofiaService.ts
+|   |   |   `-- VoiceChannelAdapter.ts
+|   |   |-- staff/
+|   |   |   |-- PerformanceService.ts
+|   |   |   |-- ScheduleService.ts
+|   |   |   `-- StaffService.ts
+|   |   |-- tax/
+|   |   |   `-- PropertyVatService.ts
+|   |   `-- whatsapp/
+|   |       |-- findGuestByWhatsappPhone.ts
+|   |       `-- tenantWhatsappLookup.ts
+|   |-- types/
+|   |   |-- ai.ts
+|   |   |-- analytics.ts
+|   |   |-- booking.ts
+|   |   |-- cms.ts
+|   |   |-- crm.ts
+|   |   |-- folio.ts
+|   |   |-- guest.ts
+|   |   |-- property.ts
+|   |   |-- restaurant.ts
+|   |   |-- sofia-conversation-context.ts
+|   |   `-- staff.ts
+|   |-- utils/
+|   |   |-- api-error-message.ts
+|   |   |-- api-helpers.ts
+|   |   |-- api-url.ts
+|   |   |-- cn.ts
+|   |   |-- date.ts
+|   |   |-- dev-log.ts
+|   |   |-- errors.ts
+|   |   |-- etuna-scope.ts
+|   |   |-- formatting.ts
+|   |   |-- hub-tenant.ts
+|   |   |-- public-app-url.ts
+|   |   |-- public-property.ts
+|   |   |-- rate-limit.ts
+|   |   |-- sanitize-html.ts
+|   |   |-- security-logger.client.ts
+|   |   |-- security-logger.ts
+|   |   |-- slugify.ts
+|   |   |-- status-normalize.ts
+|   |   |-- tenant-validation.ts
+|   |   `-- validation.ts
+|   |-- validation/
+|   |   |-- entity-ids.ts
+|   |   |-- password.ts
+|   |   `-- sofia-email-schemas.ts
+|   |-- workflows/
+|   |   |-- domainTransitions.ts
+|   |   |-- genericLifecycleGraph.ts
+|   |   |-- graphReducers.ts
+|   |   |-- hospitalityMarketingWorkflows.ts
+|   |   |-- kycKybGraph.ts
+|   |   |-- sofia-graph.ts
+|   |   `-- sofiaToolGraph.ts
+|   |-- formatters.ts
+|   |-- posthog-client-options.ts
+|   `-- posthog.ts
+|-- public/
+|   |-- brand/
+|   |   |-- hotel-etuna-logo.png
+|   |   |-- hotel-etuna-mark-reference.png
+|   |   |-- hotel-etuna-mark.png
+|   |   `-- hotel-etuna-mark.svg
+|   |-- icons/
+|   |   |-- apple-touch-icon.png
+|   |   |-- icon-192.png
+|   |   |-- icon-512.png
+|   |   |-- icon-maskable.svg
+|   |   `-- icon.svg
+|   |-- images/
+|   |   |-- flags/
+|   |   |   |-- germany-flag.png
+|   |   |   |-- india-flag.png
+|   |   |   |-- indonesia-flag.png
+|   |   |   |-- israel-flag.png
+|   |   |   |-- malaysia-flag.png
+|   |   |   |-- namibia-flag.png
+|   |   |   |-- south-africa-flag.png
+|   |   |   |-- tanzania-flag.png
+|   |   |   |-- uae-flag.png
+|   |   |   |-- usa-flag.png
+|   |   |   `-- zambia-flag.png
+|   |   |-- hospitality/
+|   |   |   |-- guest_house.jpeg
+|   |   |   |-- hero_hotel_lobby.jpeg
+|   |   |   |-- hotel_room.jpeg
+|   |   |   |-- resort_exterior.jpeg
+|   |   |   |-- restaurant_bar.jpeg
+|   |   |   `-- restaurant_dining.jpeg
+|   |   |-- namibia/
+|   |   |   |-- epepa_camping_milkyway.jpeg
+|   |   |   |-- etosha_national_park.jpeg
+|   |   |   |-- namibia.jpeg
+|   |   |   |-- namibia_desert.jpeg
+|   |   |   |-- namibia_epupafalls.jpeg
+|   |   |   |-- namibia_soussosvlei.jpeg
+|   |   |   |-- skydive_swakopmund.jpeg
+|   |   |   |-- soussosvlei.jpeg
+|   |   |   `-- swakopmund.jpg
+|   |   `-- hotel-etuna-og.jpg
+|   |-- manifest.json
+|   `-- sw.js
+|-- scripts/
+|   |-- archon/
+|   |   `-- sync-content-knowledge.sh*
+|   |-- compliance/
+|   |   `-- soc2-audit.ts
+|   |-- db/
+|   |   |-- apply-all-missing-migrations.ts
+|   |   |-- apply-cms-migrations.ts
+|   |   |-- apply-loyalty-migrations.ts
+|   |   |-- apply-pending-migrations.ts
+|   |   |-- audit-neon-baseline.ts
+|   |   |-- generate-all-migrations-sql.ts
+|   |   |-- patch-tenant-type-column.ts
+|   |   |-- reset-database.ts
+|   |   |-- seed-loyalty-tiers.ts
+|   |   |-- verify-db.ts
+|   |   |-- verify-migrations.ts*
+|   |   |-- verify-neon-migrations.ts
+|   |   `-- verify-tenant-rls.ts
+|   |-- lib/
+|   |   `-- menu-images-db.ts
+|   |-- security/
+|   |   `-- run-preflight.ts
+|   |-- soc2/
+|   |   `-- collect-evidence.ts
+|   |-- README.md
+|   |-- check-env-local.mjs
+|   |-- clean-dev-cache.mjs
+|   |-- ingest-hotel-etuna-knowledge.ts
+|   |-- print-email-signature.ts
+|   |-- provision-platform-admin.ts
+|   |-- push-env-to-vercel.mjs
+|   |-- seed-hotel-etuna.ts
+|   |-- seed-menu-images.ts
+|   |-- seed-partners.ts
+|   |-- sync-env-local.mjs
+|   |-- validate-menu-images.ts
+|   |-- validate-sofia-email-templates.ts
+|   `-- verify-system-design.js*
+|-- tests/
+|   |-- api/
+|   |   |-- dashboard.test.ts
+|   |   `-- properties.test.ts
+|   |-- fixtures/
+|   |   `-- test-helpers.ts
+|   |-- integration/
+|   |   |-- fnb/
+|   |   |   |-- fnb-print-dispatch-service.test.ts
+|   |   |   `-- print-jobs-api.test.ts
+|   |   |-- accounting-period-close.test.ts
+|   |   |-- audit-chain-verify-api.test.ts
+|   |   |-- booking-lifecycle-hooks.test.ts
+|   |   |-- bookings.test.ts
+|   |   |-- crm-consent.test.ts
+|   |   |-- crm-outreach.test.ts
+|   |   |-- database.test.ts
+|   |   |-- folio-guest-stay.test.ts
+|   |   |-- folio-void-api.test.ts
+|   |   |-- housekeeping.test.ts
+|   |   |-- kyc-upgrade-prompts-api.test.ts
+|   |   |-- properties.test.ts
+|   |   |-- restaurant-menu-orders.test.ts
+|   |   |-- reviews-api.test.ts
+|   |   |-- rooms.test.ts
+|   |   |-- sofia-email-inbox.test.ts
+|   |   |-- staff.test.ts
+|   |   `-- support-tickets.test.ts
+|   |-- loyalty/
+|   |   `-- loyalty-service.test.ts
+|   |-- seed/
+|   |-- setup/
+|   |   |-- load-env.ts
+|   |   `-- test-setup.ts
+|   |-- smoke/
+|   |   `-- compliance-fraud-db.smoke.test.ts
+|   |-- sofia/
+|   |   |-- rag-activation.test.ts
+|   |   |-- sofia-chat-comprehensive.test.ts
+|   |   |-- sofia-chat.test.ts
+|   |   |-- sofia-email.test.ts
+|   |   `-- sofia-knowledge-base.test.ts
+|   |-- unit/
+|   |   |-- adumo-jwt.test.ts
+|   |   |-- api-auth-gates.test.ts
+|   |   |-- api-response-contract.test.ts
+|   |   |-- audit-hash-chain.test.ts
+|   |   |-- auth-roles.test.ts
+|   |   |-- availability-ledger-service.test.ts
+|   |   |-- booking-kind-filters.test.ts
+|   |   |-- booking-response.test.ts
+|   |   |-- booking-validation.test.ts
+|   |   |-- cal-webhook-service.test.ts
+|   |   |-- contact-form.test.ts
+|   |   |-- dsar-workflow.test.ts
+|   |   |-- durable-scheduler.test.ts
+|   |   |-- email-signature.test.ts
+|   |   |-- facility-booking-pricing.test.ts
+|   |   |-- fraud-detection-comprehensive.test.ts
+|   |   |-- guest-marketing-segment.test.ts
+|   |   |-- hospitality-accounting-period-close.test.ts
+|   |   |-- hospitality-accounting.test.ts
+|   |   |-- journal-entry-void.test.ts
+|   |   |-- llm-provider-router.test.ts
+|   |   |-- loyalty-edge-cases.test.ts
+|   |   |-- menu-book-pagination.test.ts
+|   |   |-- menu-image-thumb.test.ts
+|   |   |-- multi-tenant-isolation.test.ts
+|   |   |-- namibia-hospitality-accounting.test.ts
+|   |   |-- namibia-property-vat.test.ts
+|   |   |-- namqr-payment-flow.test.ts
+|   |   |-- namqr-receipt-trigger.test.ts
+|   |   |-- namqr-v5.test.ts
+|   |   |-- night-audit-service.test.ts
+|   |   |-- password-validation.test.ts
+|   |   |-- payment-state-machine.test.ts
+|   |   |-- posthog-analytics.test.ts
+|   |   |-- public-rate.test.ts
+|   |   |-- public-session-nav.test.ts
+|   |   |-- rag-chunk.test.ts
+|   |   |-- rate-limit-coverage.test.ts
+|   |   |-- restaurant-reservation-flow.test.ts
+|   |   |-- room-display.test.ts
+|   |   |-- room-inventory-split.test.ts
+|   |   |-- security-preflight.test.ts
+|   |   |-- settle-off-platform-folio.test.ts
+|   |   |-- soc2-audit-agents.test.ts
+|   |   |-- soc2-audit.test.ts
+|   |   |-- soc2-control-matrix.test.ts
+|   |   |-- sofia-concierge-handler.test.ts
+|   |   |-- sofia-graph.test.ts
+|   |   |-- sofia-guest-fact-extractor.test.ts
+|   |   |-- sofia-intent-resolve.test.ts
+|   |   |-- sofia-pipeline.test.ts
+|   |   |-- sofia-tool-graph.test.ts
+|   |   |-- stack-env.test.ts
+|   |   `-- tenant-fraud-rules.test.ts
+|   |-- utils/
+|   |   |-- auth-helpers.ts
+|   |   |-- db-schema-check.ts
+|   |   `-- test-helpers.ts
+|   `-- workflows/
+|       |-- ci-workflow.test.ts
+|       |-- cron-workflow.test.ts
+|       |-- deploy-workflow.test.ts
+|       `-- security-workflow.test.ts
+|-- types/
+|   |-- daisyui.d.ts
+|   `-- qrcode.d.ts
+|-- CLAUDE.md
+|-- README.md
+|-- build.log
+|-- docker-compose.override.yml.example
+|-- docker-compose.yml
+|-- drizzle.config.ts
+|-- eslint.config.mjs
+|-- gemini.md
+|-- instrumentation-client.ts
+|-- next-auth.d.ts
+|-- next-env.d.ts
+|-- next.config.ts
+|-- openapi.yaml
+|-- package-lock.json
+|-- package.json
+|-- playwright.config.ts
+|-- postcss.config.mjs
+|-- proxy.ts
+|-- stack.ts
+|-- tailwind.config.ts
+|-- tsconfig.json
+|-- tsconfig.tsbuildinfo
+|-- vercel.json
+|-- vitest.config.ts
+`-- vitest.smoke.config.ts
+
+499 directories, 1058 files

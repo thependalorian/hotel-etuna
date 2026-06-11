@@ -4,7 +4,7 @@
 **Plan Owner:** CTO  
 **Review Frequency:** Biannual  
 **TSC Reference:** CC7.3, CC7.4, CC7.5  
-**Last Tested:** [Date of tabletop exercise]
+**Last Tested:** Tabletop scheduled 15 June 2026 — see `docs/compliance/incidents/tabletop-2026-06-15.md`
 
 ---
 

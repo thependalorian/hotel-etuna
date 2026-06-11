@@ -15,7 +15,7 @@ Hotel Etuna and Buffr operate **two independent VAT streams** under Namibian law
 
 **Code:** `lib/platform/namibia-tax.ts`, `lib/services/tax/PropertyVatService.ts`.
 
-**Commercial terms:** [`docs/BUFFR_FINANCIAL_SERVICES_PROPOSAL_AND_SLA.md`](../BUFFR_FINANCIAL_SERVICES_PROPOSAL_AND_SLA.md) §4.5, §8.7.
+**Commercial terms:** Buffr ↔ Etuna dual-VAT (property NamRA reporting + Buffr platform invoices) handled with counsel out-of-band; technical canon in `docs/project/PLANNING.md` § Payment strategy.
 
 ---
 
@@ -45,7 +45,8 @@ Both entities document VAT numbers in `namibia-tax.ts` — **verify against curr
 
 - Folio lines: `FolioService` + `computeHospitalityVatBreakdown()`
 - Guest-facing breakdown: `FolioVatBreakdown.tsx`
-- Period reports: `GET /api/reports/property-vat`, `PropertyVatReportPanel`
+- Period reports: `GET /api/reports/property-vat`, `PropertyVatReportPanel` (includes **NTB tourism levy 2%** on room lines via `accommodationNtbLevy`)
+- **Guest financial PDFs:** `DocumentGenerationService` — quotation, tax invoice (folio closed), receipt, payment notification; audit in `generated_documents` migration `0064`; tax math from `calculateAccommodationTax` / `sumDocumentLineTaxes` (same helpers as property VAT report). Automated wiring check: `npm run validate:document-wiring`.
 - Tax invoice checklist: `PROPERTY_GUEST_TAX_INVOICE_CHECKLIST` in `namibia-tax.ts`
 
 ### 3.2 Operational tasks
@@ -101,7 +102,28 @@ Guest card receipts must **not** imply guests pay Buffr for room charges — see
 | Etuna Guesthouse And Tours CC | 05517026-011 | Corporate tax rate per annual budget (30% from 2025) |
 | Buffr Financial Services CC | 15560644-011 | Separate returns |
 
-Employee tax (PAYE) and withholding tax references are on the Etuna NamRA certificate block — payroll outside this repo.
+Employee tax (PAYE) and withholding tax references are on the Etuna NamRA certificate block.
+
+### 6.1 In-repo payroll (June 2026)
+
+| Item | Detail |
+|------|--------|
+| Employer PAYE ref | `05517026-014` (`lib/platform/namibia-payroll.ts`) |
+| SSC | 0.9% employee + 0.9% employer; cap N$11,000/mo (max N$99 each side) |
+| PAYE bands | FY2025/26 marginal (0% to N$100k, then 18/25/28/30/32/37%) |
+| Schema | `0055`–`0057` — tax profiles, leave, timesheets, payroll runs/lines/payslips |
+| UI | `/payroll` — draft run, approve, PAYE + SSC CSV export |
+| RBAC | Founder + admin only (`proxy.ts` `PROPERTY_OWNER_ROUTES`) |
+
+**Filing calendar (accountant-owned):**
+
+| Return | Cadence | Product export |
+|--------|---------|------------------|
+| PAYE (ETX) | Monthly | `GET /api/payroll/exports/paye` |
+| SSC | Monthly | `GET /api/payroll/exports/ssc` |
+| Annual reconciliation | Tax year end (28 Feb) | Payslip archive + compensation history |
+
+Accountant must validate first live run before production disbursement.
 
 ---
 

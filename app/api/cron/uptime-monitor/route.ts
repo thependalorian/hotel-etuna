@@ -24,27 +24,16 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { runUptimeMonitoringCheck } from '@/lib/services/security/UptimeMonitoringService';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
+import { cronUnauthorizedResponse, verifyCronRequest } from '@/lib/utils/cron-auth';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60; // 60 seconds max execution time
 
 export async function GET(req: NextRequest) {
   try {
-    // Verify cron secret (security)
-    const authHeader = req.headers.get('authorization');
-    const cronSecret = process.env.CRON_SECRET;
-
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json(
-        {
-          error: {
-            code: 'UNAUTHORIZED',
-            message: 'Invalid or missing cron secret',
-          },
-        },
-        { status: 401 }
-      );
+    if (!verifyCronRequest(req)) {
+      return cronUnauthorizedResponse();
     }
 
     // Run uptime monitoring check

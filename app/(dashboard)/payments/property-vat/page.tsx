@@ -1,5 +1,5 @@
 /**
- * Property VAT report — Hotel Etuna hospitality output VAT for NamRA (not Buffr platform fees).
+ * Property VAT report — hospitality output VAT for NamRA.
  * Location: app/(dashboard)/payments/property-vat/page.tsx
  */
 
@@ -7,10 +7,12 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { PropertyVatReportPanel } from '@/components/features/tax/PropertyVatReportPanel';
 import { Button } from '@/components/ui/Button';
+import { brand } from '@/lib/copy/brand';
+import { dashboardCopy } from '@/lib/copy/dashboard';
 
 export const metadata: Metadata = {
-  title: 'Property VAT report | Hotel Etuna',
-  description: 'NamRA VAT on guest room and F&B supplies — separate from Buffr platform billing.',
+  title: `Property VAT report | ${brand.name}`,
+  description: `NamRA VAT on guest room and F&B supplies — separate from ${dashboardCopy.nav.platformFees.toLowerCase()}.`,
 };
 
 export default function PropertyVatPage() {
@@ -20,14 +22,14 @@ export default function PropertyVatPage() {
         <div>
           <h1 className="font-display text-3xl font-bold text-nude-900 mb-2">Property VAT report</h1>
           <p className="text-nude-600">
-            Hotel Etuna files its own VAT returns on guest hospitality. Buffr invoices platform fees
+            {brand.name} files its own VAT returns on guest hospitality. Platform fees are invoiced
             separately.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href="/payments/platform-billing">
             <Button variant="outline" size="sm">
-              Platform billing (Buffr)
+              {dashboardCopy.nav.platformFees}
             </Button>
           </Link>
           <Link href="/payments/reconciliation">

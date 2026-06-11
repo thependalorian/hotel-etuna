@@ -1,12 +1,12 @@
 /**
  * Housekeeping Tasks API
- * 
+ *
  * Endpoints:
- * - GET /api/housekeeping/tasks - List all tasks for staff's property
- * - POST /api/housekeeping/tasks - Create a new housekeeping task
- * 
- * Authorization: Housekeeping staff and managers only
- * Rate Limit: Part 11 Gap 8 - Applied via middleware
+ * - GET /api/housekeeping/tasks - List tasks for staff's property
+ * - POST /api/housekeeping/tasks - Create a task (managers/supervisors only)
+ *
+ * RLS: Active via withApiAuth wrapper — sets app.tenant_id before queries.
+ * RLS policies on housekeeping_tasks use app.tenant_id + app.tenant_type (migration 0021).
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -14,15 +14,13 @@ import { db } from '@/lib/db';
 import { housekeepingTasks, staff, rooms, bookings } from '@/lib/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { z } from 'zod';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { withApiAuth } from '@/lib/utils/api-helpers';
+import { securityLogger } from '@/lib/utils/security-logger';
 
-// Input validation schema
 const createTaskSchema = z.object({
   roomId: z.string().uuid(),
-  bookingId: z.string().uuid().optional(),
-  assignedTo: z.string().uuid().optional(),
+  bookingId: z.string().uuid().nullish().transform(val => val ?? undefined),
+  assignedTo: z.string().uuid().nullish().transform(val => val ?? undefined),
   priority: z.enum(['low', 'normal', 'high', 'urgent']).default('normal'),
   taskType: z.string().default('checkout_cleaning'),
   notes: z.string().optional(),
@@ -30,37 +28,17 @@ const createTaskSchema = z.object({
 
 /**
  * GET /api/housekeeping/tasks
- * List housekeeping tasks for the staff's property
+ * List housekeeping tasks for the staff's property.
+ * RLS scopes to tenant via app.tenant_id.
  */
 export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+  return withApiAuth(request, async (req, user) => {
+    const { searchParams } = new URL(req.url);
+    const statusFilter = searchParams.get('status');
 
-    // Get staff record to find property
-    const staffRecord = await db
-      .select()
-      .from(staff)
-      .where(eq(staff.userId, session.user.id))
-      .limit(1);
-
-    if (!staffRecord.length) {
-      return NextResponse.json({ error: 'Staff record not found' }, { status: 403 });
-    }
-
-    const propertyId = staffRecord[0].propertyId;
-
-    // Get query params for filtering
-    const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status');
-
-    // Build where conditions (Drizzle requires composing conditions before calling .where)
-    const conditions = [eq(housekeepingTasks.propertyId, propertyId!)];
-    if (status && ['dirty', 'cleaning', 'inspecting', 'clean'].includes(status)) {
-      conditions.push(eq(housekeepingTasks.status, status as 'dirty' | 'cleaning' | 'inspecting' | 'clean'));
+    const conditions = [];
+    if (statusFilter && ['dirty', 'cleaning', 'inspecting', 'clean'].includes(statusFilter)) {
+      conditions.push(eq(housekeepingTasks.status, statusFilter as 'dirty' | 'cleaning' | 'inspecting' | 'clean'));
     }
 
     const tasks = await db
@@ -78,72 +56,45 @@ export async function GET(request: NextRequest) {
       .orderBy(desc(housekeepingTasks.createdAt));
 
     return NextResponse.json({ tasks });
-  } catch (error) {
-    securityLogger.error('Error fetching housekeeping tasks:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch tasks' },
-      { status: 500 }
-    );
-  }
+  });
 }
 
 /**
  * POST /api/housekeeping/tasks
- * Create a new housekeeping task
- * Authorization: Managers and supervisors only
+ * Create a new housekeeping task.
+ * Authorization: managers, admin, or housekeeping_supervisor role only.
  */
 export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  return withApiAuth(request, async (req, user) => {
+    // Verify user is a manager/supervisor via role check
+    const allowedRoles = ['owner', 'manager', 'admin', 'housekeeping_supervisor'];
+    const userRole = (user.role ?? '').toLowerCase();
+    if (!allowedRoles.includes(userRole)) {
+      return NextResponse.json({ error: 'Insufficient permissions — managers only' }, { status: 403 });
     }
 
-    // Get staff record and verify role
-    const staffRecord = await db
-      .select()
-      .from(staff)
-      .where(eq(staff.userId, session.user.id))
-      .limit(1);
-
-    if (!staffRecord.length) {
-      return NextResponse.json({ error: 'Staff record not found' }, { status: 403 });
-    }
-
-    const staffData = staffRecord[0];
-    
-    // Only managers, admin, and housekeeping supervisors can create tasks
-    if (!['manager', 'admin', 'housekeeping_supervisor'].includes(staffData.position ?? '')) {
-      return NextResponse.json(
-        { error: 'Insufficient permissions' },
-        { status: 403 }
-      );
-    }
-
-    // Parse and validate input
-    const body = await request.json();
+    const body = await req.json();
     const validatedData = createTaskSchema.parse(body);
 
-    // Verify room belongs to the same property
+    // Verify room exists in the same tenant (RLS handles scope)
     const room = await db
       .select()
       .from(rooms)
       .where(eq(rooms.id, validatedData.roomId))
       .limit(1);
 
-    if (!room.length || room[0].propertyId !== staffData.propertyId) {
-      return NextResponse.json(
-        { error: 'Invalid room or room not in your property' },
-        { status: 400 }
-      );
+    if (!room.length) {
+      return NextResponse.json({ error: 'Room not found' }, { status: 400 });
     }
 
-    // Create the task
+    if (!room[0].propertyId) {
+      return NextResponse.json({ error: 'Room has no property assigned' }, { status: 400 });
+    }
+
     const [newTask] = await db
       .insert(housekeepingTasks)
       .values({
-        propertyId: staffData.propertyId!,
+        propertyId: room[0].propertyId!,
         roomId: validatedData.roomId,
         bookingId: validatedData.bookingId,
         assignedTo: validatedData.assignedTo,
@@ -151,23 +102,10 @@ export async function POST(request: NextRequest) {
         taskType: validatedData.taskType,
         notes: validatedData.notes,
         status: 'dirty',
-        createdBy: session.user.id,
+        createdBy: user.id,
       })
       .returning();
 
     return NextResponse.json({ task: newTask }, { status: 201 });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid input', details: error.issues },
-        { status: 400 }
-      );
-    }
-
-    securityLogger.error('Error creating housekeeping task:', error);
-    return NextResponse.json(
-      { error: 'Failed to create task' },
-      { status: 500 }
-    );
-  }
+  });
 }

@@ -23,7 +23,7 @@ import { withApiAuth, errorResponse, successResponse } from '@/lib/utils/api-hel
 import { RoomService } from '@/lib/services/room/RoomService';
 import { entityIdOptional } from '@/lib/validation/entity-ids';
 import * as z from 'zod';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const roomService = new RoomService();
 

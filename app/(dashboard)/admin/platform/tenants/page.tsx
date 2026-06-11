@@ -74,9 +74,9 @@ export default async function TenantsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="buffr-page-title mb-2">Tenant Management</h1>
+        <h1 className="etuna-page-title mb-2">Tenant Management</h1>
         <p className="text-base-content/70">
-          Manage all tenants and organizations on the platform
+          Manage referral partner tenants — Hotel Etuna is the single hub property
         </p>
       </div>
 

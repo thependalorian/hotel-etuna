@@ -1,91 +1,37 @@
 /**
- * GuestStaysList
+ * GuestStaysList / GuestStaysSections
  *
- * Purpose: Client list of active stays and bookings awaiting deposit payment.
+ * Purpose: Render a guest's active stays, deposit-due bookings, and past stays.
  * Location: /components/features/guest/GuestStaysList.tsx
+ *
+ * `GuestStaysSections` is presentational (takes hub data); `GuestStaysList` is the
+ * self-fetching wrapper. The guest dashboard fetches once via `useGuestHub` and renders
+ * `GuestStaysSections` directly (no duplicate request).
  */
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { BookingDepositPayCard } from '@/components/payments/BookingDepositPayCard';
 import { GuestLoyaltySummary } from '@/components/features/guest/GuestLoyaltySummary';
 import { guestCopy } from '@/lib/copy/guest';
-import type {
-  GuestLoyaltyHubSummary,
-  GuestPastStaySummary,
-  GuestPaymentDueSummary,
-  GuestStaySummary,
-} from '@/lib/types/folio';
+import { useGuestHub, type GuestHubState } from '@/components/features/guest/useGuestHub';
+import { LoyaltyRedeemModal } from '@/components/features/guest/LoyaltyRedeemModal';
+import { PastStayCard } from '@/components/features/guest/PastStayCard';
 
-type HubData = {
-  activeStays: GuestStaySummary[];
-  paymentDue: GuestPaymentDueSummary[];
-  pastStays: GuestPastStaySummary[];
-  loyalty: GuestLoyaltyHubSummary | null;
-};
-
-function normalizeHubPayload(json: { data?: unknown }): HubData {
-  const data = json.data;
-  if (Array.isArray(data)) {
-    return {
-      activeStays: data as GuestStaySummary[],
-      paymentDue: [],
-      pastStays: [],
-      loyalty: null,
-    };
-  }
-  if (data && typeof data === 'object') {
-    const hub = data as HubData;
-    return {
-      activeStays: hub.activeStays ?? [],
-      paymentDue: hub.paymentDue ?? [],
-      pastStays: hub.pastStays ?? [],
-      loyalty: hub.loyalty ?? null,
-    };
-  }
-  return { activeStays: [], paymentDue: [], pastStays: [], loyalty: null };
-}
-
-export function GuestStaysList() {
-  const [activeStays, setActiveStays] = useState<GuestStaySummary[]>([]);
-  const [paymentDue, setPaymentDue] = useState<GuestPaymentDueSummary[]>([]);
-  const [pastStays, setPastStays] = useState<GuestPastStaySummary[]>([]);
-  const [loyalty, setLoyalty] = useState<GuestLoyaltyHubSummary | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch('/api/guest/stays', { credentials: 'include' });
-        const json = await res.json();
-        if (!res.ok) {
-          throw new Error(json?.error?.message || 'Failed to load stays');
-        }
-        if (!cancelled) {
-          const hub = normalizeHubPayload(json);
-          setActiveStays(hub.activeStays);
-          setPaymentDue(hub.paymentDue);
-          setPastStays(hub.pastStays);
-          setLoyalty(hub.loyalty);
-        }
-      } catch (e) {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : 'Failed to load stays');
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+/** Presentational stays sections — data supplied by the caller. */
+export function GuestStaysSections({
+  activeStays,
+  paymentDue,
+  pastStays,
+  loyalty,
+  loading,
+  error,
+}: GuestHubState) {
+  const [redeemModalOpen, setRedeemModalOpen] = useState(false);
 
   if (loading) {
     return <div className="skeleton h-40 w-full rounded-xl" aria-hidden />;
@@ -120,15 +66,26 @@ export function GuestStaysList() {
     );
   }
 
+  const redemptionEligibleStays = activeStays.map((stay) => ({
+    bookingId: stay.bookingId,
+    bookingReference: stay.bookingReference,
+    propertyName: stay.propertyName,
+    balanceDue: stay.balanceDue,
+    currency: stay.currency,
+  }));
+
   return (
     <div className="space-y-8">
-      <GuestLoyaltySummary loyalty={loyalty} />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <GuestLoyaltySummary loyalty={loyalty} activeStays={redemptionEligibleStays} />
+        {loyalty && loyalty.loyaltyPoints > 0 && redemptionEligibleStays.length > 0 && (
+          <Button onClick={() => setRedeemModalOpen(true)}>Redeem points</Button>
+        )}
+      </div>
 
       {paymentDue.length > 0 && (
         <section>
-          <h2 className="font-display text-xl font-bold text-terracotta-900 mb-4">
-            Payment due
-          </h2>
+          <h2 className="font-display text-xl font-bold text-terracotta-900 mb-4">Payment due</h2>
           <ul className="space-y-4">
             {paymentDue.map((booking) => (
               <li key={booking.bookingId}>
@@ -148,7 +105,10 @@ export function GuestStaysList() {
                     amount={booking.totalAmount}
                     currency={booking.currency}
                   />
-                  <Link href={`/guest/stays/${booking.bookingId}`} className="text-sm text-terracotta-700 hover:underline">
+                  <Link
+                    href={`/guest/stays/${booking.bookingId}`}
+                    className="text-sm text-terracotta-700 hover:underline"
+                  >
                     View booking details
                   </Link>
                 </Card>
@@ -160,9 +120,7 @@ export function GuestStaysList() {
 
       {activeStays.length > 0 && (
         <section>
-          <h2 className="font-display text-xl font-bold text-terracotta-900 mb-4">
-            Active stays
-          </h2>
+          <h2 className="font-display text-xl font-bold text-terracotta-900 mb-4">Active stays</h2>
           <ul className="space-y-4">
             {activeStays.map((stay) => (
               <li key={stay.bookingId}>
@@ -187,39 +145,6 @@ export function GuestStaysList() {
                     <Link href={`/guest/stays/${stay.bookingId}`}>
                       <Button>Open folio &amp; room service</Button>
                     </Link>
-                    </div>
-                </Card>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-      {pastStays.length > 0 && (
-        <section>
-          <h2 className="font-display text-xl font-bold text-terracotta-900 mb-4">
-            {guestCopy.hub.pastStaysTitle}
-          </h2>
-          <ul className="space-y-4">
-            {pastStays.map((stay) => (
-              <li key={stay.bookingId}>
-                <Card variant="elevated" className="p-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                      <h3 className="font-display text-lg font-bold text-nude-900">
-                        {stay.propertyName}
-                      </h3>
-                      <p className="text-sm text-nude-600">
-                        Ref {stay.bookingReference} · 
-                        <span className="capitalize">{stay.status.replace('_', ' ')}</span>
-                        {stay.roomNumbers.length > 0 && ` · Room ${stay.roomNumbers.join(', ')}`}
-                      </p>
-                      <p className="text-sm text-nude-600 mt-1">
-                        {stay.checkInDate} → {stay.checkOutDate}
-                      </p>
-                    </div>
-                    <Link href={`/guest/stays/${stay.bookingId}`}>
-                      <Button variant="outline">View folio history</Button>
-                    </Link>
                   </div>
                 </Card>
               </li>
@@ -228,6 +153,34 @@ export function GuestStaysList() {
         </section>
       )}
 
+      {pastStays.length > 0 && (
+        <section>
+          <h2 className="font-display text-xl font-bold text-terracotta-900 mb-4">
+            {guestCopy.hub.pastStaysTitle}
+          </h2>
+          <p className="text-sm text-nude-600 mb-4">
+            Expand each stay to view your past folio and download receipts.
+          </p>
+          <div className="space-y-2">
+            {pastStays.map((stay) => (
+              <PastStayCard key={stay.bookingId} stay={stay} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <LoyaltyRedeemModal
+        isOpen={redeemModalOpen}
+        onClose={() => setRedeemModalOpen(false)}
+        activeStayId={redemptionEligibleStays.length > 0 ? redemptionEligibleStays[0].bookingId : null}
+        loyaltyPointsBalance={loyalty?.loyaltyPoints || 0}
+      />
     </div>
   );
+}
+
+/** Self-fetching wrapper (backward compatible). */
+export function GuestStaysList() {
+  const hub = useGuestHub();
+  return <GuestStaysSections {...hub} />;
 }

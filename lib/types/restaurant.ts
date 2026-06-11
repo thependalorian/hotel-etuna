@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Restaurant domain DTOs (menu items, tables, orders).
+ * Location: lib/types/restaurant.ts
+ */
 export interface MenuItemData {
   restaurantId: string;
   categoryId: string;

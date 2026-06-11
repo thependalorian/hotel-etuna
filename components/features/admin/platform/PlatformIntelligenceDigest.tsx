@@ -1,5 +1,5 @@
 /**
- * PlatformIntelligenceDigest — preview founder digest + send test email from Buffr Hub.
+ * PlatformIntelligenceDigest — preview founder digest + send test email from platform console.
  * Location: components/features/admin/platform/PlatformIntelligenceDigest.tsx
  */
 

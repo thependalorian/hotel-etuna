@@ -16,11 +16,13 @@ import { getCompleteMenu } from '@/lib/data/dining';
 import { serializePublicMenu } from '@/lib/dining/serialize-public-menu';
 import { resolvePublicHubProperty } from '@/lib/utils/public-property';
 import { getCachedPopularMenuItemIds } from '@/lib/services/menu/MenuPopularityService';
-import PublicMenuBoard from '@/components/dining/PublicMenuBoard';
 import PublicHero from '@/components/shared/PublicHero';
 import Footer from '@/components/shared/Footer';
 import NavigationHeader from '@/components/sections/landing/NavigationHeader';
 import { publicCopy } from '@/lib/copy/public';
+import { GuestFavouritesStrip } from '@/components/dining/GuestFavouritesStrip';
+import { PublicMenuItem, PublicMenuPayload } from '@/lib/dining/menu-display';
+import { MenuDisplay } from '@/components/dining/MenuDisplay';
 
 export const metadata: Metadata = {
   title: 'Dining & Restaurant',
@@ -37,11 +39,19 @@ export default async function DiningPage() {
   const featuredMenuItemIds = await getCachedPopularMenuItemIds(
     hubTenant.id,
     property.id,
-    restaurant?.id,
+    restaurant?.id ?? undefined,
   );
   const publicMenu = serializePublicMenu(categoryRows, itemsByCategory, {
     featuredMenuItemIds,
   });
+
+  // Prepare menu data for client-side rendering
+  // Guest favourites will be fetched client-side in GuestFavouritesStrip
+  const menuData = {
+    ...publicMenu,
+    featuredMenuItemIds,
+    restaurantName: restaurant?.name || 'Etuna Restaurant',
+  };
 
   return (
     <div className="min-h-screen bg-surface-background">
@@ -95,6 +105,10 @@ export default async function DiningPage() {
           </div>
         </section>
 
+        {isAuthenticated && (
+          <GuestFavouritesStrip />
+        )}
+
         <section className="py-16 bg-nude-50" id="menu">
           <div className="container mx-auto px-4 sm:px-6">
             <div className="max-w-6xl mx-auto">
@@ -106,7 +120,7 @@ export default async function DiningPage() {
                 </p>
               </div>
 
-              <PublicMenuBoard menu={publicMenu} isAuthenticated={isAuthenticated} />
+              <MenuDisplay menu={menuData} />
             </div>
           </div>
         </section>

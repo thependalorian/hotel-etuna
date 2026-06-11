@@ -30,7 +30,7 @@ import { securityLogger } from '@/lib/utils/security-logger';
 dotenv.config({ path: '.env.local' });
 
 const KNOWLEDGE_DIR = join(process.cwd(), 'data', 'hotel-etuna-knowledge');
-const COLLECTION_NAME = process.env.RAG_QDRANT_COLLECTION?.trim() || 'buffr_rag';
+const COLLECTION_NAME = process.env.RAG_QDRANT_COLLECTION?.trim() || 'etuna_rag';
 const CHUNK_MAX_CHARS = 800;
 const CHUNK_OVERLAP = 100;
 

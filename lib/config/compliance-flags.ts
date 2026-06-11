@@ -3,10 +3,10 @@
  * Location: lib/config/compliance-flags.ts
  */
 
-/** PEP screening is off for Hotel Etuna (Buffr Hub / FSP products may enable separately). */
-export function isPepScreeningEnabled(): boolean {
-  const raw = process.env.HOSPITALITY_PEP_SCREENING_ENABLED?.trim().toLowerCase();
-  if (raw === 'true' || raw === '1') return true;
+/** Tamper-evident SHA-256 hash chain on `audit_trail` (OSS Wave W3). */
+export function isAuditHashChainEnabled(): boolean {
+  const raw = process.env.AUDIT_HASH_CHAIN_ENABLED?.trim().toLowerCase();
   if (raw === 'false' || raw === '0') return false;
-  return false;
+  if (raw === 'true' || raw === '1') return true;
+  return true;
 }

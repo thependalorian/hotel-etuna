@@ -66,9 +66,9 @@ export function PublicAuthNav({
   }
 
   const role = session.user.role;
-  const accountHref = getSignedInAccountHref(role);
-  const accountLabel = getSignedInAccountLabel(role);
   const email = session.user.email ?? '';
+  const accountHref = getSignedInAccountHref(role, email);
+  const accountLabel = getSignedInAccountLabel(role, email);
 
   return (
     <div

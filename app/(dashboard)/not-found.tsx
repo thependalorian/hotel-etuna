@@ -14,7 +14,7 @@ export default function DashboardSegmentNotFound() {
       <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-base-200">
         <FileQuestion className="h-10 w-10 text-base-content/60" aria-hidden />
       </div>
-      <h1 className="buffr-page-title--compact">This page doesn&apos;t exist</h1>
+      <h1 className="etuna-page-title--compact">This page doesn&apos;t exist</h1>
       <p className="mb-6 max-w-md text-base-content/70">
         The resource may have been removed, or the link is incorrect.
       </p>

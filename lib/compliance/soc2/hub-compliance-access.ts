@@ -41,3 +41,16 @@ export function parseSoc2DateParam(value: string | null, fallback: Date): Date {
   const d = new Date(value);
   return Number.isNaN(d.getTime()) ? fallback : d;
 }
+
+/** Shared period resolver for hub + platform SOC 2 routes (C8 DRY). */
+export function resolveSoc2PeriodFromSearchParams(
+  searchParams: URLSearchParams
+): { from: Date; to: Date } | { error: string } {
+  const defaults = defaultSoc2Period();
+  const from = parseSoc2DateParam(searchParams.get('from'), defaults.from);
+  const to = parseSoc2DateParam(searchParams.get('to'), defaults.to);
+  if (from > to) {
+    return { error: 'from must be before to' };
+  }
+  return { from, to };
+}

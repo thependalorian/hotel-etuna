@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { AdumoVirtualPaymentForm } from '@/components/payments/AdumoVirtualPaymentForm';
 import { PropertyHospitalityVatNote } from '@/components/features/tax/PropertyHospitalityVatNote';
+import { PaymentDisclosure } from '@/components/features/payments/PaymentDisclosure';
 
 export interface BookingDepositPayCardProps {
   bookingId: string;
@@ -49,6 +50,9 @@ export function BookingDepositPayCard({
       {error && <p className="text-sm text-error">{error}</p>}
 
       <PropertyHospitalityVatNote amount={amount} currency={currency} />
+
+      {/* PSD-3 §14.3: show the exact charge and a disputes contact before the guest pays. */}
+      <PaymentDisclosure amount={amount} currency={currency} />
 
       {!paying ? (
         <Button

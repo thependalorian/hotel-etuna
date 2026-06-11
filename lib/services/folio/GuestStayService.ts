@@ -176,6 +176,7 @@ export class GuestStayService {
           propertySlug: row.propertySlug,
           roomNumbers: roomLinks.map((r) => r.roomNumber).filter(Boolean) as string[],
           currency: b.currency ?? 'NAD',
+          totalAmount: Number(b.totalAmount ?? 0),
         });
       }
 
@@ -221,6 +222,50 @@ export class GuestStayService {
     }
   }
 
+  async listUpcomingStaysForGuestEmail(email: string): Promise<GuestPaymentDueSummary[]> {
+    try {
+      const normalized = email.trim().toLowerCase();
+      if (!normalized) return [];
+
+      const today = new Date().toISOString().slice(0, 10);
+
+      const rows = await db
+        .select({
+          booking: bookings,
+          propertyName: properties.name,
+        })
+        .from(bookings)
+        .innerJoin(guests, eq(bookings.guestId, guests.id))
+        .innerJoin(properties, eq(bookings.propertyId, properties.id))
+        .where(
+          and(
+            sql`lower(${guests.email}) = ${normalized}`,
+            eq(bookings.status, 'confirmed'),
+            sql`${bookings.checkInDate} > ${today}`
+          )
+        )
+        .orderBy(bookings.checkInDate);
+
+      return rows
+        .filter((row) => row.booking.id)
+        .map((row) => {
+          const b = row.booking;
+          return {
+            bookingId: b.id!,
+            bookingReference: b.bookingReference ?? '',
+            checkInDate: String(b.checkInDate),
+            checkOutDate: String(b.checkOutDate),
+            propertyName: row.propertyName,
+            totalAmount: Number.parseFloat(String(b.totalAmount ?? 0)) || 0,
+            currency: b.currency ?? 'NAD',
+            paymentStatus: b.paymentStatus ?? 'pending',
+          };
+        });
+    } catch (error) {
+      throw handleServiceError(error, 'Error listing upcoming guest stays');
+    }
+  }
+
   async findGuestBookingAccess(
     email: string,
     bookingId: string
@@ -228,6 +273,10 @@ export class GuestStayService {
     const active = await this.listStaysForGuestEmail(email);
     const found = active.find((s) => s.bookingId === bookingId);
     if (found) return found;
+
+    const upcoming = await this.listUpcomingStaysForGuestEmail(email);
+    const upcomingFound = upcoming.find((s) => s.bookingId === bookingId);
+    if (upcomingFound) return upcomingFound;
 
     const due = await this.listPaymentDueForGuestEmail(email);
     const dueFound = due.find((b) => b.bookingId === bookingId);

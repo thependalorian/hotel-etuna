@@ -10,6 +10,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { dashboardCopy } from '@/lib/copy/dashboard';
 import type { SettlementBankProfile } from '@/lib/platform/settlement-accounts';
 
 type InvoiceRow = {
@@ -138,8 +139,7 @@ export function PlatformBillingPanel() {
           Settlement accounts
         </h2>
         <p className="text-sm text-nude-600 mb-4">
-          Guest card revenue targets the property account. Platform fees are invoiced monthly to
-          Buffr Financial Services.
+          {dashboardCopy.billing.platformFeesDesc}
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {profiles.map((p) => (

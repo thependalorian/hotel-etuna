@@ -15,6 +15,7 @@
 'use client';
 
 import { usePlatformToast } from '@/components/PlatformToastProvider';
+import { tenantPublicSiteLabel } from '@/lib/config/platform-console';
 import { apiUrl } from '@/lib/utils/api-url';
 import {
   messageFromFailedResponse,
@@ -268,7 +269,7 @@ export default function TenantManagement({ tenants: initialTenants, userRole }: 
                       )}
                     </h2>
                     <p className="text-sm text-base-content/60">
-                      {tenant.subdomain ? `${tenant.subdomain}.buffr.host` : tenant.domain || 'No domain'}
+                      {tenantPublicSiteLabel(tenant)}
                     </p>
                   </div>
                   <span className={`badge ${tenant.status === 'active' ? 'badge-success' : 'badge-warning'}`}>

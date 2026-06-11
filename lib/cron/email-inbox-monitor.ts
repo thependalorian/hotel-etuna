@@ -27,6 +27,10 @@ import {
 import { eq, and } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { securityLogger } from '@/lib/utils/security-logger';
+import {
+  resolveLatestGuestBookingId,
+  tryFulfillGuestDocumentEmailRequest,
+} from '@/lib/services/documents/guestDocumentEmailRouting';
 
 const emailInboxService = new EmailInboxService();
 const emailService = new EmailService();
@@ -132,6 +136,45 @@ async function processEmailsThroughSofia() {
 
         const sessionId = `email_${email.id}`;
         const message = email.textBody ?? email.htmlBody ?? email.subject;
+
+        const docFulfillment = await tryFulfillGuestDocumentEmailRequest({
+          tenantId,
+          guestId: email.guestId,
+          message: message ?? '',
+        });
+
+        if (docFulfillment.fulfilled && docFulfillment.replyText) {
+          await emailService.sendEmail(tenantId, {
+            to: email.fromEmail,
+            subject: `Re: ${email.subject}`,
+            htmlContent: `<p>${docFulfillment.replyText}</p>`,
+            textContent: docFulfillment.replyText,
+            propertyId,
+            metadata: {
+              in_reply_to: email.messageId,
+              conversation_id: conversationId,
+              email_id: email.id,
+              financial_document_routing: true,
+            },
+          });
+
+          await db
+            .update(sofiaIncomingEmails)
+            .set({ status: 'replied', repliedAt: new Date(), updatedAt: new Date() })
+            .where(eq(sofiaIncomingEmails.id, email.id));
+
+          securityLogger.info(`[Email Inbox Monitor] Fulfilled financial document request ${email.id}`, {
+            emailId: email.id,
+            tenantId,
+          });
+          continue;
+        }
+
+        const resolvedBookingId =
+          email.guestId != null
+            ? await resolveLatestGuestBookingId(tenantId, email.guestId)
+            : undefined;
+
         const sofiaResponse = await processSofiaConciergeMessage(
           {
             message,
@@ -139,6 +182,7 @@ async function processEmailsThroughSofia() {
             tenantId,
             propertyId,
             guestId: email.guestId ?? undefined,
+            bookingId: resolvedBookingId ?? undefined,
             language: 'en',
             channel: 'EMAIL',
             emailData: {

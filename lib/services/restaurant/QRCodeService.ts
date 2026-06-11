@@ -1,3 +1,7 @@
+/**
+ * @fileoverview QRCodeService — table QR code URL/image helpers for the restaurant domain.
+ * Location: lib/services/restaurant/QRCodeService.ts
+ */
 export class QRCodeService {
   /**
    * Generates a URL for a given QR code identifier.

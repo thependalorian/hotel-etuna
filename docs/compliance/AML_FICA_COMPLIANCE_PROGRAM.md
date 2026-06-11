@@ -14,7 +14,7 @@ Outline anti-money laundering and counter-terrorist financing controls for Hotel
 
 **Law:** [FICA on NamibLII](https://namiblii.org/akn/na/act/2012/13/eng@2023-07-21) · [FIC legal framework](https://www.fic.na/index.php?page=aml-cft-legal-framework)
 
-**Product:** `aml_*` schema, `app/api/compliance/aml/*`, `PEPScreeningService`, `STRGenerationService`.
+**Product:** `aml_*` schema, `app/api/compliance/aml/*`, `STRGenerationService`, `AMLMonitoringService`.
 
 ---
 
@@ -34,7 +34,7 @@ Outline anti-money laundering and counter-terrorist financing controls for Hotel
 | Risk factor | Mitigation |
 |-------------|------------|
 | Large cash folio settlements | Cash reconciliation module; dual control |
-| PEP guests | `PEPScreeningService`, manual approval |
+| PEP guests | **Out of product scope** — no PEP database for Namibia; staff/MLRO apply judgment if a guest is known PEP |
 | Foreign high-risk jurisdictions | Geo rules in `AMLMonitoringService` |
 | Structuring / velocity | Velocity alerts table |
 | Partner payouts (future) | Enhanced DD before release |
@@ -48,7 +48,7 @@ Document risk assessment annually → `docs/compliance/RISK_ASSESSMENT_2026.md` 
 | Level | When | Steps |
 |-------|------|-------|
 | **Standard** | All corporate partners / high-value accounts | ID, beneficial owner, purpose |
-| **Enhanced (EDD)** | PEP, high-risk country, unusual pattern | Manager approval + senior review |
+| **Enhanced (EDD)** | Known PEP (staff-identified), high-risk country, unusual pattern | Manager approval + senior review |
 | **Simplified** | Low-value retail guest (if permitted) | Per counsel — do not assume |
 
 **KYC/KYB product:** `compliance_verification_cases`, LangGraph `kycKybGraph`, dashboard `/compliance/kyc`.
@@ -91,9 +91,21 @@ FICA requires reporting **large cash transactions** above FIC-prescribed thresho
 
 ## 8. Sanctions & PEP screening
 
-- Screen partners at onboarding (`PEPScreeningService`).
-- Re-screen on material change or annually.
-- Document false positive handling.
+**Product decision (June 2026): PEP screening is not in scope for Hotel Etuna.**
+
+| Rationale | Detail |
+|-----------|--------|
+| Market size | Namibia’s population and public-official footprint are small; hospitality guests are overwhelmingly domestic or regional travellers. |
+| Data availability | There is **no reliable, maintained domestic PEP database** suitable for automated screening in-product (no FIC-published list, no affordable local provider integrated). |
+| Risk proportionality | Cash reconciliation, velocity alerts, STR workflow, and KYC/KYB cover the material AML risks for a single-property OS. |
+
+**What we do instead**
+
+- **Sanctions / adverse media:** Defer to counsel and manual checks at onboarding for **partners** and high-value corporate accounts — not automated in the app today.
+- **PEP:** If front desk or management **knows** a guest is politically exposed, treat as **enhanced due diligence** (§4) and document in the STR/KYC case file. No automated screen, no in-app PEP registry.
+- **Schema note:** `aml_pep_database` and `aml_guest_pep_flags` exist from an earlier Buffr port — **dormant**, not populated, not exposed in UI or API. Do not build PEP screening unless counsel mandates a **third-party data provider** with a Namibia-appropriate source.
+
+Re-screen partners on material change or annually when a sanctions provider is engaged; document false positive handling in the MLRO register.
 
 ---
 
@@ -119,3 +131,4 @@ Payment system operators have **additional** BoN reporting (PSD-12). AML (FIC) a
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | May 16, 2026 | Compliance | Initial AML/FICA program |
+| 1.1 | June 9, 2026 | Compliance | PEP screening out of product scope — no Namibia PEP database; dormant `aml_pep_*` schema |

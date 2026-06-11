@@ -1,51 +1,45 @@
 /**
- * Partner self-service layout.
+ * Partner self-service layout with drawer sidebar.
  *
- * Purpose: Restrict partner UI to self-service navigation only.
+ * Purpose: Restrict partner UI to self-service navigation only (7 items).
  * Location: /app/partner/layout.tsx
  */
 
-import Link from 'next/link';
-import { ReactNode } from 'react';
-import { SessionTimeoutWrapper } from '@/components/providers/SessionTimeoutWrapper';
+'use client';
 
-const partnerLinks = [
-  { href: '/partner/dashboard', label: 'Dashboard' },
-  { href: '/partner/my-property', label: 'My Property' },
-  { href: '/partner/rooms', label: 'Rooms' },
-  { href: '/partner/rates', label: 'Rates' },
-  { href: '/partner/bookings', label: 'Bookings' },
-  { href: '/partner/settings', label: 'Settings' },
-];
+import { ReactNode, useState, useCallback } from 'react';
+import { SessionTimeoutWrapper } from '@/components/providers/SessionTimeoutWrapper';
+import { ActivePropertyProvider } from '@/components/providers/ActivePropertyProvider';
+import { PartnerSidebar } from '@/components/partners/PartnerSidebar';
+import Header from '@/components/shared/Header';
 
 export default function PartnerLayout({ children }: { children: ReactNode }) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const closeMobileMenu = useCallback(() => {
+    setIsMobileMenuOpen(false);
+  }, []);
+
+  const toggleMobileMenu = useCallback(() => {
+    setIsMobileMenuOpen((open) => !open);
+  }, []);
+
   return (
     <SessionTimeoutWrapper>
-      <div className="min-h-screen bg-base-100">
-        <header className="border-b border-base-300 bg-base-100">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
-            <div>
-              <p className="text-xs uppercase tracking-wide text-base-content/60">Partner Portal</p>
-              <h1 className="text-lg font-semibold text-base-content">Hotel Etuna Network</h1>
-            </div>
-            <Link href="/" className="btn btn-ghost btn-sm">
-              Hotel Etuna
-            </Link>
-          </div>
-        </header>
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-6 md:grid-cols-[260px_1fr]">
-          <aside className="rounded-xl border border-base-300 bg-base-100 p-3">
-            <nav className="menu gap-1">
-              {partnerLinks.map((item) => (
-                <li key={item.href}>
-                  <Link href={item.href}>{item.label}</Link>
-                </li>
-              ))}
-            </nav>
-          </aside>
-          <main className="rounded-xl border border-base-300 bg-base-100 p-6">{children}</main>
+      <ActivePropertyProvider>
+      <div className="flex h-screen overflow-hidden bg-surface-canvas">
+        <PartnerSidebar 
+          isMobileOpen={isMobileMenuOpen}
+          onMobileClose={closeMobileMenu}
+        />
+        <div className="flex-1 flex flex-col min-w-0 lg:ml-0">
+          <Header onMobileMenuToggle={toggleMobileMenu} />
+          <main className="etuna-dashboard-main scrollbar-thin" role="main" aria-label="Partner portal">
+            <div className="etuna-dashboard-inner">{children}</div>
+          </main>
         </div>
       </div>
+      </ActivePropertyProvider>
     </SessionTimeoutWrapper>
   );
 }

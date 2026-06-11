@@ -1,78 +1,86 @@
-import { NextResponse, NextRequest } from 'next/server';
+import { NextRequest } from 'next/server';
+import {
+  withPlatformApiAuth,
+  errorResponse,
+  successResponse,
+} from '@/lib/utils/api-helpers';
 import { NamQrService } from '@/lib/services/qr/NAMQRService';
-import { getAuthenticatedUser } from '@/lib/utils/api-helpers';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const qrService = new NamQrService();
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const user = await getAuthenticatedUser(request);
+type RouteParams = { params: Promise<{ id: string }> };
 
-    if (!user || !user.tenantId) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
+export async function GET(request: NextRequest, { params }: RouteParams) {
+  return withPlatformApiAuth(
+    request,
+    async (_req, user) => {
+      if (!user.tenantId) {
+        return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+      }
 
-    const qrCode = await qrService.getQRCodeById(id, user.tenantId);
-    
-    if (!qrCode) {
-      return NextResponse.json({ message: 'QR code not found' }, { status: 404 });
-    }
+      try {
+        const { id } = await params;
+        const qrCode = await qrService.getQRCodeById(id, user.tenantId);
 
-    return NextResponse.json(qrCode, { status: 200 });
-  } catch (error) {
-    securityLogger.error('Error fetching QR code:', error);
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
-  }
+        if (!qrCode) {
+          return errorResponse('QR code not found', 404, 'NOT_FOUND');
+        }
+
+        return successResponse(qrCode);
+      } catch (error) {
+        securityLogger.error('Error fetching QR code:', error);
+        return errorResponse('Internal server error', 500, 'INTERNAL_ERROR');
+      }
+    },
+    { rateLimit: true }
+  );
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const user = await getAuthenticatedUser(request);
+export async function PUT(request: NextRequest, { params }: RouteParams) {
+  return withPlatformApiAuth(
+    request,
+    async (req, user) => {
+      if (!user.tenantId) {
+        return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+      }
 
-    if (!user || !user.tenantId) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
+      try {
+        const { id } = await params;
+        const body = await req.json();
+        const qrCode = await qrService.updateQRCode(id, user.tenantId, body);
 
-    const body = await request.json();
-    const qrCode = await qrService.updateQRCode(id, user.tenantId, body);
-    
-    if (!qrCode) {
-      return NextResponse.json({ message: 'QR code not found' }, { status: 404 });
-    }
+        if (!qrCode) {
+          return errorResponse('QR code not found', 404, 'NOT_FOUND');
+        }
 
-    return NextResponse.json(qrCode, { status: 200 });
-  } catch (error) {
-    securityLogger.error('Error updating QR code:', error);
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
-  }
+        return successResponse(qrCode);
+      } catch (error) {
+        securityLogger.error('Error updating QR code:', error);
+        return errorResponse('Internal server error', 500, 'INTERNAL_ERROR');
+      }
+    },
+    { rateLimit: true }
+  );
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const user = await getAuthenticatedUser(request);
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  return withPlatformApiAuth(
+    request,
+    async (_req, user) => {
+      if (!user.tenantId) {
+        return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+      }
 
-    if (!user || !user.tenantId) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
-
-    const result = await qrService.deleteQRCode(id, user.tenantId);
-    
-    return NextResponse.json(result, { status: 200 });
-  } catch (error) {
-    securityLogger.error('Error deleting QR code:', error);
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
-  }
+      try {
+        const { id } = await params;
+        const result = await qrService.deleteQRCode(id, user.tenantId);
+        return successResponse(result);
+      } catch (error) {
+        securityLogger.error('Error deleting QR code:', error);
+        return errorResponse('Internal server error', 500, 'INTERNAL_ERROR');
+      }
+    },
+    { rateLimit: true }
+  );
 }

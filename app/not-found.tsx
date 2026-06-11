@@ -16,7 +16,7 @@ export default function NotFound() {
           <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-base-200">
             <FileQuestion className="h-10 w-10 text-base-content/60" aria-hidden />
           </div>
-          <h1 className="buffr-page-title--compact">Page not found</h1>
+          <h1 className="etuna-page-title--compact">Page not found</h1>
           <p className="mb-6 text-base-content/70">
             The page you&apos;re looking for doesn&apos;t exist or was moved.
           </p>

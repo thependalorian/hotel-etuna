@@ -21,12 +21,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
-import { AppError } from '@/lib/utils/errors';
+import { withTenantApiAuth } from '@/lib/utils/api-helpers';
 import { ElectronicSignatureService } from '@/lib/services/documents/ElectronicSignatureService';
 import { entityId } from '@/lib/validation/entity-ids';
 import { z } from 'zod';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 // Signature request validation
 const signatureRequestSchema = z.object({
@@ -81,10 +80,10 @@ const signatureRequestSchema = z.object({
  * - etaCompliant: true (meets Section 20 requirements)
  */
 export async function POST(req: NextRequest) {
+  return withTenantApiAuth(req, async (request, user) => {
   try {
     // Parse and validate request
-    const user = await requireTenantSessionUser(req);
-    const body = await req.json();
+    const body = await request.json();
     const validatedData = signatureRequestSchema.parse(body);
     
     securityLogger.info('[API:ElectronicSignature] Capturing signature', {
@@ -96,8 +95,8 @@ export async function POST(req: NextRequest) {
     
     // Extract IP address from request
     const signerIp =
-      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-      req.headers.get('x-real-ip') ||
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      request.headers.get('x-real-ip') ||
       'unknown';
     
     // Initialize service
@@ -175,6 +174,7 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+  });
 }
 
 /**

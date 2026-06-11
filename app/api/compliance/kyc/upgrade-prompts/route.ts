@@ -15,10 +15,14 @@ import { transactionValidator } from '@/lib/services/compliance/TransactionValid
 import { entityId } from '@/lib/validation/entity-ids';
 import { recordAuditTrail } from '@/lib/compliance/record-audit';
 import { db, kycUpgradePrompts } from '@/lib/db';
-import { getAuthenticatedUser } from '@/lib/utils/api-helpers';
+import {
+  withPlatformApiAuth,
+  errorResponse,
+  successResponse,
+} from '@/lib/utils/api-helpers';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 // ============================================================================
 // REQUEST VALIDATION SCHEMAS
@@ -119,88 +123,77 @@ export async function GET(request: NextRequest) {
 // ============================================================================
 
 export async function POST(request: NextRequest) {
-  try {
-    // Step 1: Parse and validate request body (rate limiting handled by middleware)
-    const body = await request.json();
-    const validationResult = updatePromptSchema.safeParse(body);
+  return withPlatformApiAuth(
+    request,
+    async (req, user) => {
+      try {
+        const body = await req.json();
+        const validationResult = updatePromptSchema.safeParse(body);
 
-    if (!validationResult.success) {
-      return NextResponse.json(
-        {
-          error: 'Invalid request data',
-          details: validationResult.error.issues.map((issue) => ({
-            path: issue.path.join('.'),
-            message: issue.message,
-          })),
-        },
-        { status: 400 }
-      );
-    }
+        if (!validationResult.success) {
+          return errorResponse('Invalid request data', 400, 'VALIDATION_ERROR', {
+            details: validationResult.error.issues.map((issue) => ({
+              path: issue.path.join('.'),
+              message: issue.message,
+            })),
+          });
+        }
 
-    const { promptId, action } = validationResult.data;
-    const user = await getAuthenticatedUser(request);
-    if (!user?.tenantId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+        const { promptId, action } = validationResult.data;
 
-    const [prompt] = await db
-      .select()
-      .from(kycUpgradePrompts)
-      .where(eq(kycUpgradePrompts.id, promptId))
-      .limit(1);
+        if (!user.tenantId) {
+          return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+        }
 
-    if (!prompt || prompt.tenantId !== user.tenantId) {
-      return NextResponse.json({ error: 'Prompt not found' }, { status: 404 });
-    }
+        const [prompt] = await db
+          .select()
+          .from(kycUpgradePrompts)
+          .where(eq(kycUpgradePrompts.id, promptId))
+          .limit(1);
 
-    // Step 2: Execute action
-    switch (action) {
-      case 'show':
-        await transactionValidator.markPromptAsShown(promptId);
-        break;
-      case 'dismiss':
-        await transactionValidator.dismissPrompt(promptId);
-        break;
-      case 'accept':
-        await transactionValidator.acceptPrompt(promptId);
-        break;
-    }
+        if (!prompt || prompt.tenantId !== user.tenantId) {
+          return errorResponse('Prompt not found', 404, 'NOT_FOUND');
+        }
 
-    await recordAuditTrail({
-      tenantId: user.tenantId,
-      userId: user.id,
-      action: `kyc.upgrade_prompt.${action}`,
-      resourceType: 'kyc_upgrade_prompt',
-      resourceId: promptId,
-      oldValues: {
-        isShown: prompt.isShown,
-        isDismissed: prompt.isDismissed,
-        isAccepted: prompt.isAccepted,
-      },
-      newValues: {
-        action,
-        guestId: prompt.guestId,
-        suggestedKycTier: prompt.suggestedKycTier,
-      },
-      request,
-    });
+        switch (action) {
+          case 'show':
+            await transactionValidator.markPromptAsShown(promptId);
+            break;
+          case 'dismiss':
+            await transactionValidator.dismissPrompt(promptId);
+            break;
+          case 'accept':
+            await transactionValidator.acceptPrompt(promptId);
+            break;
+        }
 
-    // Step 3: Return success
-    return NextResponse.json({
-      success: true,
-      message: `Prompt ${action}ed successfully`,
-    });
-  } catch (error: unknown) {
-    securityLogger.error('Error updating upgrade prompt:', error);
+        await recordAuditTrail({
+          tenantId: user.tenantId,
+          userId: user.id,
+          action: `kyc.upgrade_prompt.${action}`,
+          resourceType: 'kyc_upgrade_prompt',
+          resourceId: promptId,
+          oldValues: {
+            isShown: prompt.isShown,
+            isDismissed: prompt.isDismissed,
+            isAccepted: prompt.isAccepted,
+          },
+          newValues: {
+            action,
+            guestId: prompt.guestId,
+            suggestedKycTier: prompt.suggestedKycTier,
+          },
+          request: req,
+        });
 
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: getErrorMessage(error),
-      },
-      { status: 500 }
-    );
-  }
+        return successResponse({ message: `Prompt ${action}ed successfully` });
+      } catch (error: unknown) {
+        securityLogger.error('Error updating upgrade prompt:', error);
+        return errorResponse(getErrorMessage(error), 500, 'INTERNAL_ERROR');
+      }
+    },
+    { rateLimit: true }
+  );
 }
 
 // ============================================================================

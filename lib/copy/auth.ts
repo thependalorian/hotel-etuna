@@ -8,7 +8,7 @@ import { brand } from '@/lib/copy/brand';
 export const authCopy = {
   login: {
     title: 'Welcome back',
-    description: 'Sign in to manage your stay, bookings, and guest account at Hotel Etuna.',
+    description: `Sign in to manage your stay, bookings, and guest account at ${brand.name}.`,
     sessionInactivity: 'You were signed out due to inactivity. Please sign in again.',
     sessionExpired: 'Your session expired. Please sign in again.',
     noAccount: "Don't have an account?",
@@ -20,7 +20,7 @@ export const authCopy = {
   },
   register: {
     title: 'Create your account',
-    subtitle: 'Book stays, view your folio, and manage reservations at Hotel Etuna.',
+    subtitle: `Book stays, view your folio, and manage reservations at ${brand.name}.`,
     hint: 'Use the email on your reservation so we can link your stay.',
     hasAccount: 'Already have an account?',
     signIn: 'Sign in here',

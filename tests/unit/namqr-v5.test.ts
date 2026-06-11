@@ -59,33 +59,34 @@ describe('NamQR v5.0 (BoN May 2025)', () => {
     ).toThrow(/NREF/);
   });
 
-  it('openbanking encoder includes CRC tag 63 last', () => {
-    const payload = encodeNamQrPayloadV5({
-      presentationMode: 'dynamic',
-      payeeIdentifier: '11000481744@nedbank.na',
-      merchantCategoryCode: '7011',
-      merchantName: 'Hotel Etuna',
-      merchantCity: 'Ongwediva',
-      amount: 99.99,
-      referenceLabel: '12345678',
-    });
-    expect(validateNamQrCrc(payload)).toBe(true);
-    const fields = parseNamQrTlv(payload);
-    expect(fields[fields.length - 1]?.tag).toBe('63');
-    expect(fields.find((f) => f.tag === '00')?.value).toBe(NAMQR_PAYLOAD_FORMAT_V5);
+  it('deprecated tag-26 encoder throws and is never used for live issuance', () => {
+    expect(() =>
+      encodeNamQrPayloadV5({
+        presentationMode: 'dynamic',
+        payeeIdentifier: '11000481744@nedbank.na',
+        merchantCategoryCode: '7011',
+        merchantName: 'Hotel Etuna',
+        merchantCity: 'Ongwediva',
+        amount: 99.99,
+        referenceLabel: '12345678',
+      })
+    ).toThrow(/deprecated/i);
   });
 
-  it('namqr-core encoder stays under 512 chars for typical desk QR', () => {
-    const payload = encodeNamQrPayloadV5({
-      presentationMode: 'dynamic',
+  it('canonical NRTC encoder is CRC-correct with tag 63 last', () => {
+    const payload = buildNamQrPayeePresentedPayload({
+      dynamic: true,
       merchantName: 'Hotel Etuna',
       merchantCity: 'Ongwediva',
       merchantCategoryCode: '7011',
       amount: 250,
-      referenceLabel: '12345678',
-      payeeIdentifier: '11000481744@nedbank.na',
+      nref: '12345678',
+      payeeIdentifier: '11000481744',
     });
     expect(payload.length).toBeLessThanOrEqual(512);
     expect(validateNamQrCrc(payload)).toBe(true);
+    const fields = parseNamQrTlv(payload);
+    expect(fields[fields.length - 1]?.tag).toBe('63');
+    expect(fields.find((f) => f.tag === '00')?.value).toBe(NAMQR_PAYLOAD_FORMAT_V5);
   });
 });

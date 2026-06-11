@@ -7,11 +7,17 @@ import { db, users } from '@/lib/db';
 import { and, eq, inArray, isNotNull, or, sql } from 'drizzle-orm';
 import { PLATFORM_TENANT_ID } from '@/lib/auth/platform-admin';
 import {
+  defaultFounderDigestRecipients,
+  platformConsole,
+} from '@/lib/config/platform-console';
+import { getPublicAppUrl } from '@/lib/utils/public-app-url';
+import {
   IntelligenceReportService,
   type DigestCadence,
 } from '@/lib/services/platform/IntelligenceReportService';
 import { EmailTemplateService } from '@/lib/services/sofia/EmailTemplateService';
 import { EmailService } from '@/lib/services/sofia/EmailService';
+import { notificationDispatchService } from '@/lib/services/notifications/NotificationDispatchService';
 import { securityLogger } from '@/lib/utils/security-logger';
 
 export type DigestJobCadence = DigestCadence | 'partner-weekly';
@@ -29,14 +35,17 @@ function founderRecipients(): string[] {
   if (fromEnv) {
     return fromEnv.split(',').map((e) => e.trim()).filter(Boolean);
   }
-  return ['george@buffr.ai'];
+  return defaultFounderDigestRecipients();
 }
 
-async function partnerWeeklyRecipients(): Promise<Array<{ email: string; tenantId: string }>> {
+async function partnerWeeklyRecipients(): Promise<
+  Array<{ email: string; tenantId: string; userId: string }>
+> {
   const rows = await db
     .select({
       email: users.email,
       tenantId: users.tenantId,
+      userId: users.id,
     })
     .from(users)
     .where(
@@ -51,8 +60,12 @@ async function partnerWeeklyRecipients(): Promise<Array<{ email: string; tenantI
       ),
     );
   return rows
-    .filter((r) => r.email && r.tenantId)
-    .map((r) => ({ email: r.email, tenantId: r.tenantId as string }));
+    .filter((r) => r.email && r.tenantId && r.userId)
+    .map((r) => ({
+      email: r.email,
+      tenantId: r.tenantId as string,
+      userId: r.userId,
+    }));
 }
 
 export async function runIntelligenceDigestJob(
@@ -79,17 +92,22 @@ export async function runIntelligenceDigestJob(
           recipientName: partner.email.split('@')[0],
           customMessage: plain.replace(/\n/g, '<br/>'),
           subject: `Weekly property summary — ${digest.windowLabel}`,
-          ctaLink: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://hoteletuna.com'}/dashboard`,
+          ctaLink: `${getPublicAppUrl()}/dashboard`,
           ctaText: 'Open dashboard',
         });
-        await emailService.sendEmail(partner.tenantId, {
-          to: partner.email,
+        const dispatchResult = await notificationDispatchService.dispatch({
+          tenantId: partner.tenantId,
+          userId: partner.userId,
+          notificationType: 'weekly_report',
           subject: tpl.subject,
+          content: tpl.text,
           htmlContent: tpl.html,
-          textContent: tpl.text,
+          channels: ['email'],
           metadata: { type: 'partner_weekly_digest', cadence },
         });
-        emailsSent++;
+        if (dispatchResult.channelsSent.includes('email')) {
+          emailsSent++;
+        }
       } catch (err) {
         if (err instanceof Error && err.message.includes('SMTP')) {
           skippedNoSmtp = true;
@@ -119,11 +137,11 @@ export async function runIntelligenceDigestJob(
     for (const to of founder) {
       try {
         const tpl = templates.generateAdminDigestEmail({
-          recipientName: 'Buffr Hub',
+          recipientName: platformConsole.digestRecipientName,
           customMessage: plain.replace(/\n/g, '<br/>'),
-          subject: `Buffr Hub ${cadence} intelligence digest`,
-          ctaLink: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://hoteletuna.com'}/admin/platform`,
-          ctaText: 'Open Buffr Hub',
+          subject: `${platformConsole.digestSubjectPrefix} ${cadence} intelligence digest`,
+          ctaLink: `${getPublicAppUrl()}/admin/platform`,
+          ctaText: platformConsole.digestCtaText,
         });
         await emailService.sendEmail(PLATFORM_TENANT_ID, {
           to,

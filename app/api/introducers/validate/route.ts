@@ -24,7 +24,7 @@ import { checkRateLimit } from '@/lib/utils/rate-limit';
 import { db, introducers } from '@/lib/db';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 /**
  * POST /api/introducers/validate

@@ -4,24 +4,23 @@
  */
 
 import { NextResponse } from 'next/server';
-import { requirePlatformAdmin } from '@/lib/auth/platform-admin';
+import { withPlatformAdminAuth } from '@/lib/auth/with-platform-admin-auth';
 import { SecretsStatusService } from '@/lib/services/platform/SecretsStatusService';
 import { securityLogger } from '@/lib/utils/security-logger';
 
 export async function GET() {
-  try {
-    await requirePlatformAdmin();
-    const service = new SecretsStatusService();
-    return NextResponse.json({
-      data: {
-        secrets: service.list(),
-        missingRequired: service.missingRequired(),
-      },
-    });
-  } catch (error) {
-    securityLogger.error('[GET secrets-status]', error);
-    const message = error instanceof Error ? error.message : 'Failed';
-    const status = message.includes('Unauthorized') ? 403 : 500;
-    return NextResponse.json({ error: message }, { status });
-  }
+  return withPlatformAdminAuth(null, async () => {
+    try {
+      const service = new SecretsStatusService();
+      return NextResponse.json({
+        data: {
+          secrets: service.list(),
+          missingRequired: service.missingRequired(),
+        },
+      });
+    } catch (error) {
+      securityLogger.error('[GET secrets-status]', error);
+      return NextResponse.json({ error: 'Failed to load secrets status' }, { status: 500 });
+    }
+  }, { rateLimit: false });
 }

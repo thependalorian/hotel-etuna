@@ -30,44 +30,49 @@ export function FraudRiskHeatmap({ tenantId }: FraudRiskHeatmapProps) {
     async function fetchRiskData() {
       try {
         setLoading(true);
-        
-        // Generate mock risk data based on Namibian fraud trends
-        const mockData: RiskData[] = [
-          {
-            fraudType: 'Card-Not-Present',
-            riskLevel: 'high',
-            count: 156,
-            averageScore: 68.5,
-          },
-          {
-            fraudType: 'Phone Scams',
-            riskLevel: 'critical',
-            count: 89,
-            averageScore: 82.3,
-          },
-          {
-            fraudType: 'Phishing',
-            riskLevel: 'high',
-            count: 45,
-            averageScore: 71.2,
-          },
-          {
-            fraudType: 'SIM Swap',
-            riskLevel: 'critical',
-            count: 23,
-            averageScore: 88.7,
-          },
-          {
-            fraudType: 'Counterfeit',
-            riskLevel: 'medium',
-            count: 12,
-            averageScore: 45.8,
-          },
-        ];
-        
-        setRiskData(mockData);
+
+        const response = await fetch(
+          `/api/fraud/statistics?periodType=monthly`
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch fraud statistics');
+        }
+
+        const payload = await response.json();
+        if (!payload.success || !payload.data) {
+          throw new Error(payload.error || 'Invalid fraud statistics response');
+        }
+
+        const { topFraudTypes, averageRiskScore } = payload.data as {
+          topFraudTypes: { type: string; count: number }[];
+          averageRiskScore: number;
+        };
+
+        const maxCount = Math.max(
+          1,
+          ...topFraudTypes.map((item) => item.count)
+        );
+
+        const mapped: RiskData[] = topFraudTypes.map((item) => {
+          const ratio = item.count / maxCount;
+          let riskLevel: RiskData['riskLevel'] = 'low';
+          if (ratio >= 0.75 || averageRiskScore >= 85) riskLevel = 'critical';
+          else if (ratio >= 0.5 || averageRiskScore >= 70) riskLevel = 'high';
+          else if (ratio >= 0.25 || averageRiskScore >= 50) riskLevel = 'medium';
+
+          return {
+            fraudType: item.type,
+            riskLevel,
+            count: item.count,
+            averageScore: averageRiskScore,
+          };
+        });
+
+        setRiskData(mapped);
       } catch (error) {
         securityLogger.error('Error fetching risk data:', error);
+        setRiskData([]);
       } finally {
         setLoading(false);
       }

@@ -1,22 +1,8 @@
 /**
  * Onboarding Welcome Component
  * 
- * Purpose: Welcome screen for new users without properties
+ * Purpose: Welcome screen for Hotel Etuna staff (single-property OS).
  * Location: /components/features/OnboardingWelcome.tsx
- * 
- * Features:
- * - Welcome message
- * - Quick setup steps
- * - Welcome messaging
- * 
- * Design System:
- * - Uses semantic tokens: text-primary-content, bg-base-100
- * - Gradient backgrounds
- * 
- * Accessibility:
- * - Proper heading hierarchy (h1, h2, h3)
- * 
- * @module OnboardingWelcome
  */
 
 import Link from 'next/link';
@@ -33,51 +19,51 @@ export default function OnboardingWelcome() {
           </h1>
         </div>
         <p className="text-xl opacity-95 mb-6">
-          Align your property operations in 60 seconds and deliver premium guest experiences from day one.
+          Everything you need to run your property — bookings, restaurant, housekeeping, and payments.
         </p>
       </div>
 
-      <div className="card bg-base-100 shadow-xl border-2 border-primary">
-        <div className="card-body">
-          <h2 className="card-title text-2xl mb-6">Quick Setup</h2>
+      <div className="rounded-2xl border border-nude-200 bg-surface-elevated shadow-nude-medium">
+        <div className="p-6">
+          <h2 className="font-display text-2xl font-bold text-nude-900 mb-6">Quick Setup</h2>
           <div className="space-y-6">
-            <div className="flex items-start gap-4 p-4 bg-base-200 rounded-lg hover:bg-base-300 transition-colors">
-              <div className="w-12 h-12 rounded-full bg-primary text-primary-content flex items-center justify-center font-bold text-xl flex-shrink-0">
+            <div className="flex items-start gap-4 p-4 bg-nude-50 rounded-lg">
+              <div className="w-12 h-12 rounded-full bg-khaki-600 text-white flex items-center justify-center font-bold text-xl flex-shrink-0">
                 1
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-lg mb-2">Add Your First Property</h3>
-                <p className="text-base-content/70 mb-4">
-                  Add your hotel details so your team can manage rooms, reservations, and service standards in one place.
+                <h3 className="font-semibold text-lg text-nude-900 mb-2">Set Up Your Property</h3>
+                <p className="text-nude-700 mb-4">
+                  Add your hotel details so your team can manage rooms, reservations, and service standards.
                 </p>
-                <Link href="/properties/new" className="btn btn-primary min-h-[44px]">
-                  <Building className="w-4 h-4 mr-2" />
-                  Create Property
-                  <ArrowRight className="w-4 h-4 ml-2" />
+                <Link href="/properties/new" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-khaki-600 text-white font-bold hover:bg-khaki-700 transition-colors min-h-[44px]">
+                  <Building className="w-4 h-4" />
+                  Get Started
+                  <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
             </div>
 
-            <div className="flex items-start gap-4 p-4 bg-base-200 rounded-lg opacity-60">
-              <div className="w-12 h-12 rounded-full bg-base-300 text-base-content flex items-center justify-center font-bold text-xl flex-shrink-0">
+            <div className="flex items-start gap-4 p-4 bg-nude-50 rounded-lg opacity-60">
+              <div className="w-12 h-12 rounded-full bg-nude-300 text-nude-800 flex items-center justify-center font-bold text-xl flex-shrink-0">
                 2
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-lg mb-2">Configure Your Services</h3>
-                <p className="text-base-content/70">
-                  Configure room tiers, dining services, and operational settings for smooth front desk and back-office workflows.
+                <h3 className="font-semibold text-lg text-nude-900 mb-2">Configure Services</h3>
+                <p className="text-nude-700">
+                  Set room tiers, dining menus, and operational settings for smooth front desk workflows.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-start gap-4 p-4 bg-base-200 rounded-lg opacity-60">
-              <div className="w-12 h-12 rounded-full bg-base-300 text-base-content flex items-center justify-center font-bold text-xl flex-shrink-0">
+            <div className="flex items-start gap-4 p-4 bg-nude-50 rounded-lg opacity-60">
+              <div className="w-12 h-12 rounded-full bg-nude-300 text-nude-800 flex items-center justify-center font-bold text-xl flex-shrink-0">
                 3
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-lg mb-2">Start Managing</h3>
-                <p className="text-base-content/70">
-                  Coordinate bookings, guest requests, and team tasks while Sofia supports your hospitality staff.
+                <h3 className="font-semibold text-lg text-nude-900 mb-2">Start Managing</h3>
+                <p className="text-nude-700">
+                  Coordinate bookings, guest requests, and team tasks. Sofia AI is ready to support your staff.
                 </p>
               </div>
             </div>
@@ -85,14 +71,12 @@ export default function OnboardingWelcome() {
         </div>
       </div>
 
-      <div className="card bg-gradient-to-br from-success/10 to-info/10 border border-success/20">
-        <div className="card-body">
-          <h3 className="card-title text-success mb-2">Get Started</h3>
-          <p className="text-base-content/80">
-            Built for hotel operators who value excellence, reliability, and guest-first service.
-            Set up your operations and start delivering premium stays today.
-          </p>
-        </div>
+      <div className="rounded-2xl border border-nude-200 bg-nude-50 p-6">
+        <h3 className="font-display text-lg font-bold text-nude-900 mb-2">Hotel Etuna Operating System</h3>
+        <p className="text-nude-700">
+          Built for one property: 35 rooms, Etuna Restaurant, conference hall, and campsite.
+          Everything your team needs to deliver premium guest experiences.
+        </p>
       </div>
     </div>
   );

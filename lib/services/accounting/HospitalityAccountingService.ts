@@ -7,7 +7,16 @@
  * Platform fees: platform_fee_accruals → expense (+ input VAT when Buffr tax invoice).
  */
 
-import { db, bookingCharges, bookings, transactions, platformFeeAccruals } from '@/lib/db';
+import {
+  db,
+  accountingPeriodLocks,
+  bookingCharges,
+  bookings,
+  properties,
+  transactions,
+  platformFeeAccruals,
+  rawSql,
+} from '@/lib/db';
 import { HOSPITALITY_REPORT_FIELD_LABELS } from '@/lib/domain/accounting/accounting-terminology';
 import {
   cashAccountForPayment,
@@ -15,6 +24,8 @@ import {
   revenueAccountForChargeType,
 } from '@/lib/domain/accounting/namibia-hospitality-coa';
 import type {
+  AccountingPeriodCloseResult,
+  AccountingPeriodLock,
   HospitalityAccountingPeriodReport,
   IncomeStatementReport,
   JournalLine,
@@ -29,7 +40,8 @@ import {
   getHotelEtunaPropertyTaxProfile,
   NAMIBIA_NON_MINING_CORPORATE_TAX_RATE_2025,
 } from '@/lib/platform/namibia-tax';
-import { and, eq, gte, inArray, lte } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, lte } from 'drizzle-orm';
+import { roundMoney, toNumber } from '@/lib/utils/money';
 
 function bookingKindById(
   rows: { id: string; bookingKind: string | null }[]
@@ -38,16 +50,6 @@ function bookingKindById(
 }
 
 const HOSPITALITY_CHARGE_TYPES = ['room', 'fnb', 'adjustment'] as const;
-
-function roundMoney(value: number): number {
-  return Math.round(value * 100) / 100;
-}
-
-function toNumber(value: string | number | null | undefined): number {
-  if (value == null) return 0;
-  const n = typeof value === 'number' ? value : Number.parseFloat(value);
-  return Number.isFinite(n) ? n : 0;
-}
 
 function pushLine(
   lines: JournalLine[],
@@ -60,6 +62,23 @@ function pushLine(
     debit: roundMoney(partial.debit),
     credit: roundMoney(partial.credit),
   });
+}
+
+/** Human-readable guard when open folio charges block period close (dubbl draft-entry pattern). */
+export function draftEntryGuardMessage(draftCount: number): string {
+  if (draftCount <= 0) return '';
+  const noun = draftCount === 1 ? 'unsettled folio charge' : 'unsettled folio charges';
+  return `Cannot close period: ${draftCount} ${noun} still open. Settle or void all folio lines through ${draftCount === 1 ? 'its' : 'their'} booking before closing the GL period.`;
+}
+
+function periodStartFromEnd(periodEnd: Date): Date {
+  return new Date(Date.UTC(periodEnd.getUTCFullYear(), periodEnd.getUTCMonth(), 1));
+}
+
+function endOfDayUtc(date: Date): Date {
+  const d = new Date(date);
+  d.setUTCHours(23, 59, 59, 999);
+  return d;
 }
 
 function buildTrialBalance(journalLines: JournalLine[]): TrialBalanceRow[] {
@@ -342,5 +361,214 @@ export class HospitalityAccountingService {
       disclaimer:
         'Management bookkeeping from PMS data — not audited financial statements. Revenue recognised on settled folio lines (Libby accrual); guest payments clear receivables (A = L + E). VAT output on hospitality; VAT input on Buffr platform fees. Income tax line is illustrative @ 30% non-mining (Deloitte Budget 2025/2026). Export to accountant for NamRA ITAS / annual accounts. Capex & depreciation (RWJJ Ch.6) not included in P1.',
     };
+  }
+
+  /**
+   * Journal lines for a period (reuses accrual report builder).
+   */
+  async getJournalLinesForPeriod(
+    tenantId: string,
+    from: Date,
+    to: Date
+  ): Promise<JournalLine[]> {
+    const report = await this.getPeriodReport(tenantId, from, to);
+    return report.journalLines;
+  }
+
+  /**
+   * Count open (unsettled) folio charges in period scope — dubbl "draft entries" equivalent.
+   */
+  async countUnsettledDraftCharges(
+    tenantId: string,
+    propertyId: string,
+    periodEnd: Date
+  ): Promise<number> {
+    const periodStart = periodStartFromEnd(periodEnd);
+    const end = endOfDayUtc(periodEnd);
+
+    const [row] = await db
+      .select({ count: rawSql<number>`count(*)::int` })
+      .from(bookingCharges)
+      .innerJoin(bookings, eq(bookingCharges.bookingId, bookings.id))
+      .where(
+        and(
+          eq(bookingCharges.tenantId, tenantId),
+          eq(bookings.propertyId, propertyId),
+          eq(bookingCharges.status, 'open'),
+          inArray(bookingCharges.chargeType, [...HOSPITALITY_CHARGE_TYPES]),
+          gte(bookingCharges.createdAt, periodStart),
+          lte(bookingCharges.createdAt, end)
+        )
+      );
+
+    return Number(row?.count ?? 0);
+  }
+
+  /**
+   * Latest period lock for a property (if any).
+   */
+  async getPeriodLock(
+    tenantId: string,
+    propertyId: string
+  ): Promise<AccountingPeriodLock | null> {
+    const [lock] = await db
+      .select()
+      .from(accountingPeriodLocks)
+      .where(
+        and(
+          eq(accountingPeriodLocks.tenantId, tenantId),
+          eq(accountingPeriodLocks.propertyId, propertyId)
+        )
+      )
+      .orderBy(desc(accountingPeriodLocks.lockDate), desc(accountingPeriodLocks.createdAt))
+      .limit(1);
+
+    if (!lock) return null;
+
+    return {
+      id: lock.id,
+      propertyId: lock.propertyId,
+      lockDate: lock.lockDate,
+      lockedAt: lock.createdAt?.toISOString() ?? new Date().toISOString(),
+      lockedBy: lock.lockedBy,
+      reason: lock.reason,
+    };
+  }
+
+  /**
+   * Close GL period for a property — blocks when unsettled folio charges exist (dubbl draft guard).
+   */
+  async closeAccountingPeriod(
+    tenantId: string,
+    propertyId: string,
+    periodEnd: Date,
+    userId?: string
+  ): Promise<AccountingPeriodCloseResult> {
+    const [property] = await db
+      .select({ id: properties.id })
+      .from(properties)
+      .where(and(eq(properties.id, propertyId), eq(properties.tenantId, tenantId)))
+      .limit(1);
+
+    if (!property) {
+      return { success: false, error: 'Property not found' };
+    }
+
+    const existingLock = await this.getPeriodLock(tenantId, propertyId);
+    const lockDateIso = periodEnd.toISOString().slice(0, 10);
+    if (existingLock && existingLock.lockDate >= lockDateIso) {
+      return { success: false, error: 'Accounting period is already closed through this date' };
+    }
+
+    const draftCount = await this.countUnsettledDraftCharges(tenantId, propertyId, periodEnd);
+    if (draftCount > 0) {
+      return {
+        success: false,
+        error: draftEntryGuardMessage(draftCount),
+        draftChargeCount: draftCount,
+      };
+    }
+
+    const periodStart = periodStartFromEnd(periodEnd);
+    const report = await this.getPeriodReport(tenantId, periodStart, endOfDayUtc(periodEnd));
+    if (report.journalLineCount === 0) {
+      return {
+        success: false,
+        error: 'Cannot close: no posted journal activity in this period',
+      };
+    }
+
+    const [inserted] = await db
+      .insert(accountingPeriodLocks)
+      .values({
+        tenantId,
+        propertyId,
+        lockDate: lockDateIso,
+        lockedBy: userId ?? null,
+        reason: `GL period closed through ${lockDateIso}`,
+      })
+      .returning();
+
+    return {
+      success: true,
+      lockDate: lockDateIso,
+      closedAt: inserted.createdAt?.toISOString() ?? new Date().toISOString(),
+      closedBy: userId,
+    };
+  }
+
+  /**
+   * Generate year-end closing lines (revenue/expense → retained earnings) — dubbl pattern port.
+   * Hotel Etuna: simplified monthly close for now; full fiscal year close is future enhancement.
+   * Reason: Close Corporation equity (members' interest) requires year-end sweep per accountant.
+   */
+  generateYearEndClosingLines(
+    trialBalance: Array<{ accountCode: string; accountType: string; balance: number }>,
+    fiscalYearEnd: Date,
+    currency: string
+  ): JournalLine[] {
+    const closingLines: JournalLine[] = [];
+    let totalRevenueBalance = 0;
+    let totalExpenseBalance = 0;
+
+    for (const row of trialBalance) {
+      if (row.accountType === 'revenue' && row.balance !== 0) {
+        totalRevenueBalance += row.balance;
+        pushLine(closingLines, {
+          date: fiscalYearEnd.toISOString(),
+          accountCode: row.accountCode,
+          debit: Math.abs(row.balance),
+          credit: 0,
+          memo: 'Year-end closing - revenue',
+          sourceType: 'platform_invoice',
+          sourceId: `year-end-close-${fiscalYearEnd.toISOString().slice(0, 10)}`,
+          currency,
+        });
+      } else if (row.accountType === 'expense' && row.balance !== 0) {
+        totalExpenseBalance += row.balance;
+        pushLine(closingLines, {
+          date: fiscalYearEnd.toISOString(),
+          accountCode: row.accountCode,
+          debit: 0,
+          credit: Math.abs(row.balance),
+          memo: 'Year-end closing - expense',
+          sourceType: 'platform_invoice',
+          sourceId: `year-end-close-${fiscalYearEnd.toISOString().slice(0, 10)}`,
+          currency,
+        });
+      }
+    }
+
+    const netIncome = totalRevenueBalance - totalExpenseBalance;
+
+    if (netIncome !== 0) {
+      pushLine(closingLines, {
+        date: fiscalYearEnd.toISOString(),
+        accountCode: '3100',
+        debit: netIncome < 0 ? Math.abs(netIncome) : 0,
+        credit: netIncome > 0 ? netIncome : 0,
+        memo: 'Year-end closing - net income to retained earnings (members\' interest)',
+        sourceType: 'platform_invoice',
+        sourceId: `year-end-close-${fiscalYearEnd.toISOString().slice(0, 10)}`,
+        currency,
+      });
+    }
+
+    return closingLines;
+  }
+
+  /**
+   * Check if entries can be posted for a given date (not in locked period).
+   */
+  async isDateLocked(
+    tenantId: string,
+    propertyId: string,
+    entryDate: Date
+  ): Promise<boolean> {
+    const lock = await this.getPeriodLock(tenantId, propertyId);
+    if (!lock) return false;
+
+    const entryDateIso = entryDate.toISOString().slice(0, 10);
+    return entryDateIso <= lock.lockDate;
   }
 }

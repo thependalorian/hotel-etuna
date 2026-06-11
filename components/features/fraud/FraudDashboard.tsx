@@ -23,6 +23,7 @@ import { FraudStatisticsCard } from './FraudStatisticsCard';
 import { FraudAlertsTable } from './FraudAlertsTable';
 import { FraudTrendChart } from './FraudTrendChart';
 import { FraudRiskHeatmap } from './FraudRiskHeatmap';
+import { FraudRuleEditor } from './FraudRuleEditor';
 import { securityLogger } from '@/lib/utils/security-logger.client';
 
 // Types
@@ -159,6 +160,9 @@ export function FraudDashboard({ tenantId }: FraudDashboardProps) {
         <FraudTrendChart tenantId={tenantId} periodType={periodType} />
         <FraudRiskHeatmap tenantId={tenantId} />
       </div>
+
+      {/* Tenant rule configuration */}
+      <FraudRuleEditor tenantId={tenantId} />
 
       {/* Active Alerts */}
       <FraudAlertsTable tenantId={tenantId} />

@@ -6,7 +6,7 @@
 import { db } from '@/lib/db';
 import { auditTrail, users, cybersecurityIncidents } from '@/lib/db/schema';
 import { and, gte, lte, desc } from 'drizzle-orm';
-import { soc2AuditOrchestrator } from './Soc2AuditOrchestrator';
+import { runSoc2Audit } from './soc2-audit-engine';
 import type { Soc2AuditReport } from './types';
 
 export class Soc2ComplianceService {
@@ -14,9 +14,9 @@ export class Soc2ComplianceService {
     periodStart: string,
     periodEnd: string
   ): Promise<Soc2AuditReport> {
-    return soc2AuditOrchestrator.runAudit({
-      periodFrom: new Date(periodStart),
-      periodTo: new Date(periodEnd),
+    return runSoc2Audit({
+      from: new Date(periodStart),
+      to: new Date(periodEnd),
     });
   }
 

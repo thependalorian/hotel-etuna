@@ -11,7 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as z from 'zod';
 import { VoiceChannelAdapter } from '@/lib/services/sofia/VoiceChannelAdapter';
 import { entityId, entityIdNullableOptional } from '@/lib/validation/entity-ids';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const bodySchema = z.object({
   type: z.enum(['session.started', 'transcript.user', 'session.ended', 'handoff.requested']),

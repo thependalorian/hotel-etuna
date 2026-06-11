@@ -135,9 +135,10 @@ describe('Security Headers Configuration', () => {
       (h: any) => h.key === 'Content-Security-Policy'
     );
 
-    // CSP might not be configured yet, so check if headers exist at all
-    expect(headers).toBeDefined();
-    expect(headers.length).toBeGreaterThan(0);
+    expect(header).toBeDefined();
+    expect(header.value).toContain('https://api.stack-auth.com');
+    expect(header.value).toContain('https://challenges.cloudflare.com');
+    expect(header.value).toContain('apiv3.adumoonline.com');
   });
 
   it('should have Strict-Transport-Security header', () => {

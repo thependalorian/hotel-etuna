@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Shared Zod validation schemas for API request bodies.
+ * Location: lib/utils/validation.ts
+ */
 import { z } from 'zod';
 import { entityId, entityIdOptional, entityIdNullableOptional } from '@/lib/validation/entity-ids';
 
@@ -175,6 +179,19 @@ export const guestLoyaltyRedeemSchema = z.object({
   bookingId: entityId(),
   pointsToRedeem: z.number().int().min(100),
 });
+
+export const guestServiceRequestSchema = z
+  .object({
+    requestType: z.enum(['housekeeping', 'maintenance', 'amenity', 'other']),
+    category: z.string().trim().max(80).optional(),
+    description: z.string().trim().max(2000).optional(),
+    // Photos are stored URLs/paths (uploaded separately); cap to keep payloads small.
+    photos: z.array(z.string().trim().max(2048)).max(5).optional(),
+  })
+  .refine(
+    (v) => Boolean(v.category) || Boolean(v.description),
+    { message: 'Choose a category or describe your request', path: ['category'] }
+  );
 
 export const createOrderSchema = z.object({
   restaurantId: entityId(),

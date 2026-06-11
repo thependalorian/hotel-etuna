@@ -1,30 +1,13 @@
 /**
  * Analytics Dashboard Page
- * 
- * Purpose: Display business analytics and performance metrics
+ *
+ * Purpose: Display key business metrics and performance for Hotel Etuna.
  * Location: /app/(dashboard)/analytics/page.tsx
- * 
- * Features:
- * - Key metrics cards
- * - Revenue by property
- * - Booking trends
- * - Performance metrics
- * - Export functionality
- * 
- * Design System:
- * - Uses semantic tokens: text-base-content, bg-base-100
- * - Button size: min-h-[44px] (Fitt's Law)
- * 
- * Accessibility:
- * - Proper heading hierarchy (h1)
- * - Semantic HTML structure
- * 
- * @module AnalyticsPage
  */
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { Download, BarChart3 } from 'lucide-react';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
@@ -37,6 +20,7 @@ import PerformanceMetrics from '@/components/features/analytics/PerformanceMetri
 import { TrendingUp, Users, DollarSign, Calendar } from 'lucide-react';
 import { apiUrl } from '@/lib/utils/api-url';
 import { securityLogger } from '@/lib/utils/security-logger.client';
+import { formatCurrencyNAD } from '@/lib/formatters';
 
 interface AnalyticsData {
   revenue: {
@@ -77,28 +61,16 @@ export default function AnalyticsPage() {
   const { data: session } = useSession();
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedProperty, setSelectedProperty] = useState<string>('all');
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
     from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
     to: new Date(),
   });
 
-  useEffect(() => {
-    // Only fetch if session is available
-    if (session?.user) {
-      fetchAnalyticsData();
-    } else {
-      setLoading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedProperty, dateRange, session]);
-
-  const fetchAnalyticsData = async () => {
+  const fetchAnalyticsData = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
         dashboard: 'true',
-        ...(selectedProperty !== 'all' && { propertyId: selectedProperty }),
         dateFrom: dateRange.from.toISOString(),
         dateTo: dateRange.to.toISOString(),
       });
@@ -108,18 +80,24 @@ export default function AnalyticsPage() {
         const analyticsData = await response.json();
         setData(analyticsData);
       } else {
-        // Handle non-OK responses gracefully
         securityLogger.warn('[AnalyticsPage] API returned non-OK status:', response.status);
         setData(null);
       }
     } catch (error) {
       securityLogger.error('[AnalyticsPage] Error fetching analytics data:', error);
-      // Set data to null to show empty state instead of crashing
       setData(null);
     } finally {
       setLoading(false);
     }
-  };
+  }, [dateRange, session]); // Added session to dependencies
+
+  useEffect(() => {
+    if (session?.user) {
+      fetchAnalyticsData();
+    } else {
+      setLoading(false);
+    }
+  }, [dateRange, session, fetchAnalyticsData]); // Added fetchAnalyticsData to dependencies
 
   const exportReport = async (format: 'csv' | 'pdf') => {
     try {
@@ -132,7 +110,6 @@ export default function AnalyticsPage() {
             metrics: ['revenue', 'bookings', 'guests', 'performance'],
             filters: {
               tenantId: session?.user?.tenantId,
-              propertyId: selectedProperty !== 'all' ? selectedProperty : undefined,
               dateFrom: dateRange.from,
               dateTo: dateRange.to,
             },
@@ -146,7 +123,7 @@ export default function AnalyticsPage() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `analytics-report.${format}`;
+        a.download = `hotel-etuna-analytics.${format}`;
         a.click();
         window.URL.revokeObjectURL(url);
       }
@@ -168,7 +145,7 @@ export default function AnalyticsPage() {
       <EmptyState
         icon={BarChart3}
         title="No analytics data available"
-        description="Start creating bookings to see analytics."
+        description="Start creating bookings to see performance metrics."
       />
     );
   }
@@ -176,7 +153,7 @@ export default function AnalyticsPage() {
   const metrics = [
     { 
       title: 'Total Revenue', 
-      value: `N$${data.revenue.totalRevenue.toLocaleString()}`, 
+      value: formatCurrencyNAD(data.revenue.totalRevenue), 
       icon: DollarSign, 
       color: 'text-primary', 
       bg: 'bg-primary/10',
@@ -196,7 +173,7 @@ export default function AnalyticsPage() {
       icon: Users, 
       color: 'text-accent', 
       bg: 'bg-accent/10',
-      desc: `${data.guests.newGuests} new guests`
+      desc: `${data.guests.newGuests} new this period`
     },
     { 
       title: 'Avg Order Value', 
@@ -212,33 +189,33 @@ export default function AnalyticsPage() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="buffr-page-title mb-2">Analytics Dashboard</h1>
-          <p className="text-base-content/70">
-            Track your hospitality business performance
+          <h1 className="etuna-page-title mb-2">Analytics</h1>
+          <p className="text-nude-600">
+            Hotel Etuna performance metrics
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
-            className="btn btn-outline gentle-lift min-h-[44px]"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-nude-200 text-nude-800 font-medium hover:bg-nude-50 transition-colors min-h-[44px]"
             onClick={() => exportReport('csv')}
           >
-            <Download className="w-5 h-5 mr-2" />
+            <Download className="w-4 h-4" />
             Export CSV
           </button>
           <button
-            className="btn btn-primary gentle-lift min-h-[44px]"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-khaki-600 text-white font-bold hover:bg-khaki-700 transition-colors min-h-[44px]"
             onClick={() => exportReport('pdf')}
           >
-            <Download className="w-5 h-5 mr-2" />
+            <Download className="w-4 h-4" />
             Export PDF
           </button>
         </div>
       </div>
 
       <AnalyticsFilters
-        selectedProperty={selectedProperty}
+        selectedProperty="all"
         dateRange={dateRange}
-        onPropertyChange={setSelectedProperty}
+        onPropertyChange={() => {}}
         onDateRangeChange={(field, date) => setDateRange(prev => ({ ...prev, [field]: date }))}
       />
 

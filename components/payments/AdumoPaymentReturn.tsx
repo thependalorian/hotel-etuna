@@ -48,6 +48,7 @@ export function AdumoPaymentReturn({ mode }: AdumoPaymentReturnProps) {
       const reason = status === 'USER_CANCELLED'
         ? 'Payment cancelled. You can try again or pay at reception.'
         : 'Card payment declined. Please check your card details or pay at reception.';
+      // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
       setMessage(reason);
       return;
     }

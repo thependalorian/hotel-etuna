@@ -33,11 +33,13 @@
 'use client';
 
 import { FormEvent, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { publicCopy } from '@/lib/copy/public';
+import { extractBookingId } from '@/lib/bookings/booking-response';
 
 type AvailabilityRoom = {
   id: string;
@@ -55,6 +57,7 @@ type AvailabilityRoom = {
  */
 export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
   const { status } = useSession();
+  const router = useRouter();
   const isAuthenticated = status === 'authenticated';
   const [checkInDate, setCheckInDate] = useState('');
   const [checkOutDate, setCheckOutDate] = useState('');
@@ -63,6 +66,8 @@ export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<AvailabilityRoom[]>([]);
+  const [bookingRoomId, setBookingRoomId] = useState<string | null>(null);
+  const [bookingError, setBookingError] = useState<string | null>(null);
 
   const filteredResults = useMemo(() => {
     if (!roomType) return results;
@@ -115,6 +120,43 @@ export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
     }
   };
 
+  /**
+   * Create an accommodation booking for the selected room and dates, then send the
+   * guest to the deposit payment page. Authenticated guests only.
+   */
+  const handleBook = async (room: AvailabilityRoom) => {
+    setBookingError(null);
+    setBookingRoomId(room.id);
+    try {
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          roomId: room.id,
+          checkInDate,
+          checkOutDate,
+          numGuests: Number(guests),
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload?.message || payload?.error?.message || 'Could not create booking');
+      }
+
+      const bookingId = extractBookingId(payload);
+      if (!bookingId) {
+        throw new Error('Booking created but no reference returned. Please check your stays.');
+      }
+
+      router.push(`/payment/booking-deposit?bookingId=${bookingId}`);
+    } catch (bookError) {
+      setBookingError(bookError instanceof Error ? bookError.message : 'Could not create booking');
+      setBookingRoomId(null);
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl p-6 md:p-8">
       <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -158,12 +200,39 @@ export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
       {!error && filteredResults.length > 0 ? (
         <div className="mt-6 space-y-3">
           <h3 className="font-semibold text-terracotta-900">Available Rooms</h3>
+          {bookingError ? (
+            <p className="text-sm text-red-600" role="alert">{bookingError}</p>
+          ) : null}
           {filteredResults.map((room) => (
-            <div key={room.id} className="rounded-lg border border-nude-200 p-3 text-sm text-terracotta-800">
-              {room.roomType} ({room.roomNumber}) · Max {room.maxOccupancy} guests
-              {isAuthenticated && room.baseRate != null && room.baseRate !== ''
-                ? ` · NAD ${room.baseRate}`
-                : ` · ${publicCopy.gated.viewRates}`}
+            <div
+              key={room.id}
+              className="flex flex-col gap-3 rounded-lg border border-nude-200 p-3 text-sm text-terracotta-800 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <span>
+                {room.roomType} ({room.roomNumber}) · Max {room.maxOccupancy} guests
+                {isAuthenticated && room.baseRate != null && room.baseRate !== ''
+                  ? ` · NAD ${room.baseRate}`
+                  : ` · ${publicCopy.gated.viewRates}`}
+              </span>
+              {isAuthenticated ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  className="min-h-[44px] shrink-0"
+                  onClick={() => handleBook(room)}
+                  disabled={bookingRoomId !== null}
+                  aria-busy={bookingRoomId === room.id}
+                >
+                  {bookingRoomId === room.id ? (
+                    <>
+                      <span className="loading loading-spinner loading-sm" aria-hidden />
+                      Booking…
+                    </>
+                  ) : (
+                    'Book · pay deposit'
+                  )}
+                </Button>
+              ) : null}
             </div>
           ))}
           {!isAuthenticated ? (

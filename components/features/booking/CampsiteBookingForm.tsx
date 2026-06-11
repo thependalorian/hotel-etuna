@@ -14,6 +14,7 @@ import {
 } from '@/lib/constants/hotel-etuna-room-types';
 import { calculateCampsiteTotal } from '@/lib/services/booking/FacilityBookingPricing';
 import { apiUrl } from '@/lib/utils/api-url';
+import { extractBookingId } from '@/lib/bookings/booking-response';
 
 type CampsiteBookingFormProps = {
   roomId: string;
@@ -68,7 +69,7 @@ export function CampsiteBookingForm({ roomId, redirectTo }: CampsiteBookingFormP
         setError(data.message || data.error || 'Could not create booking.');
         return;
       }
-      const bookingId = data.id ?? data.data?.id;
+      const bookingId = extractBookingId(data);
       if (redirectTo) {
         router.push(bookingId ? `/bookings/${bookingId}` : redirectTo);
       } else if (bookingId) {

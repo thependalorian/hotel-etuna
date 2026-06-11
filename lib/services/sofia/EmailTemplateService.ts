@@ -7,6 +7,7 @@
  */
 
 import { brand } from '@/lib/copy/brand';
+import { platformConsole } from '@/lib/config/platform-console';
 import {
   checkInOutFactsHtml,
   guestStaysUrl,
@@ -74,9 +75,10 @@ export class EmailTemplateService {
 
   generateVerificationEmail(options: EmailTemplateOptions): WrappedTemplate {
     const otp = options.otp || '000000';
-    const body = `<p>Thank you for creating your Hotel Etuna account. Use this code to verify your email (expires in 15 minutes):</p>
+    const body = `<p>Ongwediva — thank you for creating your Hotel Etuna account. Use this code to verify your email (expires in 15 minutes):</p>
 ${otpCodeHtml(otp)}
-<p>If you did not create this account, you can ignore this email.</p>`;
+<p>If you did not create this account, you can ignore this email.</p>
+<p><em>${brand.tagline}</em></p>`;
 
     return this.wrap(options, {
       subject: 'Verify your Hotel Etuna account',
@@ -89,7 +91,8 @@ ${otpCodeHtml(otp)}
     const otp = options.otp || '000000';
     const body = `<p>Here is your new verification code (expires in 15 minutes):</p>
 ${otpCodeHtml(otp)}
-<p>If you did not request this code, you can ignore this email.</p>`;
+<p>If you did not request this code, you can ignore this email.</p>
+<p><em>${brand.tagline}</em></p>`;
 
     return this.wrap(options, {
       subject: 'Your new Hotel Etuna verification code',
@@ -148,7 +151,8 @@ ${otpCodeHtml(otp)}
 ${amountLine}
 </ul>
 ${checkInOutFactsHtml()}
-<p>View your booking and folio anytime after you sign in:</p>`;
+<p>View your booking and folio anytime after you sign in. We will send a separate link before arrival so you can upload travel documents.</p>
+<p><em>${brand.tagline}</em></p>`;
 
     return this.wrap(options, {
       subject: `Booking confirmed · ${bookingRef}`,
@@ -247,10 +251,11 @@ ${propertyContactBlockHtml()}`;
     const checkIn = options.checkInDate || 'tomorrow';
     const bookingRef = options.bookingReference || '';
 
-    const body = `<p>We look forward to welcoming you to <strong>${propertyName}</strong>.</p>
+    const body = `<p>We look forward to welcoming you to <strong>${propertyName}</strong> in Ongwediva.</p>
 <p><strong>Check-in:</strong> ${checkIn}${bookingRef ? ` · Reference <strong>${bookingRef}</strong>` : ''}</p>
 ${checkInOutFactsHtml()}
-<p>Reply to this email if you have special requests or a late arrival.</p>`;
+<p>Reply to this email if you have special requests or a late arrival.</p>
+<p><em>${brand.tagline}</em></p>`;
 
     return this.wrap(options, {
       subject: `See you soon · check-in ${checkIn}`,
@@ -263,8 +268,9 @@ ${checkInOutFactsHtml()}
   generateCheckInConfirmationEmail(options: EmailTemplateOptions): WrappedTemplate {
     const propertyName = options.propertyName || 'Hotel Etuna';
     const body = `<p>Welcome — you are checked in at <strong>${propertyName}</strong>.</p>
-<p>During your stay you can order room service (when checked in), view your folio, and ask Sofia in the chat for anything you need.</p>
-${checkInOutFactsHtml()}`;
+<p>During your stay you can order room service, view your folio, pay via bank if you prefer, and ask Sofia for local tips.</p>
+${checkInOutFactsHtml()}
+<p><em>${brand.tagline}</em></p>`;
 
     return this.wrap(options, {
       subject: `Welcome · you are checked in`,
@@ -278,7 +284,8 @@ ${checkInOutFactsHtml()}`;
     const propertyName = options.propertyName || 'Hotel Etuna';
     const feedbackLink = options.feedbackLink || `${siteBaseUrl()}/reviews`;
     const body = `<p>Thank you for staying with us at <strong>${propertyName}</strong>.</p>
-<p>Your feedback helps our team improve. It only takes a minute.</p>`;
+<p>Your feedback helps our team improve — it only takes a minute, and it means a lot to our small Namibian team.</p>
+<p><em>${brand.tagline}</em></p>`;
 
     return this.wrap(options, {
       subject: `How was your stay at ${propertyName}?`,
@@ -300,16 +307,16 @@ ${checkInOutFactsHtml()}`;
     });
   }
 
-  /** Founder / partner intelligence digest (cron + Buffr Hub test send). */
+  /** Founder / partner intelligence digest (cron + platform console test send). */
   generateAdminDigestEmail(options: EmailTemplateOptions): WrappedTemplate {
     const body =
       options.customMessage ||
       '<p>Your scheduled intelligence digest is attached below.</p>';
     return this.wrap(options, {
-      subject: options.subject || 'Buffr Hub intelligence digest',
-      body: `<p>Summary for <strong>${options.recipientName || 'Buffr operator'}</strong>:</p>${body}`,
+      subject: options.subject || `${platformConsole.digestSubjectPrefix} intelligence digest`,
+      body: `<p>Summary for <strong>${options.recipientName || platformConsole.digestOperatorFallback}</strong>:</p>${body}`,
       ctaLink: options.ctaLink || `${siteBaseUrl()}/admin/platform`,
-      ctaText: options.ctaText || 'Open Buffr Hub',
+      ctaText: options.ctaText || platformConsole.digestCtaText,
       compactSignature: true,
     });
   }

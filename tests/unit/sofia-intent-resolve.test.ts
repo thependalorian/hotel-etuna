@@ -4,23 +4,9 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { SofiaConciergeService } from '@/lib/services/ai/SofiaConciergeService';
-
-type IntentProbe = {
-  extractIntent: (text: string) => string;
-  resolveIntent: (userMessage: string, assistantResponse: string) => string;
-};
-
-function intentProbe(): IntentProbe {
-  const svc = new SofiaConciergeService() as SofiaConciergeService & IntentProbe;
-  return {
-    extractIntent: (text) => svc.extractIntent(text),
-    resolveIntent: (user, assistant) => svc.resolveIntent(user, assistant),
-  };
-}
+import { extractIntent, resolveIntent } from '@/lib/services/sofia/sofia-intent';
 
 describe('Sofia intent resolution', () => {
-  const { extractIntent, resolveIntent } = intentProbe();
 
   it('detects pricing from guest message with rates', () => {
     expect(extractIntent('What are your room rates for next week?')).toBe('pricing_inquiry');

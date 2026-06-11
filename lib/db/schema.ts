@@ -136,6 +136,7 @@ export const bookingChargeStatusEnum = pgEnum('booking_charge_status', [
   'open',
   'settled',
   'refunded',
+  'voided',
 ]);
 
 export const aiConversationChannelEnum = pgEnum('ai_conversation_channel', [
@@ -170,6 +171,28 @@ export const housekeepingTaskPriorityEnum = pgEnum('housekeeping_task_priority',
   'normal',
   'high',
   'urgent',
+]);
+
+export const guestServiceRequestTypeEnum = pgEnum('guest_service_request_type', [
+  'housekeeping',
+  'maintenance',
+  'amenity',
+  'other',
+]);
+
+export const guestServiceRequestStatusEnum = pgEnum('guest_service_request_status', [
+  'open',
+  'acknowledged',
+  'in_progress',
+  'resolved',
+  'cancelled',
+]);
+
+export const documentTypeEnum = pgEnum('document_type_enum', [
+  'quotation',
+  'invoice',
+  'receipt',
+  'payment_notification',
 ]);
 
 // ============================================================================
@@ -425,6 +448,32 @@ export const roomQrCodes = pgTable('room_qr_codes', {
   qrCodeIdx: index('idx_room_qr_codes_qr_code').on(table.qrCode),
 }));
 
+/** Daily room inventory buckets (OSS W6 / innkeeper availability ledger). */
+export const roomAvailabilityLedger = pgTable('room_availability_ledger', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  propertyId: uuid('property_id').references(() => properties.id, { onDelete: 'cascade' }).notNull(),
+  roomId: uuid('room_id').references(() => rooms.id, { onDelete: 'cascade' }).notNull(),
+  businessDate: date('business_date').notNull(),
+  sold: integer('sold').default(0).notNull(),
+  blocked: integer('blocked').default(0).notNull(),
+  outOfOrder: boolean('out_of_order').default(false).notNull(),
+  stopSell: boolean('stop_sell').default(false).notNull(),
+  cta: boolean('cta').default(false).notNull(),
+  ctd: boolean('ctd').default(false).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  propertyDateIdx: index('idx_room_availability_ledger_property_date').on(table.propertyId, table.businessDate),
+  roomDateIdx: index('idx_room_availability_ledger_room_date').on(table.roomId, table.businessDate),
+  tenantIdx: index('idx_room_availability_ledger_tenant_id').on(table.tenantId),
+  uniqueDay: uniqueIndex('room_availability_ledger_unique_day').on(
+    table.propertyId,
+    table.roomId,
+    table.businessDate,
+  ),
+}));
+
 // ============================================================================
 // BOOKING SYSTEM
 // ============================================================================
@@ -472,6 +521,7 @@ export const bookings = pgTable('bookings', {
   adultCount: integer('adult_count').default(1),
   childCount: integer('child_count').default(0),
   totalAmount: decimal('total_amount', { precision: 10, scale: 2 }).notNull(),
+  depositPercent: decimal('deposit_percent', { precision: 5, scale: 2 }).default('30'),
   commissionAmount: decimal('commission_amount', { precision: 12, scale: 2 }),
   currency: varchar('currency', { length: 3 }).default('NAD'),
   paymentStatus: varchar('payment_status', { length: 50 }).default('pending'),
@@ -539,6 +589,38 @@ export const housekeepingTasks = pgTable('housekeeping_tasks', {
   createdAtIdx: index('idx_housekeeping_tasks_created_at').on(table.createdAt),
 }));
 
+/**
+ * Guest-raised service & maintenance requests (Phase 8 — Guest Command Centre).
+ * Housekeeping/maintenance requests spawn a linked housekeeping_tasks row so they
+ * surface on the staff board. See migration 0054_guest_service_requests.sql.
+ */
+export const guestServiceRequests = pgTable('guest_service_requests', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  propertyId: uuid('property_id').references(() => properties.id, { onDelete: 'cascade' }).notNull(),
+  bookingId: uuid('booking_id').references(() => bookings.id, { onDelete: 'cascade' }).notNull(),
+  roomId: uuid('room_id').references(() => rooms.id, { onDelete: 'set null' }),
+  guestId: uuid('guest_id').references(() => guests.id, { onDelete: 'set null' }),
+  requestType: guestServiceRequestTypeEnum('request_type').notNull(),
+  category: varchar('category', { length: 80 }),
+  description: text('description'),
+  photos: text('photos').array().default([]),
+  status: guestServiceRequestStatusEnum('status').default('open').notNull(),
+  priority: housekeepingTaskPriorityEnum('priority').default('normal').notNull(),
+  housekeepingTaskId: uuid('housekeeping_task_id').references(() => housekeepingTasks.id, { onDelete: 'set null' }),
+  resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+  resolvedBy: uuid('resolved_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+}, (table) => ({
+  tenantIdx: index('idx_guest_service_requests_tenant_id').on(table.tenantId),
+  propertyIdx: index('idx_guest_service_requests_property_id').on(table.propertyId),
+  bookingIdx: index('idx_guest_service_requests_booking_id').on(table.bookingId),
+  statusIdx: index('idx_guest_service_requests_status').on(table.status),
+  createdAtIdx: index('idx_guest_service_requests_created_at').on(table.createdAt),
+}));
+
 /** Per-stay folio lines (room rate, F&B, tax, payments) — not the same as guest_profiles (loyalty). */
 export const bookingCharges = pgTable('booking_charges', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -562,6 +644,50 @@ export const bookingCharges = pgTable('booking_charges', {
 
 export type BookingCharge = typeof bookingCharges.$inferSelect;
 export type NewBookingCharge = typeof bookingCharges.$inferInsert;
+
+/** Night audit run log — one row per property + business date (OSS W5 / pura-pms). */
+export const nightAuditRuns = pgTable('night_audit_runs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  propertyId: uuid('property_id').references(() => properties.id, { onDelete: 'cascade' }).notNull(),
+  businessDate: date('business_date').notNull(),
+  result: jsonb('result').notNull().default({}),
+  status: varchar('status', { length: 50 }).notNull().default('completed'),
+  runBy: uuid('run_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tenantIdx: index('idx_night_audit_runs_tenant_id').on(table.tenantId),
+  propertyIdx: index('idx_night_audit_runs_property_id').on(table.propertyId),
+  businessDateIdx: index('idx_night_audit_runs_business_date').on(table.businessDate),
+  propertyDateUnique: uniqueIndex('night_audit_runs_property_date_unique').on(
+    table.propertyId,
+    table.businessDate
+  ),
+}));
+
+export type NightAuditRun = typeof nightAuditRuns.$inferSelect;
+export type NewNightAuditRun = typeof nightAuditRuns.$inferInsert;
+
+/** GL period close locks — one active lock per property (OSS W4 / dubbl periodLock). */
+export const accountingPeriodLocks = pgTable('accounting_period_locks', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  propertyId: uuid('property_id').references(() => properties.id, { onDelete: 'cascade' }).notNull(),
+  lockDate: date('lock_date').notNull(),
+  lockedBy: uuid('locked_by').references(() => users.id, { onDelete: 'set null' }),
+  reason: text('reason').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tenantPropertyIdx: index('idx_accounting_period_locks_tenant_property').on(
+    table.tenantId,
+    table.propertyId
+  ),
+  lockDateIdx: index('idx_accounting_period_locks_lock_date').on(table.lockDate),
+}));
+
+export type AccountingPeriodLock = typeof accountingPeriodLocks.$inferSelect;
+export type NewAccountingPeriodLock = typeof accountingPeriodLocks.$inferInsert;
 
 export const cashReconciliations = pgTable('cash_reconciliations', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -625,6 +751,66 @@ export const transactions = pgTable('transactions', {
   statusIdx: index('idx_transactions_status').on(table.status),
 }));
 
+/**
+ * Payment disputes / chargebacks / reversals.
+ * A gateway reversal or cardholder chargeback that reverses a previously-settled payment.
+ * Opening a dispute reverses the folio (reversing transaction + booking charge) so the ledger
+ * never silently desyncs. PSD-4 dispute participation (merchant side).
+ */
+export const paymentDisputes = pgTable('payment_disputes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  bookingId: uuid('booking_id').references(() => bookings.id, { onDelete: 'set null' }),
+  transactionId: uuid('transaction_id').references(() => transactions.id, { onDelete: 'set null' }),
+  guestId: uuid('guest_id').references(() => guests.id, { onDelete: 'set null' }),
+  merchantReference: varchar('merchant_reference', { length: 38 }),
+  gatewayTransactionId: varchar('gateway_transaction_id', { length: 255 }),
+  paymentGateway: varchar('payment_gateway', { length: 50 }).default('adumo_virtual'),
+  /** chargeback | refund | reversal */
+  kind: varchar('kind', { length: 20 }).notNull().default('chargeback'),
+  /** opened | under_review | won | lost | refunded | reversed */
+  status: varchar('status', { length: 20 }).notNull().default('opened'),
+  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
+  currency: varchar('currency', { length: 3 }).default('NAD'),
+  reasonCode: varchar('reason_code', { length: 50 }),
+  reason: text('reason'),
+  openedAt: timestamp('opened_at', { withTimezone: true }).defaultNow(),
+  resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+  resolvedBy: uuid('resolved_by').references(() => users.id, { onDelete: 'set null' }),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  tenantIdx: index('idx_payment_disputes_tenant_id').on(table.tenantId),
+  bookingIdx: index('idx_payment_disputes_booking_id').on(table.bookingId),
+  statusIdx: index('idx_payment_disputes_status').on(table.status),
+  gatewayTxnIdx: index('idx_payment_disputes_gateway_txn').on(table.gatewayTransactionId),
+}));
+
+/** Audit log for on-demand guest financial PDFs (quotation, invoice, receipt, payment notification). */
+export const generatedDocuments = pgTable('generated_documents', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
+  bookingId: uuid('booking_id').references(() => bookings.id, { onDelete: 'cascade' }).notNull(),
+  documentType: documentTypeEnum('document_type').notNull(),
+  referenceNumber: text('reference_number').notNull().unique(),
+  generatedBy: uuid('generated_by').references(() => users.id).notNull(),
+  generatedAt: timestamp('generated_at', { withTimezone: true }).defaultNow().notNull(),
+  metadata: jsonb('metadata').notNull().default(sql`'{}'::jsonb`),
+  fileUrl: text('file_url'),
+  checksum: text('checksum').notNull(),
+}, (table) => ({
+  bookingIdx: index('idx_generated_documents_booking').on(table.bookingId),
+  tenantIdx: index('idx_generated_documents_tenant').on(table.tenantId),
+  typeIdx: index('idx_generated_documents_type').on(table.documentType),
+  referenceIdx: index('idx_generated_documents_reference').on(table.referenceNumber),
+  generatedAtIdx: index('idx_generated_documents_generated_at').on(table.generatedAt),
+}));
+
+export type GeneratedDocument = typeof generatedDocuments.$inferSelect;
+export type NewGeneratedDocument = typeof generatedDocuments.$inferInsert;
+export type DocumentType = (typeof documentTypeEnum.enumValues)[number];
+
 /** Adumo Virtual redirect sessions (merchant ref → booking or dining reservation) */
 export const paymentSessions = pgTable('payment_sessions', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -648,6 +834,35 @@ export const paymentSessions = pgTable('payment_sessions', {
   bookingIdx: index('idx_payment_sessions_booking_id').on(table.bookingId),
   diningIdx: index('idx_payment_sessions_dining_reservation_id').on(table.diningReservationId),
   expiresIdx: index('idx_payment_sessions_expires_at').on(table.expiresAt),
+}));
+
+/** Transactional outbox for payment side effects (receipt email, notifications) */
+export const paymentOutboxEvents = pgTable('payment_outbox_events', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .references(() => tenants.id, { onDelete: 'cascade' })
+    .notNull(),
+  idempotencyKey: varchar('idempotency_key', { length: 255 }).notNull().unique(),
+  aggregateType: varchar('aggregate_type', { length: 50 }).default('payment_session').notNull(),
+  aggregateId: uuid('aggregate_id').notNull(),
+  eventType: varchar('event_type', { length: 100 }).notNull(),
+  payload: jsonb('payload').notNull().default({}),
+  status: varchar('status', { length: 50 }).default('pending').notNull(),
+  attempts: integer('attempts').default(0).notNull(),
+  maxAttempts: integer('max_attempts').default(10).notNull(),
+  lastError: text('last_error'),
+  nextAttemptAt: timestamp('next_attempt_at', { withTimezone: true }),
+  processedAt: timestamp('processed_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  pendingDispatchIdx: index('idx_payment_outbox_pending_dispatch').on(
+    table.status,
+    table.nextAttemptAt,
+    table.createdAt,
+  ),
+  aggregateIdx: index('idx_payment_outbox_aggregate').on(table.aggregateType, table.aggregateId),
+  tenantIdx: index('idx_payment_outbox_tenant').on(table.tenantId),
 }));
 
 /** Property / platform bank profiles for guest settlement vs Buffr invoicing */
@@ -1357,6 +1572,26 @@ export type NewAiConversation = typeof aiConversations.$inferInsert;
 export type AiMessage = typeof aiMessages.$inferSelect;
 export type NewAiMessage = typeof aiMessages.$inferInsert;
 
+/** Wave 7 — Sofia multi-stage pipeline + tool-graph run telemetry (best-effort). */
+export const sofiaPipelineRuns = pgTable('sofia_pipeline_runs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  sessionId: varchar('session_id', { length: 255 }).notNull(),
+  tenantId: uuid('tenant_id')
+    .references(() => tenants.id, { onDelete: 'cascade' })
+    .notNull(),
+  stages: jsonb('stages').notNull().default(sql`'{}'`),
+  totalMs: bigint('total_ms', { mode: 'number' }).notNull().default(0),
+  status: varchar('status', { length: 50 }).notNull().default('completed'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  sessionIdx: index('idx_sofia_pipeline_runs_session_id').on(table.sessionId),
+  tenantIdx: index('idx_sofia_pipeline_runs_tenant_id').on(table.tenantId),
+  createdAtIdx: index('idx_sofia_pipeline_runs_created_at').on(table.createdAt),
+}));
+
+export type SofiaPipelineRun = typeof sofiaPipelineRuns.$inferSelect;
+export type NewSofiaPipelineRun = typeof sofiaPipelineRuns.$inferInsert;
+
 export const sofiaEmailLogs = pgTable('sofia_email_logs', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }),
@@ -1569,6 +1804,8 @@ export const auditTrail = pgTable('audit_trail', {
   userAgent: text('user_agent'),
   sessionId: varchar('session_id', { length: 255 }),
   timestamp: timestamp('timestamp', { withTimezone: true }).defaultNow(),
+  previousHash: varchar('previous_hash', { length: 64 }),
+  eventHash: varchar('event_hash', { length: 64 }),
 }, (table) => ({
   tenantTimestampIdx: index('idx_audit_trail_tenant_timestamp').on(table.tenantId, table.timestamp),
   resourceIdx: index('idx_audit_trail_resource').on(table.resourceType, table.resourceId),
@@ -1781,6 +2018,8 @@ export type TenantWhatsappSetting = typeof tenantWhatsappSettings.$inferSelect;
 export type NewTenantWhatsappSetting = typeof tenantWhatsappSettings.$inferInsert;
 
 export type Room = typeof rooms.$inferSelect;
+export type RoomAvailabilityLedger = typeof roomAvailabilityLedger.$inferSelect;
+export type NewRoomAvailabilityLedger = typeof roomAvailabilityLedger.$inferInsert;
 export type NewRoom = typeof rooms.$inferInsert;
 
 export type Guest = typeof guests.$inferSelect;
@@ -1792,6 +2031,9 @@ export type NewBooking = typeof bookings.$inferInsert;
 export type Staff = typeof staff.$inferSelect;
 export type NewStaff = typeof staff.$inferInsert;
 
+export type GuestServiceRequest = typeof guestServiceRequests.$inferSelect;
+export type NewGuestServiceRequest = typeof guestServiceRequests.$inferInsert;
+
 export type CmsContent = typeof cmsContent.$inferSelect;
 export type CmsMedia = typeof cmsMedia.$inferSelect;
 
@@ -1800,6 +2042,8 @@ export type NewRestaurant = typeof restaurants.$inferInsert;
 
 export type PaymentSession = typeof paymentSessions.$inferSelect;
 export type NewPaymentSession = typeof paymentSessions.$inferInsert;
+export type PaymentOutboxEvent = typeof paymentOutboxEvents.$inferSelect;
+export type NewPaymentOutboxEvent = typeof paymentOutboxEvents.$inferInsert;
 export type Transaction = typeof transactions.$inferSelect;
 export type NewTransaction = typeof transactions.$inferInsert;
 
@@ -2103,6 +2347,7 @@ export const pepCategoryEnum = pgEnum('pep_category', [
   'family_member',
 ]);
 
+/** DORMANT (B1): Buffr PEP port — not populated; PEP screening out of Namibia OS scope. See AML_FICA_COMPLIANCE_PROGRAM.md §8. */
 export const amlPepDatabase = pgTable('aml_pep_database', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }),
@@ -2149,6 +2394,7 @@ export const amlPepDatabase = pgTable('aml_pep_database', {
   activeIdx: index('idx_aml_pep_database_is_active').on(table.isActive),
 }));
 
+/** DORMANT (B1): companion to aml_pep_database — no API/UI; do not seed without counsel + data provider. */
 export const amlGuestPepFlags = pgTable('aml_guest_pep_flags', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }),
@@ -3374,3 +3620,80 @@ export const fnbPrintJobsRelations = relations(fnbPrintJobs, ({ one }) => ({
 // F&B Print Job Types
 export type FnbPrintJob = typeof fnbPrintJobs.$inferSelect;
 export type NewFnbPrintJob = typeof fnbPrintJobs.$inferInsert;
+
+// ============================================================================
+// DURABLE SCHEDULING & NOTIFICATIONS (Wave 8)
+// ============================================================================
+
+export const schedulerJobs = pgTable('scheduler_jobs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: varchar('tenant_id', { length: 255 }).notNull(),
+  jobType: varchar('job_type', { length: 100 }).notNull(),
+  idempotencyKey: varchar('idempotency_key', { length: 255 }).notNull().unique(),
+  payload: jsonb('payload').notNull().default(sql`'{}'::jsonb`),
+  status: varchar('status', { length: 50 }).notNull().default('pending'),
+  attempts: integer('attempts').notNull().default(0),
+  maxAttempts: integer('max_attempts').notNull().default(10),
+  scheduledFor: timestamp('scheduled_for', { withTimezone: true }).notNull(),
+  nextAttemptAt: timestamp('next_attempt_at', { withTimezone: true }),
+  lastError: text('last_error'),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+  executionTimeMs: bigint('execution_time_ms', { mode: 'number' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  statusScheduledIdx: index('idx_scheduler_jobs_status_scheduled').on(table.status, table.scheduledFor),
+  tenantJobTypeIdx: index('idx_scheduler_jobs_tenant_job_type').on(table.tenantId, table.jobType),
+  nextAttemptIdx: index('idx_scheduler_jobs_next_attempt').on(table.nextAttemptAt),
+}));
+
+export const notificationHistory = pgTable('notification_history', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: varchar('tenant_id', { length: 255 }).notNull(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  notificationType: varchar('notification_type', { length: 100 }).notNull(),
+  channel: varchar('channel', { length: 50 }).notNull(),
+  recipient: varchar('recipient', { length: 255 }).notNull(),
+  subject: varchar('subject', { length: 500 }),
+  content: text('content'),
+  metadata: jsonb('metadata').notNull().default(sql`'{}'::jsonb`),
+  status: varchar('status', { length: 50 }).notNull().default('pending'),
+  sentAt: timestamp('sent_at', { withTimezone: true }),
+  failedAt: timestamp('failed_at', { withTimezone: true }),
+  errorMessage: text('error_message'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  userHistoryIdx: index('idx_notification_history_user').on(
+    table.tenantId,
+    table.userId,
+    table.createdAt,
+  ),
+  typeStatusIdx: index('idx_notification_history_type_status').on(
+    table.notificationType,
+    table.status,
+  ),
+}));
+
+export const calBookingMirrors = pgTable('cal_booking_mirrors', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  calUid: varchar('cal_uid', { length: 255 }).notNull().unique(),
+  propertyId: uuid('property_id').references(() => properties.id, { onDelete: 'set null' }),
+  bookingId: uuid('booking_id').references(() => bookings.id, { onDelete: 'set null' }),
+  payload: jsonb('payload').notNull().default(sql`'{}'::jsonb`),
+  status: varchar('status', { length: 50 }).notNull().default('active'),
+  webhookReceivedAt: timestamp('webhook_received_at', { withTimezone: true }).defaultNow().notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  propertyIdx: index('idx_cal_booking_mirrors_property').on(table.propertyId),
+  bookingIdx: index('idx_cal_booking_mirrors_booking').on(table.bookingId),
+  statusIdx: index('idx_cal_booking_mirrors_status').on(table.status),
+}));
+
+export type SchedulerJob = typeof schedulerJobs.$inferSelect;
+export type NewSchedulerJob = typeof schedulerJobs.$inferInsert;
+export type NotificationHistory = typeof notificationHistory.$inferSelect;
+export type NewNotificationHistory = typeof notificationHistory.$inferInsert;
+export type CalBookingMirror = typeof calBookingMirrors.$inferSelect;
+export type NewCalBookingMirror = typeof calBookingMirrors.$inferInsert;

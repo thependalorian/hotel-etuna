@@ -1,13 +1,18 @@
+/**
+ * @fileoverview SofiaConciergeService — Sofia AI concierge orchestration.
+ *
+ * Canonical Sofia service: conversation persistence (`ai_conversations`,
+ * `ai_messages`), RAG search, intent resolution, restaurant reservation flow,
+ * CRM memory bridging, and role-based data filtering.
+ * Location: lib/services/ai/SofiaConciergeService.ts
+ *
+ * Intent/helpers: lib/services/sofia/sofia-intent.ts
+ * Persistence: lib/services/sofia/sofia-conversation-store.ts
+ * Email automation: lib/services/sofia/sofia-email-automation.ts
+ */
 import { db } from '@/lib/db';
-import {
-  aiConversations,
-  aiMessages,
-  properties,
-  bookings,
-  guests,
-  type Guest,
-} from '@/lib/db/schema';
-import { and, eq, desc, asc, gte, inArray } from 'drizzle-orm';
+import { properties, bookings, guests } from '@/lib/db/schema';
+import { and, eq } from 'drizzle-orm';
 import {
   ConversationContext,
   AIRequest,
@@ -18,7 +23,8 @@ import { handleServiceError } from '@/lib/utils/errors';
 import { KnowledgeBaseService } from './KnowledgeBaseService';
 import { DataFilterService, UserRole } from './DataFilterService';
 import { EmailService } from '@/lib/services/sofia/EmailService';
-import { SofiaEmailTemplateGenerator } from '@/lib/services/sofia/EmailTemplateGenerator';
+import { SofiaConversationStore } from '@/lib/services/sofia/sofia-conversation-store';
+import { SofiaEmailAutomation } from '@/lib/services/sofia/sofia-email-automation';
 import { CrmGraphMemoryService } from '@/lib/services/crm/CrmGraphMemoryService';
 import { scheduleCrmMemoryAfterSofiaTurn } from '@/lib/services/crm/CrmMemoryBridge';
 import { SofiaConversationContextService } from '@/lib/services/sofia/SofiaConversationContextService';
@@ -35,12 +41,24 @@ import {
   isFacilityBookingKind,
   bookingKindLabel,
 } from '@/lib/bookings/booking-kind';
+import {
+  buildSofiaSystemPrompt,
+  detectEmailIntent,
+  extractEmail,
+  extractEntities,
+  extractIntent,
+  generateFallbackResponse,
+  generateSuggestions,
+  requiresPolicyEscalation,
+  resolveIntent,
+} from '@/lib/services/sofia/sofia-intent';
 
 export class SofiaConciergeService {
   private knowledgeBase: KnowledgeBaseService;
   private dataFilter: DataFilterService;
   private emailService: EmailService;
-  private emailTemplateGenerator: SofiaEmailTemplateGenerator;
+  private conversationStore: SofiaConversationStore;
+  private emailAutomation: SofiaEmailAutomation;
   private crmGraphMemory: CrmGraphMemoryService;
   private ragSearch: RAGSearchService;
   private llmRouter: LLMProviderRouter;
@@ -51,7 +69,8 @@ export class SofiaConciergeService {
     this.knowledgeBase = new KnowledgeBaseService();
     this.dataFilter = new DataFilterService();
     this.emailService = new EmailService();
-    this.emailTemplateGenerator = new SofiaEmailTemplateGenerator();
+    this.conversationStore = new SofiaConversationStore();
+    this.emailAutomation = new SofiaEmailAutomation();
     this.crmGraphMemory = new CrmGraphMemoryService();
     this.ragSearch = new RAGSearchService();
     this.llmRouter = new LLMProviderRouter();
@@ -59,25 +78,31 @@ export class SofiaConciergeService {
     this.restaurantFlow = new RestaurantReservationFlowService();
   }
 
+  /** Delegates to conversation store — used by tests and admin tooling. */
+  async getConversationHistory(sessionId: string, tenantId: string) {
+    return this.conversationStore.getConversationHistory(sessionId, tenantId);
+  }
+
   async processMessage(request: AIRequest, userRole: UserRole = 'guest'): Promise<AIResponse> {
     try {
       const channel: AIConversationChannel = request.channel ?? 'WEB';
-      const conversationHistory = await this.getConversationHistory(
+      const conversationHistory = await this.conversationStore.getConversationHistory(
         request.context.sessionId,
         request.context.tenantId
       );
-      
-      // Extract email from message if present
-      const emailFromMessage = this.extractEmail(request.message);
-      
-      // Get existing email from conversation metadata
-      const existingEmail = await this.getEmailFromConversation(request.context.sessionId, request.context.tenantId);
+
+      const emailFromMessage = extractEmail(request.message);
+      const existingEmail = await this.conversationStore.getEmailFromConversation(
+        request.context.sessionId,
+        request.context.tenantId,
+      );
       const guestEmail = emailFromMessage || existingEmail;
-      
-      // Update context with email if found
+
       if (guestEmail && !request.context.guestId) {
-        // Try to find or create guest record
-        const guest = await this.findOrCreateGuest(request.context.tenantId, guestEmail);
+        const guest = await this.conversationStore.findOrCreateGuest(
+          request.context.tenantId,
+          guestEmail,
+        );
         if (guest) {
           request.context.guestId = guest.id;
         }
@@ -112,14 +137,14 @@ export class SofiaConciergeService {
           : undefined;
 
       // Detect if email sending is needed
-      const emailIntent = this.detectEmailIntent(request.message, aiResponse.response);
+      const emailIntent = detectEmailIntent(request.message, aiResponse.response);
       
       // Automatically send email if needed
       let emailSent = false;
       let emailConfirmation = '';
       if (emailIntent.needsEmail && guestEmail) {
         try {
-          emailSent = await this.sendEmailAutomatically(
+          emailSent = await this.emailAutomation.sendEmailAutomatically(
             request.context,
             emailIntent,
             guestEmail,
@@ -139,7 +164,7 @@ export class SofiaConciergeService {
       }
       
       const confidence = aiResponse.confidence || 0.8;
-      const needsHumanEscalation = confidence < 0.55 || this.requiresPolicyEscalation(request.message, aiResponse.response);
+      const needsHumanEscalation = confidence < 0.55 || requiresPolicyEscalation(request.message, aiResponse.response);
 
       // Combine AI response with email confirmation if email was sent.
       let finalResponse = emailSent && emailConfirmation 
@@ -152,7 +177,7 @@ export class SofiaConciergeService {
         finalResponse += ' I am going to flag this for a team member so they can confirm the next step.';
       }
       
-      await this.saveConversation(
+      await this.conversationStore.saveConversation(
         request.context,
         request.message,
         {
@@ -165,15 +190,10 @@ export class SofiaConciergeService {
       );
 
       if (needsHumanEscalation) {
-        await db
-          .update(aiConversations)
-          .set({ status: 'escalated', updatedAt: new Date() })
-          .where(
-            and(
-              eq(aiConversations.sessionId, request.context.sessionId),
-              eq(aiConversations.tenantId, request.context.tenantId)
-            )
-          );
+        await this.conversationStore.markConversationEscalated(
+          request.context.sessionId,
+          request.context.tenantId,
+        );
       }
 
       scheduleCrmMemoryAfterSofiaTurn({
@@ -185,7 +205,7 @@ export class SofiaConciergeService {
         assistantMessage: finalResponse,
       });
 
-      const intent = this.resolveIntent(request.message, finalResponse);
+      const intent = resolveIntent(request.message, finalResponse);
       const flowState = await this.restaurantFlow.syncAfterTurn({
         tenantId: request.context.tenantId,
         sessionId: request.context.sessionId,
@@ -215,8 +235,8 @@ ${otp ? `<p>Cancellation OTP: <strong>${otp}</strong> (valid 24h)</p>` : ''}`,
           securityLogger.error('[SofiaConciergeService] restaurant reservation email:', emailErr);
         }
       }
-      const entities = this.extractEntities(finalResponse);
-      const suggestions = await this.generateSuggestions(intent, entities, request.context);
+      const entities = extractEntities(finalResponse);
+      const suggestions = await generateSuggestions(intent);
       const actions = await this.determineActions(intent, entities, request.context);
       if (needsHumanEscalation) {
         actions.push({
@@ -246,48 +266,6 @@ ${otp ? `<p>Cancellation OTP: <strong>${otp}</strong> (valid 24h)</p>` : ''}`,
     } catch (error) {
       return handleServiceError(error, 'Error processing AI message');
     }
-  }
-
-  private async getConversationHistory(sessionId: string, tenantId: string) {
-    try {
-      const [conv] = await db
-        .select({ id: aiConversations.id })
-        .from(aiConversations)
-        .where(and(eq(aiConversations.sessionId, sessionId), eq(aiConversations.tenantId, tenantId)))
-        .limit(1);
-      if (!conv) return [];
-
-      const messages = await db
-        .select({ senderType: aiMessages.senderType, content: aiMessages.content, createdAt: aiMessages.createdAt })
-        .from(aiMessages)
-        .where(eq(aiMessages.conversationId, conv.id))
-        .orderBy(asc(aiMessages.createdAt))
-        .limit(20);
-
-      return messages.map((msg) => ({
-        role: (msg.senderType === 'ASSISTANT' ? 'assistant' : 'user') as 'user' | 'assistant',
-        content: msg.content,
-        timestamp: msg.createdAt ?? new Date(),
-      }));
-    } catch (error) {
-      handleServiceError(error, 'Error fetching conversation history');
-      return [];
-    }
-  }
-
-  private requiresPolicyEscalation(userMessage: string, assistantResponse: string): boolean {
-    const text = `${userMessage} ${assistantResponse}`.toLowerCase();
-    return [
-      'chargeback',
-      'refund dispute',
-      'legal',
-      'lawsuit',
-      'fraud',
-      'data deletion',
-      'consumer rights',
-      'cyber incident',
-      'breach',
-    ].some((term) => text.includes(term));
   }
 
   private async buildContext(
@@ -395,6 +373,23 @@ ${otp ? `<p>Cancellation OTP: <strong>${otp}</strong> (valid 24h)</p>` : ''}`,
               const folio = await folioService.getFolio(bookingRow.id);
               contextString += `Folio balance due: ${folio.currency} ${folio.balanceDue.toFixed(2)}\n`;
               contextString += `Folio closed: ${folio.folioClosedAt ? 'yes' : 'no'}\n`;
+              try {
+                const { documentGenerationService } = await import(
+                  '@/lib/services/documents/DocumentGenerationService'
+                );
+                const docs = await documentGenerationService.listForBooking(
+                  context.tenantId,
+                  bookingRow.id
+                );
+                if (docs.length > 0) {
+                  contextString += 'Recent financial PDFs:\n';
+                  for (const d of docs.slice(0, 4)) {
+                    contextString += `- ${d.documentType}: ${d.referenceNumber}\n`;
+                  }
+                }
+              } catch {
+                /* non-fatal */
+              }
               if (folio.balanceDue > 0) {
                 contextString +=
                   'Guest can settle folio or order room service at /guest/stays/' +
@@ -483,7 +478,7 @@ ${otp ? `<p>Cancellation OTP: <strong>${otp}</strong> (valid 24h)</p>` : ''}`,
     history: Array<{ role: 'user' | 'assistant'; content: string; timestamp: Date }>
   ): Promise<AIResponse> {
     try {
-      const systemPrompt = this.buildSofiaSystemPrompt(message, context, history);
+      const systemPrompt = buildSofiaSystemPrompt(message, context, history);
       const messages: LlmChatMessage[] = [
         { role: 'system', content: systemPrompt },
         ...history.map((h) => ({ role: h.role, content: h.content }) satisfies LlmChatMessage),
@@ -493,15 +488,15 @@ ${otp ? `<p>Cancellation OTP: <strong>${otp}</strong> (valid 24h)</p>` : ''}`,
       const result = await this.llmRouter.chat(messages, {
         maxTokens: 500,
         temperature: 0.7,
-        fallback: () => this.generateFallbackResponse(message, context),
+        fallback: () => generateFallbackResponse(message, context),
       });
 
       return {
         response: result.content,
         confidence: result.degraded ? 0.65 : 0.85,
-        intent: this.extractIntent(result.content),
+        intent: extractIntent(result.content),
         entities: {
-          ...this.extractEntities(result.content),
+          ...extractEntities(result.content),
           aiProvider: result.providerId,
           aiModel: result.model,
           aiProviderFallback: result.degraded,
@@ -515,451 +510,17 @@ ${otp ? `<p>Cancellation OTP: <strong>${otp}</strong> (valid 24h)</p>` : ''}`,
       };
     } catch (error) {
       securityLogger.error('[SofiaConciergeService] LLM provider router failed:', error);
-      const response = this.generateFallbackResponse(message, context);
+      const response = generateFallbackResponse(message, context);
       return {
         response,
         confidence: 0.5,
-        intent: this.extractIntent(response),
+        intent: extractIntent(response),
         entities: {
           aiProvider: 'local_fallback',
           aiProviderFallback: true,
         },
       };
     }
-  }
-
-  private buildSofiaSystemPrompt(
-    message: string,
-    context: string,
-    history: Array<{ role: 'user' | 'assistant'; content: string; timestamp: Date }>
-  ): string {
-    return `You are Sofia, the AI concierge for Hotel Etuna, a premium luxury guesthouse in Ongwediva, Namibia.
-ABOUT HOTEL ETUNA:
-- Hotel Etuna is located at 5544 Valley Street, Ongwediva, Namibia
-- We offer Premiere Room, Executive Room, and Standard Room in three layouts (Type A double bed, Type B two singles, Type C double plus single)
-- Guest rooms: Standard A/B N$800, Standard C N$1200, Executive N$1000, Premiere N$2000; Conference N$1200/session; Campsite from N$1200 whole-site
-- Check-in starts at 14:00 and check-out is by 11:00
-- Key guest amenities include free WiFi, outdoor pool, free parking, on-site restaurant, and 24-hour security
-- Support is available 24/7 via Sofia AI at frontdesk@hoteletuna.com
-- We operate in Namibia and use NAD (Namibian Dollar) currency
-
-YOUR ROLE:
-- Help guests with hotel bookings, restaurant reservations, and general hospitality inquiries
-- Provide accurate information about properties, rooms, amenities, menus, and services
-- Assist with booking inquiries by asking for necessary details (dates, guests, preferences)
-- Help with restaurant reservations by asking about date, time, party size, dietary restrictions
-- Answer questions about property amenities, policies, and services
-- Be helpful, friendly, and professional
-- Respond in the language of the user (English, Oshiwambo, or Afrikaans)
-- Use NAD currency and Namibian context in all responses
-- If you don't know something, admit it and offer to connect with human staff
-- Keep responses concise but comprehensive
-
-CONTEXT INFORMATION:
-${context}
-
-GUIDELINES:
-- Always use NAD currency (N$) when mentioning prices
-- Reference specific property information from the context when available
-- For booking inquiries, ask for: check-in date, check-out date, number of guests, room preferences
-- For restaurant inquiries, ask for: date, time, number of guests, dietary restrictions, special requests
-- Mention check-in/check-out times if available in property context
-- Reference room types, amenities, and policies from the context
-- If property has restaurant, mention menu categories and cuisine type
-- Use guest preferences and booking history when available
-
-Previous conversation:
-${history.map((h) => `${h.role}: ${h.content}`).join('\n')}
-
-Current user message: ${message}`;
-  }
-
-  private generateFallbackResponse(message: string, context: string): string {
-    const lowerMessage = message.toLowerCase();
-
-    if (lowerMessage.includes('book') || lowerMessage.includes('reservation') || lowerMessage.includes('room')) {
-      return "I'd be happy to help you with a booking! To get started, I'll need to know:\n• Your preferred check-in and check-out dates\n• Number of guests\n• Any specific room preferences\n\nWould you like to check availability for specific dates?";
-    }
-
-    if (lowerMessage.includes('restaurant') || lowerMessage.includes('food') || lowerMessage.includes('menu') || lowerMessage.includes('table')) {
-      return "I can help you with restaurant reservations! Please let me know:\n• Preferred date and time\n• Number of guests\n• Any dietary restrictions or preferences\n\nWould you like to see our menu or make a reservation?";
-    }
-
-    if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('help')) {
-      return "Hello! I'm Sofia, your AI concierge. I can help you with:\n• Hotel room bookings\n• Restaurant reservations\n• Information about our facilities\n• General hospitality inquiries\n\nHow can I assist you today?";
-    }
-
-    if (lowerMessage.includes('amenities') || lowerMessage.includes('facilities') || lowerMessage.includes('wifi') || lowerMessage.includes('pool')) {
-      return "I'd be happy to tell you about our amenities! Based on your property, we offer various facilities. For specific details about available amenities, could you let me know which property you're interested in or what specific facilities you're looking for?";
-    }
-
-    return "I'm here to help with your hospitality needs! I can assist with hotel bookings, restaurant reservations, and information about our facilities. Could you please let me know more specifically what you'd like help with?";
-  }
-
-  /**
-   * Prefer explicit signals in the guest message; fall back to assistant wording
-   * only when the guest message is vague (avoid topic drift from LLM replies).
-   */
-  private resolveIntent(userMessage: string, assistantResponse: string): string {
-    const fromUser = this.extractIntent(userMessage);
-    if (fromUser !== 'general_inquiry') {
-      return fromUser;
-    }
-
-    const fromAssistant = this.extractIntent(assistantResponse);
-    const assistantTopicDrift = ['pricing_inquiry', 'menu_inquiry', 'amenities_inquiry'] as const;
-    if (assistantTopicDrift.includes(fromAssistant as (typeof assistantTopicDrift)[number])) {
-      return 'general_inquiry';
-    }
-    return fromAssistant;
-  }
-
-  private extractIntent(text: string): string {
-    const lower = text.toLowerCase();
-
-    if (/\b(rate|rates|price|prices|cost|pricing)\b/.test(lower)) {
-      return 'pricing_inquiry';
-    }
-
-    const wantsBooking =
-      /\b(book|reserve|reservation)\b/.test(lower) ||
-      lower.includes('table for') ||
-      (lower.includes('table') && (lower.includes('dinner') || lower.includes('lunch')));
-
-    if (wantsBooking) {
-      if (lower.includes('room') || lower.includes('stay') || lower.includes('hotel room')) {
-        return 'booking_room';
-      }
-      if (
-        lower.includes('restaurant') ||
-        lower.includes('table') ||
-        lower.includes('dinner') ||
-        lower.includes('lunch')
-      ) {
-        return 'booking_restaurant';
-      }
-      return 'booking_general';
-    }
-
-    if (lower.includes('amenities') || lower.includes('facilities')) {
-      return 'amenities_inquiry';
-    }
-
-    if (lower.includes('menu') || lower.includes('food')) {
-      return 'menu_inquiry';
-    }
-
-    if (lower.includes('cancellation') || lower.includes('policy')) {
-      return 'booking_general';
-    }
-
-    if (lower.includes('help') || lower.includes('assist')) {
-      return 'general_help';
-    }
-
-    return 'general_inquiry';
-  }
-
-  /**
-   * Extract email address from message
-   */
-  private extractEmail(message: string): string | null {
-    const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/;
-    const match = message.match(emailRegex);
-    return match ? match[0] : null;
-  }
-
-  /**
-   * Detect if user wants email sent
-   */
-  private detectEmailIntent(userMessage: string, aiResponse: string): {
-    needsEmail: boolean;
-    type: 'quotation' | 'confirmation' | 'details' | 'general';
-  } {
-    const lowerMessage = userMessage.toLowerCase();
-    const lowerResponse = aiResponse.toLowerCase();
-
-    // Check for email-related keywords
-    const emailKeywords = ['email', 'send to', 'send me', 'quotation', 'quote', 'quote me', 'details', 'information', 'confirm'];
-    const hasEmailKeyword = emailKeywords.some(keyword => 
-      lowerMessage.includes(keyword) || lowerResponse.includes(keyword)
-    );
-
-    if (!hasEmailKeyword) {
-      return { needsEmail: false, type: 'general' };
-    }
-
-    // Determine email type
-    if (lowerMessage.includes('quotation') || lowerMessage.includes('quote') || lowerMessage.includes('price')) {
-      return { needsEmail: true, type: 'quotation' };
-    }
-    if (lowerMessage.includes('confirm') || lowerMessage.includes('booking')) {
-      return { needsEmail: true, type: 'confirmation' };
-    }
-    if (lowerMessage.includes('details') || lowerMessage.includes('information')) {
-      return { needsEmail: true, type: 'details' };
-    }
-
-    return { needsEmail: true, type: 'general' };
-  }
-
-  /**
-   * Get email from conversation metadata
-   */
-  private async getEmailFromConversation(sessionId: string, tenantId: string): Promise<string | null> {
-    try {
-      const [conv] = await db
-        .select({ id: aiConversations.id, guestId: aiConversations.guestId })
-        .from(aiConversations)
-        .where(and(eq(aiConversations.sessionId, sessionId), eq(aiConversations.tenantId, tenantId)))
-        .limit(1);
-
-      if (conv?.guestId) {
-        const [g] = await db.select({ email: guests.email }).from(guests).where(eq(guests.id, conv.guestId)).limit(1);
-        if (g?.email) return g.email;
-      }
-
-      if (!conv) return null;
-
-      const messages = await db
-        .select({ metadata: aiMessages.metadata })
-        .from(aiMessages)
-        .where(eq(aiMessages.conversationId, conv.id))
-        .orderBy(desc(aiMessages.createdAt))
-        .limit(10);
-
-      for (const message of messages) {
-        const meta = message.metadata as Record<string, unknown> | null;
-        if (meta && typeof meta === 'object' && 'guest_email' in meta) return meta.guest_email as string;
-      }
-      return null;
-    } catch (error) {
-      securityLogger.error('Error getting email from conversation:', error);
-      return null;
-    }
-  }
-
-  /**
-   * Resolve guest by tenant + email, then insert with ON CONFLICT on global <code>email</code> (race-safe).
-   */
-  private async findOrCreateGuest(tenantId: string, email: string): Promise<Guest | null> {
-    try {
-      const [existing] = await db
-        .select()
-        .from(guests)
-        .where(and(eq(guests.tenantId, tenantId), eq(guests.email, email)))
-        .limit(1);
-      if (existing) return existing;
-
-      const [guest] = await db
-        .insert(guests)
-        .values({
-          tenantId,
-          email,
-          isSignedUp: false,
-        })
-        .onConflictDoUpdate({
-          target: guests.email,
-          set: { updatedAt: new Date() },
-        })
-        .returning();
-
-      if (guest) return guest;
-
-      const [fallback] = await db.select().from(guests).where(eq(guests.email, email)).limit(1);
-      return fallback ?? null;
-    } catch (error) {
-      securityLogger.error('Error finding or creating guest:', error);
-      try {
-        const [byEmail] = await db.select().from(guests).where(eq(guests.email, email)).limit(1);
-        return byEmail ?? null;
-      } catch {
-        return null;
-      }
-    }
-  }
-
-  /**
-   * Automatically send email based on intent
-   */
-  private async sendEmailAutomatically(
-    context: ConversationContext,
-    emailIntent: { needsEmail: boolean; type: string },
-    guestEmail: string,
-    conversationHistory: Array<{ role: 'user' | 'assistant'; content: string; timestamp: Date }>,
-    aiResponse: AIResponse
-  ): Promise<boolean> {
-    if (!emailIntent.needsEmail || !guestEmail) {
-      return false;
-    }
-
-    try {
-      // Generate email content based on type
-      const emailContent = await this.generateEmailContent(
-        emailIntent.type,
-        context,
-        conversationHistory,
-        aiResponse
-      );
-
-      // Send email
-      await this.emailService.sendEmail(context.tenantId, {
-        to: guestEmail,
-        subject: emailContent.subject,
-        htmlContent: emailContent.html,
-        textContent: emailContent.text,
-        propertyId: context.propertyId,
-        metadata: {
-          intent: emailIntent.type,
-          conversation_session_id: context.sessionId,
-          sent_automatically: true,
-        },
-      });
-
-      return true;
-    } catch (error) {
-      securityLogger.error('Error sending email automatically:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Generate email content based on intent and conversation
-   */
-  private async generateEmailContent(
-    emailType: string,
-    context: ConversationContext,
-    conversationHistory: Array<{ role: 'user' | 'assistant'; content: string; timestamp: Date }>,
-    aiResponse: AIResponse
-  ): Promise<{ subject: string; html: string; text: string }> {
-    // Get property name for personalization
-    let propertyName = 'Hotel Etuna';
-    if (context.propertyId) {
-      try {
-        const [property] = await db
-          .select({ name: properties.name })
-          .from(properties)
-          .where(and(eq(properties.id, context.propertyId), eq(properties.tenantId, context.tenantId)))
-          .limit(1);
-        if (property) propertyName = property.name;
-      } catch (error) {
-        securityLogger.warn('Failed to fetch property name:', error);
-      }
-    }
-
-    // Generate content based on type
-    let subject = '';
-    let body = '';
-
-    switch (emailType) {
-      case 'quotation':
-        subject = `Quotation Request - ${propertyName}`;
-        body = `Thank you for your interest in ${propertyName}!\n\n${aiResponse.response}\n\nIf you have any questions or would like to proceed with a booking, please don't hesitate to reach out. We look forward to hosting you!`;
-        break;
-      case 'confirmation':
-        subject = `Booking Confirmation - ${propertyName}`;
-        body = `Thank you for your booking with ${propertyName}!\n\n${aiResponse.response}\n\nWe look forward to welcoming you!`;
-        break;
-      case 'details':
-        subject = `Information Request - ${propertyName}`;
-        body = `Thank you for your inquiry about ${propertyName}!\n\n${aiResponse.response}\n\nIf you need any additional information, please feel free to contact us.`;
-        break;
-      default:
-        subject = `Information from ${propertyName}`;
-        body = `Thank you for contacting ${propertyName}!\n\n${aiResponse.response}\n\nWe're here to help with any questions you may have.`;
-    }
-
-    let recipientName: string | undefined;
-    if (context.guestId) {
-      try {
-        const [guest] = await db
-          .select({ firstName: guests.firstName, lastName: guests.lastName })
-          .from(guests)
-          .where(and(eq(guests.id, context.guestId), eq(guests.tenantId, context.tenantId)))
-          .limit(1);
-        if (guest) {
-          recipientName = [guest.firstName, guest.lastName].filter(Boolean).join(' ').trim() || undefined;
-        }
-      } catch {
-        recipientName = undefined;
-      }
-    }
-
-    const bodyHtml = `<p>${body.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</p>`;
-
-    const htmlContent = this.emailTemplateGenerator.generateHtmlTemplate({
-      subject,
-      body: bodyHtml,
-      recipientName,
-    });
-
-    const textContent = this.emailTemplateGenerator.generateTextTemplate({
-      subject,
-      body,
-      recipientName,
-    });
-
-    return {
-      subject,
-      html: htmlContent,
-      text: textContent,
-    };
-  }
-
-  private extractEntities(response: string): Record<string, unknown> {
-    const entities: Record<string, unknown> = {};
-
-    const datePattern = /\b(\d{1,2}[-/]\d{1,2}[-/]\d{2,4}|\d{4}-\d{2}-\d{2})\b/g;
-    const dates = response.match(datePattern);
-    if (dates) {
-      entities.dates = dates;
-    }
-
-    const numberPattern = /\b(\d+)\b/g;
-    const numbers = response.match(numberPattern);
-    if (numbers) {
-      entities.numbers = numbers.map(Number);
-    }
-
-    const currencyPattern = /\b[N$]\s*(\d+(?:,\d{3})*(?:\.\d{2})?)\b/g;
-    const amounts = response.match(currencyPattern);
-    if (amounts) {
-      entities.amounts = amounts;
-    }
-
-    return entities;
-  }
-
-  private async generateSuggestions(
-    intent: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    entities: Record<string, unknown>,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    context: ConversationContext
-  ): Promise<string[]> {
-    const suggestions: string[] = [];
-
-    switch (intent) {
-      case 'booking_room':
-        suggestions.push('Check room availability', 'View room types and prices', 'Make a booking');
-        break;
-      case 'booking_restaurant':
-        suggestions.push('View menu', 'Check table availability', 'Make a reservation');
-        break;
-      case 'amenities_inquiry':
-        suggestions.push('See all amenities', 'Check specific facilities', 'Get directions');
-        break;
-      case 'menu_inquiry':
-        suggestions.push('View full menu', 'Check dietary options', 'See prices');
-        break;
-      case 'pricing_inquiry':
-        suggestions.push('View room rates', 'Check restaurant prices', 'See special offers');
-        break;
-      default:
-        suggestions.push('Make a booking', 'View amenities', 'Contact staff');
-    }
-
-    return suggestions;
   }
 
   private async determineActions(
@@ -1015,119 +576,8 @@ Current user message: ${message}`;
     return actions;
   }
 
-  private async saveConversation(
-    context: ConversationContext,
-    userMessage: string,
-    aiResponse: AIResponse,
-    guestEmail?: string | null,
-    channel: AIConversationChannel = 'WEB'
-  ): Promise<void> {
-    try {
-      let [conversation] = await db
-        .select()
-        .from(aiConversations)
-        .where(
-          and(
-            eq(aiConversations.sessionId, context.sessionId),
-            eq(aiConversations.tenantId, context.tenantId)
-          )
-        )
-        .limit(1);
-
-      if (!conversation) {
-        const [created] = await db
-          .insert(aiConversations)
-          .values({
-            sessionId: context.sessionId,
-            tenantId: context.tenantId,
-            guestId: context.guestId ?? null,
-            propertyId: context.propertyId ?? null,
-            channel,
-            status: 'active',
-          })
-          .returning();
-        conversation = created!;
-      }
-
-      const emailFromMessage = guestEmail ?? this.extractEmail(userMessage);
-      const userMeta: Record<string, unknown> = {
-        property_id: context.propertyId,
-        booking_id: context.bookingId,
-        ...(emailFromMessage && { guest_email: emailFromMessage }),
-      };
-      const assistantMeta: Record<string, unknown> = {
-        confidence: aiResponse.confidence,
-        intent: aiResponse.intent,
-        entities: aiResponse.entities,
-        property_id: context.propertyId,
-        booking_id: context.bookingId,
-        ...(emailFromMessage && { guest_email: emailFromMessage }),
-        ...(aiResponse.rag ? { rag: aiResponse.rag } : {}),
-        ...(aiResponse.entities &&
-        typeof aiResponse.entities === 'object' &&
-        'tokenUsage' in aiResponse.entities
-          ? { token_usage: (aiResponse.entities as { tokenUsage?: unknown }).tokenUsage }
-          : {}),
-      };
-
-      await db.insert(aiMessages).values({
-        conversationId: conversation.id,
-        senderType: 'USER',
-        content: userMessage,
-        metadata: userMeta,
-      });
-      await db.insert(aiMessages).values({
-        conversationId: conversation.id,
-        senderType: 'ASSISTANT',
-        content: aiResponse.response,
-        metadata: assistantMeta,
-      });
-    } catch (error) {
-      securityLogger.error('Error saving conversation:', error);
-    }
-  }
-
   async getConversationStats(tenantId: string, propertyId?: string) {
-    try {
-      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-      const convConditions = [
-        eq(aiConversations.tenantId, tenantId),
-        ...(propertyId ? [eq(aiConversations.propertyId, propertyId)] : []),
-      ];
-      const convs = await db
-        .select({ id: aiConversations.id })
-        .from(aiConversations)
-        .where(and(...convConditions, gte(aiConversations.createdAt, thirtyDaysAgo)));
-      const convIds = convs.map((c) => c.id);
-      if (convIds.length === 0) {
-        return { totalConversations: 0, averageConfidence: 0 };
-      }
-
-      const assistantMessages = await db
-        .select({ metadata: aiMessages.metadata })
-        .from(aiMessages)
-        .where(and(eq(aiMessages.senderType, 'ASSISTANT'), inArray(aiMessages.conversationId, convIds)));
-
-      let totalConfidence = 0;
-      let confidenceCount = 0;
-      assistantMessages.forEach((msg) => {
-        const meta = msg.metadata as Record<string, unknown> | null;
-        if (meta && typeof meta.confidence === 'number') {
-          totalConfidence += meta.confidence;
-          confidenceCount++;
-        }
-      });
-
-      const avgConfidence = confidenceCount > 0 ? totalConfidence / confidenceCount : 0;
-
-      return {
-        totalConversations: convIds.length,
-        avgConfidence,
-        dailyStats: [], // Simplified for now
-      };
-    } catch (error) {
-      handleServiceError(error, 'Error fetching conversation stats');
-    }
+    return this.conversationStore.getConversationStats(tenantId, propertyId);
   }
 }
 

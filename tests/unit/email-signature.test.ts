@@ -18,9 +18,10 @@ describe('Hotel Etuna email signature', () => {
     expect(plain).not.toMatch(/Cultural tours/i);
   });
 
-  it('includes brand tagline and legal line', () => {
+  it('includes brand tagline, logo mark, and legal line', () => {
     const html = getHotelEtunaEmailSignatureHtml();
     expect(html).toContain(brand.tagline);
+    expect(html).toContain(brand.assets.logoMark);
     expect(html).toContain('VAT 05517026-015');
     expect(html).toContain('frontdesk@hoteletuna.com');
   });

@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { NamQrService } from '@/lib/services/qr/NAMQRService';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const qrService = new NamQrService();
 

@@ -1,33 +1,43 @@
 /**
  * HotelEtunaLogo
  *
- * Purpose: Wordmark-first brand lockup — geometric mark + "Hotel Etuna" + optional tagline.
+ * Purpose: Official Hotel Etuna branding — full lockup image or compact mark + wordmark.
  * Location: /components/brand/HotelEtunaLogo.tsx
  *
- * Palette: mark/headings use terracotta-900; tagline uses nude-700 (nude/khaki system).
+ * Lockup (showTagline): public/brand/hotel-etuna-logo.png — mark + HOTEL ETUNA + script tagline.
+ * Compact: mark PNG + serif wordmark for nav, sidebar, and dark footers.
  */
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/utils/cn';
+import { brand } from '@/lib/copy/brand';
 import { HotelEtunaMarkIcon } from '@/components/brand/HotelEtunaMarkIcon';
 
 export type HotelEtunaLogoSize = 'sm' | 'md' | 'lg';
 
-const sizeMap: Record<
+const compactSizeMap: Record<
   HotelEtunaLogoSize,
-  { mark: number; title: string; tagline: string }
+  { mark: number; title: string }
 > = {
-  sm: { mark: 28, title: 'text-base', tagline: 'text-[10px]' },
-  md: { mark: 36, title: 'text-xl', tagline: 'text-xs' },
-  lg: { mark: 48, title: 'text-2xl', tagline: 'text-sm' },
+  sm: { mark: 28, title: 'text-sm' },
+  md: { mark: 36, title: 'text-lg' },
+  lg: { mark: 44, title: 'text-xl' },
+};
+
+const lockupWidthMap: Record<HotelEtunaLogoSize, number> = {
+  sm: 128,
+  md: 168,
+  lg: 220,
 };
 
 export interface HotelEtunaLogoProps {
   size?: HotelEtunaLogoSize;
+  /** Renders the full official lockup (mark + HOTEL ETUNA + script tagline). */
   showTagline?: boolean;
   href?: string;
   className?: string;
-  /** Invert mark for dark backgrounds */
+  /** Light wordmark on dark backgrounds (compact mode only). */
   onDark?: boolean;
 }
 
@@ -38,29 +48,54 @@ export function HotelEtunaLogo({
   className,
   onDark = false,
 }: HotelEtunaLogoProps) {
-  const dims = sizeMap[size];
-  const markColor = onDark ? 'text-nude-50' : 'text-terracotta-900';
+  const linkClass =
+    'inline-block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-khaki-600 focus-visible:ring-offset-2 rounded-lg';
+
+  if (showTagline) {
+    const width = lockupWidthMap[size];
+    const lockup = (
+      <Image
+        src={brand.assets.logoLockup}
+        alt={brand.name}
+        width={width}
+        height={width}
+        className={cn('h-auto w-auto max-w-full', className)}
+        style={{ width, height: 'auto' }}
+        priority
+      />
+    );
+
+    if (!href) {
+      return lockup;
+    }
+
+    return (
+      <Link href={href} className={linkClass} aria-label={brand.name}>
+        {lockup}
+      </Link>
+    );
+  }
+
+  const dims = compactSizeMap[size];
   const titleColor = onDark ? 'text-nude-50' : 'text-terracotta-900';
-  const taglineColor = onDark ? 'text-nude-200' : 'text-nude-700';
 
   const content = (
     <span
       className={cn('inline-flex items-center gap-2.5 group', className)}
-      aria-label="Hotel Etuna"
+      aria-label={brand.name}
     >
       <HotelEtunaMarkIcon
         size={dims.mark}
-        className={cn('transition-transform duration-200 group-hover:scale-105', markColor)}
+        className="transition-transform duration-200 group-hover:scale-105"
       />
-      <span className="flex flex-col leading-tight text-left">
-        <span className={cn('font-display font-bold tracking-tight', dims.title, titleColor)}>
-          Hotel Etuna
-        </span>
-        {showTagline && (
-          <span className={cn('font-medium italic', dims.tagline, taglineColor)}>
-            He takes care of us
-          </span>
+      <span
+        className={cn(
+          'font-display font-bold uppercase tracking-[0.12em] leading-none',
+          dims.title,
+          titleColor
         )}
+      >
+        Hotel Etuna
       </span>
     </span>
   );
@@ -70,7 +105,7 @@ export function HotelEtunaLogo({
   }
 
   return (
-    <Link href={href} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-khaki-600 focus-visible:ring-offset-2 rounded-lg">
+    <Link href={href} className={linkClass}>
       {content}
     </Link>
   );

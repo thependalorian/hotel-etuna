@@ -14,6 +14,8 @@ describe('public-session-nav', () => {
   it('routes hotel staff to dashboard', () => {
     expect(getSignedInAccountHref('owner')).toBe('/dashboard');
     expect(getSignedInAccountLabel('manager')).toBe('Dashboard');
+    expect(getSignedInAccountLabel('staff', 'frontdesk@hoteletuna.com')).toBe('Front desk');
+    expect(getSignedInAccountLabel('staff', 'marketing@hoteletuna.com')).toBe('Marketing');
   });
 
   it('routes guests to guest hub', () => {

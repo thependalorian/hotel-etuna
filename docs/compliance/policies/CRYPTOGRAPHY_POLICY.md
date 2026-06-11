@@ -16,6 +16,15 @@ Define approved cryptographic controls for protecting data in transit and at res
 
 All application layers, databases, backups, APIs, and third-party integrations handling Confidential or Restricted data.
 
+
+## Definitions
+
+| Term | Definition |
+|------|------------|
+| **Hotel Etuna** | Hub hospitality platform and operating entity |
+| **Personnel** | Employees, contractors, and partners with access to Hotel Etuna systems |
+| **Production** | Live environment serving guests and partners (Vercel + Neon production branch) |
+
 ## 3. Approved standards
 
 | Use case | Minimum standard | Implementation |
@@ -48,14 +57,23 @@ Legacy algorithms required by an external system require written CTO approval, c
 
 ## 7. Related documents
 
+- [`NAMIBIA_REGULATORY_FRAMEWORK.md`](../NAMIBIA_REGULATORY_FRAMEWORK.md)
+
+- [`POLICY_IMPLEMENTATION_MATRIX.md`](../../../compliance/evidence/policies/POLICY_IMPLEMENTATION_MATRIX.md)
+
 - [`PASSWORD_POLICY.md`](PASSWORD_POLICY.md)  
 - [`INFORMATION_SECURITY_POLICY.md`](INFORMATION_SECURITY_POLICY.md) §4.4  
 - [`VENDOR_MANAGEMENT_POLICY.md`](VENDOR_MANAGEMENT_POLICY.md)
+
+## Enforcement
+
+Violations may result in disciplinary action up to termination and reporting to regulators where required.
 
 ## 8. Revision history
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1 | 2026-06-10 | CTO | Template conformance + implementation cross-ref |
 | 1.0 | May 17, 2026 | CTO | Initial policy |
 
 **Approved by:** _________________________ Date: _________

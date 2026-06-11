@@ -1,5 +1,5 @@
 /**
- * PlatformAiObservability — Sofia AI token usage, confidence, and eval samples for Buffr Hub.
+ * PlatformAiObservability — Sofia AI token usage, confidence, and eval samples (platform console).
  * Location: components/features/admin/platform/PlatformAiObservability.tsx
  */
 

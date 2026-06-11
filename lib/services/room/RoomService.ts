@@ -1,3 +1,7 @@
+/**
+ * @fileoverview RoomService — room CRUD, status, and rate management (`rooms`).
+ * Location: lib/services/room/RoomService.ts
+ */
 import { db, properties as propertiesSchema } from '@/lib/db';
 import { AppError, handleServiceError } from '@/lib/utils/errors';
 import { and, eq, sql } from 'drizzle-orm';
@@ -21,6 +25,15 @@ interface RoomStats {
   availableRooms: number;
   occupiedRooms: number;
   occupancyRate: number;
+}
+
+/** DB check constraint rooms_status_check (migration 0044) — lowercase only. */
+function normalizeRoomStatus(status: string): string {
+  const s = status.trim().toLowerCase().replace(/-/g, '_');
+  const allowed = new Set(['available', 'occupied', 'cleaning', 'maintenance', 'out_of_order']);
+  if (allowed.has(s)) return s;
+  if (s === 'out of order') return 'out_of_order';
+  return 'available';
 }
 
 export class RoomService {
@@ -99,7 +112,7 @@ export class RoomService {
           ${roomNumber},
           ${roomType},
           ${maxOccupancy},
-          'AVAILABLE',
+          'available',
           NOW(),
           NOW()
         )
@@ -170,8 +183,8 @@ export class RoomService {
         .execute(sql`
           SELECT
             COUNT(*)::int AS total_rooms,
-            COUNT(CASE WHEN r.status = 'AVAILABLE' THEN 1 END)::int AS available_rooms,
-            COUNT(CASE WHEN r.status = 'OCCUPIED' THEN 1 END)::int AS occupied_rooms
+            COUNT(CASE WHEN r.status = 'available' THEN 1 END)::int AS available_rooms,
+            COUNT(CASE WHEN r.status = 'occupied' THEN 1 END)::int AS occupied_rooms
           FROM rooms r
           JOIN properties p ON p.id = r.property_id
           WHERE p.tenant_id = ${tenantId}
@@ -200,7 +213,7 @@ export class RoomService {
     try {
       const updatedRooms = await db.execute(sql`
         UPDATE rooms
-        SET status = ${status.toUpperCase()}, updated_at = NOW()
+        SET status = ${normalizeRoomStatus(status)}, updated_at = NOW()
         WHERE id = ${roomId}
         RETURNING id, property_id, room_number, room_type, max_occupancy, status, created_at, updated_at
       `);

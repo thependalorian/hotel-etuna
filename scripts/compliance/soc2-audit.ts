@@ -1,31 +1,16 @@
 #!/usr/bin/env npx tsx
 /**
- * CLI: Run SOC 2 audit agents and print JSON report.
- * Usage: npx tsx scripts/compliance/soc2-audit.ts [--from=ISO] [--to=ISO]
+ * @deprecated Use `npx tsx scripts/soc2/collect-evidence.ts` (writes JSON + CI/monthly export).
+ * Thin forwarder kept for backward-compatible npm/script references (B2).
  */
 
-import { runSoc2Audit } from '../../lib/compliance/soc2/soc2-audit-engine';
-import { securityLogger } from '@/lib/utils/security-logger';
+import { spawnSync } from 'child_process';
+import { join } from 'path';
 
-function parseArg(name: string): string | undefined {
-  const hit = process.argv.find((a) => a.startsWith(`--${name}=`));
-  return hit?.split('=')[1];
-}
+const target = join(process.cwd(), 'scripts/soc2/collect-evidence.ts');
+const args = ['tsx', target, ...process.argv.slice(2)];
 
-async function main() {
-  const fromRaw = parseArg('from');
-  const toRaw = parseArg('to');
-  const to = toRaw ? new Date(toRaw) : new Date();
-  const from = fromRaw
-    ? new Date(fromRaw)
-    : new Date(to.getFullYear(), to.getMonth() - 3, to.getDate());
+console.error('[deprecated] scripts/compliance/soc2-audit.ts → scripts/soc2/collect-evidence.ts');
 
-  const report = await runSoc2Audit({ from, to });
-  securityLogger.info(JSON.stringify(report, null, 2));
-  process.exit(report.summary.gap > 0 ? 1 : 0);
-}
-
-main().catch((err) => {
-  securityLogger.error(err);
-  process.exit(2);
-});
+const result = spawnSync('npx', args, { stdio: 'inherit', cwd: process.cwd() });
+process.exit(result.status ?? 1);

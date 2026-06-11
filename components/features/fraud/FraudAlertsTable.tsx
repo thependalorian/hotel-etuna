@@ -100,7 +100,8 @@ export function FraudAlertsTable({ tenantId }: FraudAlertsTableProps) {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US', {
+    // en-NA locale for consistency with the rest of the app (see lib/formatters.ts)
+    return new Date(dateString).toLocaleString('en-NA', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',

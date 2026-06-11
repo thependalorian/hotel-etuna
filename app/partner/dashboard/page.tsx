@@ -46,7 +46,7 @@ export default async function PartnerDashboardPage() {
         <h2 className="text-2xl font-semibold text-base-content">
           {property?.name ?? 'My Property'}
         </h2>
-        <p className="text-base-content/60 text-sm mt-1">{property?.city ?? 'Windhoek, Namibia'}</p>
+        <p className="text-base-content/60 text-sm mt-1">{property?.city ?? 'Namibia'}</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

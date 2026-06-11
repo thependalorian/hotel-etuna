@@ -20,6 +20,15 @@ This policy applies to:
 - All third-party service providers with access to Hotel Etuna systems or data
 - Physical and virtual infrastructure (Vercel, Neon, Qdrant, etc.)
 
+
+## Definitions
+
+| Term | Definition |
+|------|------------|
+| **Hotel Etuna** | Hub hospitality platform and operating entity |
+| **Personnel** | Employees, contractors, and partners with access to Hotel Etuna systems |
+| **Production** | Live environment serving guests and partners (Vercel + Neon production branch) |
+
 ## 3. Information Security Objectives
 
 Hotel Etuna commits to:
@@ -133,6 +142,10 @@ All data shall be classified into one of four categories:
 
 ## 7. Related Documents
 
+- [`NAMIBIA_REGULATORY_FRAMEWORK.md`](../NAMIBIA_REGULATORY_FRAMEWORK.md)
+
+- [`POLICY_IMPLEMENTATION_MATRIX.md`](../../../compliance/evidence/policies/POLICY_IMPLEMENTATION_MATRIX.md)
+
 - Access Control Policy (CC6.1)
 - Incident Response Plan
 - Business Continuity Plan
@@ -162,6 +175,13 @@ This policy shall be reviewed annually and updated as needed to reflect:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1 | 2026-06-10 | CTO | Template conformance + implementation cross-ref |
 | 1.0 | May 16, 2026 | CTO | Initial policy aligned with SOC 2 TSC |
 
 **Next Review Date:** May 16, 2027
+
+## Exceptions
+
+Exceptions require written approval from the Policy Owner and Executive Sponsor. Document compensating controls in the risk register.
+
+**Approved by:** _________________________ Date: _________

@@ -99,7 +99,7 @@ export class ManualPaymentService {
           },
         });
 
-        if (input.rail === 'namqr' && booking.guestId) {
+        if (booking.guestId) {
           schedulePaymentReceiptEmail({
             tenantId: input.tenantId,
             bookingId: input.bookingId,
@@ -107,8 +107,12 @@ export class ManualPaymentService {
             propertyId: booking.propertyId,
             amount: input.amount,
             currency: booking.currency ?? 'NAD',
-            paymentMethod: NAMQR_RECEIPT_PAYMENT_METHOD,
+            paymentMethod:
+              input.rail === 'namqr'
+                ? NAMQR_RECEIPT_PAYMENT_METHOD
+                : input.rail.toUpperCase(),
             bookingReference: booking.bookingReference ?? undefined,
+            transactionId: settlement.transactionId,
           });
         }
 
@@ -167,6 +171,20 @@ export class ManualPaymentService {
           bankReference: input.bankReference,
         },
       });
+
+      if (booking.guestId) {
+        schedulePaymentReceiptEmail({
+          tenantId: input.tenantId,
+          bookingId: input.bookingId,
+          guestId: booking.guestId,
+          propertyId: booking.propertyId,
+          amount: input.amount,
+          currency: booking.currency ?? 'NAD',
+          paymentMethod: input.rail.toUpperCase(),
+          bookingReference: booking.bookingReference ?? undefined,
+          transactionId: result.id,
+        });
+      }
 
       return {
         transactionId: result.id,

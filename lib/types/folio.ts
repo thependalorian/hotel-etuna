@@ -1,12 +1,20 @@
+/**
+ * @fileoverview Folio domain types (booking charges, statuses, settlement).
+ * Location: lib/types/folio.ts
+ */
 export type BookingChargeType = 'room' | 'fnb' | 'tax' | 'adjustment' | 'payment';
 
-export type BookingChargeStatus = 'open' | 'settled' | 'refunded';
+export type BookingChargeStatus = 'open' | 'settled' | 'refunded' | 'voided';
 
 export type BookingStatus =
   | 'pending'
   | 'confirmed'
+  | 'assigned'
   | 'checked_in'
+  | 'stayover'
+  | 'due_out'
   | 'checked_out'
+  | 'no_show'
   | 'cancelled';
 
 export type LoyaltyTier = 'bronze' | 'silver' | 'gold' | 'platinum';
@@ -94,6 +102,7 @@ export type GuestPastStaySummary = {
   propertySlug: string | null;
   roomNumbers: string[];
   currency: string;
+  totalAmount: number;
 };
 
 export type GuestLoyaltyHubSummary = {

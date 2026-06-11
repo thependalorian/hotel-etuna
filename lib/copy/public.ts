@@ -82,7 +82,7 @@ export const publicCopy = {
   footer: {
     forTeamHeading: 'For our team',
     staffLogin: 'Staff & platform login',
-    staffLoginHint: 'Front desk, housekeeping, restaurant, and Buffr admin',
+    staffLoginHint: 'Front desk, housekeeping, restaurant, and platform admin',
   },
   ctas: {
     bookStay: 'Book your stay',

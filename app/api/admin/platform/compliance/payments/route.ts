@@ -6,27 +6,19 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentPlatformAdmin, isPlatformAdmin } from '@/lib/auth/platform-admin';
+import { withPlatformAdminAuth } from '@/lib/auth/with-platform-admin-auth';
 import { getPaymentsByRailSince } from '@/lib/compliance/payments-by-rail';
-import { enforcePlatformAdminRateLimit } from '@/lib/compliance/with-admin-rate-limit';
+import { db, generatedDocuments } from '@/lib/db';
+import { gte, sql } from 'drizzle-orm';
 import { labelForRailBucket } from '@/lib/payments/namibia-payment-rails';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  return withPlatformAdminAuth(request, async (req) => {
   try {
-    const user = await getCurrentPlatformAdmin();
-    if (!user || !isPlatformAdmin(user)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    const limited = await enforcePlatformAdminRateLimit(request, user.id);
-    if (limited) {
-      return limited;
-    }
-
-    const daysRaw = parseInt(request.nextUrl.searchParams.get('days') ?? '7', 10);
+    const daysRaw = parseInt(req!.nextUrl.searchParams.get('days') ?? '7', 10);
     const days = Number.isNaN(daysRaw) || daysRaw < 1 ? 7 : Math.min(daysRaw, 90);
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
@@ -36,14 +28,25 @@ export async function GET(request: NextRequest) {
       label: labelForRailBucket(r.bucket),
     }));
 
+    const docStats = await db
+      .select({
+        documentType: generatedDocuments.documentType,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(generatedDocuments)
+      .where(gte(generatedDocuments.generatedAt, since))
+      .groupBy(generatedDocuments.documentType);
+
     return NextResponse.json({
       windowDays: days,
       since: since.toISOString(),
       currency: 'NAD',
       rows: labeled,
+      guestFinancialDocuments: docStats,
     });
   } catch (err) {
     securityLogger.error('[compliance/payments]', err);
     return NextResponse.json({ error: 'Failed to aggregate payments' }, { status: 500 });
   }
+  });
 }

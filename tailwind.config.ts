@@ -1,5 +1,5 @@
 /**
- * Buffr Host — Tailwind configuration
+ * Hotel Etuna — Tailwind configuration
  * Design System: v1.0.0 (January 2026). All color hex lives here; use theme utilities in UI.
  */
 

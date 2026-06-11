@@ -89,8 +89,8 @@ export default function ProfilePage() {
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div>
-        <h1 className="buffr-page-title mb-2">Profile</h1>
-        <p className="buffr-page-desc">
+        <h1 className="etuna-page-title mb-2">Profile</h1>
+        <p className="etuna-page-desc">
           Manage your account settings and preferences
         </p>
       </div>

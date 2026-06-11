@@ -42,6 +42,7 @@ export default function MenuBookSinglePageViewer({
   const atEnd = pageIndex >= total - 1;
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     setPageIndex(0);
   }, [bookKey]);
 

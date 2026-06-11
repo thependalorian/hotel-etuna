@@ -1,21 +1,14 @@
-/**
- * Room QR entry — redirect to stay folio
- *
- * Purpose: Scan in-room QR → resolve booking → guest stay folio (login if needed).
- * Location: /app/guest/room/page.tsx
- */
+import { RoomQRScanner } from '@/components/features/guest/RoomQRScanner';
 
-import { Suspense } from 'react';
-import { GuestRoomQrClient } from '@/app/guest/room/GuestRoomQrClient';
+export const metadata = {
+  title: 'Scan Room QR | Hotel Etuna',
+  description: 'Scan your room QR code to access your stay folio and order room service.',
+};
 
 export default function GuestRoomQrPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="skeleton h-32 w-full rounded-xl" aria-hidden />
-      }
-    >
-      <GuestRoomQrClient />
-    </Suspense>
+    <div className="min-h-screen py-8 px-4">
+      <RoomQRScanner />
+    </div>
   );
 }

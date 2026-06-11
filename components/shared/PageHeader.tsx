@@ -73,7 +73,7 @@ export function PageHeader({
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div className="flex-1 min-w-0">
               {eyebrow ? (
-                <p className="buffr-eyebrow mb-2">{eyebrow}</p>
+                <p className="etuna-eyebrow mb-2">{eyebrow}</p>
               ) : null}
               <h1 className="font-display text-3xl md:text-4xl font-bold text-nude-900 mb-2">
                 {title}

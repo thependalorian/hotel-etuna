@@ -5,7 +5,10 @@
 
 import Link from 'next/link';
 import { HospitalityAccountingPanel } from '@/components/features/accounting/HospitalityAccountingPanel';
+import { AccountingDocumentsWidget } from '@/components/features/documents/AccountingDocumentsWidget';
 import { Button } from '@/components/ui/Button';
+import { brand } from '@/lib/copy/brand';
+import { dashboardCopy } from '@/lib/copy/dashboard';
 
 export default function HospitalityAccountingPage() {
   return (
@@ -14,7 +17,7 @@ export default function HospitalityAccountingPage() {
         <div>
           <h1 className="text-3xl font-bold text-nude-900">Bookkeeping & accounts</h1>
           <p className="text-nude-600 mt-1">
-            Hotel Etuna — income statement, trial balance, and cash summary (NAD / NamRA)
+            {brand.name} — income statement, trial balance, and cash summary (NAD / NamRA)
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -25,11 +28,15 @@ export default function HospitalityAccountingPage() {
           </Link>
           <Link href="/payments/platform-billing">
             <Button variant="outline" size="sm">
-              Buffr platform billing
+              {dashboardCopy.nav.platformFees}
             </Button>
           </Link>
         </div>
       </div>
+      <AccountingDocumentsWidget
+        from={new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()}
+        to={new Date().toISOString()}
+      />
       <HospitalityAccountingPanel />
     </div>
   );

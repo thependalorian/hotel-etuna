@@ -387,7 +387,7 @@ export class CalendarService {
   /**
    * Format date to readable string (e.g., "January 15, 2024")
    */
-  formatDateReadable(date: Date, locale: string = 'en-US'): string {
+  formatDateReadable(date: Date, locale: string = 'en-NA'): string {
     return date.toLocaleDateString(locale, {
       year: 'numeric',
       month: 'long',
@@ -398,7 +398,7 @@ export class CalendarService {
   /**
    * Format date and time to readable string (e.g., "January 15, 2024 at 2:30 PM")
    */
-  formatDateTime(date: Date, locale: string = 'en-US'): string {
+  formatDateTime(date: Date, locale: string = 'en-NA'): string {
     return date.toLocaleString(locale, {
       year: 'numeric',
       month: 'long',
@@ -414,13 +414,13 @@ export class CalendarService {
    */
   formatTime(date: Date, format24Hour: boolean = false): string {
     if (format24Hour) {
-      return date.toLocaleTimeString('en-US', {
+      return date.toLocaleTimeString('en-NA', {
         hour: '2-digit',
         minute: '2-digit',
         hour12: false,
       });
     }
-    return date.toLocaleTimeString('en-US', {
+    return date.toLocaleTimeString('en-NA', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,

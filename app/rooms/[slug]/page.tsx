@@ -17,11 +17,11 @@ import { resolvePublicHubProperty } from '@/lib/utils/public-property';
 import PublicHero from '@/components/shared/PublicHero';
 import Footer from '@/components/shared/Footer';
 import NavigationHeader from '@/components/sections/landing/NavigationHeader';
-import RoomPhotoTour from '@/components/RoomPhotoTour';
-import RoomBookingCard from '@/components/RoomBookingCard';
-import PublicRoomTourSignInCard from '@/components/PublicRoomTourSignInCard';
-import PublicRoomsBrowseBanner from '@/components/PublicRoomsBrowseBanner';
-import PublicRoomsSignedInBanner from '@/components/PublicRoomsSignedInBanner';
+import RoomPhotoTour from '@/components/features/rooms/RoomPhotoTour';
+import RoomBookingCard from '@/components/features/rooms/RoomBookingCard';
+import PublicRoomTourSignInCard from '@/components/features/rooms/PublicRoomTourSignInCard';
+import PublicRoomsBrowseBanner from '@/components/features/rooms/PublicRoomsBrowseBanner';
+import PublicRoomsSignedInBanner from '@/components/features/rooms/PublicRoomsSignedInBanner';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,17 +70,13 @@ export default async function RoomDetailPage({ params }: Props) {
         <div className="container mx-auto px-4">
           <div
             className={`mx-auto grid max-w-6xl gap-6 lg:gap-8 ${
-              isAuthenticated ? 'lg:grid-cols-3' : ''
+              isAuthenticated ? 'lg:grid-cols-3' : 'lg:grid-cols-2'
             }`}
           >
             <div
               className={`space-y-6 sm:space-y-8 ${isAuthenticated ? 'lg:col-span-2' : ''}`}
             >
               <RoomPhotoTour roomName={room.roomType} stops={display.tourStops} />
-
-              {!isAuthenticated ? (
-                <PublicRoomTourSignInCard slug={slug} display={display} />
-              ) : null}
 
               <div>
                 <div className="mb-4 flex flex-wrap items-center gap-4 text-sm text-terracotta-800">
@@ -135,7 +131,11 @@ export default async function RoomDetailPage({ params }: Props) {
                   rateLabel={formatPublicRoomRateLabel(room, true)}
                 />
               </div>
-            ) : null}
+            ) : (
+              <div className="lg:col-span-1">
+                <PublicRoomTourSignInCard slug={slug} display={display} />
+              </div>
+            )}
           </div>
         </div>
       </main>

@@ -1,8 +1,72 @@
 # Hotel Etuna — Task & Production Tracker
 
-**Status:** **Production Live** — core platform complete; RAG upsert remains (`npm audit --audit-level=critical`: **0 critical**)  
-**Last Updated:** May 17, 2026 (PostHog + Playwright; responsive E2E; test run logged below)  
+**Status:** **Production Live** — core platform complete; RAG via Qdrant inference (`npm audit`: see `PROJECT_STATE.md`)  
+**Last Updated:** June 11, 2026 — production verification green; IMP-01 compensating controls; PostHog MCP snapshot  
 **Production URL:** https://www.hoteletuna.com (canonical; apex `https://hoteletuna.com` should redirect — Vercel Domains)
+
+---
+
+## DRY/KISS audit tracker (June 2026)
+
+**Canonical log:** `docs/audit/CODEBASE_AUDIT_2026-06-10.md` (§9 execution log + §10 Archon workflow).
+
+| Archon project | `9ee6b16d-837d-444a-af2d-b49584ee19ec` (Hotel Etuna — Content & Brand OS) |
+|----------------|-------------------------------------------------------------------------------|
+| Tasks API | ❌ `manage_task` / `find_tasks` broken — use **documents** instead |
+| Execution note | Archon doc: *DRY/KISS Audit Execution — 2026-06-11* |
+| Validation guide | Archon doc: *DRY/KISS Audit — Validation & Archon Workflow* (`e96d4b56-a9f2-496b-98c3-e91190f3aeed`) |
+| RAG refresh | After audit edits: `ARCHON_URL=http://localhost:8181 ./scripts/archon/sync-content-knowledge.sh` |
+
+**Validated 2026-06-11 (wave 5):** `tsc` clean; 35/35 NamQR + accounting + SOC2 unit tests; C8/C9/D1/B1–B3 complete (see audit §9).
+
+**Security (2026-06-11):** Security Prompt Pack executed — preflight **100%** (`compliance/evidence/security/preflight-2026-06-11.json`); see audit §11.
+
+**Next backlog (operator-only):** MFA org screenshots (IMP-05), Adumo **production** portal sign-off (IMP-04), vendor SOC attestations, BCP tabletop results (15 Jun 2026). Code backlog: LangChain major bump when Sofia graph migration scheduled.
+
+**Done 2026-06-11 (wave 6):** CSP; RLS verify; D1 split; Dependabot; `security:audit-report`; **`npm run validate:audit-wave6`** (**9 pass**, 1 warn `enable:pgaudit`); IMP-01 **compensating controls** (`verify:pgaudit` exit 0).
+
+**Production verification (2026-06-11):** `npm run verify:production` ✅ — **808** Vitest + **6** smoke + `next build`; Sofia `getConversationHistory` delegate fix.
+
+**SOC 2 orchestrator (2026-06-11):** `npm run validate:soc2` ✅ — all steps exit 0; evidence `compliance/evidence/policies/IMPLEMENTATION_VALIDATION_2026-06-11.md`.
+
+---
+
+## Production audit checklist (June 8–9, 2026)
+
+| Step | Status | Evidence |
+|------|--------|----------|
+| S1 Baseline gates (tsc / build / db migrations) | ✅ | `tsc` 0 errors; `npm run build` green; Neon **50/50** migration checks (`0055`–`0060` applied) |
+| S3 Fix duplicate migrations | ✅ | 52 files `0000`–`0060`; journal aligned; `docs/project/MIGRATION_MASTER.md` |
+| S4 Replace mock/placeholder prod data | ✅ | Platform analytics → Neon aggregates; fraud rule editor; payroll in-repo |
+| S5 Security hardening (verified only) | ✅ | Hub team RBAC; `/staff` + `/payroll` owner-only; PIS step-up 2FA per PSD-12 |
+| Hub team provision | ✅ Script | `npm run provision:hotel-team` — founder/admin/frontdesk/marketing/support @hoteletuna.com |
+| Introducer seed | ✅ Script | `npm run seed:introducers` — CRM + public directory samples |
+| S6 Re-validate `verify:production` | ✅ | `npm run verify:production` green (June 9, 2026) |
+| Frontend intent map | ✅ | `PLANNING.md` § Frontend intent & RBAC map; `compliance/validation_2026-06-09.md` |
+
+---
+
+## DOMAIN_COMPLETION_MATRIX (June 9, 2026)
+
+| # | Domain | Status | Evidence |
+|---|--------|--------|----------|
+| 1 | Staff / HR | ✅ | `/staff/[id]/edit`, `/schedule`; `StaffService` salary persist |
+| 2 | Payroll (Namibia) | ✅ | `0055`–`0057`; `/payroll`; PAYE/SSC exports; `namibia-payroll.test.ts` |
+| 3 | Bookings / deposits | ✅ | `0060` `deposit_percent`; `resolveBookingDepositAmount` |
+| 4 | Partner commission | ✅ | `/reports/commission`; `GET /api/reports/commission` |
+| 5 | Reconciliation | ✅ | Cash-up API + desk UX; PLANNING § reconciliation v1 |
+| 6 | Accounting / VAT | ✅ | `JournalEntryService` TS-clean; period close tests |
+| 7 | Fraud | ✅ | `FraudRuleEditor`; `PATCH /api/fraud/rules` |
+| 8 | F&B / kitchen | ✅ | Regression — print jobs `0011` |
+| 9 | Housekeeping | ✅ | Guest request → HK task (`GuestServiceRequestService`) |
+| 10 | CRM / introducers | ✅ | `seed:introducers`; CRM CRUD |
+| 11 | Guests / DSAR | ✅ | `/guest/dsar`; `dsar-workflow.test.ts` |
+| 12 | Payments Adumo/NamQR | ✅ Partial | Live `ADUMO_*` ops-dependent |
+| 13 | Open banking PIS | ✅ Partial | APIs + BON routes; guest PIS on `GuestFolioPanel` (2026-06-10) |
+| 14 | Platform admin | ✅ | `PlatformAnalytics` → `/api/admin/platform/analytics` |
+| 15 | Compliance / KYC | ✅ | AML dashboards; KYC cases API; STR workflow |
+| 16–20 | Sofia, partners, auth, rooms, CMS | ✅ | Shipped — regression pass |
+| Phases 8–12 vision | ⏸️ | Separate program — TASK § Agentic CRM |
 
 ---
 
@@ -41,8 +105,197 @@ curl -sI https://www.hoteletuna.com | head -5
 | Migrations | `0040`–`0042` applied via `npm run db:migrate:all` |
 | Public UI | `getHubRoomTypeCatalog()` on `/`, `/rooms`; `/facilities/conference`, `/facilities/campsite` |
 | Booking | `FacilityBookingPricing`, `createFacilityBooking`, `POST /api/bookings` discriminated by `bookingKind` |
-| Docs | `docs/project/ROOM_INVENTORY.md`, PRD §3.3, `PROJECT_STATE.md` |
+| Docs | PRD § Room & facility inventory, PRD §3.3 |
 | RAG | `npm run rag:seed` after knowledge markdown changes |
+
+---
+
+## Agentic CRM & Intelligent OS (Vision) — June 8, 2026
+
+**Source:** PRD §1.1 (vision + 5 goals), §8.1 (KPIs), §13 Phases 8–12. **Architecture:** PLANNING § Agentic CRM & Intelligent OS roadmap. Forward‑looking — none started. ~16 weeks, parallel tracks possible; each phase ships independent value. **Guardrails unchanged:** Neon+Drizzle, NextAuth/Stack, Adumo Virtual+NamQR+cash, hub‑and‑spoke RLS, Sofia hub‑exclusive, `security:preflight` gate.
+
+> Before starting any phase: claim migration numbers in `docs/MIGRATION_MASTER.md`; add 1 happy‑path + 1 edge + 1 failure test per new utility/endpoint; run `npm run test:ci` before marking complete.
+
+### Phase 8 — Guest command centre (core) · 4 weeks · `app/guest/*`
+- [x] Magic‑link welcome email + passwordless guest hub entry (pre‑arrival) — **2026-06-10** (`0062`, `GuestHubMagicLinkService`, `/guest/welcome`, Sofia SMTP)
+- [x] Document vault — encrypted (AES‑256) ID/visa upload — **2026-06-10** (`0063`, `GuestDocumentVaultCard`; auto‑attach to future stays deferred)
+- [ ] Room selection on check‑in date (floor plan, pick exact room number)
+- [ ] Digital check‑in: registration, e‑sign terms, deposit pay (Adumo Virtual), issue digital key
+- [ ] Digital key (QR/NFC) via pluggable lock adapter (`lib/integrations/`); expires at checkout
+- [x] In‑stay service request (towels, turndown, iron) → routed to housekeeping task — **existing** (`0054`, `GuestServiceRequestCard`)
+- [x] Maintenance report (photo + description) → creates staff ticket — **existing** (maintenance request type → housekeeping task)
+- [ ] Upgrade/downgrade with pro‑rated charge/refund
+- [ ] Guest ↔ front desk messaging (Sofia first, human escalation)
+- [x] Folio as a hub **widget** (reuse `FolioService`), not a separate page — **existing** (`GuestFolioPanel` + PIS panel **2026-06-10**)
+- [ ] Post‑stay: auto‑checkout summary, loyalty credit, feedback survey, 30‑day re‑engagement
+- [ ] Agentic actions: birthday surprise, repeat‑guest recognition, weather nudge, silent loyalty upgrade
+
+### Phase 9 — Staff intelligence layer · 4 weeks · `app/(dashboard)/*`
+- [ ] Real‑time command‑centre dashboard (occupancy/arrivals/departures/orders/revenue, auto‑refresh via poll/SSE)
+- [ ] Colour‑coded smart alerts (🔴 urgent / 🟡 attention / 🟢 info) with prioritisation
+- [ ] Voice commands (Sofia tool calls): "mark room clean", "show today's arrivals"
+- [ ] Predictive housekeeping assignment from checkout times + historical clean duration
+- [ ] Maintenance auto‑routing to the right technician (plumbing/electrical/HVAC)
+- [ ] Revenue intelligence: ADR vs market rate suggestion, one‑click manager approve
+- [ ] Low‑stock auto‑reorder suggestion on `InventoryService`
+- [ ] Mobile‑first PWA + push notifications (existing service worker); offline action queue
+
+### Phase 10 — Sofia co‑pilot (proactive) · 3 weeks · hub‑exclusive
+- [ ] Proactive nudges from guest behaviour (e.g. pre‑order breakfast + wake‑up call)
+- [ ] Sentiment detection → immediate human handover on negative signal
+- [ ] Multi‑channel context unification (web ↔ WhatsApp ↔ email ↔ voice)
+- [ ] Language auto‑detection (EN/DE/FR/Oshiwambo)
+- [ ] Layered memory: session + long‑term (`crm_guest_memory_facts`/`crm_graph_edges`) + episodic; optional Mem0 mirror
+- [ ] Automatic fact extraction with confidence; trigger actions (e.g. peanut allergy → alert kitchen)
+- [ ] Autonomous revenue actions: upgrade offer, late‑night dining, complaint remediation voucher (manager approval optional)
+
+### Phase 11 — Intelligent OS (analytics & automation) · 3 weeks · `lib/services/*`, `lib/cron/`
+- [ ] Dynamic pricing (base + occupancy/lead‑time/competitor/event rules), manager approve
+- [ ] Forecasting: occupancy, ADR, RevPAR for next 30/90 days
+- [ ] Read‑only OTA rate sync (Booking.com/Expedia view; manual upload — no two‑way)
+- [ ] Smart inventory: F&B auto‑order, linen/amenity replacement prediction, minibar auto‑bill
+- [ ] Predictive maintenance from complaint history (flag repeat issues for inspection)
+- [ ] Compliance automation: POPIA anonymisation jobs, PCI boundary check, immutable audit coverage
+
+### Phase 12 — UX polish & performance · 2 weeks
+- [ ] Design‑system audit vs PLANNING § Frontend design system (palette, pill buttons, cards)
+- [ ] Skeleton loaders on all async surfaces; micro‑transitions on modals/toasts
+- [ ] Offline‑first: service‑worker cache, offline banner, IndexedDB action queue
+- [ ] Keyboard shortcuts for staff dashboard (G bookings, H housekeeping, P payments)
+- [ ] WCAG 2.1 AA: contrast, focus indicators, ARIA, skip links; 375px mobile pass
+
+### Vision KPIs to instrument (PRD §8.1)
+- [ ] `/guest` hub adoption (target >70%), digital check‑in usage (>50%)
+- [ ] Upsell revenue per guest (N$150), staff minutes saved/shift (90), RevPAR (+20%)
+- [ ] Sofia resolution rate (>85%), first‑response time (<30s), NPS (>70)
+
+---
+
+## OSS porting waves (June 2026)
+
+**Reference:** `PLANNING.md` § Dispatch agents & OSS porting (per-repo study index + dispatch surface) · OSS clones: `buffr-host/source-codes/` (study only — never import at runtime). The standalone mining reference and Wave-7 porting log were folded into PLANNING/TASK on 2026-06-08 (DRY).
+
+| Wave | Scope | Owner | Status |
+|------|--------|-------|--------|
+| **W1** | F&B kitchen board + print dispatch (`QRMeal` / `OpenKDS` patterns) | Agent | ✅ VERIFIED |
+| **W2** | Payment FSM + transactional outbox (`Aegispay` patterns) | Agent | ✅ |
+| **W3** | Tamper-evident audit hash chain (`trailkit` patterns) | Agent | ✅ |
+| **W4** | GL period close + journal table UI (`dubbl` patterns) | Agent | ✅ |
+| **W5** | Folio void + night audit (`pura-pms`) | Agent | ✅ |
+| **W6** | Availability ledger + property switcher (`innkeeper` / `pesan-pms`) | Agent | ✅ |
+| **W7** | Sofia pipeline + LangGraph tools (`JackTheButler` / `langgraphjs`) | Agent | ✅ |
+| **W8** | Cal.com webhooks + Inngest cron (`cal.com` / `inngest-js`) | Agent | ✅ |
+
+### W1 — F&B print dispatch & kitchen board
+
+- [x] `lib/services/fnb/fnb-print-dispatch-service.ts`
+- [x] `lib/adapters/print/network-print-adapter.ts` (mock + hook)
+- [x] Migration `0045_fnb_print_jobs.sql` wired in `apply-all-missing-migrations.ts`
+- [x] `app/api/fnb/print-jobs/route.ts` + `[id]/status/route.ts`
+- [x] `components/features/fnb/kitchen-ticket-board.tsx`
+- [x] `app/(dashboard)/restaurant/kitchen/page.tsx`
+- [x] `tests/integration/fnb/` (service + API)
+- [x] Wire from `OrderService` on order submit
+
+### W2 — Payment state machine & outbox
+
+- [x] `lib/services/payment/paymentStateMachine.ts`
+- [x] `lib/services/payment/paymentOutbox.ts`
+- [x] Migration `0046_payment_outbox_events.sql`
+- [x] Integrate with `completeAdumoVirtualPayment.ts` (FSM + outbox receipt email; NamQR flows deferred)
+- [x] Cron or route: outbox dispatch (`app/api/cron/payment-outbox-dispatch/route.ts`)
+- [x] `tests/unit/payment-state-machine.test.ts`
+
+### W3 — Audit hash chain
+
+- [x] `lib/compliance/AuditHashService.ts`
+- [x] Migration `0047_audit_trail_hash_chain.sql`
+- [x] `app/api/compliance/audit-chain/verify/route.ts`
+- [x] `components/features/compliance/AuditChainVerifyCard.tsx` in SOC2 panel
+- [x] `tests/unit/audit-hash-chain.test.ts`
+
+### W4 — Accounting period close
+
+- [x] `GlPeriodCloseCard.tsx`, `JournalEntryTable.tsx`
+- [x] Extend `HospitalityAccountingService` with period-close guard
+- [x] API routes under `app/api/reports/accounting/`
+- [x] Tests for draft-entry block on close
+
+### W6 — Availability ledger + property switcher
+
+- [x] Migration `0051_availability_ledger.sql` + `room_availability_ledger` in `lib/db/schema.ts`
+- [x] `lib/services/property/AvailabilityLedgerService.ts`
+- [x] Extend availability ledger + bookings (`AvailabilityLedgerService` + `booking/AvailabilityService`; removed unused `property/AvailabilityService` in DRY pass 2026-06-10)
+- [x] `components/features/property/PropertySwitcher.tsx` wired in `Header.tsx`
+- [x] `components/providers/ActivePropertyProvider.tsx` in dashboard layout
+- [x] `components/features/property/AvailabilityLedgerPanel.tsx`
+- [x] `app/api/properties/availability-ledger/route.ts` (GET/PATCH)
+- [x] `app/(dashboard)/properties/availability/page.tsx`
+- [x] `tests/unit/availability-ledger-service.test.ts`
+
+### W7 — Sofia pipeline + LangGraph tool graph
+
+- [x] `database/drizzle/0052_sofia_pipeline_runs.sql`
+- [x] `lib/db/schema.ts` — `sofiaPipelineRuns`
+- [x] `lib/ai/agent-registry.ts` — concierge, night-audit, outreach agents
+- [x] `lib/workflows/sofiaToolGraph.ts` — `searchRag`, `getGuestProfile`, `checkAvailability`
+- [x] `SofiaPipelineService.process()` — `SOFIA_TOOL_GRAPH_ENABLED` on WEB channel
+- [x] `lib/services/ai/sofia-concierge-handler.ts` — pipeline primary path
+- [x] Best-effort persist to `sofia_pipeline_runs`
+- [x] `tests/unit/sofia-tool-graph.test.ts`
+
+### W8 — Cal.com webhooks + durable scheduler cron
+
+- [x] Migration `0053_cal_booking_mirrors.sql` + `0049` wired in `apply-all-missing-migrations.ts`
+- [x] `lib/db/schema.ts` — `calBookingMirrors`, `schedulerJobs`, `notificationHistory`
+- [x] `lib/services/scheduling/CalWebhookService.ts` — HMAC verify + idempotent upsert
+- [x] `lib/services/notifications/NotificationDispatchService.ts` — preferences + `notification_history`
+- [x] `app/api/webhooks/cal/route.ts` — POST Cal.com webhook
+- [x] `app/api/cron/scheduler-dispatch/route.ts` — `CRON_SECRET` + `dispatchPending()`
+- [x] `lib/services/scheduling/schedulerJobHandlers.ts` — night-audit, payment-outbox-dispatch, intelligence-digest
+- [x] `vercel.json` — cron for `scheduler-dispatch`
+- [x] `.env.example` — `CAL_WEBHOOK_SECRET`, `SOFIA_TOOL_GRAPH_ENABLED` optional
+- [x] `tests/unit/cal-webhook-service.test.ts`, `tests/unit/durable-scheduler.test.ts`
+
+### W5 — Folio void + night audit + reservation SM
+
+- [x] `database/drizzle/0050_night_audit_runs.sql` + `nightAuditRuns` in `lib/db/schema.ts`
+- [x] `NightAuditService.runAudit` persists to `night_audit_runs` (idempotent upsert)
+- [x] `components/features/folio/FolioVoidTransactionDialog.tsx` (reason codes)
+- [x] `components/features/booking/NightAuditPanel.tsx` + `/bookings/night-audit` page
+- [x] `app/api/bookings/night-audit/route.ts` (owner/manager)
+- [x] `app/api/folio/charges/[id]/void/route.ts`
+- [x] `BOOKING_STATUS_TRANSITIONS` + `ReservationStateMachine` — `assigned`, `stayover`, `due_out`
+- [x] `BookingService.transitionBookingStatus` uses `assertTransition`
+- [x] `lib/ai/agent-registry.ts` — `NIGHT_AUDIT_AGENT` + `FOLIO_OPS_AGENT`
+- [x] `tests/unit/night-audit-service.test.ts`, `tests/integration/folio-void-api.test.ts`
+- [x] Wired void dialog in `BookingFolioSection`; night audit link on bookings hub
+
+### W6 — Availability ledger + property switcher
+
+- [x] Migration `0051_availability_ledger.sql`
+- [x] `AvailabilityLedgerService.ts`, `PropertySwitcher.tsx`, `AvailabilityLedgerPanel.tsx`
+- [x] `app/api/properties/availability-ledger/route.ts`
+- [x] `app/(dashboard)/properties/availability/page.tsx`
+- [x] `tests/unit/availability-ledger-service.test.ts`
+
+### W7 — Sofia pipeline + LangGraph
+
+- [x] Migration `0052_sofia_pipeline_runs.sql`
+- [x] `lib/workflows/sofiaToolGraph.ts`, `lib/ai/agent-registry.ts`
+- [x] `SofiaPipelineService` + `sofia-concierge-handler` wiring
+- [x] `tests/unit/sofia-tool-graph.test.ts`
+
+### W8 — Cal.com + durable scheduler
+
+- [x] Migrations `0049_durable_scheduling_notifications.sql`, `0053_cal_booking_mirrors.sql`, `0054_guest_service_requests.sql`
+- [x] `CalWebhookService.ts`, `NotificationDispatchService.ts`, `schedulerJobHandlers.ts`
+- [x] `app/api/webhooks/cal/route.ts`, `app/api/cron/scheduler-dispatch/route.ts`
+- [x] `tests/unit/cal-webhook-service.test.ts`, `tests/unit/durable-scheduler.test.ts`
+
+**Rule:** Never import from `buffr-host/source-codes/*` at runtime.
+
+**Migrations:** Run `npm run db:migrate:all` — applies `0003` through `0054` (canonical journal in `database/drizzle/meta/_journal.json`; see `docs/project/MIGRATION_MASTER.md`).
 
 ---
 
@@ -52,11 +305,42 @@ curl -sI https://www.hoteletuna.com | head -5
 |------|--------|
 | Nav / RBAC | Risk nav removed for staff; `/crm` link; `proxy.ts` routes; `/dashboard/rooms` removed |
 | Buffr Hub | AI observability + secrets pages; intelligence digest preview on platform overview |
-| PEP / Linear | PEP API gated off; `linear.ts` removed; internal support escalation only |
-| Migrations | `database/all-migrations.sql` generator; verify script through `0038` |
+| PEP screening | **Out of scope** — no Namibia PEP database; `PEPScreeningService` + `/api/compliance/aml/pep/screen` removed; dormant `aml_pep_*` schema only; see `AML_FICA_COMPLIANCE_PROGRAM.md` §8 |
+| Migrations | Journal `0000`–`0061` (no duplicate sequence numbers); `npm run db:generate:all-sql`; verify through `0061` (`0061` = `payment_disputes`) |
+| Payment disputes | `0061_payment_disputes.sql`; `PaymentDisputeService` (folio-reversing, idempotent); Adumo webhook → `openDispute`; `/payments/disputes` desk |
+| NamQR confirm re-check | `confirmDeskPayment` re-validates the stored NamQR before settling — dynamic codes must settle for their encoded amount (1c tolerance); expired/deactivated codes rejected. Pure check `checkNamQrSettlement` + `tests/unit/namqr-settlement-recheck.test.ts` |
+| Migration `0044` data hygiene | Normalizes legacy/out-of-range `rooms.status` + `rooms.inventory_kind` before adding CHECK constraints (a single bad row previously failed the whole migration) |
 | Intelligence | `IntelligenceReportService`, cron digests, `FOUNDER_DIGEST_EMAIL`, partner weekly via `users.notification_preferences` |
 | Email | Zod schemas in `lib/validation/sofia-email-schemas.ts`; `npm run validate:email-templates` in `test:ci` |
-| Docs | Canonical `docs/project/*`; root `TASK.md` / `PLANNING.md` are stubs |
+| Docs | **Consolidated to 3 SoT (PRD / PLANNING / TASK) on 2026-06-08**, all under `docs/project/` (root stubs removed). Folded + deleted: AUDIT_FINDINGS, FRONTEND_AUDIT, REBRAND questionnaire, FNB_PRINT_DISPATCH_PORT, ROOM_INVENTORY, SOURCE_CODES_ETUNA_MINING_REFERENCE, WAVE_7_PORTING_LOG, SOC2_IMPLEMENTATION_SUMMARY, BUFFR proposal. Kept: `docs/compliance/**`, `docs/naming-conventions.md`, `docs/SECURITY_PROMPT_PACK.md`, `SOC2_IMPLEMENTATION_PLAN.md`. |
+
+---
+
+## Production gaps (to close before / shortly after go-live)
+
+Consolidated from the 2026-06-02 documentation audit and the legacy cleanup list.
+Open items only — completed audit fixes (README/gemini/CLAUDE corrections, AI usage
+policy, vendor register, openapi.yaml, BCP/IRP policy stubs) are done and dropped.
+
+| # | Gap | Type | Owner | Notes |
+|---|-----|------|-------|-------|
+| 1 | ~~IRP contacts~~ — **PARTIAL:** IC + tech lead filled in `INCIDENT_RESPONSE_PLAN.md` §3.1; legal liaison TBC | Compliance | CTO | counsel appoint before audit |
+| 2 | Executive sign-off on all SOC 2 policies (signatures) in `docs/compliance/policies/` | Compliance | CEO/CTO | 22 drafted; template + impl validation 2026-06-10 (`compliance/evidence/policies/`); signatures missing |
+| 3 | BCP tabletop — **scheduled 15 Jun 2026** (`docs/compliance/incidents/tabletop-2026-06-15.md`); complete results after exercise | Compliance | CTO | scheduled |
+| 4 | Reconcile SOC 2 budget contradiction (N$50–150K vs N$250–300K) in `SOC2_IMPLEMENTATION_PLAN.md` | Compliance | CEO | internal inconsistency |
+| 5 | ~~Add `DATA_PROTECTION_POLICY.md` revision history + approval block~~ — **DONE** 2026-06-02; full pack template conformance 2026-06-10 | Compliance | CTO | ✅ |
+| 6 | Verify `pgAudit` enabled on Neon (Logging Policy says "where available") | Infra | Dev | not confirmed live |
+| 7 | Add `DATABASE_URL_UNPOOLED` to `.github/workflows/soc2-evidence.yml` if collector needs direct queries | CI | Dev | verify script requirements |
+| 8 | ~~Hub commission reporting~~ — **DONE:** `/reports/commission`, `GET /api/reports/commission` | Feature | Dev | ✅ June 9 |
+| 9 | ~~Public Adumo deposit checkout wiring~~ — **DONE 2026-06-08:** `LandingBookingWidget` now creates a booking + redirects to deposit page; `BookingForm` envelope-parse bug fixed; orphan `features/rooms/RoomBookingCard.tsx` deleted; shared `extractBookingId` helper. **Remaining:** live `ADUMO_*` creds + branded portal (ops); deposit defaults to full `totalAmount` (see #17). | Payments | Dev | core money loop now works |
+| 10 | Guest self-scan NamQR on folio | Feature | Dev | desk flow live; guest scan deferred |
+| 11 | Open Banking PIS | Feature | Dev | **Partial:** APIs + guest `GuestOpenBankingPisPanel` (2026-06-10); full OAuth bank linking deferred |
+| 12 | DSAR end-to-end (consumer rights) hardening | Feature | Dev | `consumer_rights_requests` + `/guest/dsar` exist; verify full flow |
+| 13 | Frontend polish: skip links, contact-page map embed + social links | Frontend | Dev | low priority (from frontend audit) |
+| 14 | ~~Delete unused `MenuPageTurner.tsx` + `page-static-backup.tsx`~~ | Cleanup | Dev | ✅ Removed from tree (2026-06-10 audit) |
+| 15 | Migrate residual `getServerSession` callers to `withApiAuth` | Tech debt | Dev | migrate over time |
+| 16 | ~~P0 build red~~ — **RESOLVED 2026-06-09:** `tsc` 0 errors; `npm run build` green; integration tests fixed (`audit-chain`, `accounting-period-close`) | Build blocker | Dev | ✅ closed |
+| 17 | ~~Deposit fraction~~ — **DONE:** `0060` `deposit_percent`; `lib/booking/deposit.ts` | Payments | Dev | ✅ June 9 |
 
 ---
 
@@ -107,13 +391,15 @@ npm run test:all         # same as test:ci (alias intent; use test:ci in CI)
 
 | Item | Path / version | Notes |
 |------|----------------|-------|
-| Browser SDK | `posthog-js` **^1.373.5** (dependency) | PostHog MCP SDK doctor: healthy on project **341765** |
+| Browser SDK | `posthog-js` **^1.373.5** (dependency) | PostHog MCP project **341765** — ingestion active |
 | React bindings | `@posthog/react` **^1.9.0** | `PostHogProvider` wraps app in `app/layout.tsx` |
 | Early init | `instrumentation-client.ts` | Next.js 16 client instrumentation |
 | Shared options | `lib/posthog-client-options.ts` | `defaults: '2026-01-30'` → SPA `history_change` pageviews |
 | Client helpers | `lib/posthog.ts` | `trackEvent`, `identifyUser`, feature flags |
 | Server capture | `lib/monitoring/posthog-server.ts` | `captureServerException` (API routes) |
 | Env | `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST` | Optional `POSTHOG_PROJECT_API_KEY` for server |
+
+**MCP snapshot (2026-06-11):** ~213 `$pageview` / 30d (test hosts filtered); **4** active low-volume error issues (ChunkLoad + RSC digest — typical post-deploy). Session replay off. See `PROJECT_STATE.md` § PostHog.
 
 Docs: [Next.js library](https://posthog.com/docs/libraries/next-js) · [SPA pageviews](https://posthog.com/tutorials/single-page-app-pageviews)
 
@@ -126,30 +412,33 @@ Docs: [Next.js library](https://posthog.com/docs/libraries/next-js) · [SPA page
 | Specs | **8** files under `e2e/` (incl. `responsive-layout.spec.ts`) |
 | Scripts | `test:e2e`, `test:e2e:desktop`, `test:e2e:mobile`, `test:e2e:tablet`, `test:e2e:responsive`, `test:e2e:install:all` |
 
-`responsive-layout.spec.ts`: horizontal overflow on `/`, `/rooms`, `/dining`, `/contact`; mobile nav toggle (mobile project).
+`responsive-layout.spec.ts`: horizontal overflow on `/`, `/rooms`, `/dining`, `/contact`; mobile nav toggle (mobile project). Not part of `verify:production` — run manually before major UI releases.
 
-### Test run (May 17, 2026 — after PostHog/Playwright update)
+### Test run (2026-06-11 — production verification)
 
 | Step | Command | Result |
 |------|---------|--------|
+| Typecheck | `npx tsc --noEmit` | ✅ 0 errors |
 | DB health | `npm run test:db` | ✅ pass |
-| Migrations | `npm run test:db:migrations` | ✅ **21/21** |
-| Unit + integration | `npm test` (`vitest run`) | ✅ **427 passed**, 2 skipped (workflow YAML tests fixed) |
-| Compliance smoke | `npm run test:smoke` | ✅ **6/6** |
+| Migrations | `npm run test:db:migrations` | ✅ **54/54** through `0064` |
+| Unit + integration | `npm test` (`vitest run`) | ✅ **808** passed, **2** skipped (**107** files) |
+| Compliance smoke | `vitest run --config vitest.smoke.config.ts` | ✅ **6/6** |
+| Wave 6 gates | `npm run validate:audit-wave6` | ✅ **9 pass**, 1 warn (`enable:pgaudit`) |
+| pgAudit IMP-01 | `npm run verify:pgaudit` | ✅ compensating controls |
+| Security preflight | `npm run security:preflight` | ✅ **12/12**, 100% |
+| Full production gate | `npm run verify:production` | ✅ `tsc` + `test:ci` + `build` (~6 min) |
 | PostHog unit | `npx vitest run tests/unit/posthog-analytics.test.ts` | ✅ **4/4** |
-| Workflow YAML tests | `npx vitest run tests/workflows/` | ✅ **78/78** |
-| Full CI gate | `npm run test:ci` | ✅ `test:db` + migrations + Vitest + smoke (run locally ~15 min) |
 
-**Workflow tests (May 17):** `ci-workflow.test.ts` + `deploy-workflow.test.ts` aligned to `ci.yml` (`NODE_VERSION`, `needs: [lint-and-typecheck, test]`, `test:ci`, Codecov step) and `deploy.yml` (`workflow_run` after CI on `main`, current step names). `.vercel/project.json` assertions optional when not linked locally.
+**Playwright E2E:** not in `verify:production` (requires dev server on `:3010`). Operator: `npm run test:e2e:responsive` after `npm run dev -- -p 3010`.
 
-**Playwright E2E:** not run in this gate (requires dev server on `:3010` or `PLAYWRIGHT_BASE_URL`). Operator: `npm run test:e2e:responsive` after `npm run dev -- -p 3010`.
+### Test run (May 17, 2026 — after PostHog/Playwright update) — superseded by table above
 
 **Project tree (regenerate):**
 
 ```bash
-tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 --dirsfirst -F --charset ascii
-# May 17, 2026: 229 directories, 351 files — full map in PRD §4.6 (+ depth-4 guest/ platform)
+tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results|.claude' --dirsfirst -F --charset ascii > docs/project/TREE.txt
 ```
+Full listing (all levels, ~1610 lines): **`docs/project/TREE.txt`** — regenerated June 2026.
 
 **New unit tests (guest/auth):** `tests/unit/auth-roles.test.ts`, `password-validation.test.ts`, `public-session-nav.test.ts`, `public-rate.test.ts`, `stack-env.test.ts`.
 
@@ -286,26 +575,29 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 #### Week 4: Security Policies (Critical Path)
 - [x] **Write 21 core policies** — `docs/compliance/policies/` (May 17, 2026); pending CEO sign-off
   - [x] Information Security Policy (DONE)
-  - [ ] Access Control Policy
-  - [ ] Acceptable Use Policy
-  - [ ] Change Management Policy
-  - [ ] Data Classification Policy
-  - [ ] Data Retention Policy
-  - [ ] Vendor Management Policy
-  - [ ] Asset Management Policy
-  - [ ] Cryptography Policy
-  - [ ] Password Policy
-  - [ ] Remote Access Policy
-  - [ ] Physical Security Policy
-  - [ ] Network Security Policy
-  - [ ] Logging & Monitoring Policy
-  - [ ] Backup Policy
-  - [ ] Data Protection Policy
-  - [ ] HR Security Policy
-  - [ ] Training Policy
-  - [ ] Code of Conduct
-  - [ ] Business Continuity Policy
-- [ ] **Executive sign-off** — CEO/Owner approves all policies
+  - [x] Access Control Policy
+  - [x] Acceptable Use Policy
+  - [x] Change Management Policy
+  - [x] Data Classification Policy
+  - [x] Data Retention Policy
+  - [x] Vendor Management Policy
+  - [x] Asset Management Policy
+  - [x] Cryptography Policy
+  - [x] Password Policy
+  - [x] Remote Access Policy
+  - [x] Physical Security Policy
+  - [x] Network Security Policy
+  - [x] Logging & Monitoring Policy
+  - [x] Backup Policy
+  - [x] Data Protection Policy (+ `DATA_PROTECTION_POLICY_NAMIBIA.md`)
+  - [x] HR Security Policy
+  - [x] Training Policy
+  - [x] Code of Conduct
+  - [x] Business Continuity Policy
+  - [x] AI Usage Policy (2026-06-02)
+  - [x] Incident Response Policy
+  - [x] Template conformance + implementation validation (2026-06-10) — `compliance/evidence/policies/IMPLEMENTATION_VALIDATION_2026-06-10.md`
+- [ ] **Executive sign-off** — CEO/Owner approves all policies (`SIGN_OFF_CHECKLIST.md`)
 
 #### Week 5: Incident Response
 - [x] **Complete Incident Response Plan** (DONE)
@@ -451,13 +743,16 @@ For every new feature or significant code change:
 - [ ] Bank-file / NamClear auto-reconcile (future)
 - [x] Guest NamQR on folio — Option B (QR + bank ref submit; staff approve at `/payments/desk`; migration `0020_namqr_pending_confirmations.sql`)
 
+### SQL Migration Review ✅
+- [x] Migrations `0010_booking_charges_rls.sql` and `0021_housekeeping_tasks.sql` reviewed and confirmed correct (June 2026)
+
 ### Phase 2b: Adumo Virtual (card) 🚧
 - [x] `AdumoVirtualService`, `completeAdumoVirtualPayment`, `payment_sessions` migration
 - [x] `POST /api/payments/virtual/initiate`, `/confirm`, `POST /api/webhooks/adumo`
 - [x] `AdumoVirtualPaymentForm`, `/payment/success`, `/payment/failed`
 - [ ] Run `database/drizzle/0012_adumo_virtual_payment_sessions.sql` on Neon
 - [x] Wire `AdumoVirtualPaymentForm` on guest folio settle UI
-- [ ] Wire `AdumoVirtualPaymentForm` on online booking checkout (deposit)
+- [x] Wire `AdumoVirtualPaymentForm` on online booking checkout (deposit) — `/payment/booking-deposit` + `LandingBookingWidget` redirect (2026-06-10)
 - [ ] Staging test: Visa `4000000000001091` (3DS app UID)
 - [ ] Live Adumo credentials + portal branding; production smoke on `hoteletuna.com`
 - [ ] Confirm with Adumo: settlement account = **Hotel Etuna Nedbank** (not Buffr) under Buffr merchant UID
@@ -470,14 +765,16 @@ For every new feature or significant code change:
 - [ ] Hub admin: settlement profile CRUD + monthly invoice draft (EFT to Buffr 8050377860)
 - [ ] Monthly invoice PDF + mark-paid workflow
 
-### Neon operator migrations (runbook — not in Drizzle journal past 0002)
-Apply in order on staging/production, then verify with `npm run test:db:migrations`:
+### Neon operator migrations (runbook)
+Canonical order: `database/drizzle/meta/_journal.json` (`0000`–`0054`). Apply via `npm run db:migrate:all`, then verify with `npm run test:db:migrations`:
+- [x] `0010_booking_charges_rls.sql` — Reviewed and confirmed correct (June 2026)
 - [x] `0011_fnb_inventory.sql` — applied Neon May 2026
 - [x] `0012_adumo_virtual_payment_sessions.sql`
 - [x] `0013_platform_billing.sql`
 - [x] `0014_platform_invoice_vat.sql`
 - [x] `0015_rls_inventory_payment_sessions.sql` (RLS for inventory + payment_sessions)
 - [x] `0016_fraud_detection_rules_seed.sql` — idempotent fraud rules per tenant (smoke + `test:db` count)
+- [x] `0021_housekeeping_tasks.sql` — Reviewed and confirmed correct (June 2026)
 
 ### Phase 2d: F&B inventory 🚧
 - [x] Migration `database/drizzle/0011_fnb_inventory.sql` (inventory_items, menu links, movements, stock_alerts)
@@ -1317,3 +1614,51 @@ export const revalidate = 60; // 1 minute
 - `create_housekeeping_task_on_checkout` trigger: recreated with `booking_rooms` JOIN (not direct `room_id` column)
 - All migrations 0003–0037 applied; fraud rules seeded; loyalty tiers seeded
 - Lint: `<a>` → `<Link>` in booking deposit page; malformed import in print-email-signature.ts; setState rule downgraded to warning
+
+---
+
+## Discovered during work (2026-06-10 — policy conformance + implementation validation)
+
+- [x] Template conformance pass on 22 policy files (`scripts/compliance/conform-policies.ts`)
+- [x] Policy-to-implementation matrix — `compliance/evidence/policies/POLICY_IMPLEMENTATION_MATRIX.md`
+- [x] Implementation validation artifact — `compliance/evidence/policies/IMPLEMENTATION_VALIDATION_2026-06-10.md`
+- [x] SOC2 `access-control-agent` CC1.1 updated (policies in repo; unsigned = partial)
+- [x] SOC2 `monitoring-agent` CC7.2 updated (tabletop results + BoN API anchors)
+- [x] `collect-evidence.ts` loads `.env.local` before DB imports
+- [x] `validate-policy-implementation.ts` + `npm run validate:soc2` orchestrator
+- [x] Retention unit tests + matrix row 12 → PARTIAL
+- [x] `.github/workflows/soc2-evidence.yml` — validate + pgAudit + collect-evidence
+- [x] `compliance/evidence/sofia_fullstack_validation_2026-06-10.md`
+- [x] `compliance/evidence/OPERATOR_GATES_RUNBOOK.md` (IMP-01/04/05/06 steps)
+- [x] Policy matrix enforcement-layer columns (`POLICY_IMPLEMENTATION_MATRIX.md`)
+- [ ] **IMP-01:** pgAudit on Neon — operator: run `enable-pgaudit.sql` (see OPERATOR_GATES_RUNBOOK)
+- [ ] **IMP-04:** Org-wide MFA screenshots — operator gate
+- [ ] **IMP-05:** Vendor SOC attestations PDFs in `vendor-attestations/received/`
+- [ ] **IMP-06:** Production retention dry-run JSON archived to monthly pack
+- [ ] Archon MCP tasks for sign-off tracking — server errored 2026-06-10; retry in Cursor Settings → MCP → archon
+
+## Discovered during work (2026-06-10 — DRY / dead-code cleanup)
+
+- [x] Room public components consolidated under `components/features/rooms/` (tour, booking card, banners, filmstrip)
+- [x] Orphan `components/features/dining/*` duplicates removed; canonical menu tree remains `components/dining/`
+- [x] Single `PartnerSidebar` under `components/partners/`; `ErrorBoundary` under `components/shared/`
+- [x] Deleted unused `lib/services/property/RoomService.ts` and `property/AvailabilityService.ts` (ledger via `AvailabilityLedgerService` + booking `AvailabilityService`)
+- [x] Archived one-off DB scripts to `scripts/archive/db/`; `db:migrate:all` → `apply-all-missing-migrations.ts` only *(superseded: archive deleted 2026-06-10 per scripts/README policy — recoverable via git history)*
+- [x] Removed dead `ProblemSolutionTabs.tsx`
+- [x] **Migration journal:** `0022`–`0028` intentionally absent in `_journal.json` (CMS/loyalty landed as `0029+`); do **not** renumber applied Neon migrations
+
+## Discovered during work (2026-06-10 — full codebase health audit)
+
+See `docs/audit/CODEBASE_AUDIT_2026-06-10.md` for the full report.
+
+- [x] Deleted ~45 confirmed-dead files: 24 orphan components, 14 legacy landing sections + 5 cards + barrel, 8 empty lib stubs, 3 unused `lib/types/*`, legacy `lib/auth/middleware.ts`, unused `Soc2AuditService` facade, `scripts/archive/db/`
+- [x] `GET/POST /api/bookings/availability` now uses the dual-auth cascade (`getAuthenticatedUser`) — Stack Auth users previously did not see gated rates (NextAuth-only check)
+- [x] `@fileoverview` JSDoc added to 26 lib modules missing top-of-file docs; NamQR services cross-referenced to prevent wrong imports
+- [x] `e2e/public-components.spec.ts` test names updated (referenced deleted landing components)
+- [x] **Gap:** `NotificationDispatchService` wired — check-in reminders (`dispatchGuestTransactional`), partner weekly digest (`dispatch`), durable handler `notification-dispatch`
+- [ ] **Gap:** `AccountInformationService` (BoN AIS) has no `app/api/bon/v1/banking/accounts/*` routes — implemented service awaiting endpoints
+- [x] **Tech debt:** API auth batch — 19 routes migrated to `withPlatformApiAuth`; 3 intentional public/optional-auth exceptions (`bookings/availability`, `dining/favourites`, KYC GET)
+- [x] **Guest financial PDFs (2026-06):** `0064_generated_documents`, `DocumentGenerationService`, staff `/bookings/[id]#documents`, guest hub financial card, auto-email hooks, Sofia `resendGuestDocument` tool — see `PLANNING.md` folio/PDF bullet
+- [x] **Guest financial PDF wiring gate:** `npm run validate:document-wiring` (in `test:ci`) + integration tests under `tests/integration/documents-*.test.ts`
+- [ ] **Tech debt:** `lib/services/ai/SofiaConciergeService.ts` is 1,140+ lines (>500-line guideline) — candidate for modular split
+- [x] **Docs:** `CLAUDE.md` now points to `docs/project/MIGRATION_MASTER.md` (journal index through `0063`)

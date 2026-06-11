@@ -13,6 +13,16 @@ import { Card } from '@/components/ui/Card';
 import { AdumoVirtualPaymentForm } from '@/components/payments/AdumoVirtualPaymentForm';
 import { NamQrDeskPanel } from '@/components/features/payments/NamQrDeskPanel';
 import { FolioVatBreakdown } from '@/components/features/folio/FolioVatBreakdown';
+import {
+  FolioVoidTransactionDialog,
+  type FolioVoidChargeTarget,
+} from '@/components/features/folio/FolioVoidTransactionDialog';
+import { FolioBalanceStat } from '@/components/features/folio/FolioBalanceStat';
+import { FolioLinesTable } from '@/components/features/folio/FolioLinesTable';
+import { FolioPartialAmountField } from '@/components/features/folio/FolioPartialAmountField';
+import { FolioCashCardPayRow } from '@/components/features/folio/FolioCashCardPayRow';
+import { formatFolioAmount } from '@/lib/utils/money';
+import { resolveFolioPayAmount } from '@/lib/utils/folio-pay';
 import type { FolioSummary } from '@/lib/types/folio';
 
 interface BookingFolioSectionProps {
@@ -28,6 +38,7 @@ export function BookingFolioSection({ bookingId, bookingStatus }: BookingFolioSe
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [payWithCard, setPayWithCard] = useState(false);
+  const [voidTarget, setVoidTarget] = useState<FolioVoidChargeTarget | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -75,9 +86,16 @@ export function BookingFolioSection({ bookingId, bookingStatus }: BookingFolioSe
     }
   };
 
-  if (bookingStatus !== 'checked_in' && bookingStatus !== 'checked_out') {
+  const folioVisibleStatuses = ['checked_in', 'stayover', 'due_out', 'checked_out'];
+  if (!folioVisibleStatuses.includes(bookingStatus)) {
     return null;
   }
+
+  const canVoidCharges = Boolean(
+    folio &&
+      !folio.folioClosedAt &&
+      ['checked_in', 'stayover', 'due_out'].includes(bookingStatus)
+  );
 
   return (
     <Card variant="elevated" className="p-6">
@@ -93,75 +111,51 @@ export function BookingFolioSection({ bookingId, bookingStatus }: BookingFolioSe
       {!loading && folio && (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-            <div className="rounded-lg bg-nude-50 border border-nude-200 p-3">
-              <p className="text-xs text-nude-600 uppercase">Balance due</p>
-              <p className="text-xl font-bold text-nude-900">
-                {folio.currency} {folio.balanceDue.toFixed(2)}
-              </p>
-            </div>
-            <div className="rounded-lg bg-nude-50 border border-nude-200 p-3">
-              <p className="text-xs text-nude-600 uppercase">Folio status</p>
-              <p className="text-sm font-semibold capitalize text-nude-900">
-                {folio.folioClosedAt ? 'Closed' : 'Open'}
-              </p>
-            </div>
+            <FolioBalanceStat
+              label="Balance due"
+              value={formatFolioAmount(folio.currency, folio.balanceDue)}
+            />
+            <FolioBalanceStat
+              label="Folio status"
+              value={folio.folioClosedAt ? 'Closed' : 'Open'}
+              valueClassName="text-sm font-semibold capitalize text-nude-900"
+            />
           </div>
 
           {folio.vat && <FolioVatBreakdown vat={folio.vat} className="mb-4" />}
 
-          {folio.lines.length > 0 && (
-            <ul className="divide-y divide-nude-200 text-sm mb-4 max-h-48 overflow-y-auto">
-              {folio.lines.map((line) => (
-                <li key={line.id} className="py-2 flex justify-between gap-2">
-                  <span>
-                    {line.description}
-                    <span className="text-nude-500 ml-1">({line.chargeType})</span>
-                  </span>
-                  <span className="font-mono shrink-0">
-                    {line.currency} {line.amount.toFixed(2)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
+          <FolioLinesTable
+            lines={folio.lines}
+            variant="staff"
+            canVoidCharges={canVoidCharges}
+            onVoidCharge={setVoidTarget}
+          />
 
-          {folio.balanceDue > 0 && !folio.folioClosedAt && bookingStatus === 'checked_in' && (
+          {folio.balanceDue > 0 &&
+            !folio.folioClosedAt &&
+            ['checked_in', 'stayover', 'due_out'].includes(bookingStatus) && (
             <div className="space-y-3 border-t border-nude-200 pt-4">
-              <label className="form-control w-full">
-                <span className="label-text text-sm">Payment amount (optional partial)</span>
-                <input
-                  type="number"
-                  step="0.01"
-                  className="input input-bordered w-full"
-                  placeholder={folio.balanceDue.toFixed(2)}
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                />
-              </label>
-              <div className="flex flex-wrap gap-2">
-                <Button size="sm" disabled={busy} onClick={() => void settle('cash')}>
-                  Record cash
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={busy || payWithCard}
-                  onClick={() => {
-                    setPayWithCard(true);
-                    setMessage(null);
-                  }}
-                >
-                  Pay card (Adumo)
-                </Button>
-              </div>
+              <FolioPartialAmountField
+                label="Payment amount (optional partial)"
+                value={amount}
+                onChange={setAmount}
+                balanceDue={folio.balanceDue}
+                currency={folio.currency}
+                id="desk-folio-partial-amount"
+              />
+              <FolioCashCardPayRow
+                busy={busy}
+                payWithCard={payWithCard}
+                onCash={() => void settle('cash')}
+                onStartCard={() => {
+                  setPayWithCard(true);
+                  setMessage(null);
+                }}
+              />
               {payWithCard && folio && (
                 <AdumoVirtualPaymentForm
                   bookingId={bookingId}
-                  amount={
-                    amount
-                      ? Math.min(Number.parseFloat(amount) || folio.balanceDue, folio.balanceDue)
-                      : folio.balanceDue
-                  }
+                  amount={resolveFolioPayAmount(amount, folio.balanceDue)}
                   purpose="folio_settle"
                   onError={(err) => {
                     setPayWithCard(false);
@@ -171,11 +165,7 @@ export function BookingFolioSection({ bookingId, bookingStatus }: BookingFolioSe
               )}
               <NamQrDeskPanel
                 bookingId={bookingId}
-                suggestedAmount={
-                  amount
-                    ? Math.min(Number.parseFloat(amount) || folio.balanceDue, folio.balanceDue)
-                    : folio.balanceDue
-                }
+                suggestedAmount={resolveFolioPayAmount(amount, folio.balanceDue)}
               />
             </div>
           )}
@@ -183,6 +173,13 @@ export function BookingFolioSection({ bookingId, bookingStatus }: BookingFolioSe
       )}
 
       {message && <p className="text-sm text-semantic-success mt-3">{message}</p>}
+
+      <FolioVoidTransactionDialog
+        charge={voidTarget}
+        open={voidTarget !== null}
+        onClose={() => setVoidTarget(null)}
+        onVoided={() => void load()}
+      />
     </Card>
   );
 }

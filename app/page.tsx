@@ -13,6 +13,7 @@
  */
 
 import { Metadata } from 'next';
+import { formatCurrencyNAD } from '@/lib/formatters';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
@@ -81,9 +82,10 @@ function firstImage(value: unknown, fallback: string): string {
   return fallback;
 }
 
-function formatCurrency(amount: number | null, currency: string): string {
+function formatNightlyRate(amount: number | null, currency: string): string {
   if (amount === null || Number.isNaN(amount)) return 'Price on request';
-  return `From ${currency} ${amount.toLocaleString()}/night`;
+  if (currency === 'NAD') return `From ${formatCurrencyNAD(amount)}/night`;
+  return `From ${currency} ${amount.toLocaleString('en-NA')}/night`;
 }
 
 function formatOpeningSlot(
@@ -328,7 +330,7 @@ export default async function LandingPage() {
                     <div className="p-6">
                       <h3 className="font-display text-2xl font-bold text-terracotta-900 mb-2">{room.roomType}</h3>
                       {isAuthenticated ? (
-                        <p className="text-khaki-600 font-semibold mb-1">{formatCurrency(amount, currency)}</p>
+                        <p className="text-khaki-600 font-semibold mb-1">{formatNightlyRate(amount, currency)}</p>
                       ) : (
                         <p className="text-khaki-600 font-semibold mb-1">{publicCopy.gated.viewPrices}</p>
                       )}

@@ -20,8 +20,14 @@ import {
 import { adumoConfig } from '@/lib/config/adumo';
 import { PlatformFeeService } from '@/lib/services/billing/PlatformFeeService';
 import { PlatformBillingService } from '@/lib/services/billing/PlatformBillingService';
-import { schedulePaymentReceiptEmail } from '@/lib/services/booking/bookingLifecycleSideEffects';
 import { applyDiningAdumoDeposit } from '@/lib/services/payment/applyDiningAdumoDeposit';
+import {
+  enqueuePaymentOutboxEvent,
+  PAYMENT_OUTBOX_EVENT_TYPES,
+  runPaymentOutboxDispatch,
+} from '@/lib/services/payment/paymentOutbox';
+import { securityLogger } from '@/lib/utils/security-logger';
+import { assertPaymentSessionTransition } from '@/lib/services/payment/paymentStateMachine';
 
 const folioService = new FolioService();
 
@@ -39,10 +45,24 @@ export async function completeAdumoVirtualPayment(
   alreadyProcessed: boolean;
 }> {
   if (!AdumoVirtualService.isPaymentSuccess(input.decoded.result)) {
-    await db
-      .update(paymentSessions)
-      .set({ status: 'failed', updatedAt: new Date() })
-      .where(eq(paymentSessions.merchantReference, input.merchantReference));
+    const [failedSession] = await db
+      .select()
+      .from(paymentSessions)
+      .where(eq(paymentSessions.merchantReference, input.merchantReference))
+      .limit(1);
+
+    if (failedSession && failedSession.status !== 'failed') {
+      assertPaymentSessionTransition(
+        failedSession.status,
+        Boolean(failedSession.adumoTransactionIndex),
+        'failed',
+      );
+      await db
+        .update(paymentSessions)
+        .set({ status: 'failed', updatedAt: new Date() })
+        .where(eq(paymentSessions.id, failedSession.id));
+    }
+
     throw new AppError(402, 'Card payment was declined or failed');
   }
 
@@ -93,33 +113,52 @@ export async function completeAdumoVirtualPayment(
   const commercial = PlatformFeeService.accrueCardProcessingFee(feeCtx, schedule);
   await billing.recordCardFeeAccrual(commercial, feeCtx);
 
+  let completedTransactionId: string | undefined;
+
   if (session.purpose === 'dining_deposit') {
     await applyDiningAdumoDeposit(session, gatewayId, sessionAmount, commercial.metadata);
   } else if (session.purpose === 'folio_settle') {
     if (!session.bookingId) {
       throw new AppError(400, 'Folio payment requires a booking');
     }
-    await folioService.settleFolio(session.bookingId, {
+    const settlement = await folioService.settleFolio(session.bookingId, {
       paymentMethod: 'card',
       amountPaid: sessionAmount,
       gatewayTransactionId: gatewayId,
       paymentMetadata: commercial.metadata,
     });
+    completedTransactionId = settlement.transactionId;
   } else {
     if (!session.bookingId) {
       throw new AppError(400, 'Booking deposit requires a booking');
     }
-    await applyBookingDeposit(session, gatewayId, sessionAmount, commercial.metadata);
+    completedTransactionId = await applyBookingDeposit(
+      session,
+      gatewayId,
+      sessionAmount,
+      commercial.metadata
+    );
   }
 
-  await db
-    .update(paymentSessions)
-    .set({
-      status: 'success',
-      adumoTransactionIndex: gatewayId,
-      updatedAt: new Date(),
-    })
-    .where(eq(paymentSessions.id, session.id));
+  assertPaymentSessionTransition(
+    session.status,
+    Boolean(session.adumoTransactionIndex || gatewayId),
+    'success',
+  );
+
+  let receiptOutboxPayload:
+    | {
+        tenantId: string;
+        bookingId: string;
+        guestId: string;
+        propertyId: string | null;
+        amount: number;
+        currency: string;
+        paymentMethod: string;
+        bookingReference?: string;
+        transactionId?: string;
+      }
+    | undefined;
 
   if (session.bookingId) {
     const [bookingRow] = await db
@@ -133,7 +172,7 @@ export async function completeAdumoVirtualPayment(
       .limit(1);
 
     if (bookingRow?.guestId) {
-      schedulePaymentReceiptEmail({
+      receiptOutboxPayload = {
         tenantId: session.tenantId,
         bookingId: session.bookingId,
         guestId: bookingRow.guestId,
@@ -142,8 +181,39 @@ export async function completeAdumoVirtualPayment(
         currency: adumoConfig.currencyCode,
         paymentMethod: 'card (Adumo)',
         bookingReference: bookingRow.bookingReference ?? undefined,
-      });
+        transactionId: completedTransactionId,
+      };
     }
+  }
+
+  await db.transaction(async (tx) => {
+    await tx
+      .update(paymentSessions)
+      .set({
+        status: 'success',
+        adumoTransactionIndex: gatewayId,
+        updatedAt: new Date(),
+      })
+      .where(eq(paymentSessions.id, session.id));
+
+    if (receiptOutboxPayload) {
+      await enqueuePaymentOutboxEvent(
+        {
+          tenantId: session.tenantId,
+          aggregateId: session.id,
+          idempotencyKey: `payment_receipt:${session.id}`,
+          eventType: PAYMENT_OUTBOX_EVENT_TYPES.PAYMENT_RECEIPT_EMAIL,
+          payload: receiptOutboxPayload,
+        },
+        tx,
+      );
+    }
+  });
+
+  if (receiptOutboxPayload) {
+    void runPaymentOutboxDispatch(1).catch((err) =>
+      securityLogger.error('[completeAdumoVirtualPayment] outbox dispatch', err),
+    );
   }
 
   return {
@@ -158,7 +228,7 @@ async function applyBookingDeposit(
   gatewayId: string,
   amount: number,
   paymentMetadata: Record<string, unknown>
-): Promise<void> {
+): Promise<string | undefined> {
   const bookingId = session.bookingId;
   if (!bookingId) {
     throw new AppError(400, 'Booking deposit session missing booking_id');
@@ -166,6 +236,8 @@ async function applyBookingDeposit(
 
   const now = new Date();
   const txRef = `ADU-${gatewayId.slice(0, 24)}`;
+
+  let transactionId: string | undefined;
 
   await db.transaction(async (tx) => {
     await tx
@@ -177,23 +249,28 @@ async function applyBookingDeposit(
       })
       .where(eq(bookings.id, bookingId));
 
-    await tx.insert(transactions).values({
-      tenantId: session.tenantId,
-      bookingId,
-      transactionReference: txRef,
-      type: 'booking_payment',
-      amount: amount.toFixed(2),
-      currency: adumoConfig.currencyCode,
-      status: 'completed',
-      paymentGateway: 'adumo_virtual',
-      gatewayTransactionId: gatewayId,
-      description: `Booking deposit via Adumo Virtual (${session.merchantReference})`,
-      metadata: {
-        merchantReference: session.merchantReference,
-        ...paymentMetadata,
-      },
-      processedAt: now,
-    });
+    const [txn] = await tx
+      .insert(transactions)
+      .values({
+        tenantId: session.tenantId,
+        bookingId,
+        transactionReference: txRef,
+        type: 'booking_payment',
+        amount: amount.toFixed(2),
+        currency: adumoConfig.currencyCode,
+        status: 'completed',
+        paymentGateway: 'adumo_virtual',
+        gatewayTransactionId: gatewayId,
+        description: `Booking deposit via Adumo Virtual (${session.merchantReference})`,
+        metadata: {
+          merchantReference: session.merchantReference,
+          ...paymentMetadata,
+        },
+        processedAt: now,
+      })
+      .returning({ id: transactions.id });
+
+    transactionId = txn?.id;
 
     await tx.insert(bookingCharges).values({
       tenantId: session.tenantId,
@@ -206,4 +283,6 @@ async function applyBookingDeposit(
       settledAt: now,
     });
   });
+
+  return transactionId;
 }

@@ -7,11 +7,14 @@
  * Keys and values are lowercase snake_case to match Drizzle varchar statuses.
  */
 
-/** Hotel booking lifecycle */
+/** Hotel booking lifecycle (aligned with ReservationStateMachine / haip) */
 export const BOOKING_STATUS_TRANSITIONS: Record<string, string[]> = {
   pending: ['confirmed', 'cancelled'],
-  confirmed: ['checked_in', 'cancelled', 'no_show'],
-  checked_in: ['checked_out'],
+  confirmed: ['assigned', 'checked_in', 'cancelled', 'no_show'],
+  assigned: ['checked_in', 'cancelled', 'no_show'],
+  checked_in: ['stayover', 'checked_out'],
+  stayover: ['due_out', 'checked_out'],
+  due_out: ['checked_out'],
   checked_out: [],
   cancelled: [],
   no_show: [],

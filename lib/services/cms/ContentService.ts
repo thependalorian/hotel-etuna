@@ -1,3 +1,7 @@
+/**
+ * @fileoverview ContentService — CRUD for CMS content entries (`cms_content`).
+ * Location: lib/services/cms/ContentService.ts
+ */
 import { db } from '@/lib/db';
 import { cmsContent } from '@/lib/db/schema';
 import { eq, and, desc } from 'drizzle-orm';

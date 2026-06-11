@@ -101,8 +101,46 @@ export async function GET(
       return NextResponse.json(payload);
     },
     {
-      requireRole: ['owner', 'manager', 'admin', 'staff'],
+      requireRole: ['owner', 'manager', 'admin'],
       rateLimit: true,
     }
+  );
+}
+
+const createShiftSchema = z.object({
+  propertyId: entityId('Invalid property ID'),
+  shiftDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  startTime: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/),
+  endTime: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/),
+  position: z.string().optional(),
+  shiftType: z.string().optional(),
+  notes: z.string().max(500).optional(),
+});
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  return withApiAuth(
+    request,
+    async (req, user) => {
+      if (!user.tenantId) {
+        return errorResponse('Tenant ID is required', 400, 'MISSING_TENANT_ID');
+      }
+      const { id: staffId } = await params;
+      const body = await req.json();
+      const parsed = createShiftSchema.safeParse(body);
+      if (!parsed.success) {
+        return errorResponse('Invalid body', 400, 'VALIDATION_ERROR', parsed.error.flatten().fieldErrors);
+      }
+      const { StaffShiftService } = await import('@/lib/services/staff/StaffShiftService');
+      const service = new StaffShiftService();
+      const shift = await service.createShift(user.tenantId, {
+        staffId,
+        ...parsed.data,
+      });
+      return NextResponse.json({ data: shift }, { status: 201 });
+    },
+    { requireRole: ['owner', 'manager', 'admin'], rateLimit: true }
   );
 }

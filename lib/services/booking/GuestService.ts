@@ -1,3 +1,11 @@
+/**
+ * @fileoverview GuestService — CRUD for guest records (booking/CRM domain).
+ *
+ * Manages rows in the `guests` table. Distinct from
+ * `lib/services/guest/GuestProfileService.ts`, which serves the signed-in
+ * guest hub profile APIs.
+ * Location: lib/services/booking/GuestService.ts
+ */
 import { db } from '@/lib/db';
 import { guests } from '@/lib/db/schema';
 import { eq, desc, sql } from 'drizzle-orm';

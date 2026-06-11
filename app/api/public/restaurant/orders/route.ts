@@ -5,7 +5,7 @@ import { TableService } from '@/lib/services/restaurant/TableService';
 import { db, properties, guests } from '@/lib/db';
 import { eq, and } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const orderService = new OrderService();
 const propertyService = new PropertyService();

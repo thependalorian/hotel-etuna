@@ -8,6 +8,8 @@
 
 'use client';
 
+import { formatNumber } from '@/lib/formatters';
+
 interface FraudStatistics {
   totalTransactions: number;
   flaggedTransactions: number;
@@ -23,10 +25,6 @@ interface FraudStatisticsCardProps {
 }
 
 export function FraudStatisticsCard({ statistics, periodType }: FraudStatisticsCardProps) {
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat('en-US').format(num);
-  };
-
   const getRiskLevelColor = (score: number) => {
     if (score >= 75) return 'badge-error';
     if (score >= 50) return 'badge-warning';

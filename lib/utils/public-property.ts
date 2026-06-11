@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Public hub property resolution for unauthenticated pages.
+ * Location: lib/utils/public-property.ts
+ */
 import { and, asc, eq } from 'drizzle-orm';
 import { db, properties, tenants } from '@/lib/db';
 

@@ -80,7 +80,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
       <div className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
       {/* Hero Section */}
       <div className="mb-12">
-        <h1 className="buffr-page-title--hero mb-4">{property.name}</h1>
+        <h1 className="etuna-page-title--hero mb-4">{property.name}</h1>
         <p className="mb-6 text-lg leading-relaxed text-ink-600">{property.address}</p>
         {propertyDescription && (
           <div className="mt-6 max-w-prose">

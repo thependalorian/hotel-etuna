@@ -5,5 +5,6 @@
 
 export { brand, forbiddenGuestPhrases } from '@/lib/copy/brand';
 export { authCopy } from '@/lib/copy/auth';
+export { dashboardCopy } from '@/lib/copy/dashboard';
 export { publicCopy } from '@/lib/copy/public';
 export { guestCopy } from '@/lib/copy/guest';

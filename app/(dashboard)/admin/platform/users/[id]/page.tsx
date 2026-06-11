@@ -54,7 +54,7 @@ export default async function PlatformUserDetailPage({ params }: PageProps) {
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <div>
-          <h1 className="buffr-page-title mb-1">
+          <h1 className="etuna-page-title mb-1">
             {u.firstName || u.lastName ? `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() : u.email}
           </h1>
           <p className="text-base-content/70 flex items-center gap-2 flex-wrap">

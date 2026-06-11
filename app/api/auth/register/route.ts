@@ -15,7 +15,7 @@ import { checkRateLimit } from '@/lib/utils/rate-limit';
 import { rateLimitResponse } from '@/lib/utils/api-helpers';
 import { passwordSchema } from '@/lib/validation/password';
 import { isTurnstileConfigured, verifyTurnstileToken } from '@/lib/auth/verify-turnstile';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const registerSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }).max(120),

@@ -88,7 +88,7 @@ export async function getAuthenticatedEmail(): Promise<string | null> {
 /**
  * Load platform admin from DB for the current session (Stack Auth or NextAuth).
  */
-export async function getCurrentPlatformAdmin(): Promise<{
+export type PlatformAdminUser = {
   id: string;
   email: string;
   role: string | null;
@@ -96,7 +96,9 @@ export async function getCurrentPlatformAdmin(): Promise<{
   lastName: string | null;
   isPlatformAdmin: boolean | null;
   tenantId: string | null;
-} | null> {
+};
+
+export async function getCurrentPlatformAdmin(): Promise<PlatformAdminUser | null> {
   const email = await getAuthenticatedEmail();
   if (!email) {
     return null;

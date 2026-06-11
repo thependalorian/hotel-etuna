@@ -39,6 +39,8 @@ const PROD_OVERRIDES = {
   NEXTAUTH_URL: PROD_URL,
   NEXT_PUBLIC_SITE_URL: PROD_URL,
   NEXT_PUBLIC_APP_URL: PROD_URL,
+  /** Live Adumo API — local .env.local may stay on staging-apiv3 for safe card tests */
+  ADUMO_BASE_URL: 'https://apiv3.adumoonline.com',
   ADUMO_REDIRECT_SUCCESS_URL: `${PROD_URL}/payment/success`,
   ADUMO_REDIRECT_FAIL_URL: `${PROD_URL}/payment/failed`,
   ADUMO_WEBHOOK_URL: `${PROD_URL}/api/webhooks/adumo`,

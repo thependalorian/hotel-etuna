@@ -1,74 +1,95 @@
-import { NextResponse, NextRequest } from 'next/server';
+import { NextRequest } from 'next/server';
+import {
+  withPlatformApiAuth,
+  errorResponse,
+  successResponse,
+} from '@/lib/utils/api-helpers';
 import { NamQrService } from '@/lib/services/qr/NAMQRService';
-import { getAuthenticatedUser } from '@/lib/utils/api-helpers';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const qrService = new NamQrService();
 
 export async function POST(request: NextRequest) {
-  try {
-    const user = await getAuthenticatedUser(request);
+  return withPlatformApiAuth(
+    request,
+    async (req, user) => {
+      if (!user.tenantId) {
+        return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+      }
 
-    if (!user || !user.tenantId) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
+      try {
+        const body = await req.json();
 
-    const body = await request.json();
-    
-    if (body.type === 'bulk') {
-      const results = await qrService.generateBulkQRCodes(
-        user.tenantId,
-        body.propertyId,
-        body.entityType,
-        body.entityIds,
-        body.qrType
-      );
-      return NextResponse.json(results, { status: 201 });
-    } else {
-      const qrCode = await qrService.generateQRCode({
-        ...body,
-        tenantId: user.tenantId,
-      });
-      return NextResponse.json(qrCode, { status: 201 });
-    }
-  } catch (error) {
-    securityLogger.error('Error generating QR code:', error);
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
-  }
+        if (body.type === 'bulk') {
+          const results = await qrService.generateBulkQRCodes(
+            user.tenantId,
+            body.propertyId,
+            body.entityType,
+            body.entityIds,
+            body.qrType
+          );
+          return successResponse(results, 201);
+        }
+
+        const qrCode = await qrService.generateQRCode({
+          ...body,
+          tenantId: user.tenantId,
+        });
+        return successResponse(qrCode, 201);
+      } catch (error) {
+        securityLogger.error('Error generating QR code:', error);
+        return errorResponse('Internal server error', 500, 'INTERNAL_ERROR');
+      }
+    },
+    { rateLimit: true }
+  );
 }
 
 export async function GET(request: NextRequest) {
-  try {
-    const user = await getAuthenticatedUser(request);
+  return withPlatformApiAuth(
+    request,
+    async (req, user) => {
+      if (!user.tenantId) {
+        return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+      }
 
-    if (!user || !user.tenantId) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
+      try {
+        const { searchParams } = new URL(req.url);
+        const propertyId = searchParams.get('propertyId');
+        const entityType = searchParams.get('entityType') as 'room' | 'table' | undefined;
+        const qrType = searchParams.get('qrType');
+        const isActive =
+          searchParams.get('isActive') === 'true'
+            ? true
+            : searchParams.get('isActive') === 'false'
+              ? false
+              : undefined;
 
-    const { searchParams } = new URL(request.url);
-    const propertyId = searchParams.get('propertyId');
-    const entityType = searchParams.get('entityType') as 'room' | 'table' | undefined;
-    const qrType = searchParams.get('qrType');
-    const isActive = searchParams.get('isActive') === 'true' ? true : searchParams.get('isActive') === 'false' ? false : undefined;
+        if (propertyId) {
+          const filters: {
+            entityType?: 'room' | 'table';
+            qrType?: string;
+            isActive?: boolean;
+          } = {
+            ...(entityType && { entityType }),
+            ...(qrType && { qrType }),
+            ...(isActive !== undefined && { isActive }),
+          };
+          const qrCodes = await qrService.getQRCodesByProperty(
+            propertyId,
+            user.tenantId,
+            filters
+          );
+          return successResponse(qrCodes);
+        }
 
-    if (propertyId) {
-      const filters: {
-        entityType?: "room" | "table";
-        qrType?: string;
-        isActive?: boolean;
-      } = {
-        ...(entityType && { entityType }),
-        ...(qrType && { qrType }),
-        ...(isActive !== undefined && { isActive }),
-      };
-      const qrCodes = await qrService.getQRCodesByProperty(propertyId, user.tenantId, filters);
-      return NextResponse.json(qrCodes, { status: 200 });
-    } else {
-      const stats = await qrService.getQRStats(user.tenantId);
-      return NextResponse.json(stats, { status: 200 });
-    }
-  } catch (error) {
-    securityLogger.error('Error fetching QR codes:', error);
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
-  }
+        const stats = await qrService.getQRStats(user.tenantId);
+        return successResponse(stats);
+      } catch (error) {
+        securityLogger.error('Error fetching QR codes:', error);
+        return errorResponse('Internal server error', 500, 'INTERNAL_ERROR');
+      }
+    },
+    { rateLimit: true }
+  );
 }

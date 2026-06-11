@@ -8,7 +8,7 @@ import {
   normalizeAccountEmail,
 } from '@/lib/services/booking/linkGuestAccount';
 import * as z from 'zod';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const verifySchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),

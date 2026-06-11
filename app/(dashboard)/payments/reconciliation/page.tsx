@@ -17,8 +17,9 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { ReconciliationDocumentsPanel } from '@/components/features/documents/ReconciliationDocumentsPanel';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 
@@ -71,23 +72,7 @@ export default function CashReconciliationPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Fetch report when date changes
-  useEffect(() => {
-    fetchReport();
-  }, [selectedDate]);
-
-  // Update actual amount when report loads (if already reconciled)
-  useEffect(() => {
-    if (report?.reconciliation) {
-      setActualAmount(report.reconciliation.actualAmount);
-      setNotes(report.reconciliation.notes || '');
-    } else {
-      setActualAmount('');
-      setNotes('');
-    }
-  }, [report]);
-
-  const fetchReport = async () => {
+  const fetchReport = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -104,7 +89,23 @@ export default function CashReconciliationPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedDate]); // selectedDate is a dependency for fetchReport
+
+  // Fetch report when date changes
+  useEffect(() => {
+    fetchReport();
+  }, [selectedDate, fetchReport]); // Added fetchReport to dependencies
+
+  // Update actual amount when report loads (if already reconciled)
+  useEffect(() => {
+    if (report?.reconciliation) {
+      setActualAmount(report.reconciliation.actualAmount);
+      setNotes(report.reconciliation.notes || '');
+    } else {
+      setActualAmount('');
+      setNotes('');
+    }
+  }, [report]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -172,7 +173,7 @@ export default function CashReconciliationPage() {
           </Link>
           <Link href="/payments/platform-billing">
             <Button variant="outline" size="sm">
-              Platform billing (Buffr)
+              Platform fees
             </Button>
           </Link>
         </div>
@@ -464,6 +465,8 @@ export default function CashReconciliationPage() {
           </Card>
         </>
       )}
+
+      <ReconciliationDocumentsPanel date={selectedDate} />
     </div>
   );
 }

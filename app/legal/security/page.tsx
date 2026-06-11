@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'usecurity Policy',
+  title: 'Security Policy',
 };
 
 /**
@@ -20,15 +20,16 @@ export const metadata: Metadata = {
 
 import React from 'react';
 import Link from 'next/link';
+import { brand } from '@/lib/copy/brand';
 
 export default function SecurityPolicyPage() {
   return (
     <div className="min-h-screen bg-base-100 py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <article className="buffr-legal-content">
+        <article className="etuna-legal-content">
           <h1>Security Policy</h1>
           
-          <p className="buffr-legal-meta">
+          <p className="etuna-legal-meta">
             Last Updated: January 2026
           </p>
 
@@ -83,7 +84,7 @@ export default function SecurityPolicyPage() {
             <ul>
               <li>Role-based access control (RBAC)</li>
               <li>Principle of least privilege</li>
-              <li>Multi-tenant data isolation</li>
+              <li>Property-scoped data isolation (Hotel Etuna hub + referral partners)</li>
               <li>Regular access reviews and audits</li>
             </ul>
 
@@ -227,7 +228,7 @@ export default function SecurityPolicyPage() {
               If you discover a security vulnerability, please report it responsibly:
             </p>
             <p>
-              <strong>Email:</strong> security@buffrhost.com<br />
+              <strong>Email:</strong> {brand.emailSecurity}<br />
               <strong>Subject:</strong> Security Vulnerability Report
             </p>
             <p>
@@ -252,8 +253,8 @@ export default function SecurityPolicyPage() {
             <p>
               <strong>Security Team</strong><br />
               Hotel Etuna<br />
-              Email: security@buffrhost.com<br />
-              Address: Windhoek, Namibia
+              Email: {brand.emailSecurity}<br />
+              Address: {brand.address}
             </p>
           </section>
 

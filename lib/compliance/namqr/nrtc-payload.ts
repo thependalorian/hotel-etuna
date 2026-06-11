@@ -159,9 +159,12 @@ export function validateNamQrPayload(payload: string): NamQrValidationResult {
 
   let crcOk = false;
   if (tags['63']) {
-    const crcTagIndex = payload.lastIndexOf(NAMQR_STANDARDS.crcTag);
-    const withoutCrcValue =
-      crcTagIndex >= 0 ? payload.substring(0, crcTagIndex) : payload;
+    // Reason: The CRC tag is always the final 8 chars of an EMVCo/NamQR payload —
+    // "63" (tag) + "04" (length) + 4 hex (value), per §4.10. Using lastIndexOf('63')
+    // is unsafe because the 4-hex CRC value can itself contain the substring "63",
+    // which points inside the value and corrupts the recomputed CRC (intermittent
+    // false negatives). Slice the documented fixed-width trailer instead.
+    const withoutCrcValue = payload.slice(0, -8);
     const expected = calculateNamQrCrc(
       withoutCrcValue + NAMQR_STANDARDS.crcTag + '04'
     );

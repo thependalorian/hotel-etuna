@@ -148,7 +148,7 @@ export default function MenuPage() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="buffr-page-title mb-2">Menu Management</h1>
+          <h1 className="etuna-page-title mb-2">Menu Management</h1>
           <p className="text-base-content/70">
             Manage your restaurant menu items and categories
           </p>

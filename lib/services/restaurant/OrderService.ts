@@ -1,3 +1,10 @@
+/**
+ * @fileoverview OrderService — restaurant order and order-item management.
+ *
+ * Creates and updates `restaurant_orders` / `restaurant_order_items`,
+ * including status workflow and folio posting hooks.
+ * Location: lib/services/restaurant/OrderService.ts
+ */
 import {
   db,
   restaurantOrders as restaurantOrdersSchema,
@@ -60,6 +67,33 @@ export class OrderService {
 
       const { inventoryService } = await import('@/lib/services/inventory/InventoryService');
       await inventoryService.deductForOrder(newOrder.id);
+
+      const orderDetails = await this.getOrderById(newOrder.id, tenantId);
+      const { queuePrintJobForOrder } = await import('@/lib/services/fnb/fnb-print-dispatch-service');
+      await queuePrintJobForOrder(tenantId, {
+        propertyId: data.propertyId,
+        orderId: newOrder.id,
+        bookingId: data.bookingId ?? null,
+        orderNumber: newOrder.orderNumber,
+        tableNumber: data.tableNumber ?? null,
+        roomNumber: data.roomNumber ?? null,
+        specialInstructions: data.specialInstructions ?? null,
+        items: (orderDetails.items ?? []).map(
+          (item: {
+            menuItemName?: string | null;
+            quantity: number;
+            specialInstructions?: string | null;
+            customizations?: Record<string, unknown> | null;
+          }) => ({
+            menuItemName: item.menuItemName,
+            quantity: item.quantity,
+            specialInstructions: item.specialInstructions,
+            customizations: item.customizations,
+          })
+        ),
+        station: 'kitchen',
+        createdBy: null,
+      });
 
       return newOrder;
     } catch (error) {

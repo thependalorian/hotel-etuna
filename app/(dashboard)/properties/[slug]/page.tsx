@@ -160,8 +160,8 @@ export default async function PropertyDetailPage({ params }: PropertyDetailPageP
   return (
     <div className="container mx-auto py-10">
       <div className="mb-8">
-        <h1 className="buffr-page-title">{property.name}</h1>
-        <p className="buffr-page-desc mt-2 text-lg">{property.address}</p>
+        <h1 className="etuna-page-title">{property.name}</h1>
+        <p className="etuna-page-desc mt-2 text-lg">{property.address}</p>
       </div>
 
       <Card>

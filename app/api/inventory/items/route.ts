@@ -2,70 +2,83 @@
  * GET /api/inventory/items?restaurantId=
  * PATCH /api/inventory/items — manual stock adjustment
  * Location: app/api/inventory/items/route.ts
- *
- * Response (GET): { items: InventoryListItem[] }
- * Response (PATCH): { quantityOnHand: number }
  */
 
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+import { NextRequest } from 'next/server';
+import {
+  withPlatformApiAuth,
+  errorResponse,
+  successResponse,
+} from '@/lib/utils/api-helpers';
 import { inventoryService } from '@/lib/services/inventory/InventoryService';
-import { errorResponse } from '@/lib/utils/api-helpers';
 import { AppError } from '@/lib/utils/errors';
 
-export async function GET(request: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.tenantId) {
-      return errorResponse('Unauthorized', 401);
-    }
+export async function GET(request: NextRequest) {
+  return withPlatformApiAuth(
+    request,
+    async (req, user) => {
+      try {
+        if (!user.tenantId) {
+          return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+        }
 
-    const { searchParams } = new URL(request.url);
-    const restaurantId = searchParams.get('restaurantId');
-    if (!restaurantId) {
-      return errorResponse('restaurantId is required', 400);
-    }
+        const { searchParams } = new URL(req.url);
+        const restaurantId = searchParams.get('restaurantId');
+        if (!restaurantId) {
+          return errorResponse('restaurantId is required', 400, 'VALIDATION_ERROR');
+        }
 
-    const items = await inventoryService.listByRestaurant(session.user.tenantId, restaurantId);
-    return NextResponse.json({ items });
-  } catch (error) {
-    if (error instanceof AppError) {
-      return errorResponse(error.message, error.statusCode);
-    }
-    return errorResponse('Failed to load inventory', 500);
-  }
+        const items = await inventoryService.listByRestaurant(user.tenantId, restaurantId);
+        return successResponse({ items });
+      } catch (error) {
+        if (error instanceof AppError) {
+          return errorResponse(error.message, error.statusCode, 'APP_ERROR');
+        }
+        return errorResponse('Failed to load inventory', 500, 'INTERNAL_ERROR');
+      }
+    },
+    { rateLimit: true }
+  );
 }
 
-export async function PATCH(request: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.tenantId) {
-      return errorResponse('Unauthorized', 401);
-    }
+export async function PATCH(request: NextRequest) {
+  return withPlatformApiAuth(
+    request,
+    async (req, user) => {
+      try {
+        if (!user.tenantId || !user.id) {
+          return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+        }
 
-    const body = (await request.json()) as {
-      inventoryItemId?: string;
-      quantityDelta?: number;
-      notes?: string;
-    };
+        const body = (await req.json()) as {
+          inventoryItemId?: string;
+          quantityDelta?: number;
+          notes?: string;
+        };
 
-    if (!body.inventoryItemId || body.quantityDelta == null) {
-      return errorResponse('inventoryItemId and quantityDelta are required', 400);
-    }
+        if (!body.inventoryItemId || body.quantityDelta == null) {
+          return errorResponse(
+            'inventoryItemId and quantityDelta are required',
+            400,
+            'VALIDATION_ERROR'
+          );
+        }
 
-    const result = await inventoryService.adjustStock({
-      inventoryItemId: body.inventoryItemId,
-      quantityDelta: body.quantityDelta,
-      notes: body.notes,
-      createdBy: session.user.id,
-    });
+        const result = await inventoryService.adjustStock({
+          inventoryItemId: body.inventoryItemId,
+          quantityDelta: body.quantityDelta,
+          notes: body.notes,
+          createdBy: user.id,
+        });
 
-    return NextResponse.json(result);
-  } catch (error) {
-    if (error instanceof AppError) {
-      return errorResponse(error.message, error.statusCode);
-    }
-    return errorResponse('Failed to adjust stock', 500);
-  }
+        return successResponse(result);
+      } catch (error) {
+        if (error instanceof AppError) {
+          return errorResponse(error.message, error.statusCode, 'APP_ERROR');
+        }
+        return errorResponse('Failed to adjust stock', 500, 'INTERNAL_ERROR');
+      }
+    },
+    { rateLimit: true }
+  );
 }

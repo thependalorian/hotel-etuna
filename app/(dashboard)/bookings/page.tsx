@@ -63,6 +63,12 @@ const BookingsPage = async ({
                 Book campsite
               </Link>
               <Link
+                href="/bookings/night-audit"
+                className="btn btn-outline rounded-full px-6 min-h-[44px]"
+              >
+                Night audit
+              </Link>
+              <Link
                 href="/bookings/new"
                 className="btn btn-primary gentle-lift min-h-[44px] shadow-nude-soft hover:shadow-nude-medium rounded-full px-6"
                 aria-label="Create new room stay booking"

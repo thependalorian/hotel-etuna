@@ -3,6 +3,8 @@
  * Location: lib/compliance/soc2/agents/vendor-agent.ts
  */
 
+import { existsSync, readdirSync } from 'fs';
+import { join } from 'path';
 import type { Soc2AgentRunResult, Soc2ControlResult } from '../types';
 import { pickAgentControls, mergeControl } from './shared';
 import { scoreControls } from '../control-matrix';

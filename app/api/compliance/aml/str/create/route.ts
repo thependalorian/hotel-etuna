@@ -13,12 +13,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
-import { AppError } from '@/lib/utils/errors';
+import { withTenantApiAuth } from '@/lib/utils/api-helpers';
 import { STRGenerationService } from '@/lib/services/compliance/STRGenerationService';
 import { entityId, entityIdArray } from '@/lib/validation/entity-ids';
 import { z } from 'zod';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const createSTRSchema = z.object({
   tenantId: entityId(),
@@ -39,69 +38,68 @@ const createSTRSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  try {
-    const user = await requireTenantSessionUser(request);
+  return withTenantApiAuth(request, async (req, user) => {
+    try {
+      const body = await req.json();
+      
+      const validatedData = createSTRSchema.parse(body);
 
-    const body = await request.json();
-    
-    const validatedData = createSTRSchema.parse(body);
+      const str = await STRGenerationService.createSTR(validatedData);
 
-    const str = await STRGenerationService.createSTR(validatedData);
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        str: {
-          id: str.id,
-          strReference: str.strReference,
-          status: str.status,
-          reportDeadline: str.reportDeadline,
-          riskLevel: str.riskLevel,
+      return NextResponse.json({
+        success: true,
+        data: {
+          str: {
+            id: str.id,
+            strReference: str.strReference,
+            status: str.status,
+            reportDeadline: str.reportDeadline,
+            riskLevel: str.riskLevel,
+          },
+          message: 'STR created successfully',
         },
-        message: 'STR created successfully',
-      },
-    }, { status: 201 });
-  } catch (error) {
-    securityLogger.error('[STR Create API] Error:', error);
-    
-    if (error instanceof z.ZodError) {
+      }, { status: 201 });
+    } catch (error) {
+      securityLogger.error('[STR Create API] Error:', error);
+      
+      if (error instanceof z.ZodError) {
+        return NextResponse.json({
+          success: false,
+          error: 'Validation error',
+          details: error.issues,
+        }, { status: 400 });
+      }
+
       return NextResponse.json({
         success: false,
-        error: 'Validation error',
-        details: error.issues,
-      }, { status: 400 });
+        error: 'Internal server error',
+      }, { status: 500 });
     }
-
-    return NextResponse.json({
-      success: false,
-      error: 'Internal server error',
-    }, { status: 500 });
-  }
+  });
 }
 
 export async function GET(request: NextRequest) {
-  try {
-    const user = await requireTenantSessionUser(request);
+  return withTenantApiAuth(request, async (req, user) => {
+    try {
+      const tenantId = user.tenantId;
+      const status = req.nextUrl.searchParams.get('status') || undefined;
 
-    const { searchParams } = new URL(request.url);
-    const tenantId = user.tenantId;
-    const status = searchParams.get('status') || undefined;
+      const strs = await STRGenerationService.getSTRs(tenantId, status);
 
-    const strs = await STRGenerationService.getSTRs(tenantId, status);
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        strs,
-        count: strs.length,
-      },
-    }, { status: 200 });
-  } catch (error) {
-    securityLogger.error('[STR Create API] Error fetching STRs:', error);
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Internal server error',
-    }, { status: 500 });
-  }
+      return NextResponse.json({
+        success: true,
+        data: {
+          strs,
+          count: strs.length,
+        },
+      }, { status: 200 });
+    } catch (error) {
+      securityLogger.error('[STR Create API] Error fetching STRs:', error);
+      
+      return NextResponse.json({
+        success: false,
+        error: 'Internal server error',
+      }, { status: 500 });
+    }
+  });
 }

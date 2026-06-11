@@ -11,7 +11,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Pool } from 'pg';
-import { securityLogger } from '@/lib/utils/security-logger';
 
 type CheckResult = { name: string; ok: boolean; detail?: string };
 
@@ -78,27 +77,27 @@ function report(results: CheckResult[]): void {
   let failed = 0;
   for (const r of results) {
     if (r.ok) {
-      securityLogger.info(`✅ ${r.name}${r.detail ? ` — ${r.detail}` : ''}`);
+      console.log(`✅ ${r.name}${r.detail ? ` — ${r.detail}` : ''}`);
     } else {
       failed += 1;
-      securityLogger.info(`❌ ${r.name}${r.detail ? ` — ${r.detail}` : ''}`);
+      console.log(`❌ ${r.name}${r.detail ? ` — ${r.detail}` : ''}`);
     }
   }
-  securityLogger.info('');
+  console.log('');
   if (failed > 0) {
-    securityLogger.info(
+    console.log(
       `Failed ${failed}/${results.length} checks. Apply SQL under database/drizzle/ (see TASK.md § Neon operator migrations).`
     );
     process.exit(1);
   }
-  securityLogger.info(`All ${results.length} migration checks passed.`);
+  console.log(`All ${results.length} migration checks passed.`);
 }
 
 async function main() {
   loadEnv();
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
-    securityLogger.error('❌ DATABASE_URL is not set in .env.local or .env');
+    console.error('❌ DATABASE_URL is not set in .env.local or .env');
     process.exit(1);
   }
 
@@ -247,8 +246,8 @@ async function main() {
     });
 
     results.push({
-      name: '0031 introducer_partners table',
-      ok: await tableExists(pool, 'introducer_partners'),
+      name: '0031 introducers table',
+      ok: await tableExists(pool, 'introducers'),
     });
 
     results.push({
@@ -327,6 +326,96 @@ async function main() {
       name: '0042 bookings.booking_kind',
       ok: await columnExists(pool, 'bookings', 'booking_kind'),
     });
+
+    results.push({
+      name: '0045 fnb_print_jobs table',
+      ok: await tableExists(pool, 'fnb_print_jobs'),
+    });
+
+    results.push({
+      name: '0046 payment_outbox_events table',
+      ok: await tableExists(pool, 'payment_outbox_events'),
+    });
+
+    results.push({
+      name: '0047 audit_trail event_hash column',
+      ok: await columnExists(pool, 'audit_trail', 'event_hash'),
+    });
+
+    results.push({
+      name: '0048 accounting_period_locks table',
+      ok: await tableExists(pool, 'accounting_period_locks'),
+    });
+
+    results.push({
+      name: '0049 scheduler_jobs table',
+      ok: await tableExists(pool, 'scheduler_jobs'),
+    });
+
+    results.push({
+      name: '0050 night_audit_runs table',
+      ok: await tableExists(pool, 'night_audit_runs'),
+    });
+
+    results.push({
+      name: '0051 room_availability_ledger table',
+      ok: await tableExists(pool, 'room_availability_ledger'),
+    });
+
+    results.push({
+      name: '0052 sofia_pipeline_runs table',
+      ok: await tableExists(pool, 'sofia_pipeline_runs'),
+    });
+
+    results.push({
+      name: '0053 cal_booking_mirrors table',
+      ok: await tableExists(pool, 'cal_booking_mirrors'),
+    });
+
+    results.push({
+      name: '0054 guest_service_requests table',
+      ok: await tableExists(pool, 'guest_service_requests'),
+    });
+
+    results.push({
+      name: '0055 staff_tax_profiles table',
+      ok: await tableExists(pool, 'staff_tax_profiles'),
+    });
+
+    results.push({
+      name: '0056 payroll_periods table',
+      ok: await tableExists(pool, 'payroll_periods'),
+    });
+
+    results.push({
+      name: '0057 staff_compensation_history table',
+      ok: await tableExists(pool, 'staff_compensation_history'),
+    });
+
+    results.push({
+      name: '0060 bookings.deposit_percent column',
+      ok: await columnExists(pool, 'bookings', 'deposit_percent'),
+    });
+
+    results.push({
+      name: '0061 payment_disputes table',
+      ok: await tableExists(pool, 'payment_disputes'),
+    });
+
+    results.push({
+      name: '0062 guest_hub_magic_tokens table',
+      ok: await tableExists(pool, 'guest_hub_magic_tokens'),
+    });
+
+    results.push({
+      name: '0063 guest_documents table',
+      ok: await tableExists(pool, 'guest_documents'),
+    });
+
+    results.push({
+      name: '0064 generated_documents table',
+      ok: await tableExists(pool, 'generated_documents'),
+    });
   } finally {
     await pool.end();
   }
@@ -335,6 +424,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  securityLogger.error(err);
+  console.error(err);
   process.exit(1);
 });

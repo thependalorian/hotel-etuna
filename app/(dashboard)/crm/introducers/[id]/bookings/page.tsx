@@ -19,7 +19,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
@@ -66,13 +66,7 @@ export default function IntroducerBookingsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (status === 'authenticated' && params.id) {
-      fetchBookings();
-    }
-  }, [status, params.id]);
-
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     try {
       const response = await fetch(apiUrl(`/api/introducers/${params.id}/bookings`));
       if (!response.ok) {
@@ -86,7 +80,13 @@ export default function IntroducerBookingsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id]); // params.id is a dependency for fetchBookings
+
+  useEffect(() => {
+    if (status === 'authenticated' && params.id) {
+      fetchBookings();
+    }
+  }, [status, params.id, fetchBookings]); // Added fetchBookings to dependencies
 
   if (loading || status === 'loading') {
     return (

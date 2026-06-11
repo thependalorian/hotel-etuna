@@ -13,11 +13,13 @@ Use these prompts after building features or before deployment to catch what AI 
 4. Let the AI fix what it finds, then run the prompt again – it catches layers.
 5. Run **The Master Security Review** (§14) after every feature.
 6. Run **Deployment Pre-Flight** (§15) before pushing to production.
+7. Run **`npm run verify:production`** before Vercel production deploy (typecheck + full Vitest + `next build`). Latest: **808** tests green (2026-06-11).
 
 ### Automated pre-flight (repo checks)
 
 ```bash
-npm run security:preflight
+npm run verify:production   # tsc + test:ci + build — production gate
+npm run security:preflight  # §15 static checks + npm audit critical
 # Evidence: compliance/evidence/security/preflight-YYYY-MM-DD.json
 ```
 

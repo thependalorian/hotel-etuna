@@ -14,18 +14,20 @@
 
 import { NextResponse, NextRequest } from 'next/server';
 import { ContentService } from '@/lib/services/cms/ContentService';
-import { getAuthenticatedUser } from '@/lib/utils/api-helpers';
 import { createCmsContentSchema } from '@/lib/utils/validation';
-import { AppError } from '@/lib/utils/errors';
 import { db } from '@/lib/db';
 import { properties } from '@/lib/db/schema';
 import { and, eq } from 'drizzle-orm';
-import { withApiAuth, errorResponse, successResponse } from '@/lib/utils/api-helpers';
+import {
+  withPlatformApiAuth,
+  errorResponse,
+  successResponse,
+} from '@/lib/utils/api-helpers';
 
 const contentService = new ContentService();
 
 export async function GET(request: NextRequest) {
-  return withApiAuth(
+  return withPlatformApiAuth(
     request,
     async (req, user) => {
       const { searchParams } = new URL(req.url);
@@ -63,7 +65,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  return withApiAuth(
+  return withPlatformApiAuth(
     request,
     async (req, user) => {
       const body = await request.json();

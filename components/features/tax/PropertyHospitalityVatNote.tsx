@@ -27,6 +27,7 @@ export function PropertyHospitalityVatNote({
 
   useEffect(() => {
     if (!Number.isFinite(amount) || amount <= 0) {
+      // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
       setVat(null);
       return;
     }

@@ -1,0 +1,29 @@
+# Dependabot — weekly npm + GitHub Actions updates (Gap 12)
+# https://docs.github.com/en/code-security/dependabot
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    groups:
+      langchain:
+        patterns:
+          - '@langchain/*'
+          - 'langsmith'
+      next:
+        patterns:
+          - 'next'
+          - 'eslint-config-next'
+    ignore:
+      # Transitive uuid advisories — tracked until LangChain/Stack Auth bump majors
+      - dependency-name: uuid
+        versions: ['<12']
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday

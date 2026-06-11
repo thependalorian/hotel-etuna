@@ -18,6 +18,8 @@ describe('auth roles', () => {
     expect(getDefaultPostLoginPath('owner')).toBe('/dashboard');
     expect(getDefaultPostLoginPath('guest')).toBe('/guest');
     expect(getDefaultPostLoginPath('super-admin')).toBe('/admin/platform');
+    expect(getDefaultPostLoginPath('partner_admin')).toBe('/partner/dashboard');
+    expect(getDefaultPostLoginPath('desk')).toBe('/dashboard');
   });
 
   it('honors safe redirect paths', () => {

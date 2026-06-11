@@ -4,6 +4,7 @@
 
 import fs from 'fs';
 import { EmailTemplateService } from '../lib/services/sofia/EmailTemplateService';
+import { buildPreArrivalWelcomeEmail } from '../lib/email/templates/pre-arrival-welcome';
 import { brand } from '../lib/copy/brand';
 import {
   assertEmailTemplateOutput,
@@ -139,7 +140,7 @@ const templateCases: Array<{
     input: {
       recipientName: 'George',
       customMessage: sampleDigest.replace(/\n/g, '<br/>'),
-      subject: 'Buffr Hub daily intelligence digest',
+      subject: 'Hotel Etuna daily intelligence digest',
       ctaLink: 'https://hoteletuna.com/admin/platform',
     },
     build: (s, i) => s.generateAdminDigestEmail(parseEmailTemplateInput('admin_digest', i)),
@@ -175,14 +176,34 @@ for (const { name, input, build } of templateCases) {
   }
 }
 
+const preArrivalMagic = buildPreArrivalWelcomeEmail({
+  recipientName: 'Jane Guest',
+  checkInDate: '2026-06-01',
+  bookingReference: 'ETU-001',
+  magicLinkUrl: 'https://hoteletuna.com/guest/welcome?token=test',
+  financialDocumentsUrl: 'https://hoteletuna.com/guest/stays/booking-1#financial-documents',
+});
+assert(preArrivalMagic.html.includes('guest/welcome'), 'pre_arrival_magic: missing welcome link');
+assert(
+  preArrivalMagic.html.includes('Financial documents'),
+  'pre_arrival_magic: missing financial documents link',
+);
+assert(
+  preArrivalMagic.html.includes(brand.tagline) || preArrivalMagic.html.includes('He takes care'),
+  'pre_arrival_magic: missing tagline',
+);
+
 const lifecycle = fs.readFileSync('lib/services/booking/bookingLifecycleSideEffects.ts', 'utf8');
+assert(lifecycle.includes('schedulePreArrivalMagicLinkEmail'), 'trigger: pre-arrival magic link');
 assert(lifecycle.includes('generateBookingCancellationEmail'), 'trigger: cancellation');
 assert(lifecycle.includes('schedulePaymentReceiptEmail'), 'trigger: payment receipt export');
+assert(lifecycle.includes('scheduleQuotationPdfEmail'), 'trigger: quotation PDF on booking create');
+assert(lifecycle.includes('financialDocumentsUrl'), 'trigger: pre-arrival financial docs URL');
 assert(
   fs.readFileSync('lib/services/payment/completeAdumoVirtualPayment.ts', 'utf8').includes(
-    'schedulePaymentReceiptEmail',
+    'enqueuePaymentOutboxEvent',
   ),
-  'trigger: Adumo receipt',
+  'trigger: Adumo receipt (transactional outbox)',
 );
 assert(
   fs.readFileSync('app/api/bookings/[id]/payment/route.ts', 'utf8').includes('schedulePaymentReceiptEmail'),

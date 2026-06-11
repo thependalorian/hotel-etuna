@@ -41,7 +41,7 @@ export default async function AdminPage() {
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="buffr-page-title mb-2">Administration</h1>
+          <h1 className="etuna-page-title mb-2">Administration</h1>
           <p className="text-base-content/70">System administration and management</p>
         </div>
       </div>
@@ -85,15 +85,15 @@ export default async function AdminPage() {
         {/* Tenant Management Card */}
         <div className="card bg-base-100 shadow-lg card-hover">
           <div className="card-body">
-            <h2 className="card-title text-xl font-display">Tenant Management</h2>
-            <p className="text-base-content/70">Manage tenants and organizations</p>
+            <h2 className="card-title text-xl font-display">Partner tenants</h2>
+            <p className="text-base-content/70">Referral partners (JayLa, Aquarius) — hub is Hotel Etuna only</p>
             <div className="card-actions justify-end mt-4">
               <Link
                 href="/admin/platform/tenants"
                 className="btn btn-primary btn-sm min-h-[44px]"
-                aria-label="Manage tenants and organizations"
+                aria-label="Manage referral partner tenants"
               >
-                Manage Tenants
+                Manage partners
               </Link>
             </div>
           </div>

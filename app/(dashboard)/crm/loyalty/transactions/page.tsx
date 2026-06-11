@@ -14,7 +14,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import ErrorDisplay from '@/components/shared/ErrorDisplay';
@@ -57,13 +57,7 @@ export default function LoyaltyTransactionsPage() {
   const [error, setError] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
 
-  useEffect(() => {
-    if (status === 'authenticated') {
-      fetchTransactions();
-    }
-  }, [status, filterType]);
-
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     try {
       setLoading(true);
       const typeParam = filterType !== 'all' ? `&type=${filterType}` : '';
@@ -86,7 +80,13 @@ export default function LoyaltyTransactionsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterType]); // filterType is a dependency for fetchTransactions
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      fetchTransactions();
+    }
+  }, [status, filterType, fetchTransactions]); // Added fetchTransactions to dependencies
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-NA', {

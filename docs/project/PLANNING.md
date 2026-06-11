@@ -1,6 +1,6 @@
 # Hotel Etuna — Production Planning
 
-**Last Updated:** May 17, 2026 (DNS / production URLs; PostHog; Playwright E2E)  
+**Last Updated:** June 8, 2026 (Agentic CRM & Intelligent OS roadmap, Phases 8–12, + guardrails — see § Agentic CRM & Intelligent OS roadmap)  
 **Program Status:** Phases 1–5 complete (RAG ingested via Qdrant Inference 384d); Phases 6–7 complete; workflow YAML tests aligned with `ci.yml` / `deploy.yml` (May 17, 2026)  
 **Product scope:** Curated **tours** removed from public site and Sofia KB (PRD v2.7.2+). No `/tours` route; four markdown sources under `data/hotel-etuna-knowledge/`.
 
@@ -159,7 +159,10 @@ Hotel Etuna (hub)
 - `amount_tendered` and `change_given` tracked for reconciliation
 - `receipt_number` generated for audit trail
 - Reconciliation dashboard for daily/shift settlement
-- **Reconciliation scope (known ops gap):** `GET/POST /api/payments/reconciliation` aggregates **booking-level** cash rows filtered by **check-in date** only — it does not yet include folio cash lines, NamQR desk confirms, or manual off-platform payments (documented; not implemented).
+- **Reconciliation v1 (shipped):** `GET/POST /api/payments/reconciliation` — daily cash-up by date/shift; expected cash from booking deposits + desk cash; discrepancy notes + audit trail. **v2 backlog:** folio cash lines, NamQR confirm rows, bank-file import (migration `0061` if expanded).
+- **Payroll domain:** `lib/services/payroll/PayrollService.ts`, `lib/platform/namibia-payroll.ts`, `app/api/payroll/*`, `/payroll` (founder/admin RBAC). Regulatory: `mba-agent/regulatory/namibia` + `TAX_AND_NAMRA_COMPLIANCE.md` §6.1.
+- **Commission report:** `GET /api/reports/commission`, `/reports/commission` — partner totals by date range.
+- **Open banking:** NamQR primary (`mba-agent/.../namibia_qr_code_standards.md` v5.0); PIS via `POST /api/bon/v1/banking/payments` + hub `POST /api/payments/open-banking/initiate` (`paymentRail`: `namqr` | `pis`). OAuth: `/api/bon/v1/common/par`, `/token`.
 
 **NamQR desk (live):**
 - Staff generate/confirm at `/payments/desk` (`NamQrDeskPanel`)
@@ -171,6 +174,7 @@ Hotel Etuna (hub)
 - NamQR bank-app confirm: `NamQrDeskPanel` only (avoids duplicate folio path vs manual form)
 - Operator verify after Neon SQL: `npm run test:db:migrations` (`scripts/db/verify-neon-migrations.ts`, checks **0011–0017**)
 - NamQR / manual folio settle triggers **payment receipt email** (`schedulePaymentReceiptEmail`, method `NamQR (bank app)`)
+- **Guest financial PDFs (2026-06):** `generated_documents` (`0064`) + `DocumentGenerationService` — on-demand render via `@react-pdf/renderer`; metadata snapshot for re-download; auto-email via `documentLifecycleHooks` (quotation on payment-pending create, receipt/PN on completed txn, invoice on folio close); distinct from `guest_documents` travel vault. **Wiring gate:** `npm run validate:document-wiring` (also in `test:ci`).
 - Pre-merge DB gate: `npm run test:db` (`scripts/db/verify-db.ts`)
 
 **Card — Adumo Virtual (hosted page, preferred):**
@@ -182,6 +186,19 @@ Hotel Etuna (hub)
 - Purposes: `booking_deposit`, `folio_settle`, `dining_deposit` → `completeAdumoVirtualPayment.ts`
 - **Card rail:** Adumo Virtual only (`initialisevirtual`, JWT, `_RESPONSE_TOKEN` + webhook). No Stripe, RealPay, or Enterprise PAN API in repo.
 - **Go-live:** live `ADUMO_*` credentials, Adumo portal payment page branding, one live test transaction
+- **Validation:** `npm run validate:adumo`; integration `tests/integration/adumo-virtual-settlement.test.ts`
+
+**Adumo Go Live Checklist (merchant portal + Vercel):**
+
+| Step | Owner | Action |
+|------|-------|--------|
+| 1 | Dev | Keep **local** `.env.local` on **staging** URL + test MerchantUID/ApplicationUID/JWT for safe card tests |
+| 2 | Dev | `npm run env:push-vercel:dry` — confirm production gets `ADUMO_BASE_URL=https://apiv3.adumoonline.com` and `https://www.hoteletuna.com` redirect/webhook URLs |
+| 3 | Dev | After Adumo go-live email: set live `ADUMO_MERCHANT_UID`, `ADUMO_APPLICATION_UID`, `ADUMO_JWT_SECRET` in Vercel (never commit); `npm run env:push-vercel` |
+| 4 | Ops | Adumo merchant portal: register success `/payment/success`, fail `/payment/failed`, webhook `POST /api/webhooks/adumo` on **www** host |
+| 5 | Ops | Portal: hosted page branding/logo/CSS |
+| 6 | Ops | One **live** test transaction on production after creds deployed; log merchant ref + transaction index (no PAN) in compliance evidence |
+| 7 | Ops | Confirm settlement account routing (Etuna Nedbank vs Buffr) with Adumo |
 
 **Adumo Test Configuration (staging only):**
 
@@ -245,7 +262,7 @@ Use `result` field (`0` = success, `1` = success-with-warning, `-1` = failed). P
 - **Services (live):** `PlatformBillingService`, `SettlementAccountService`, `PlatformFeeService`; `completeAdumoVirtualPayment` persists `platform_fee_accruals` on each Adumo success.
 - **UI:** `/payments/platform-billing` — settlement accounts, accrual summary, generate/issue/mark-paid invoices.
 - **Config:** Property settlement profile in `system_settings` (`category: settlement`) or future `settlement_accounts` table; never expose Buffr billing account on guest payment pages.
-- **Proposal & SLA (legal draft):** `docs/BUFFR_FINANCIAL_SERVICES_PROPOSAL_AND_SLA.md` — counsel review before signature.
+- **Commercial terms:** Buffr ↔ Etuna platform-fee, dual-VAT (§4.5), and SLA terms are tracked with counsel out-of-band (no in-repo proposal doc). Technical canon for fees/VAT: this section + `lib/platform/namibia-tax.ts`, `PropertyVatService`, UI `/reports/property-vat`.
 
 ### Offline/PWA Strategy
 
@@ -385,7 +402,7 @@ Use `result` field (`0` = success, `1` = success-with-warning, `-1` = failed). P
 |------------|----------------|-----------|
 | **Merchant posture** | Adumo hosted card; NamQR desk + confirm; Etuna Nedbank settlement | PSP Guidance — avoid Buffr facilitator without PSD-1 |
 | **PSD-12** | `PsdPaymentFraudGate`, 2FA, `cybersecurity_incidents`, IRP | G-04 live BoN API |
-| **FICA / AML** | `aml_*`, STR APIs, KYC UI | G-05 FIC filing |
+| **FICA / AML** | `aml_*` (alerts, STR, velocity — not PEP), STR APIs, KYC UI | G-05 FIC filing; PEP screening out of scope |
 | **Fraud DB** | `0016` seed + `tenant-fraud-rules.ts` → `PsdFraudGate` / analyze API | Production fail-closed; P2: NPS trend rules in seed |
 | **NamQR** | `lib/compliance/namqr/*`, tag 17 NRTC, tag 26 IPP | `namibia_qr_code_standards.md` |
 | **SOC 2** | `Soc2AuditOrchestrator`, `/compliance/soc2`, `soc2-evidence.yml` | G-08 policies 21/21 drafted; CEO sign-off + G-09 vendor packs |
@@ -411,6 +428,81 @@ Use `result` field (`0` = success, `1` = success-with-warning, `-1` = failed). P
 - **Guest security:** Consumer-only `/api/guest/*`; verified email + `is_signed_up` for stay access; no open redirect on middleware login — PRD §3.3.3
 - **Production:** Password policy, optional Turnstile, Redis rate limits (`RATE_LIMIT_REDIS_REQUIRED`), canonical types in `lib/db/schema-types.ts` — PRD §3.3.4
 - **System map (structure + RBAC + journeys):** PRD **§3.6** — canonical for roles, route/API matrices, J1–J7 flows; **§2.4** maps marketing personas to roles; file tree PRD **§4.6** (regenerated May 2026)
+
+### Frontend intent & RBAC map (validated June 2026)
+
+**Drizzle + Neon (checked):**
+
+| Layer | Finding |
+|-------|---------|
+| `lib/db/schema.ts` | `users.role` is **`varchar(50)`** — no Postgres enum for app roles; only `tenant_type` enum (`hub` \| `partner`). |
+| `database/drizzle/meta/_journal.json` | **48** SQL files tagged `0000`–`0054` (operator path). |
+| Neon `drizzle.__drizzle_migrations` | **3** rows only (legacy `drizzle-kit` `0000`–`0002`); `0003`–`0054` applied via operator SQL / Neon MCP — not `drizzle-kit migrate`. |
+| `npm run test:db:migrations` | **46/46** checks on live Neon. |
+
+**Hotel Etuna hub operators (your model — not generic PRD `desk`/`kitchen`):**
+
+Team inboxes in `lib/copy/brand.ts` + `lib/copy/contact-emails.ts` — map to **`owner`** or **`staff`** at login provision time:
+
+| Inbox | Email | Function | Target `users.role` | On Neon today |
+|-------|-------|----------|---------------------|---------------|
+| Founder | `founder@hoteletuna.com` | Executive | `owner` | ❌ not provisioned |
+| Administration | `admin@hoteletuna.com` | Legal, partners | `owner` | ✅ `owner` |
+| Front desk | `frontdesk@hoteletuna.com` | Reservations, desk, check-in | `staff` | ❌ not provisioned |
+| Marketing | `marketing@hoteletuna.com` | Events, introducers, campaigns | `staff` | ❌ not provisioned |
+| Support | `support@hoteletuna.com` | Portal / website help | `staff` | ❌ not provisioned |
+
+Also on Neon: `manager@hoteletuna.com` (`owner`); **19 CI `@example.com` `admin` rows** (test noise, not hotel staff).
+
+**Guests, partners, introducers (three different things):**
+
+| Actor | Where it lives | Login? | Surface |
+|-------|----------------|--------|---------|
+| Guests / users | `users` hub, `role: guest` \| `user` | Self-register | `/guest/*` — **0 on Neon** |
+| Lodging partners | `tenants.type=partner`, `role: partner_admin` | Invite | `/partner/*` — JayLa + Aquarius ✅ |
+| Introducers | `introducers` table (referral codes) | **No** — hub staff manage CRM | `/crm/introducers`, public `/introducers-directory` — **0 rows** |
+
+**Canonical roles → surfaces** (single-property hub + partner spokes):
+
+| Actor | `users.role` | Sign-in entry | Home after login | Primary routes | Must not see |
+|-------|--------------|---------------|------------------|----------------|--------------|
+| Anonymous | — | — | `/`, `/rooms`, `/dining` | Marketing, gated rates | Prices/booking until login |
+| Guest / traveller | `guest`, `user` | Header → `/login?redirect=/guest` | `/guest` | `/guest/*`, own stays/folio | Staff dashboard, other guests’ data |
+| Hub team (inboxes above) | `owner`, `staff` | Footer → `/login?redirect=/dashboard` | `/dashboard` | Ops sidebar (**per-inbox trim not shipped**) | `/admin/platform`, `/compliance/*`, `/fraud/*` |
+| Partner lodge operator | `partner_admin` | Partner invite/login | `/partner/dashboard` | `/partner/*` (7 nav items) | Hub Sofia, CRM, `/api/guest/stays/*` |
+| Buffr platform ops | `admin`, `super-admin` (`@buffr.ai`) | Direct | `/admin/platform` | Platform console | N/A (elevated) |
+
+**Three UX planes:**
+
+1. **Public** — `app/layout.tsx` only; `proxy.ts` `PUBLIC_ROUTES` (+ `/introducers-directory` public per PRD).
+2. **Guest command centre** — `app/guest/layout.tsx`; page access via `proxy.ts`; **folio/API** gated by `GUEST_API_ROLES` + email match (`guestStayAccess.ts`).
+3. **Authenticated ops** — Hub: `(dashboard)/layout.tsx` + `Sidebar.tsx`; Partner: `partner/layout.tsx` + `PartnerSidebar.tsx`; Platform: `admin/platform/layout.tsx` + `PlatformSidebar.tsx`.
+
+**Permission layers (defence in depth):**
+
+| Layer | File | Notes |
+|-------|------|-------|
+| Edge page RBAC | `proxy.ts` | `hasRouteAccess()`, hub-only API 403 for partners |
+| Post-login routing | `lib/auth/roles.ts` | `getPostLoginRedirect()` — partner → `/partner/dashboard` |
+| Public nav CTA | `lib/auth/public-session-nav.ts` | Signed-in label/href by role |
+| API guards | `lib/utils/api-helpers.ts` | `requireTenantSessionUser`, `requireRole` |
+| Stay scope | `lib/services/folio/guestStayAccess.ts` | Verified email + booking email match |
+| RLS | `lib/auth/tenant-context.ts` | `app.tenant_id` per request |
+| Platform probe | `app/api/auth/check-platform-admin/route.ts` | Layout client guard |
+
+**Shipped vs PRD vision (gaps to improve):**
+
+| Surface | Shipped | Gap / improvement |
+|---------|---------|-------------------|
+| Guest `/guest` | Stays, folio, room service, loyalty, profile, DSAR, room QR | Phase 8: magic-link pre-arrival, document vault, digital key, messaging, agentic nudges; nav lacks dedicated “Stays” tab |
+| Partner `/partner` | 7-item portal + property CRUD | Dual path: partners also reach trimmed hub `Sidebar` on `/dashboard` — decide single canonical UX |
+| Staff dashboard | Full sidebar for all hub roles | Sidebar not trimmed per **team inbox** (frontdesk vs marketing vs support vs founder/admin) |
+| Introducer CRM | Staff `/crm/introducers/*` | Public `/introducers-directory` now public (proxy fix) |
+| Payments | Desk, reconciliation, 2FA on initiate | Desk UX still manual UUID paste |
+| Housekeeping | Kanban board + APIs | `housekeeping_supervisor` can view board; task **create** still manager+ on API |
+| Platform console | Tenants, users, support | Home has mock revenue; analytics page placeholder |
+
+**Evidence paths:** `proxy.ts`, `lib/auth/roles.ts`, `components/shared/Sidebar.tsx`, `PartnerSidebar.tsx`, `app/guest/layout.tsx`, PRD §2.4 + §3.6.
 - `lib/data/rooms.ts` as DRY source for room queries
 - Rustic brand token usage
 - **Digital menu (`/dining`):** Neon-only `getCompleteMenu()` → `serializePublicMenu()` + `MenuPopularityService` → `PublicMenuBoard` / `MenuBookFullMenu` / `MenuBookSinglePageViewer` (one full-width page at a time, Previous/Next; food **2×3** grid with name/description/price on tiles; drink lists). View-only banner. CMS `/menu/[itemId]/edit`; scripts `seed:menu-images`, `validate:menu-images`, `seed:menu-images:full` — PRD §3.1.1
@@ -480,6 +572,34 @@ Qdrant in Hotel Etuna is **knowledge-base retrieval only**, not a copy of Ava’
 2. Planning docs consolidated (`docs/project/`)
 3. PRD, PLANNING.md, and TASK.md aligned (May 16, 2026)
 4. `SYSTEM_DESIGN_MASTER_GUIDE.md` reflected in PRD §6.6 / §4.3.2 / §11.5–11.6, PLANNING architecture sections, TASK security checklists
+
+### Agentic CRM & Intelligent OS roadmap (Phases 8–12) — June 8, 2026
+
+Forward‑looking architecture for the product vision in **PRD §1.1** (core promise: *“An OS that anticipates, adapts, and elevates every stay.”*). These phases **extend** the shipped foundation — they reuse existing rails, do not introduce new providers, and must clear the same Verification Standard below. Subtask checklist: `TASK.md` § Agentic CRM & Intelligent OS (Vision). KPIs: PRD §8.1.
+
+**Architectural guardrails (binding — do not break):**
+
+| Concern | Constraint |
+|---------|------------|
+| Database | Neon PostgreSQL + Drizzle ORM only; no raw SQL injection; forward‑idempotent migrations; RLS per `tenant_id`. |
+| Auth | NextAuth credentials primary; Stack Auth optional; platform admin via `@buffr.ai` (see § Session Security Model). |
+| Payments | Adumo Virtual (card) + NamQR + cash; **no Stripe, no RealPay** for guests. |
+| Multi‑tenancy | Hub (Etuna) + partners; RLS enforced; **Sofia/AI hub‑exclusive** — partners get none. |
+| Performance | ISR for public pages; API p95 <300ms; Vercel edge caching (see § Caching strategy). |
+| Security | CSRF on mutations; rate limits on auth/payment/invite; immutable audit (hash chain). |
+| Testing | Vitest unit + integration; Playwright E2E; `security:preflight` CI gate. |
+
+**Phase architecture notes:**
+
+| Phase | Focus | New surfaces / where it lands |
+|-------|-------|-------------------------------|
+| **8** | Guest command centre | `app/guest/*` expansion; digital check‑in + digital key (QR/NFC; pluggable lock provider behind an adapter in `lib/integrations/`); service/maintenance requests → staff tasks; folio widget reuses `FolioService`. New tables via next migration numbers (claim in `docs/MIGRATION_MASTER.md`). |
+| **9** | Staff intelligence layer | `app/(dashboard)/*` real‑time alerts (poll/SSE); voice commands (Sofia tool calls); predictive housekeeping/maintenance routing in `lib/services/*`; PWA push (existing service worker, § Offline/PWA Strategy). |
+| **10** | Sofia co‑pilot | Extend Sofia pipeline (§ OSS pattern porting W7 LangGraph tool graph); layered memory in Neon (`crm_guest_memory_facts` + `crm_graph_edges`, optional Mem0 mirror); sentiment + handover; multi‑channel context unification; language auto‑detect. Hub‑exclusive boundary unchanged. |
+| **11** | Intelligent OS | Dynamic pricing + forecasting services (`lib/services/*`); read‑only OTA rate ingest (manual/scrape, no two‑way OTA); inventory auto‑reorder on `InventoryService`; predictive maintenance from complaint history; POPIA anonymisation jobs (`lib/cron/`). |
+| **12** | UX polish | Design‑system audit against § Frontend design system; skeletons everywhere; offline queue (IndexedDB); WCAG 2.1 AA; keyboard shortcuts for staff dashboard. |
+
+**Out of scope (unchanged):** two‑way OTA sync; RealPay/Stripe; Sofia/AI for partners; net‑settling Buffr invoices from guest card proceeds without consent + audit.
 
 ### Verification Standard (Per Phase)
 
@@ -894,6 +1014,62 @@ Configure per environment (Production / Preview):
 - [ ] Sofia AI responds appropriately
 - [ ] Offline mode functions
 
+### OSS pattern porting (June 2026)
+
+Study `buffr-host/source-codes/*`; port **patterns** into Etuna — **no runtime OSS imports**.
+
+| Priority | OSS reference | Etuna domain | Notes |
+|----------|---------------|--------------|-------|
+| W1 ✅ | `QRMeal`, `OpenKDS` | `lib/services/fnb/`, `/restaurant/kitchen` | `0045_fnb_print_jobs.sql`; print dispatch via `fnb-print-dispatch-service.ts` (see Dispatch agents below) |
+| W2 ✅ | `Aegispay` | `lib/services/payment/` | FSM + outbox; cron `payment-outbox-dispatch` |
+| W3 ✅ | `trailkit` | `lib/compliance/` | Hash chain on `audit_trail`; `AUDIT_HASH_CHAIN_ENABLED` |
+| W4 ✅ | `dubbl` | `lib/services/accounting/` | Period close + journal lines on `/reports/accounting` |
+| W5 ✅ | Night audit patterns | Night audit + folio void + reservation SM | `0050_night_audit_runs.sql` |
+| W6 ✅ | Availability ledger | Availability ledger + facility switcher (single property) | `0051_availability_ledger.sql` |
+| W7 ✅ | LangGraph tooling | Sofia tool graph + pipeline telemetry | `0052_sofia_pipeline_runs.sql` |
+| W8 ✅ | Cal.com + durable cron | Cal webhooks + `scheduler-dispatch` cron | `0049` + `0053` + `0054` |
+
+**Canonical (Etuna-native, do not replace):** NamQR desk, folio→GL, guest hub, BoN incident reporting.
+
+**Tracker:** `docs/project/TASK.md` § OSS porting waves. Per-repo study index is below (§ Dispatch agents & OSS porting).
+
+#### Dispatch agents & OSS porting
+
+Hotel Etuna's "dispatch agents" are the **background/event surfaces** that move work
+without a human in the loop — cron sweeps, webhooks, the durable scheduler, the
+notification fan-out, and Sofia's tool-calling graph. Waves W1–W8 (table above) are
+**complete**; the patterns were studied in `buffr-host/source-codes/*` and reimplemented
+natively (Drizzle + Stack Auth + daisyUI).
+
+**Rule:** never `import` from `buffr-host/source-codes/*` at runtime — study only. Check
+license before copying substantial logic (MIT/Apache preferred; AGPL = patterns only).
+
+**Dispatch surface (where the agents live):**
+
+| Surface | Path | Trigger | Notes |
+|---------|------|---------|-------|
+| Durable scheduler | `lib/services/scheduling/DurableScheduler.ts` + `schedulerJobHandlers.ts` | `GET /api/cron/scheduler-dispatch` (Bearer `CRON_SECRET`) | `dispatchPending()` drains `scheduler_jobs`; handlers: night-audit, payment-outbox-dispatch, intelligence-digest (`0047`) |
+| Cal.com webhooks | `lib/services/scheduling/CalWebhookService.ts` | `POST /api/webhooks/cal` | HMAC verify + idempotent upsert into `cal_booking_mirrors` (`0051`) |
+| Notification fan-out | `lib/services/notifications/NotificationDispatchService.ts` | `schedulerJobHandlers` (`notification-dispatch`), check-in reminders cron, partner weekly digest | respects `users.notification_preferences`; logs `notification_history` (`0049`) |
+| Payment outbox | `lib/services/payment/paymentOutbox.ts` | `GET /api/cron/payment-outbox-dispatch` | transactional outbox drain of `payment_outbox_events` (`0045`) |
+| Other cron sweeps | `app/api/cron/{booking-reminders,intelligence-digest,email-inbox-monitor,uptime-monitor}/route.ts` | Vercel Cron (`vercel.json`) | Bearer `CRON_SECRET` |
+| Sofia tool graph | `lib/workflows/sofiaToolGraph.ts`, `lib/ai/agent-registry.ts` | `SofiaPipelineService.process()` (`SOFIA_TOOL_GRAPH_ENABLED`) | tools: `searchRag`, `getGuestProfile`, `checkAvailability`; telemetry → `sofia_pipeline_runs` (`0050`) |
+
+**Per-repo study index** (what to read in `buffr-host/source-codes/<repo>/`, where it was ported):
+
+| Repo | Study paths | Ported into |
+|------|-------------|-------------|
+| `Aegispay` | `src/domain/paymentStateMachine.ts`, `src/infra/transactionalOutbox.ts`, `idempotency.ts` | `lib/services/payment/` (FSM + outbox) |
+| `cal.com`, `inngest-js` | webhook HMAC verify; durable step/queue patterns | `CalWebhookService`, `DurableScheduler`, `schedulerJobHandlers` |
+| `novu` | preference-aware notification dispatch | `NotificationDispatchService` |
+| `JackTheButler` | `src/core/pipeline/index.ts`, `src/services/memory.ts` | `SofiaConciergeService` / `SofiaPipelineService` split |
+| `langgraphjs` | `examples/streaming/.../simple-tool-graph.ts` | `lib/workflows/sofiaToolGraph.ts` |
+| `QRMeal`, `OpenKDS` | order line snapshots; station completion | `OrderService`, `fnb-print-dispatch-service.ts`, kitchen board |
+| `trailkit` | `packages/core/src/audit.ts`, `event.ts` | `AuditHashService`, `record-audit.ts` (hash chain on `audit_trail`) |
+| `dubbl` | `lib/api/period-close.ts`, entry void route | `HospitalityAccountingService`, accounting UI |
+| `pura-pms`, `haip` | reservation state machine, night audit, folio void | `ReservationStateMachine`, `NightAuditService`, folio void UI |
+| `innkeeper`, `pesan-pms` | availability ledger, RLS, property switcher | `AvailabilityLedgerService`, `PropertySwitcher` |
+
 ### Deferred Items (Tracked, Not Blocking)
 
 **Vector Ingestion:**
@@ -908,6 +1084,56 @@ Configure per environment (Production / Preview):
 **Card — Adumo (PSD-12):**
 - ✅ `AdumoVirtualService`, webhooks, folio settle UI, `BookingDepositPayCard` on guest stay/folio
 - 🚧 Public `BookingForm` deposit checkout; live `ADUMO_*` credentials + portal branding; Neon `0012` migration if not applied
+
+---
+
+## System map — SQL ↔ API ↔ Frontend
+
+Single source of truth for "where does this domain live end-to-end." Granularity is
+**per domain** (not all 111 tables). Schema: `lib/db/schema.ts`; migrations:
+`database/drizzle/*.sql` (47 files, latest `0051`); API: `app/api/**/route.ts`
+(175 routes, ~40 domains); dashboard: `app/(dashboard)/**` (64 pages). Public/auth/guest
+pages live under `app/(public|auth|guest)` and `lib/data/*`.
+
+| Domain | Key tables | Migration(s) | API route group | Frontend page(s)/components |
+|--------|-----------|--------------|-----------------|----------------------------|
+| Tenancy & properties | `tenants`, `properties`, `property_settings`, `partner_invites` | `0003`–`0006`, `0039`–`0044` | `/api/properties`, `/api/partners`, `/api/platform` | `/properties`, `/properties/[slug]`, `/properties/new`, `/admin/platform/properties`, `PropertySwitcher` |
+| Auth, users, sessions | `users`, `user_sessions`, `two_factor_auth` | `0000`–`0002`, `0038` | `/api/auth`, `/api/user`, `/api/settings` | `(auth)/login\|register\|reset`, `/profile`, `/settings`, `/admin/platform/users` |
+| Staff | `staff`, `staff_shifts` | baseline | `/api/staff` | `/staff`, `/staff/new` |
+| Rooms & inventory | `rooms`, `room_rates`, `room_availability_ledger`, `room_qr_codes` | `0039`–`0041`, `0049` | `/api/rooms`, `/api/properties/availability-ledger` | `/properties/availability`, `AvailabilityLedgerPanel`; public `/rooms` via `lib/data/rooms.ts` |
+| Bookings & folio | `bookings`, `booking_rooms`, `booking_charges`, `night_audit_runs` | `0009`,`0010`,`0042`,`0048` | `/api/bookings`, `/api/folio` | `/bookings`, `/bookings/new`, `/bookings/[id]`, `/bookings/night-audit`, `FolioVoidTransactionDialog` |
+| F&B / restaurant | `restaurants`, `restaurant_tables`, `restaurant_orders`, `restaurant_order_items`, `menu_categories`, `fnb_print_jobs` | `0011`,`0018`,`0019`,`0045_fnb_print_jobs` | `/api/restaurant`, `/api/fnb`, `/api/menu`, `/api/dining` | `/restaurant/{orders,menu,tables,kitchen}`, `/menu`, `/menu/new`, `kitchen-ticket-board` |
+| CRM / guests | `guests`, `guest_profiles`, `guest_reviews` | baseline, `0017` | `/api/crm`, `/api/guests`, `/api/guest` | `/crm`, `/crm/guests/[id]`, `/crm/reviews`, `/crm/knowledge` |
+| Loyalty | `loyalty_tiers`, `loyalty_tier_benefits`, `loyalty_transactions`, `loyalty_rewards`, `loyalty_redemptions` | `0033`–`0037` | `/api/crm/loyalty` | `/crm/loyalty/catalog`, `/crm/loyalty/transactions`, guest `/guest/loyalty` |
+| Introducers | `introducers` | `0031`,`0031b` | `/api/introducers`, `/api/partners` | `/crm/introducers`, `/crm/introducers/[id]`, `/crm/introducers/[id]/bookings`, public `/partners` |
+| Housekeeping | `housekeeping_tasks` | `0021` | `/api/housekeeping` | `/housekeeping` |
+| Payments (card/cash/NamQR) | `payment_sessions`, `payment_methods`, `cash_reconciliations`, `namqr_codes`, `namqr_pending_confirmations`, `settlement_accounts`, `payment_outbox_events`, `payment_security_audit` | `0007`,`0012`,`0015`,`0020`,`0046_payment_outbox` | `/api/payments`, `/api/bon`, `/api/qr`, `/api/webhooks` (adumo) | `/payments/{desk,reconciliation}`, guest deposit `BookingDepositPayCard` |
+| Platform billing & fees | `platform_invoices`, `platform_invoice_lines`, `platform_fee_accruals`, `platform_fee_schedules` | `0013`,`0014` | `/api/platform`, `/api/payments` (billing) | `/payments/platform-billing`, `/admin/platform/analytics` |
+| Accounting & tax | `accounting_period_locks`, `transactions`, `monthly_balance_tracking`, `daily_transaction_tracking`, `trust_accounts` | `0048_accounting_period_locks` | `/api/reports`, `/api/tax` | `/reports/accounting`, `/reports/property-vat`, `/payments/property-vat`, `HospitalityAccountingPanel` |
+| Sofia AI | `ai_conversations`, `ai_messages`, `sofia_*` (email inbox/threads/logs/incoming, voice, pipeline_runs) | `0017`,`0050` | `/api/ai`, `/api/sofia`, `/api/public/sofia`, `/api/cron/email-inbox-monitor` | `/sofia`, `/sofia/email`, public chat widget |
+| CMS | `cms_pages`, `cms_blocks`, `cms_content`, `cms_media`, `cms_menu_items` | `0029`,`0029b` | `/api/cms` | `/cms`, `/cms/pages`, `/cms/pages/[id]`, `/cms/pages/new` |
+| Fraud | `fraud_alerts`, `fraud_cases`, `fraud_detection_rules`, `fraud_device_fingerprints`, `fraud_risk_profiles`, `fraud_statistics` | `0016` | `/api/fraud` | `/fraud` |
+| Compliance / AML / KYC | `aml_*`, `kyc_*`, `consumer_rights_requests`, `electronic_signatures`, `bon_incident_reports`, `cybersecurity_incidents` | compliance migs | `/api/compliance` | `/compliance/kyc`, `/compliance/kyc/[caseId]`, `/compliance/kyc/new` |
+| Audit / SOC 2 / system | `audit_trail`, `system_logs`, `system_settings`, `record_retention_audit` | `0047_audit_trail_hash_chain` | `/api/compliance` (audit), `/api/admin` | `/compliance/soc2`, `/admin/platform/{audit,soc2}` |
+| Scheduling & notifications (dispatch) | `scheduler_jobs`, `notification_history`, `cal_booking_mirrors` | `0047`,`0051` | `/api/cron/scheduler-dispatch`, `/api/webhooks/cal`, `/api/cron/*` | background — surfaced via intelligence digest (see § Dispatch agents) |
+| Open Banking (P2) | `ob_api_transactions`, `ob_consent_tokens`, `ob_participants` | ob migs | `/api/payments` (ob) | none yet (schema only) |
+| Analytics & dashboard | reads across domains | — | `/api/analytics`, `/api/dashboard` | `/dashboard`, `/analytics`, `/admin/platform/analytics` |
+| Channels (WhatsApp/voice) | `tenant_whatsapp_settings`, `sofia_voice_sessions` | baseline, `0050` | `/api/webhooks/whatsapp`, `/api/sofia` | Sofia channels (no dedicated page) |
+
+**Conventions:** every protected route uses `withApiAuth` / `requireTenantSessionUser`
+(`lib/utils/api-helpers.ts`); tenant isolation via Neon RLS (see § RLS Posture);
+route allowlist in `proxy.ts`. Migration numbering: Drizzle `_journal.json` ends at
+`0002`; `0003`+ are idempotent forward SQL applied via `scripts/db/apply-all-missing-migrations.ts`.
+
+### Frontend design system (production-verified 2026-06-07)
+
+Guest brand is **Hotel Etuna only**; the platform console is `@buffr.ai` operator-only.
+All buttons inherit `rounded-full` from `.btn` in `globals.css` (no per-button class
+needed). Tokens live in `tailwind.config.ts`; brand copy in `lib/copy/{brand,public}.ts`.
+State primitives: `LoadingSpinner`, `ErrorDisplay`, `EmptyState` (used across pages).
+PWA: `public/sw.js` (cache v3 + IndexedDB offline queue), `public/manifest.json`,
+`/offline`. Accessibility: WCAG 2.1 AA, ≥44px touch targets, semantic HTML, focus rings.
+Open frontend gaps are tracked in `TASK.md` § Production gaps.
 
 ---
 
@@ -1001,8 +1227,8 @@ With `RAG_ENABLED=true`, ask doc-specific questions:
 
 ## Brand Copy Strategy (`lib/copy/`)
 
-**PRD:** §7.6  
-**Strategy:** `docs/REBRAND_QUESTIONNAIRE_AND_LANDSCAPE.md`
+**PRD:** §7.6 · brand/design-system locked decisions: `docs/project/PRD.md` § Brand & design system  
+**Token canon:** `tailwind.config.ts` (all hex lives here)
 
 **Canonical Modules:**
 - `lib/copy/brand.ts` - Brand identity, values, voice

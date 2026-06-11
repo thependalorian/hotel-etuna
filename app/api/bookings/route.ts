@@ -24,7 +24,7 @@ import { db, guests } from '@/lib/db';
 import { eq, and } from 'drizzle-orm';
 import { entityId } from '@/lib/validation/entity-ids';
 import * as z from 'zod';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const listBookingsQuerySchema = z.object({
   propertyId: entityId('Invalid property ID'),

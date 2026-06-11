@@ -6,7 +6,7 @@ import { EmailService } from '@/lib/services/sofia/EmailService';
 import { EmailTemplateService } from '@/lib/services/sofia/EmailTemplateService';
 import bcryptjs from 'bcryptjs';
 import * as z from 'zod';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const resetPasswordSchema = z.object({
   token: z.string().min(1, { message: 'Reset token is required.' }),

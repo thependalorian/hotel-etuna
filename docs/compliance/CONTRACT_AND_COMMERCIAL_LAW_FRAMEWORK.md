@@ -73,7 +73,7 @@ Maintain consistency between `app/legal/terms/page.tsx` and operations:
 
 ## 6. Buffr commercial contract
 
-Full draft: [`docs/BUFFR_FINANCIAL_SERVICES_PROPOSAL_AND_SLA.md`](../BUFFR_FINANCIAL_SERVICES_PROPOSAL_AND_SLA.md).
+Buffr ↔ Etuna platform-fee / dual-VAT / SLA terms are handled with counsel out-of-band (no in-repo proposal doc). Technical canon: `docs/project/PLANNING.md` § Payment strategy.
 
 | Clause theme | Why it matters |
 |--------------|----------------|

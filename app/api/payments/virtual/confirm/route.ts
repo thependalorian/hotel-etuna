@@ -37,12 +37,11 @@ export async function POST(request: NextRequest) {
         return errorResponse('Invalid input', 400, 'VALIDATION_ERROR');
       }
 
-      const { merchantReference, responseToken, transactionIndex, result } = parsed.data;
+      const { merchantReference, responseToken, transactionIndex } = parsed.data;
 
-      if (result != null && !AdumoVirtualService.isRedirectSuccess(result)) {
-        return errorResponse('Payment was not successful', 402, 'PAYMENT_FAILED');
-      }
-
+      // Per Adumo: the signed _RESPONSE_TOKEN is authoritative — validate its signature
+      // (+ cuid/auid in verifyResponseToken), match mref to the order, and use the token's
+      // `result` field (NOT the client-supplied POST _RESULT) as the success indicator.
       const decoded = AdumoVirtualService.verifyResponseToken(responseToken);
       if (!decoded) {
         return errorResponse('Invalid payment response token', 400, 'INVALID_TOKEN');
@@ -50,6 +49,10 @@ export async function POST(request: NextRequest) {
 
       if (decoded.mref !== merchantReference) {
         return errorResponse('Merchant reference mismatch', 400, 'REFERENCE_MISMATCH');
+      }
+
+      if (!AdumoVirtualService.isPaymentSuccess(decoded.result)) {
+        return errorResponse('Payment was not successful', 402, 'PAYMENT_FAILED');
       }
 
       try {

@@ -9,18 +9,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { properties, tenants } from '@/lib/db';
 import { eq, desc } from 'drizzle-orm';
-import { getCurrentPlatformAdmin, isPlatformAdmin } from '@/lib/auth/platform-admin';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { withPlatformAdminAuth } from '@/lib/auth/with-platform-admin-auth';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  return withPlatformAdminAuth(request, async () => {
   try {
-    const user = await getCurrentPlatformAdmin();
-    if (!user || !isPlatformAdmin(user)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const rows = await db
       .select({
         property: properties,
@@ -52,4 +48,5 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+  });
 }

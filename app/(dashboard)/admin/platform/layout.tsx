@@ -1,48 +1,70 @@
 /**
- * Platform Admin Layout
+ * Platform Admin Layout with drawer sidebar
  * 
- * Purpose: Layout wrapper for platform admin dashboard routes
+ * Purpose: Layout wrapper for platform admin dashboard routes with PlatformSidebar.
  * Location: app/(dashboard)/admin/platform/layout.tsx
  * 
  * Features:
- * - Platform admin navigation
+ * - Platform-specific sidebar navigation
  * - Access control enforcement
- * - Consistent layout structure
+ * - Consistent drawer pattern with other layouts
  */
 
-import React from 'react';
-import { redirect } from 'next/navigation';
-import { getCurrentPlatformAdmin, isPlatformAdmin } from '@/lib/auth/platform-admin';
-import PlatformAdminNavbar from '@/components/features/admin/platform/PlatformAdminNavbar';
+'use client';
+
+import React, { useState, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { PlatformSidebar } from '@/components/shared/PlatformSidebar';
+import Header from '@/components/shared/Header';
 import { PlatformToastProvider } from '@/components/PlatformToastProvider';
 
 export const dynamic = 'force-dynamic';
 
-export default async function PlatformAdminLayout({
+export default function PlatformAdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getCurrentPlatformAdmin();
-  
-  // Redirect if not platform admin
-  if (!user || !isPlatformAdmin(user)) {
-    redirect('/unauthorized');
-  }
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const router = useRouter();
+
+  const closeMobileMenu = useCallback(() => {
+    setIsMobileMenuOpen(false);
+  }, []);
+
+  const toggleMobileMenu = useCallback(() => {
+    setIsMobileMenuOpen((open) => !open);
+  }, []);
+
+  // Client-side role check (server-side should also enforce this)
+  useEffect(() => {
+    async function checkAccess() {
+      try {
+        const res = await fetch('/api/auth/check-platform-admin', { credentials: 'include' });
+        if (!res.ok) {
+          router.push('/unauthorized');
+        }
+      } catch {
+        router.push('/unauthorized');
+      }
+    }
+    checkAccess();
+  }, [router]);
 
   return (
-    <div className="min-h-screen bg-base-200">
-      <PlatformAdminNavbar
-        user={{
-          email: user.email,
-          role: user.role ?? 'admin',
-          first_name: user.firstName,
-          last_name: user.lastName,
-        }}
+    <div className="flex h-screen overflow-hidden bg-surface-canvas">
+      <PlatformSidebar 
+        isMobileOpen={isMobileMenuOpen}
+        onMobileClose={closeMobileMenu}
       />
-      <PlatformToastProvider>
-        <main className="container mx-auto px-4 py-6">{children}</main>
-      </PlatformToastProvider>
+      <div className="flex-1 flex flex-col min-w-0 lg:ml-0">
+        <Header onMobileMenuToggle={toggleMobileMenu} />
+        <main className="etuna-dashboard-main scrollbar-thin" role="main" aria-label="Platform console">
+          <PlatformToastProvider>
+            <div className="etuna-dashboard-inner">{children}</div>
+          </PlatformToastProvider>
+        </main>
+      </div>
     </div>
   );
 }

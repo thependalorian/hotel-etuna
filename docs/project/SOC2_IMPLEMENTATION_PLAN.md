@@ -594,8 +594,8 @@ Application → audit_trail table (Neon)
 | **CC7.2** | Monitoring & logging | `audit_trail`, Vercel logs, Neon pgAudit | `lib/compliance/record-audit.ts` |
 | **CC7.3** | Incident response | `cybersecurity_incidents` table | `lib/db/schema.ts` (incidents table) |
 | **CC8.1** | Change management | Git commits, Drizzle migrations | `database/drizzle/*.sql`, GitHub history |
-| **CC9.1** | Vendor management | Vercel, Neon, Adumo contracts | `docs/BUFFR_FINANCIAL_SERVICES_PROPOSAL_AND_SLA.md` |
-| **A1.1** | Availability monitoring | Vercel uptime, SLA 99.5% | `docs/BUFFR_FINANCIAL_SERVICES_PROPOSAL_AND_SLA.md` §6.2 |
+| **CC9.1** | Vendor management | Vercel, Neon, Adumo contracts | `docs/compliance/policies/VENDOR_MANAGEMENT_POLICY.md`, `docs/compliance/evidence/vendor-register.csv` |
+| **A1.1** | Availability monitoring | Vercel uptime, SLA 99.5% | `docs/project/PLANNING.md` § AI / multi-provider resilience |
 | **A1.2** | Backup/recovery | Neon PITR, RTO 24h, RPO 24h | `docs/project/PLANNING.md` §6.5 |
 
 ---

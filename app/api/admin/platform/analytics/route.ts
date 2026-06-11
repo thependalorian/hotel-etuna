@@ -11,8 +11,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, bookings, users, properties } from '@/lib/db';
 import { gte, ne, and, inArray, count } from 'drizzle-orm';
-import { getCurrentPlatformAdmin, isPlatformAdmin } from '@/lib/auth/platform-admin';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { withPlatformAdminAuth } from '@/lib/auth/with-platform-admin-auth';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,13 +24,9 @@ const RANGE_DAYS: Record<string, number> = {
 };
 
 export async function GET(request: NextRequest) {
+  return withPlatformAdminAuth(request, async (req) => {
   try {
-    const admin = await getCurrentPlatformAdmin();
-    if (!admin || !isPlatformAdmin(admin)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(req!.url);
     const range = searchParams.get('range') ?? '30d';
     const days = RANGE_DAYS[range] ?? 30;
 
@@ -84,13 +80,13 @@ export async function GET(request: NextRequest) {
     >();
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const key = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+      const key = d.toLocaleDateString('en-NA', { month: 'short', year: '2-digit' });
       byMonth.set(key, { revenue: 0, bookings: 0, users: 0 });
     }
     for (const b of bookingRows) {
       if (!b.createdAt) continue;
       const d = new Date(b.createdAt);
-      const key = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+      const key = d.toLocaleDateString('en-NA', { month: 'short', year: '2-digit' });
       const bucket = byMonth.get(key);
       if (bucket) {
         bucket.revenue += Number(b.totalAmount ?? 0);
@@ -167,4 +163,5 @@ export async function GET(request: NextRequest) {
     securityLogger.error('[Platform Admin Analytics]', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
+  });
 }

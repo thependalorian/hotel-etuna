@@ -14,10 +14,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { FraudDetectionService, type TransactionContext } from '@/lib/services/fraud/FraudDetectionService';
 import { entityIdOptional } from '@/lib/validation/entity-ids';
-import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
+import { withTenantApiAuth } from '@/lib/utils/api-helpers';
 import { AppError } from '@/lib/utils/errors';
 import { z } from 'zod';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 // Request validation schema (tenantId comes from auth session, not request body)
 const fraudAnalysisSchema = z.object({
@@ -48,65 +48,65 @@ const fraudAnalysisSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  try {
-    const user = await requireTenantSessionUser(request);
+  return withTenantApiAuth(request, async (req, user) => {
+    try {
+      // Parse and validate request body
+      const body = await req.json();
+      securityLogger.info('[Fraud API] Analyzing transaction...', { tenantId: user.tenantId, transactionId: body.transactionId });
+      const validationResult = fraudAnalysisSchema.safeParse(body);
 
-    // Parse and validate request body
-    const body = await request.json();
-    securityLogger.info('[Fraud API] Analyzing transaction...', { tenantId: user.tenantId, transactionId: body.transactionId });
-    const validationResult = fraudAnalysisSchema.safeParse(body);
+      if (!validationResult.success) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Invalid request data',
+            details: validationResult.error.issues,
+          },
+          { status: 400 }
+        );
+      }
 
-    if (!validationResult.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Invalid request data',
-          details: validationResult.error.issues,
-        },
-        { status: 400 }
-      );
+      const data = validationResult.data;
+
+      // Use authenticated user's tenantId — never trust client-provided tenantId
+      const fraudService = new FraudDetectionService(user.tenantId);
+
+      // Build transaction context
+      const context: TransactionContext = {
+        transactionId: data.transactionId,
+        guestId: data.guestId,
+        amount: data.amount,
+        currency: data.currency,
+        type: data.type,
+        ipAddress: data.ipAddress,
+        userAgent: data.userAgent,
+        deviceFingerprint: data.deviceFingerprint,
+        location: data.location,
+        metadata: data.metadata,
+      };
+
+      // Analyze transaction for fraud
+      const fraudScore = await fraudService.analyzeTransaction(context);
+
+      securityLogger.info('[Fraud API] Analysis complete', {
+        transactionId: data.transactionId,
+        riskLevel: fraudScore.riskLevel,
+        decision: fraudScore.decision,
+        tenantId: user.tenantId,
+      });
+
+      return NextResponse.json({
+        success: true,
+        data: fraudScore,
+      });
+    } catch (error) {
+      if (error instanceof AppError) {
+        return NextResponse.json({ success: false, error: error.message }, { status: error.statusCode });
+      }
+      securityLogger.error('[Fraud API] Error analyzing transaction', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({ success: false, error: 'Failed to analyze transaction' }, { status: 500 });
     }
-
-    const data = validationResult.data;
-
-    // Use authenticated user's tenantId — never trust client-provided tenantId
-    const fraudService = new FraudDetectionService(user.tenantId);
-
-    // Build transaction context
-    const context: TransactionContext = {
-      transactionId: data.transactionId,
-      guestId: data.guestId,
-      amount: data.amount,
-      currency: data.currency,
-      type: data.type,
-      ipAddress: data.ipAddress,
-      userAgent: data.userAgent,
-      deviceFingerprint: data.deviceFingerprint,
-      location: data.location,
-      metadata: data.metadata,
-    };
-
-    // Analyze transaction for fraud
-    const fraudScore = await fraudService.analyzeTransaction(context);
-
-    securityLogger.info('[Fraud API] Analysis complete', {
-      transactionId: data.transactionId,
-      riskLevel: fraudScore.riskLevel,
-      decision: fraudScore.decision,
-      tenantId: user.tenantId,
-    });
-
-    return NextResponse.json({
-      success: true,
-      data: fraudScore,
-    });
-  } catch (error) {
-    if (error instanceof AppError) {
-      return NextResponse.json({ success: false, error: error.message }, { status: error.statusCode });
-    }
-    securityLogger.error('[Fraud API] Error analyzing transaction', { error: error instanceof Error ? error.message : String(error) });
-    return NextResponse.json({ success: false, error: 'Failed to analyze transaction' }, { status: 500 });
-  }
+  });
 }
 
 // GET endpoint to check API health

@@ -52,7 +52,7 @@ export default async function TenantDetailPage({ params }: TenantDetailPageProps
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <div>
-          <h1 className="buffr-page-title mb-1">{tenant.name}</h1>
+          <h1 className="etuna-page-title mb-1">{tenant.name}</h1>
           <p className="text-base-content/70">
             Tenant details · {tenant.subdomain ?? '—'} {tenant.domain ? `· ${tenant.domain}` : ''}
           </p>

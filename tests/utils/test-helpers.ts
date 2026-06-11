@@ -23,6 +23,7 @@ import {
   restaurantTables,
   restaurantOrders,
   restaurantOrderItems,
+  fnbPrintJobs,
   menuCategories,
   cmsMenuItems,
   supportTickets,
@@ -194,7 +195,7 @@ export async function createTestRoom(
         ${roomNumber},
         ${roomType},
         2,
-        'AVAILABLE',
+        'available',
         NOW(),
         NOW()
       )
@@ -213,7 +214,7 @@ export async function createTestRoom(
       room_type: roomType,
       max_occupancy: 2,
       maxOccupancy: 2,
-      status: 'AVAILABLE',
+      status: 'available',
       createdAt: row.created_at,
       updatedAt: row.created_at,
     };
@@ -281,9 +282,13 @@ export async function createTestBooking(
   propertyId: string,
   guestId: string,
   roomId: string,
-  checkInDate: Date = new Date(),
-  checkOutDate: Date = new Date(Date.now() + 86400000)
+  checkInDate: Date | string = new Date(),
+  checkOutDate: Date | string = new Date(Date.now() + 86400000)
 ) {
+  // Reason: accept both Date objects and pre-formatted YYYY-MM-DD strings so callers
+  // (e.g. documents integration tests) can pass either without a TypeError.
+  const toDateOnly = (d: Date | string): string =>
+    typeof d === 'string' ? d.slice(0, 10) : d.toISOString().slice(0, 10);
   return runWithTenantContext(tenantId, async () => {
     const ref = `TEST-${Date.now()}`;
     const rows = await sql`
@@ -297,8 +302,8 @@ export async function createTestBooking(
         ${guestId},
         ${ref},
         'confirmed',
-        ${checkInDate.toISOString().slice(0, 10)},
-        ${checkOutDate.toISOString().slice(0, 10)},
+        ${toDateOnly(checkInDate)},
+        ${toDateOnly(checkOutDate)},
         1,
         2,
         0,
@@ -512,6 +517,7 @@ export async function cleanupTestData(tenantId: string) {
       await cleanupOptional(() => db.delete(supportTickets).where(eq(supportTickets.tenantId, tenantUuid)));
       await db.delete(bookings).where(eq(bookings.tenantId, tenantUuid));
       if (propIds.length > 0) {
+        await cleanupOptional(() => db.delete(fnbPrintJobs).where(inArray(fnbPrintJobs.propertyId, propIds)));
         await db.delete(rooms).where(inArray(rooms.propertyId, propIds));
       }
       await db.delete(guests).where(eq(guests.tenantId, tenantUuid));

@@ -203,7 +203,7 @@ export class IntelligenceReportService {
 
   formatDigestPlainText(digest: IntelligenceDigest): string {
     const lines = [
-      `Hotel Etuna / Buffr Hub — ${digest.cadence} intelligence digest`,
+      `Hotel Etuna — ${digest.cadence} intelligence digest`,
       digest.windowLabel,
       `Generated: ${digest.generatedAt}`,
       '',

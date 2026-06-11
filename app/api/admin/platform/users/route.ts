@@ -9,21 +9,16 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentPlatformAdmin, isPlatformAdmin } from '@/lib/auth/platform-admin';
+import { withPlatformAdminAuth } from '@/lib/auth/with-platform-admin-auth';
 import { db, users, tenants } from '@/lib/db';
 import { desc, eq, sql } from 'drizzle-orm';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 // GET - List all users
 export async function GET(request: NextRequest) {
+  return withPlatformAdminAuth(request, async (req) => {
   try {
-    const user = await getCurrentPlatformAdmin();
-    
-    if (!user || !isPlatformAdmin(user)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const url = new URL(request.url);
+    const url = new URL(req!.url);
     const search = url.searchParams.get('search') || '';
     const role = url.searchParams.get('role') || 'all';
     const status = url.searchParams.get('status') || 'all';
@@ -78,4 +73,5 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+  });
 }

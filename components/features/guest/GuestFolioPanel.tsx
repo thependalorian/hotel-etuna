@@ -11,9 +11,18 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { AdumoVirtualPaymentForm } from '@/components/payments/AdumoVirtualPaymentForm';
+import { PaymentDisclosure } from '@/components/features/payments/PaymentDisclosure';
 import { GuestNamQrPayPanel } from '@/components/features/guest/GuestNamQrPayPanel';
+import { GuestOpenBankingPisPanel } from '@/components/features/guest/GuestOpenBankingPisPanel';
 import { BookingDepositPayCard } from '@/components/payments/BookingDepositPayCard';
 import { FolioVatBreakdown } from '@/components/features/folio/FolioVatBreakdown';
+import { FolioBalanceStat } from '@/components/features/folio/FolioBalanceStat';
+import { FolioLinesTable } from '@/components/features/folio/FolioLinesTable';
+import { FolioPartialAmountField } from '@/components/features/folio/FolioPartialAmountField';
+import { FolioCashCardPayRow } from '@/components/features/folio/FolioCashCardPayRow';
+import { formatCurrencyNAD } from '@/lib/formatters';
+import { formatFolioAmount } from '@/lib/utils/money';
+import { resolveFolioPayAmount } from '@/lib/utils/folio-pay';
 import type { FolioSummary } from '@/lib/types/folio';
 import { guestCopy } from '@/lib/copy/guest';
 
@@ -227,35 +236,21 @@ export function GuestFolioPanel({
         </p>
         {folio && (
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="rounded-lg bg-nude-50 p-4 border border-nude-200">
-              <p className="text-xs uppercase text-nude-600">Balance due</p>
-              <p className="text-2xl font-bold text-nude-900">
-                {folio.currency} {folio.balanceDue.toFixed(2)}
-              </p>
-            </div>
-            <div className="rounded-lg bg-nude-50 p-4 border border-nude-200">
-              <p className="text-xs uppercase text-nude-600">Open charges</p>
-              <p className="text-2xl font-bold text-nude-900">
-                {folio.currency} {folio.openChargesTotal.toFixed(2)}
-              </p>
-            </div>
+            <FolioBalanceStat
+              label="Balance due"
+              value={formatFolioAmount(folio.currency, folio.balanceDue)}
+              valueClassName="text-2xl font-bold text-nude-900"
+            />
+            <FolioBalanceStat
+              label="Open charges"
+              value={formatFolioAmount(folio.currency, folio.openChargesTotal)}
+              valueClassName="text-2xl font-bold text-nude-900"
+            />
           </div>
         )}
         {folio?.vat && <FolioVatBreakdown vat={folio.vat} className="mb-4" />}
         {folio?.lines && folio.lines.length > 0 && (
-          <ul className="divide-y divide-nude-200 text-sm">
-            {folio.lines.map((line) => (
-              <li key={line.id} className="py-2 flex justify-between gap-4">
-                <span>
-                  {line.description}{' '}
-                  <span className="text-nude-500">({line.chargeType})</span>
-                </span>
-                <span className="font-mono">
-                  {line.currency} {line.amount.toFixed(2)}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <FolioLinesTable lines={folio.lines} variant="guest" />
         )}
       </Card>
 
@@ -297,7 +292,7 @@ export function GuestFolioPanel({
                             <p className="text-xs text-nude-600">{item.description}</p>
                           )}
                           <p className="text-sm font-semibold">
-                            {item.currency ?? 'NAD'} {Number(item.price).toFixed(2)}
+                            {formatFolioAmount(item.currency ?? 'NAD', Number(item.price))}
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -330,7 +325,7 @@ export function GuestFolioPanel({
             );
           })}
           <div className="flex justify-between items-center mt-4">
-            <p className="font-semibold">Cart: NAD {cartTotal.toFixed(2)}</p>
+            <p className="font-semibold">Cart: {formatCurrencyNAD(cartTotal)}</p>
             <Button disabled={busy || cartItems.length === 0} onClick={() => void placeOrder()}>
               Charge to room
             </Button>
@@ -341,48 +336,48 @@ export function GuestFolioPanel({
       {canOrder && folio && folio.balanceDue > 0 && !folio.folioClosedAt && (
         <Card variant="elevated" className="p-6 space-y-4">
           <h3 className="font-display text-lg font-semibold">Pay folio</h3>
-          <label className="form-control w-full">
-            <span className="label-text">Amount (leave empty for full balance)</span>
-            <input
-              type="number"
-              step="0.01"
-              className="input input-bordered w-full"
-              placeholder={folio.balanceDue.toFixed(2)}
-              value={cashAmount}
-              onChange={(e) => setCashAmount(e.target.value)}
-            />
-          </label>
-          <div className="flex flex-wrap gap-2">
-            <Button disabled={busy} onClick={() => void settleCash()}>
-              Pay cash
-            </Button>
-            <Button
-              disabled={busy || payWithCard}
-              variant="outline"
-              onClick={() => {
-                setPayWithCard(true);
-                setMessage(null);
-              }}
-            >
-              Pay card (secure)
-            </Button>
-          </div>
+          <FolioPartialAmountField
+            label="Amount (leave empty for full balance)"
+            value={cashAmount}
+            onChange={setCashAmount}
+            balanceDue={folio.balanceDue}
+            currency={folio.currency}
+            id="guest-folio-partial-amount"
+          />
+          <FolioCashCardPayRow
+            busy={busy}
+            payWithCard={payWithCard}
+            onCash={() => void settleCash()}
+            onStartCard={() => {
+              setPayWithCard(true);
+              setMessage(null);
+            }}
+            cashLabel="Pay cash"
+            cardLabel="Pay card (secure)"
+          />
           {payWithCard && folio && (
-            <AdumoVirtualPaymentForm
-              bookingId={bookingId}
-              amount={
-                cashAmount
-                  ? Math.min(Number.parseFloat(cashAmount) || folio.balanceDue, folio.balanceDue)
-                  : folio.balanceDue
-              }
-              purpose="folio_settle"
-              onError={(err) => {
-                setPayWithCard(false);
-                setMessage(err);
-              }}
-            />
+            <>
+              <PaymentDisclosure
+                amount={resolveFolioPayAmount(cashAmount, folio.balanceDue)}
+                currency={folio.currency}
+              />
+              <AdumoVirtualPaymentForm
+                bookingId={bookingId}
+                amount={resolveFolioPayAmount(cashAmount, folio.balanceDue)}
+                purpose="folio_settle"
+                onError={(err) => {
+                  setPayWithCard(false);
+                  setMessage(err);
+                }}
+              />
+            </>
           )}
           <GuestNamQrPayPanel
+            bookingId={bookingId}
+            balanceDue={folio.balanceDue}
+            onUpdated={() => void load()}
+          />
+          <GuestOpenBankingPisPanel
             bookingId={bookingId}
             balanceDue={folio.balanceDue}
             onUpdated={() => void load()}

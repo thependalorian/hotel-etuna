@@ -11,6 +11,7 @@ import { useCallback, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Soc2AuditDashboard } from '@/components/features/compliance/Soc2AuditDashboard';
+import { AuditChainVerifyCard } from '@/components/features/compliance/AuditChainVerifyCard';
 
 export function Soc2CompliancePanel() {
   const [exporting, setExporting] = useState(false);
@@ -59,6 +60,7 @@ export function Soc2CompliancePanel() {
         </Button>
       </Card>
       {exportError && <p className="text-error text-sm">{exportError}</p>}
+      <AuditChainVerifyCard />
       <Soc2AuditDashboard />
     </div>
   );

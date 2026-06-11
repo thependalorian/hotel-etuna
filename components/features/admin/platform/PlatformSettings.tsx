@@ -15,7 +15,9 @@
 'use client';
 
 import React, { useState } from 'react';
+import { brand } from '@/lib/copy/brand';
 import { apiUrl } from '@/lib/utils/api-url';
+import { getPublicAppUrl } from '@/lib/utils/public-app-url';
 import { securityLogger } from '@/lib/utils/security-logger.client';
 import {
   Settings,
@@ -38,16 +40,36 @@ interface PlatformSettingsProps {
   userRole: string;
 }
 
+interface PlatformSettingsState {
+  platformName: string;
+  platformUrl: string;
+  supportEmail: string;
+  maintenanceMode: boolean;
+  requireEmailVerification: boolean;
+  twoFactorRequired: boolean;
+  sessionTimeout: number;
+  maxLoginAttempts: number;
+  passwordMinLength: number;
+  emailNotifications: boolean;
+  adminAlerts: boolean;
+  newTenantNotification: boolean;
+  criticalAlertsOnly: boolean;
+  allowPublicRegistration: boolean;
+  enableRestaurantFeatures: boolean;
+  enablePaymentGateway: boolean;
+  enableAIConcierge: boolean;
+}
+
 export default function PlatformSettings({ userRole }: PlatformSettingsProps) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState('general');
   
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<PlatformSettingsState>({
     // General
-    platformName: 'Hotel Etuna',
-    platformUrl: 'https://buffr.host',
-    supportEmail: 'support@buffr.ai',
+    platformName: brand.name,
+    platformUrl: getPublicAppUrl(),
+    supportEmail: brand.emailSupport,
     maintenanceMode: false,
     
     // Security
@@ -64,7 +86,7 @@ export default function PlatformSettings({ userRole }: PlatformSettingsProps) {
     criticalAlertsOnly: false,
     
     // Features
-    allowPublicRegistration: true,
+    allowPublicRegistration: false,
     enableRestaurantFeatures: true,
     enablePaymentGateway: true,
     enableAIConcierge: true,
@@ -353,9 +375,9 @@ export default function PlatformSettings({ userRole }: PlatformSettingsProps) {
                     onChange={(e) => setSettings({ ...settings, newTenantNotification: e.target.checked })}
                   />
                   <span className="label-text">
-                    <span className="font-medium">New Tenant Notifications</span>
+                    <span className="font-medium">Partner onboarding alerts</span>
                     <span className="block text-sm text-base-content/60">
-                      Get notified when a new tenant registers
+                      Notify platform operators when a referral partner accepts an invite
                     </span>
                   </span>
                 </label>
@@ -394,9 +416,9 @@ export default function PlatformSettings({ userRole }: PlatformSettingsProps) {
                     onChange={(e) => setSettings({ ...settings, allowPublicRegistration: e.target.checked })}
                   />
                   <span className="label-text">
-                    <span className="font-medium">Public Registration</span>
+                    <span className="font-medium">Public registration</span>
                     <span className="block text-sm text-base-content/60">
-                      Allow public users to register new tenants
+                      Disabled for single-property OS — onboard referral partners via invite only
                     </span>
                   </span>
                 </label>

@@ -131,4 +131,21 @@ const inExampleNotLocal = [...example.keys].filter((k) => !local.keys.has(k));
 console.log(`\n--- Keys in .env.example but not in .env.local: ${inExampleNotLocal.length} ---`);
 console.log('Run: npm run env:sync — to append missing keys (without overwriting set values)\n');
 
+console.log('--- Brand / guest email surfaces ---');
+const sender = (local.values.EMAIL_SENDER_EMAIL ?? '').replace(/^["']|["']$/g, '').trim().toLowerCase();
+const smtpUser = [
+  local.values.EMAIL_SMTP_USER,
+  local.values.NAMECHEAP_EMAIL,
+  local.values.EMAIL_USERNAME,
+  local.values.EMAIL_ADDRESS,
+]
+  .map((v) => (v ?? '').replace(/^["']|["']$/g, '').trim().toLowerCase())
+  .find(Boolean);
+if (sender.endsWith('@buffr.ai') || smtpUser?.endsWith('@buffr.ai')) {
+  console.log('❌ Guest email must use @hoteletuna.com (not @buffr.ai). Set EMAIL_SENDER_EMAIL=frontdesk@hoteletuna.com');
+  exitCode = 1;
+} else {
+  console.log('✅ Sender/SMTP not using @buffr.ai');
+}
+
 process.exit(exitCode);

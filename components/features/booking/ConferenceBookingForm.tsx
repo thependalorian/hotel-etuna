@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { HOTEL_ETUNA_FACILITY_RATES } from '@/lib/constants/hotel-etuna-room-types';
 import { apiUrl } from '@/lib/utils/api-url';
+import { extractBookingId } from '@/lib/bookings/booking-response';
 
 type ConferenceBookingFormProps = {
   roomId: string;
@@ -47,7 +48,7 @@ export function ConferenceBookingForm({ roomId, redirectTo }: ConferenceBookingF
         setError(data.message || data.error || 'Could not create booking.');
         return;
       }
-      const bookingId = data.id ?? data.data?.id;
+      const bookingId = extractBookingId(data);
       if (redirectTo) {
         router.push(bookingId ? `/bookings/${bookingId}` : redirectTo);
       } else if (bookingId) {

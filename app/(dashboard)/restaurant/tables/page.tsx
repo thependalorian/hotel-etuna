@@ -222,7 +222,7 @@ export default function RestaurantTablesPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="buffr-page-title mb-2">Table Management</h1>
+        <h1 className="etuna-page-title mb-2">Table Management</h1>
         <p className="text-base-content/70">
           Manage restaurant tables and QR codes
         </p>

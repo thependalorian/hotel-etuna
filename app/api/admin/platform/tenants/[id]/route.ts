@@ -11,10 +11,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentPlatformAdmin, isPlatformAdmin, isSuperAdmin } from '@/lib/auth/platform-admin';
+import { withPlatformAdminAuth } from '@/lib/auth/with-platform-admin-auth';
 import { db, tenants } from '@/lib/db';
 import { eq } from 'drizzle-orm';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -22,13 +22,9 @@ interface RouteParams {
 
 // GET - Get tenant details
 export async function GET(request: NextRequest, { params }: RouteParams) {
+  return withPlatformAdminAuth(request, async () => {
   try {
     const { id } = await params;
-    const user = await getCurrentPlatformAdmin();
-    
-    if (!user || !isPlatformAdmin(user)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
 
     const [tenant] = await db
       .select()
@@ -51,19 +47,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       { status: 500 }
     );
   }
+  });
 }
 
 // PATCH - Update tenant
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  return withPlatformAdminAuth(
+    request,
+    async (req) => {
   try {
     const { id } = await params;
-    const user = await getCurrentPlatformAdmin();
-    
-    if (!user || !isSuperAdmin(user)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    const body = await request.json();
+    const body = await req!.json();
     const { name, subdomain, domain, property_type, room_count, has_restaurant_features, status } = body;
 
     // Check if tenant exists
@@ -104,17 +98,18 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       { status: 500 }
     );
   }
+    },
+    { superAdmin: true }
+  );
 }
 
 // DELETE - Delete tenant
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  return withPlatformAdminAuth(
+    request,
+    async () => {
   try {
     const { id } = await params;
-    const user = await getCurrentPlatformAdmin();
-    
-    if (!user || !isSuperAdmin(user)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
 
     // Check if tenant exists
     const [existingTenant] = await db
@@ -143,4 +138,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       { status: 500 }
     );
   }
+    },
+    { superAdmin: true }
+  );
 }

@@ -7,7 +7,11 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { HOTEL_ETUNA_SETTLEMENT } from '@/lib/platform/settlement-accounts';
+import { NamQrQrDisplay } from '@/components/features/payments/NamQrQrDisplay';
+import { NamQrSettlementNote } from '@/components/features/payments/NamQrSettlementNote';
+import { NamQrAmountField } from '@/components/features/payments/NamQrAmountField';
+import { NamQrBankReferenceField } from '@/components/features/payments/NamQrBankReferenceField';
+import { formatFolioAmount } from '@/lib/utils/money';
 
 type NamQrStatusItem = {
   id: string;
@@ -125,61 +129,37 @@ export function GuestNamQrPayPanel({
     <div className="space-y-4 border-t border-nude-200 pt-4">
       <div>
         <h4 className="font-semibold text-terracotta-900">Pay with banking app (NamQR)</h4>
-        <p className="text-sm text-nude-600 mt-1">
-          Scan the QR in Nedbank, FNB, or another Namibian banking app. Payment goes to Hotel
-          Etuna Nedbank{' '}
-          <span className="font-mono">{HOTEL_ETUNA_SETTLEMENT.accountNumber}</span>. Reception
-          confirms once the transfer appears on our statement — your folio updates then.
-        </p>
+        <NamQrSettlementNote variant="guest" />
       </div>
 
-      <label className="form-control w-full">
-        <span className="label-text">Amount (NAD)</span>
-        <input
-          type="number"
-          step="0.01"
-          min="0.01"
-          max={balanceDue}
-          className="input input-bordered w-full"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-        />
-      </label>
+      <NamQrAmountField
+        id="guest-namqr-amount"
+        label="Amount (NAD)"
+        value={amount}
+        onChange={setAmount}
+        min={0.01}
+        max={balanceDue}
+      />
 
       <Button type="button" disabled={busy || payAmount <= 0} onClick={() => void generateQr()}>
         Show payment QR
       </Button>
 
       {qr && (
-        <div className="rounded-lg border border-nude-200 bg-white p-4 space-y-2">
-          <p className="text-sm">
-            Reference: <span className="font-mono">{qr.qrReference}</span>
-          </p>
-          {qr.expiresAt && (
-            <p className="text-xs text-nude-500">
-              QR expires: {new Date(qr.expiresAt).toLocaleString()}
-            </p>
-          )}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={qr.qrImageUrl}
-            alt="NamQR payment code for Hotel Etuna"
-            className="mx-auto max-w-[220px] rounded-lg bg-white p-2"
-          />
-        </div>
+        <NamQrQrDisplay
+          qr={qr}
+          variant="guest"
+          imageAlt="NamQR payment code for Hotel Etuna"
+        />
       )}
 
       <div className="space-y-2">
-        <label className="form-control w-full">
-          <span className="label-text">Bank reference (from your app after paying)</span>
-          <input
-            type="text"
-            className="input input-bordered w-full"
-            placeholder="e.g. payment confirmation number"
-            value={bankReference}
-            onChange={(e) => setBankReference(e.target.value)}
-          />
-        </label>
+        <NamQrBankReferenceField
+          id="guest-namqr-bank-ref"
+          label="Bank reference (from your app after paying)"
+          value={bankReference}
+          onChange={setBankReference}
+        />
         <Button
           type="button"
           variant="secondary"
@@ -203,7 +183,7 @@ export function GuestNamQrPayPanel({
         <ul className="text-xs text-nude-600 space-y-1">
           {statusItems.slice(0, 3).map((item) => (
             <li key={item.id}>
-              NAD {item.amountClaimed.toFixed(2)} · ref {item.bankReference} ·{' '}
+              {formatFolioAmount('NAD', item.amountClaimed)} · ref {item.bankReference} ·{' '}
               <span className="capitalize">{item.status}</span>
               {item.status === 'rejected' && item.rejectionReason
                 ? ` — ${item.rejectionReason}`

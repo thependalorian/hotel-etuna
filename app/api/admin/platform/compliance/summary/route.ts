@@ -6,29 +6,19 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentPlatformAdmin, isPlatformAdmin } from '@/lib/auth/platform-admin';
+import { withPlatformAdminAuth } from '@/lib/auth/with-platform-admin-auth';
 import { getComplianceSnapshot } from '@/lib/compliance/compliance-snapshot';
-import { enforcePlatformAdminRateLimit } from '@/lib/compliance/with-admin-rate-limit';
 import { REGULATORY_PACK_FOLDER } from '@/lib/compliance/regulatory-context';
 import { getNamibiaPaymentRailsSummary, labelForRailBucket } from '@/lib/payments/namibia-payment-rails';
 import { getPaymentsByRailSince } from '@/lib/compliance/payments-by-rail';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  return withPlatformAdminAuth(request, async (req) => {
   try {
-    const user = await getCurrentPlatformAdmin();
-    if (!user || !isPlatformAdmin(user)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    const limited = await enforcePlatformAdminRateLimit(request, user.id);
-    if (limited) {
-      return limited;
-    }
-
-    const daysRaw = parseInt(request.nextUrl.searchParams.get('paymentWindowDays') ?? '7', 10);
+    const daysRaw = parseInt(req!.nextUrl.searchParams.get('paymentWindowDays') ?? '7', 10);
     const paymentWindowDays =
       Number.isNaN(daysRaw) || daysRaw < 1 ? 7 : Math.min(daysRaw, 90);
     const paymentSince = new Date(
@@ -70,4 +60,5 @@ export async function GET(request: NextRequest) {
     securityLogger.error('[compliance/summary]', err);
     return NextResponse.json({ error: 'Failed to build compliance snapshot' }, { status: 500 });
   }
+  });
 }

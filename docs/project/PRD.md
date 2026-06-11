@@ -1,7 +1,7 @@
 # Hotel Etuna — Product Requirements Document (PRD)
 
-**Version:** 2.9.3  
-**Date:** May 17, 2026  
+**Version:** 2.10.0  
+**Date:** June 8, 2026  
 **Auditor:** Product Team  
 **Status:** **In production** (Vercel + Neon). All core features complete. This is the consolidated single source of truth for all product requirements.  
 **DRY:** Architecture and rationale live in **`PLANNING.md`**. Execution checklist lives in **`TASK.md`**. System design canon: **`SYSTEM_DESIGN_MASTER_GUIDE.md`** (repo root), inlined in PRD §6.6 / §4.3.2 / §11.5–11.6. All product features and requirements consolidated from scattered reports into this document.
@@ -22,6 +22,30 @@ Hotel Etuna is a **hub‑and‑spoke hospitality platform** built on the Buffr H
 **Positioning:** Hotel Etuna is the **operating system for one flagship property** that extends its brand and reach by curating a network of trusted lodging partners in Windhoek, creating a comprehensive hospitality ecosystem.
 
 **Out of scope (May 2026):** Curated **tours** are not a public product surface — no `/tours` route, nav links, booking CTAs, or Sofia knowledge doc. Concierge may still answer general area questions from `local-area.md`; excursion sales are reception/concierge offline only unless product scope changes.
+
+### 1.1 Product Vision — Agentic CRM & Intelligent OS (June 8, 2026)
+
+**Core promise:** *“An OS that anticipates, adapts, and elevates every stay.”*
+
+Hotel Etuna is evolving from a production PMS/CRM into a **single‑property intelligence platform** that fuses three non‑negotiable pillars into every new feature:
+
+| Pillar | Definition | Why it matters |
+|--------|------------|----------------|
+| **Agentic CRM** | A relationship system that **initiates** actions, not just records them — uses guest memory, preferences, and real‑time signals to send offers, schedule services, and escalate needs without human clicks. | Guests feel remembered; staff are freed from manual follow‑ups. |
+| **Intelligent OS** | The engine orchestrating all operations (rooms, F&B, housekeeping, maintenance, revenue, payments, compliance) with predictive algorithms, real‑time alerts, and automated workflows. | Removes friction, eliminates silos, turns data into revenue. |
+| **Beautiful UX** | Calm, intuitive, emotionally‑aligned design (nude/terracotta/khaki, Playfair, pill buttons, micro‑interactions) — see §9. | Drives adoption, cuts training time, creates brand love. |
+
+The strategic goal: move every guest touchpoint from **transactional → relationship‑building**, and every staff workflow from **reactive → proactive**. This vision **builds on** the shipped foundation (§3, §12) — it does not replace the as‑built spec; existing architectural guardrails (Neon + Drizzle, NextAuth/Stack dual‑auth, Adumo Virtual + cash, hub‑and‑spoke RLS, Sofia hub‑exclusivity, `security:preflight`) remain binding (§6, §11; PLANNING § Architecture Decisions).
+
+**Five goals (detail in §13 roadmap + `TASK.md` § Vision):**
+
+1. **Guest Command Centre** — A `/guest` hub that feels like a personal concierge across pre‑arrival (magic‑link welcome, document vault, room selection, digital check‑in + digital key), in‑stay (service/maintenance requests, room‑service, upgrade/downgrade, messaging, folio widget), and post‑stay (auto‑checkout, loyalty rewards, feedback, re‑engagement). Plus **agentic actions** with no guest input (birthday surprise, repeat‑guest recognition, weather nudges, silent loyalty upgrades).
+2. **Staff Intelligence Layer** — Real‑time command‑centre dashboard, colour‑coded smart alerts, voice commands, predictive housekeeping/maintenance routing, revenue intelligence, low‑stock auto‑reorder, mobile‑first PWA with push, cross‑department visibility.
+3. **Sofia as a true co‑pilot** — Proactive nudges, sentiment detection + human handover, multi‑channel context (web/WhatsApp/email/voice), language auto‑detection, layered memory (session/long‑term/episodic), and autonomous revenue actions (upgrade offers, late‑night dining, complaint remediation). Remains **hub‑exclusive**; partners get no AI.
+4. **Intelligent Operations (the OS)** — Dynamic pricing + occupancy/ADR/RevPAR forecasting, read‑only OTA rate sync, smart inventory (F&B, linen, minibar), predictive maintenance from complaint data, and compliance automation (POPIA anonymisation, PCI boundary, immutable audit).
+5. **Beautiful & delightful UX** — Locked visual identity (§9), zero‑wait skeletons, micro‑transitions, offline‑first queue, keyboard shortcuts, WCAG 2.1 AA, and warm, locally‑flavoured copy.
+
+**Roadmap:** ~16 weeks across 5 phases (§13 Phases 8–12), each delivering business value independently. Targets in §8 (Vision metrics).
 
 ---
 
@@ -155,7 +179,9 @@ Marketing personas in **§2.1** describe *who books and why*. The table below ma
 | **PMS** | Complete property management for Hotel Etuna: Standard Room (Types A/B/C), Executive Room, Premiere Room, dynamic rates (editable via admin), availability calendar, online booking flow, booking lifecycle (confirmed → checked‑in → checked‑out → completed/cancelled). Hub admin can view all bookings (own + partners) for commission reporting. |
 | **Restaurant** | Etuna Restaurant: **12 menu categories**, **~110+ live items** in Neon (`menu_categories` + `cms_menu_items`; catalog `lib/data/etuna-restaurant-menu-catalog.ts` for seed/reference). **Public digital menu** on `/dining` (§3.1.1 — single-page, 2×3 food grid). Table QR dine‑in, **in‑room room service** (checked‑in only) on **stay folio** (`booking_charges`), order lifecycle (pending → preparing → served). **Hours:** breakfast **07:00–10:00**; lunch, dinner & bar orders **10:00–22:00** (`lib/dining/restaurant-hours.ts`). **Signature dishes:** Full Breakfast, King Klip, Oxtail, Lamb Curry, Etuna Chicken Mushroom pizza. **F&B inventory:** SKU-level stock + low-stock alerts (`database/drizzle/0011_fnb_inventory.sql`, `lib/services/inventory/InventoryService.ts`). APIs: `GET /api/public/room-qr/[code]`, `GET/POST /api/guest/stays/[bookingId]/folio|orders|settle`. |
 | **Guest CRM** | Comprehensive guest profiles, preferences, **CRM memory** (facts, relationship edges), contact history, marketing consent. **`guest_profiles`** holds **loyalty tier/points** (permanent); **`booking_charges`** holds **per‑stay folio** (room + F&B + settlement) — not duplicated. **Loyalty program:** Earn 1 point per N$10 spent on folio settlement; redeem 100 points = N$50 folio adjustment. `/api/crm/*` endpoints accessible by hub admin across all properties. |
-| **Staff & Dashboard** | Role‑based access for Hotel Etuna staff (owner, manager, front‑desk, housekeeping, kitchen). Audit logging for all sensitive actions. Staff dashboard is hub‑specific and includes partner management features. |
+| **Staff & Dashboard** | Role‑based access for Hotel Etuna staff (owner, manager, front‑desk, housekeeping, kitchen). Staff CRUD at `/staff`, edit at `/staff/[id]/edit`, schedules at `/staff/[id]/schedule`. **Payroll (Namibia):** integrated PAYE + SSC at `/payroll` (founder/admin only); exports align with NamRA refs in `TAX_AND_NAMRA_COMPLIANCE.md` §6.1. Audit logging for all sensitive actions. |
+| **Deposits & commission** | Booking `deposit_percent` (default 30%) drives checkout partial amount; partner commission report at `/reports/commission`. |
+| **Open banking** | NamQR v5.0 primary rail; PIS via BON endpoints (`/api/bon/v1/banking/payments`) with PSD‑12 step‑up 2FA — see `mba-agent/regulatory/namibia/namibia_open_banking_standards.md`. |
 | **Communications** | Sofia AI voice/web chat, WhatsApp webhook, support tickets. Email automation (booking confirmations, check‑in reminders, post‑stay thank you). **Hub tenant only** — partners do not have Sofia AI or email automation. |
 | **Support** | Platform support tickets for hotel staff and partners. Integrated issue tracker for bug reports, feature requests. Hub admin can view all support tickets. |
 | **Compliance & Risk** | Consumer rights / cyber incident lifecycles; **KYC/KYB for Hotel Etuna and all partners**. Court‑admissible audit themes. All regulatory requirements (PSD‑12, PSD‑4, ETA 2019) apply platform‑wide. |
@@ -253,6 +279,22 @@ Legacy demo rows (`ET-*`) are set `out_of_order`, not deleted, to preserve histo
 - **Contact-verified:** Address (5544 Valley Street), phones (+264 65 231 177, +264 81 802 4833), check-in 14:00, check-out 11:00
 
 > Partner network requirements are defined once in **§3.2** (do not duplicate here).
+
+**Source-of-truth paths (room & facility inventory):**
+
+| Layer | Path |
+|-------|------|
+| Constants & rates | `lib/constants/hotel-etuna-room-types.ts` |
+| Physical units + facility metadata | `lib/data/hotel-etuna-room-inventory.ts` |
+| Public marketing (5 cards) | `lib/data/room-type-catalog.ts` → `getHubRoomTypeCatalog()` |
+| All guest units (35) / facility rows | `lib/data/rooms.ts` → `getHubGuestRooms()` / `getHubFacilityRooms()` |
+| Facility pricing & booking | `lib/services/booking/FacilityBookingPricing.ts`, `BookingService.createFacilityBooking` |
+| API | `app/api/bookings/route.ts` (discriminated by `bookingKind`), `app/api/bookings/facility-availability/route.ts` |
+| Migrations | `0040`–`0043` (facility internal keys `facility:conference` / `facility:campsite`) |
+| Seed / RAG | `scripts/seed-hotel-etuna.ts`; `data/hotel-etuna-knowledge/room-descriptions.md` (`npm run rag:seed`) |
+| Wired surfaces | ops calendar `BookingsOperationsHub`; folio `FolioService.ensureBookingChargeForBooking`; analytics/accounting split; Sofia `KnowledgeBaseService` |
+
+Guest vs facility rows split by `inventory_kind` only; display labels in `lib/rooms/inventory-display.ts`.
 
 ### 3.4 Guest folio & in-stay billing
 
@@ -436,7 +478,7 @@ flowchart LR
 
 See `docs/project/PLANNING.md` § Payment strategy → Platform commercial model.
 
-**Commercial legal draft (Proposal & SLA):** `docs/BUFFR_FINANCIAL_SERVICES_PROPOSAL_AND_SLA.md` (v1.3) — Buffr ↔ Etuna; **§4.5 dual VAT** (Etuna property NamRA reporting + Buffr platform invoices); **§8.7 tax**; UI `/reports/property-vat`; code: `lib/platform/namibia-tax.ts`, `PropertyVatService`.
+**Commercial terms (Buffr ↔ Etuna):** platform-fee, **dual VAT** (Etuna property NamRA reporting + Buffr platform invoices), and SLA terms are handled with counsel out-of-band (no in-repo proposal doc). Technical canon: `PLANNING.md` § Payment strategy; UI `/reports/property-vat`; code: `lib/platform/namibia-tax.ts`, `PropertyVatService`.
 
 ---
 
@@ -715,7 +757,7 @@ Full route list: **§4.7** and `app/api/**/route.ts`.
 | EFT / QR | PSD-9; NamQR v5.0 (May 2025) | BoN | `lib/compliance/namqr/*`; `/api/payments/namqr/*`; `/payments/desk` | Desk confirm = ops reconcile, not switch settlement |
 | Cyber / ops | PSD-12 | BoN | `PsdPaymentFraudGate`, 2FA on pay ops, `cybersecurity_incidents`, IRP | G-04 (live BoN API) |
 | E-commerce | ETA 2019 | Courts / MIT | `audit_trail`, `consumer_rights_requests`, `app/legal/*` | G-01, G-06 |
-| AML/CFT | FICA 2012 | FIC | `aml_*`, `/api/compliance/aml/*`, `/compliance/kyc` | G-05 (no live goAML) |
+| AML/CFT | FICA 2012 | FIC | `aml_*` (alerts, STR, velocity — **not PEP screen**), `/api/compliance/aml/*`, `/compliance/kyc` | G-05 (no live goAML); PEP screening out of scope (Namibia — no domestic database) |
 | Data protection | Draft Bill; Constitution Art. 13 | TBD | `DATA_PROTECTION_AND_PRIVACY_PROGRAM.md` | G-01 (DSAR portal) |
 | VAT | VAT Act 10 of 2000 | NamRA | `lib/platform/namibia-tax.ts`, `/reports/property-vat` | G-02 (e-invoicing) |
 | Tourism | NTB Act 21/2000 | NTB | `HOSPITALITY_AND_TOURISM_COMPLIANCE.md` | Ops certificates |
@@ -729,7 +771,8 @@ Full matrix + gap register: **`docs/compliance/NAMIBIA_REGULATORY_FRAMEWORK.md` 
 
 | Layer | What runs | Notes |
 |-------|-----------|-------|
-| **Card initiate** | `PsdFraudGate` on `POST /api/payments/initiate` | Built-in velocity/amount/device/geo + **`applyTenantFraudRules`** (`lib/services/fraud/tenant-fraud-rules.ts`) |
+| **Card initiate (demo)** | `PsdFraudGate` on `POST /api/payments/initiate` | Built-in velocity/amount/device/geo + **`applyTenantFraudRules`** |
+| **Card initiate (live)** | `PsdFraudGate` on `POST /api/payments/virtual/initiate` (alias `/api/payments/adumo/initiate`) | Same gate before `payment_sessions` insert; production fail-closed; **3DS on Adumo hosted page** |
 | **DB rules (0016)** | `fraud_detection_rules` per tenant | Seed: velocity **5/h** → `review`, NAD **≥50k** → `block`, geo mismatch → `review`; **`conditions` JSON evaluated** |
 | **Analyze API** | `FraudDetectionService` class | `/api/fraud/analyze` — same `evaluateTenantFraudRule`; `block` / `decline` → declined |
 | **Fail mode** | Production / `FRAUD_GATE_FAIL_CLOSED=true` | Gate errors → **block** (not fail-open); dev → review |
@@ -879,8 +922,9 @@ Full matrix + gap register: **`docs/compliance/NAMIBIA_REGULATORY_FRAMEWORK.md` 
 **Open banking & NamQR (5)**  
 `ob_participants`, `ob_consent_tokens`, `ob_api_transactions`, `namqr_codes`, `consumer_rights_requests`, `cybersecurity_incidents`
 
-**AML/CFT (9)**  
-`aml_pep_database`, `aml_guest_pep_flags`, `aml_transaction_alerts`, `aml_monitoring_rules`, `aml_suspicious_transaction_reports`, `aml_due_diligence_records`, `aml_transaction_velocity`, `aml_geographic_patterns`
+**AML/CFT (9 — 7 active + 2 dormant PEP schema)**  
+`aml_transaction_alerts`, `aml_monitoring_rules`, `aml_suspicious_transaction_reports`, `aml_due_diligence_records`, `aml_transaction_velocity`, `aml_geographic_patterns` — **active**  
+`aml_pep_database`, `aml_guest_pep_flags` — **dormant** (Buffr port; not populated; PEP screening out of product scope for Namibia)
 
 **Fraud (6)**  
 `fraud_risk_profiles`, `fraud_device_fingerprints`, `fraud_alerts`, `fraud_detection_rules`, `fraud_cases`, `fraud_statistics`
@@ -1041,6 +1085,8 @@ ob_participants ← ob_consent_tokens ← ob_api_transactions
 
 *Drizzle journal may only list 0000–0002; 0003–0017 applied via Neon/psql. Verify: `npm run test:db:migrations` (18 checks).*
 
+**Update (June 8, 2026):** Migrations `0010_booking_charges_rls.sql` and `0021_housekeeping_tasks.sql` were reviewed and confirmed to already use the correct `current_setting('app.tenant_id', true)::uuid` and `current_setting('app.user_id', true)::uuid` RLS session variable patterns. No changes were required for these migration files.
+
 ### 4.3 API Architecture
 
 
@@ -1192,8 +1238,7 @@ tree -I 'node_modules|.next|.git|coverage|playwright-report|test-results' -L 3 -
 | `lib/` | Server/client logic — `db/`, `services/`, `auth/`, `copy/`, `integrations/`, `utils/`, `types/` |
 | `database/drizzle/` | SQL migrations (`0000`–`0016`) + Drizzle meta |
 | `data/hotel-etuna-knowledge/` | Sofia RAG source markdown (**4 files** — no `tours-guide.md`) |
-| `docs/project/` | **Canonical docs:** `PRD.md`, `PLANNING.md`, `TASK.md` |
-| `docs/REBRAND_QUESTIONNAIRE_AND_LANDSCAPE.md` | Full brand & market strategy |
+| `docs/project/` | **Canonical docs:** `PRD.md`, `PLANNING.md`, `TASK.md` (+ `SOC2_IMPLEMENTATION_PLAN.md`) |
 | `public/` | Static assets — `brand/`, `images/`, PWA `manifest.json`, `sw.js` |
 | `scripts/` | Seeds, RAG ingest, `db/*` verification, `provision-platform-admin.ts`, security preflight (no `archive/`) |
 | `tests/` | Vitest — `integration/`, `sofia/`, `workflows/`, `api/`, `unit/` |
@@ -1401,7 +1446,7 @@ Regenerated May 17, 2026 (`tree -L 3` from `hotel-etuna/`). **229 directories, 3
 |   |-- compliance/
 |   |   |-- AMLDashboard.tsx
 |   |   |-- AlertDetailModal.tsx
-|   |   `-- PEPManagement.tsx
+|   |   `-- PEPManagement.tsx  # legacy stub — not mounted; PEP screening out of scope
 |   |-- dining/
 |   |   |-- MenuBookContinueFace.tsx
 |   |   |-- MenuBookFullMenu.tsx
@@ -1548,11 +1593,9 @@ Regenerated May 17, 2026 (`tree -L 3` from `hotel-etuna/`). **229 directories, 3
 |   |   |-- PLANNING.md
 |   |   |-- PRD.md
 |   |   |-- SOC2_IMPLEMENTATION_PLAN.md
-|   |   |-- SOC2_IMPLEMENTATION_SUMMARY.md
+|   |   |-- TREE.txt
 |   |   `-- TASK.md
-|   |-- reports/
-|   |-- BUFFR_FINANCIAL_SERVICES_PROPOSAL_AND_SLA.md
-|   |-- REBRAND_QUESTIONNAIRE_AND_LANDSCAPE.md
+|   |-- naming-conventions.md
 |   `-- SECURITY_PROMPT_PACK.md
 |-- e2e/
 |   |-- helpers/
@@ -1984,7 +2027,7 @@ Complete route inventory: `app/api/**/route.ts` (**136** handlers; verify: `find
 | `/api/compliance/kyc-cases*` | GET, POST, … | Role | `compliance_verification_*` | `compliance/kyc/*` |
 | `/api/compliance/soc2` | GET | Hub tenant + role (owner, manager, admin) | `audit_trail`, `users`, `cybersecurity_incidents` (export sample) | `compliance/soc2` — `action=status\|full-report\|export`; **not** CPA attestation |
 | `/api/compliance/soc2/audit` | GET | Same as above | Same (orchestrator) | Alias for `action=full-report` with `from`/`to` query params |
-| `/api/compliance/aml/*` | * | Open API | `aml_*` | `AMLDashboard`, `PEPManagement` (components exist; limited page mount) |
+| `/api/compliance/aml/*` | * | Open API | `aml_*` (excl. PEP screen) | `AMLDashboard` — alerts, STR, monitoring; **no PEP screen API** |
 | `/api/compliance/psd/*` | * | Open API | `payment_security_audit`, `bon_incident_reports` | Integrations |
 | `/api/fraud/alerts` | GET, PATCH | Open | `fraud_alerts` | `fraud/page` |
 | `/api/fraud/statistics` | GET | Open | `fraud_statistics` | `fraud/page` |
@@ -2175,7 +2218,7 @@ UI: `GuestStaysList`, `GuestLoyaltySummary`, `GuestFolioPanel` (past-stay banner
 - **Authorization:** RBAC: `owner`, `manager`, `admin`, `staff`, `super-admin` (Buffr platform). Middleware enforces tenant isolation; `super-admin` / `admin` (session role) bypass route lists for builder access. Hub‑only routes (`/api/sofia/*`, `/api/crm/*`, `/api/ai/*`) return 403 for partners. Platform routes: `isPlatformAdmin()` requires `@buffr.ai` email + role + flag/tenant rule (§3.3.2).
 - **Payments (Namibia):** Adumo Virtual (SAQ A); NamQR v5 desk flow; no Stripe; settlement to Etuna Nedbank for guest collections (§3.5, §3.7).
 - **Fraud:** **`PsdFraudGate`** on card initiate + **`tenant-fraud-rules`** evaluates migration **`0016`** rules; production fail-closed (§3.7.2).
-- **AML / incidents:** FICA program + internal STR workflow; BoN incident reporting via `BonIncidentReportingService` (**simulated** without `BON_API_KEY` — G-04).
+- **AML / incidents:** FICA program + internal STR workflow (alerts, velocity, KYC — **no PEP screening**; Namibia has no domestic PEP database in-product); BoN incident reporting via `BonIncidentReportingService` (**simulated** without `BON_API_KEY` — G-04).
 - **Rate Limiting:** Aggressive limits on partner invite endpoint (5 requests/hour). Standard limits on public APIs (100 requests/minute per IP). Redis required in production (`RATE_LIMIT_REDIS_REQUIRED`).
 - **Two‑Factor Authentication:** Required for all hub admin actions affecting payments, commissions, or partner management.
 - **Data Protection:** GDPR/POPIA **readiness** (draft Bill); DSAR portal and cookie banner gaps G-01, G-06. Marketing consent in CRM. `audit_trail` for sensitive ops.
@@ -2303,6 +2346,21 @@ Maps to master guide **Part 6** and **Part 10 (AI Security Prompt Pack)** — fu
 - CRM captures ≥95% of guest interactions
 - **Registered users book at 3x the rate of anonymous visitors**
 
+### 8.1 Vision metrics (Agentic CRM & Intelligent OS — baseline June 2026 → target Dec 2026)
+
+Measurable outcomes for the §1.1 vision. These extend (do not replace) the operational metrics above.
+
+| Goal | Metric | Baseline (Jun 2026) | Target (Dec 2026) |
+|------|--------|---------------------|-------------------|
+| Guest hub adoption | % of booked guests who log into `/guest` | <20% (est.) | >70% |
+| Digital check‑in usage | % of arrivals using online check‑in | 0% | >50% |
+| Upsell revenue | Avg extra spend per guest (upgrade / pre‑order) | N$0 | N$150 |
+| Staff time saved | Minutes per shift saved by automation | 0 | 90 min |
+| Sofia resolution rate | % of inquiries resolved without a human | ~60% | >85% |
+| First‑response time | Avg time to answer a guest message | Unknown | <30 sec |
+| Revenue per available room (RevPAR) | vs current baseline | baseline | +20% |
+| NPS (guest satisfaction) | Score 0–10 | Not measured | >70 |
+
 ---
 
 ## 9. Design Direction (Brand)
@@ -2347,9 +2405,34 @@ Maps to master guide **Part 6** and **Part 10 (AI Security Prompt Pack)** — fu
 - Oshiwambo sprinklings: "Moro" (Hello), "Wa lalapo?" (How are you?), "Nangalei po" (Goodbye)
 - Tagline: *"He Takes Care of Us"*
 
-### 9.5 Brand & rebrand strategy (living document)
+### 9.5 Brand & design system (locked decisions)
 
-Full questionnaire answers, competitor landscape, **Roger Martin / Playing to Win** cascade, **Four Seasons** strategic analogy (not visual mimicry), **MBA Project 9** systems lessons, **wordmark-first logo** direction, and SEO/checklist items: **`docs/REBRAND_QUESTIONNAIRE_AND_LANDSCAPE.md`**. Update that document when brand decisions change; keep **§9.1–9.7** in this PRD aligned with production `tailwind.config.ts`, brand assets, and deployed UI.
+**Token canon:** all hex/token names live in **`tailwind.config.ts`** (Design System
+v1.0.0); brand copy in `lib/copy/{brand,public}.ts`. Keep §9.1–9.7 aligned with these.
+
+**Locked creative direction:**
+- **Wordmark-first identity** — typographic "Hotel Etuna" mark; no parallel palette for
+  print/signage/uniforms (derive Pantone/CMYK proofs from the hex anchors below).
+- **Nude foundation** is the structural spine (`nude-50 #fef7f0` → `nude-900 #5d3322`),
+  body ink via `ink` (tied to nude for WCAG AA). Surfaces: `nude-50` canvas, white cards.
+- **Accents:** **khaki** carries action (`khaki-600 #b8955a` = primary CTA / DaisyUI
+  `primary`, `khaki-700` hover); **terracotta** carries authority (`terracotta-900 #6d3722`
+  headings / DaisyUI `neutral`); **sage `#9bae8a`** = nature accent; **luxury** ramp
+  (charlotte/champagne/rose/bronze/gold `#d4af37`) for VIP moments; **rustic** = sparing
+  red/alert scale.
+- **DaisyUI theme `hoteletuna`** maps primary/secondary→khaki, accent→khaki-sand,
+  neutral→terracotta-900, base-100/200/300→nude surfaces.
+- **Typography:** Playfair Display (display/headlines), Inter 16px (body UI), JetBrains
+  Mono (invoice/analytics), Dancing Script (rare signature accent).
+- **Interaction:** buttons pill-shaped (`rounded-full` inherited from `.btn`), focus
+  `ring-2 ring-khaki-600`, ≥44px touch targets; partner dashboards stay neutral (no
+  Sofia/CRM chrome) so the hub brand stays distinct.
+
+**Strategy basis (summary):** positioning is a *Playing to Win* cascade — win in northern
+Namibia's mid-premium, desk-led + digital-capture segment by binding word-of-mouth into
+repeatable pipelines (CRM, loyalty, corporate rates) rather than imitating global luxury
+chains. (Originated from MBA "Project 9" systems analysis of Etuna Guesthouse.) Tours are
+**not** offered on the public site or in Sofia's KB.
 
 ### 9.6 Word copy (canonical module)
 
@@ -2654,6 +2737,20 @@ Evidence: codebase inspection + `npx tsc --noEmit` (pass) + `npm run test:db` / 
 - ✅ Canonical docs: PRD / PLANNING / TASK only (+ rebrand + README)
 - ✅ May 16 audit snapshots merged into §12 and TASK; redundant `docs/*_2026-05-16.md` removed
 
+### Agentic CRM & Intelligent OS roadmap (Phases 8–12) — vision (§1.1)
+
+Forward‑looking; ~16 weeks total, parallel tracks possible. Each phase ships independent business value. Subtask breakdown lives in `TASK.md` § Agentic CRM & Intelligent OS (Vision); architectural guardrails in PLANNING § Agentic CRM & Intelligent OS roadmap.
+
+| Phase | Focus | Duration | Key deliverables |
+|-------|-------|----------|------------------|
+| **8** | Guest command centre (core) | 4 weeks | Online check‑in, digital key, service/maintenance requests, upgrade/downgrade, messaging, folio widget |
+| **9** | Staff intelligence layer | 4 weeks | Real‑time alerts, voice commands, predictive task automation, mobile PWA + push |
+| **10** | Sofia co‑pilot (proactive) | 3 weeks | Proactive nudges, sentiment + handover, multi‑channel context, layered memory, auto‑upsell |
+| **11** | Intelligent OS (analytics & automation) | 3 weeks | Dynamic pricing, forecasting, predictive maintenance, auto‑reorder, compliance automation |
+| **12** | UX polish & performance | 2 weeks | Design‑system audit, skeleton loaders everywhere, offline queue, WCAG 2.1 AA fixes |
+
+**Guardrails (do not break):** Neon + Drizzle only (no raw SQL injection); NextAuth primary + Stack optional, platform admin via `@buffr.ai`; Adumo Virtual + NamQR + cash (no Stripe/RealPay for guests); hub‑and‑spoke RLS with Sofia hub‑exclusive; ISR for public pages, API p95 <300ms; CSRF + rate limits + immutable audit; Vitest/Playwright + `security:preflight` CI gate.
+
 ---
 
 ## 14. Change Control & Governance
@@ -2753,7 +2850,7 @@ The Hotel Etuna Team
 - **Testing & smoke:** `docs/project/TASK.md` § Production smoke  
 - **Deployment:** `docs/project/TASK.md` § Deployment checklist  
 - **Architecture:** `docs/project/PLANNING.md`  
-- **Brand (full):** `docs/REBRAND_QUESTIONNAIRE_AND_LANDSCAPE.md`
+- **Brand & design system:** §9.5 above · token canon `tailwind.config.ts`
 
 ### Appendix E: Public Content Accuracy & Landing Structure
 
@@ -2816,7 +2913,7 @@ Former scattered docs under `docs/reports/` and legacy checklists were **deleted
 
 Do not add new project `.md` files — extend **PRD**, **PLANNING**, or **TASK** only (plus the shared master guide at repo root).
 
-**Kept separate (not merged):** `docs/REBRAND_QUESTIONNAIRE_AND_LANDSCAPE.md` (full brand strategy), `data/hotel-etuna-knowledge/*.md` (Sofia corpus), `README.md` (onboarding).
+**Kept separate (not merged):** `data/hotel-etuna-knowledge/*.md` (Sofia corpus), `README.md` (onboarding), `docs/compliance/**` (SOC 2 program), `docs/naming-conventions.md`, `docs/SECURITY_PROMPT_PACK.md`.
 
 ---
 
@@ -2829,7 +2926,7 @@ Do not add new project `.md` files — extend **PRD**, **PLANNING**, or **TASK**
 | **2.1.0** | **2026-04-28** | **Engineering Team** | **Added gated content strategy (Section 3): authentication wall for prices/booking, Sofia AI gated enforcement, sign-up conversion KPIs, implementation phases updated, restored full PRD detail** |
 | **2.2.0** | **2026-04-28** | **Engineering Team** | **Aligned status with completed Phases 1-4 (public hardening, cash/reconciliation, PWA/offline, session security) and re-baselined remaining work to Phases 5-7 (Voyage ingestion, test stabilization, cleanup/docs).** |
 | **2.3.0** | **2026-04-29** | **Engineering Team** | **Consolidated scattered root documentation into canonical `docs/project/*`; added Appendix E (public content accuracy, gated verification pointer); updated references to `docs/TESTING_GUIDE.md`.** |
-| **2.3.1** | **2026-05-13** | **Product / engineering** | **Added §7.5 pointer to `docs/REBRAND_QUESTIONNAIRE_AND_LANDSCAPE.md` (brand questionnaire answers, competitor landscape, positioning).** |
+| **2.3.1** | **2026-05-13** | **Product / engineering** | **Added §7.5 pointer to the brand questionnaire (brand answers, competitor landscape, positioning).** |
 | **2.3.2** | **2026-05-13** | **Product / engineering** | **Expanded §7.5 to cover Playing to Win, Four Seasons analogy, MBA Project 9, wordmark-first logo (rebrand doc v1.1).** |
 | **2.4.0** | **2026-05-16** | **Product Team** | **Major consolidation:** personas, technical stack, knowledge base, partner network, room inventory; single source of truth for product requirements. |
 | **2.4.1** | **2026-05-16** | **Product Team** | **§4.6 Repository structure:** full `tree` output (depth 3), top-level and route-group maps; §4.3 `proxy.ts`; Next.js 16 in §4.1. |
@@ -2858,7 +2955,9 @@ Do not add new project `.md` files — extend **PRD**, **PLANNING**, or **TASK**
 | **2.9.3** | **2026-05-17** | **Engineering** | **Fraud:** `tenant-fraud-rules.ts` wires `0016` to `PsdFraudGate` + analyze API; production fail-closed; preflight 12/12 (May 17). |
 | **2.9.4** | **2026-05-17** | **Engineering** | **PostHog:** `instrumentation-client.ts`, `@posthog/react`, `defaults: 2026-01-30`. **Playwright:** 1.60.0, 3 viewport projects, `responsive-layout.spec.ts`. **Tests:** workflow YAML tests refreshed (`ci-workflow`, `deploy-workflow`); Vitest **427**/429; `test:ci` gate green. |
 | **2.9.5** | **2026-05-17** | **Engineering** | **§6.5** DNS + local vs production env: canonical `www.hoteletuna.com`, Vercel DNS table, `.env.local` localhost documented; `env:push-vercel` → `www`; `.env.example` comments. |
+| **2.9.6** | **2026-06-08** | **Engineering** | **Doc consolidation to 3 SoT (PRD/PLANNING/TASK).** §9.5 now holds locked brand & design-system decisions (folded from the rebrand questionnaire); §3.3 gains room/facility source-of-truth paths (folded from `ROOM_INVENTORY.md`). Buffr proposal removed (commercial terms handled with counsel out-of-band). PLANNING gains a SQL↔API↔Frontend matrix + Dispatch agents section; TASK gains a Production gaps table. |
+| **2.10.0** | **2026-06-08** | **Product Team** | **Agentic CRM & Intelligent OS vision folded into the 3 SoT.** New §1.1 (core promise, 3 pillars, 5 goals); §8.1 vision metrics (hub adoption, digital check‑in, upsell, RevPAR, NPS, Sofia resolution); §13 Phases 8–12 roadmap (~16 weeks) with guardrails. PLANNING gains § Agentic CRM & Intelligent OS roadmap; TASK gains § Agentic CRM & Intelligent OS (Vision) subtasks. `TREE.txt` regenerated (499 dirs / 1058 files, depth 5). |
 
 ---
 
-*This PRD (v2.9.5) is effective May 17, 2026 and supersedes all previous versions. It will be reviewed quarterly with Hotel Etuna management and updated as needed. All implementation teams must reference this document as the source of truth for product requirements, architecture decisions, and success metrics.*
+*This PRD (v2.10.0) is effective June 8, 2026 and supersedes all previous versions. It will be reviewed quarterly with Hotel Etuna management and updated as needed. All implementation teams must reference this document as the source of truth for product requirements, architecture decisions, and success metrics.*

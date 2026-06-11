@@ -1,13 +1,18 @@
 /**
- * NAMQRService - NamQR code generation and room_qr_codes management using Drizzle
- * Purpose: Generate hospitality QR codes and manage room_qr_codes table
+ * @fileoverview NAMQRService - NamQR code generation and room_qr_codes management using Drizzle.
+ *
+ * Purpose: Generate hospitality (room/table) QR codes and manage the room_qr_codes table.
  * Location: lib/services/qr/NAMQRService.ts
+ *
+ * Not to be confused with `lib/services/openbanking/NamQRService.ts`, which
+ * implements BoN NamQR Standards v5.0 payment QR codes (NRTC/EnCR/IPP streams).
+ * Shared NRTC payload encoding lives in `lib/compliance/namqr/nrtc-payload.ts`.
  */
 
 import { db } from '@/lib/db';
 import { properties, rooms, roomQrCodes } from '@/lib/db/schema';
 import { and, eq } from 'drizzle-orm';
-import { v4 as uuidv4 } from 'uuid';
+import { getPublicAppUrl } from '@/lib/utils/public-app-url';
 import {
   buildNamQrPayeePresentedPayload,
   generateNref,
@@ -50,7 +55,10 @@ export class NamQrService {
     if (!validation.valid) {
       throw new Error(`NamQR validation failed: ${validation.errors.join('; ')}`);
     }
-    const qrCodeUrl = `https://buffr.host/qr/${uuidv4()}`;
+    const { qrCodeUrl } =
+      data.type === 'RESTAURANT' && data.tableNumber
+        ? this.buildRestaurantTableQrUrls(data.tableNumber)
+        : this.buildRoomServiceQrUrls(qrString);
 
     if (!data.roomNumber) {
       throw new Error('roomNumber is required to create QR code');
@@ -100,20 +108,14 @@ export class NamQrService {
    * Guest room-service entry: scan → /guest/room?code=… → public API resolves stay.
    */
   buildRoomServiceQrUrls(qrLookupCode: string): { qrCodeUrl: string; qrCodeImageUrl: string } {
-    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://hoteletuna.com').replace(
-      /\/$/,
-      ''
-    );
+    const appUrl = getPublicAppUrl();
     const qrCodeUrl = `${appUrl}/guest/room?code=${encodeURIComponent(qrLookupCode)}`;
     const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrCodeUrl)}`;
     return { qrCodeUrl, qrCodeImageUrl };
   }
 
   buildRestaurantTableQrUrls(qrLookupCode: string): { qrCodeUrl: string; qrCodeImageUrl: string } {
-    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://hoteletuna.com').replace(
-      /\/$/,
-      ''
-    );
+    const appUrl = getPublicAppUrl();
     const qrCodeUrl = `${appUrl}/restaurant/tables?qr=${encodeURIComponent(qrLookupCode)}`;
     const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrCodeUrl)}`;
     return { qrCodeUrl, qrCodeImageUrl };

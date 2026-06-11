@@ -1,5 +1,5 @@
 /**
- * Hospitality product flags — Hotel Etuna vs Buffr Hub FinTech surfaces.
+ * Hospitality product flags — Hotel Etuna vs platform FinTech surfaces.
  * Location: lib/config/hospitality-flags.ts
  */
 

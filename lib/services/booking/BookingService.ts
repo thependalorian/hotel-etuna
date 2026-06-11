@@ -1,9 +1,20 @@
+/**
+ * @fileoverview BookingService — core booking lifecycle business logic.
+ *
+ * Creates, reads, updates, and transitions bookings (status workflow via
+ * domainTransitions), computes room availability, and enforces deposit rules.
+ * Location: lib/services/booking/BookingService.ts
+ */
 import { db, bookings as bookingsSchema, rooms as roomsSchema, bookingRooms as bookingRoomsSchema } from '@/lib/db';
 import { AppError, handleServiceError } from '@/lib/utils/errors';
 import { and, eq, inArray, notInArray, lt, gt, count, sql } from 'drizzle-orm';
 import type { Booking, Room } from '@/lib/db/schema';
 import { BOOKING_STATUS_TRANSITIONS } from '@/lib/workflows/domainTransitions';
 import { invokeLifecycleTransition } from '@/lib/workflows/genericLifecycleGraph';
+import {
+  assertTransition,
+  type ReservationStatus,
+} from '@/lib/services/booking/ReservationStateMachine';
 import { CrmGraphMemoryService } from '@/lib/services/crm/CrmGraphMemoryService';
 import {
   scheduleBookingCreatedEffects,
@@ -17,6 +28,7 @@ import {
   type CampsitePricingInput,
 } from '@/lib/services/booking/FacilityBookingPricing';
 import { isFacilityBookingKind, type BookingKind } from '@/lib/bookings/booking-kind';
+import { DEFAULT_BOOKING_DEPOSIT_PERCENT, withDepositPricingDetails } from '@/lib/booking/deposit';
 
 // A DTO for creating a booking
 export interface CreateBookingDTO {
@@ -296,6 +308,8 @@ export class BookingService {
         checkInDate: checkInStr,
         checkOutDate: checkOutStr,
         bookingKind: 'accommodation',
+        paymentStatus: String(nb.payment_status ?? 'pending'),
+        totalAmount: Number.parseFloat(String(nb.total_amount ?? 0)) || 0,
       });
 
       const [bookingRow] = await db
@@ -388,15 +402,21 @@ export class BookingService {
           ? calculateConferenceTotal()
           : calculateCampsiteTotal(pricingInput);
 
-      const pricingDetails = {
-        ...(data.pricingDetails ?? {}),
-        ...(data.bookingKind === 'campsite'
-          ? {
-              namibianGuests: pricingInput.namibianGuests,
-              nonNamibianGuests: pricingInput.nonNamibianGuests,
-            }
-          : { sessionDate: checkInStr }),
-      };
+      const depositPercent =
+        Number(data.pricingDetails?.depositPercent) || DEFAULT_BOOKING_DEPOSIT_PERCENT;
+      const pricingDetails = withDepositPricingDetails(
+        {
+          ...(data.pricingDetails ?? {}),
+          ...(data.bookingKind === 'campsite'
+            ? {
+                namibianGuests: pricingInput.namibianGuests,
+                nonNamibianGuests: pricingInput.nonNamibianGuests,
+              }
+            : { sessionDate: checkInStr }),
+        },
+        totalAmount,
+        depositPercent
+      );
 
       const guestCount =
         data.bookingKind === 'campsite'
@@ -409,7 +429,7 @@ export class BookingService {
           INSERT INTO bookings (
             id, tenant_id, property_id, guest_id, booking_reference, status,
             check_in_date, check_out_date, room_count, adult_count, child_count,
-            total_amount, currency, payment_status, booking_kind, pricing_details,
+            total_amount, deposit_percent, currency, payment_status, booking_kind, pricing_details,
             created_at, updated_at
           )
           VALUES (
@@ -425,6 +445,7 @@ export class BookingService {
             ${guestCount},
             0,
             ${totalAmount},
+            ${depositPercent},
             'NAD',
             'pending',
             ${data.bookingKind},
@@ -644,11 +665,15 @@ export class BookingService {
         throw new AppError(404, 'Booking not found');
       }
 
+      const currentStatus = (booking.status || 'pending') as ReservationStatus;
+      const normalizedTarget = targetStatus.trim().toLowerCase() as ReservationStatus;
+      assertTransition(currentStatus, normalizedTarget);
+
       const out = await invokeLifecycleTransition(
         'booking',
         BOOKING_STATUS_TRANSITIONS,
-        booking.status || 'pending',
-        targetStatus
+        currentStatus,
+        normalizedTarget
       );
 
       if (out.errorMessage || !out.resolvedStatus) {

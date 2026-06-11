@@ -36,7 +36,7 @@ export type HotelEtunaEmailSignatureOptions = {
   includeAmenities?: boolean;
   /** Absolute site origin for logo + links */
   siteUrl?: string;
-  /** Embed mark image (SVG; some clients need PNG at /brand/hotel-etuna-mark.png when added) */
+  /** Embed mark image (PNG for broad email client support). */
   includeLogo?: boolean;
 };
 
@@ -74,7 +74,7 @@ export function getHotelEtunaEmailSignatureHtml(
   const logoCell = includeLogo
     ? `
         <td style="vertical-align: top; padding-right: 16px; width: 64px;">
-          <img src="${siteUrl}/brand/hotel-etuna-mark.svg" width="56" height="56" alt="Hotel Etuna" style="display: block; border: 0; width: 56px; height: 56px;" />
+          <img src="${siteUrl}${brand.assets.logoMark}" width="56" height="56" alt="Hotel Etuna" style="display: block; border: 0; width: 56px; height: 56px;" />
         </td>`
     : '';
 

@@ -172,8 +172,8 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="buffr-page-title">Settings</h1>
-        <p className="buffr-page-desc mt-2">
+        <h1 className="etuna-page-title">Settings</h1>
+        <p className="etuna-page-desc mt-2">
           Manage your application settings and preferences
         </p>
       </div>

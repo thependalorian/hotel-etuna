@@ -1,3 +1,7 @@
+# Required GitHub secrets (hotel-etuna repo):
+#   DATABASE_URL — Neon pooled connection for collect-evidence + RLS checks
+#   DATABASE_URL_UNPOOLED — direct Neon host for verify-pgaudit.ts (extension queries)
+#   HUB_TENANT_ID — hub tenant UUID for SOC2 agent scope
 name: SOC 2 Evidence Collection
 
 on:
@@ -9,7 +13,7 @@ jobs:
   soc2-audit:
     name: Run SOC 2 audit agents
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     steps:
       - uses: actions/checkout@v4
@@ -21,6 +25,19 @@ jobs:
 
       - run: npm ci
         working-directory: hotel-etuna
+
+      - name: Policy runtime anchor checks
+        working-directory: hotel-etuna
+        run: npx tsx scripts/compliance/validate-policy-implementation.ts --json
+        continue-on-error: true
+
+      - name: Verify pgAudit (Neon)
+        working-directory: hotel-etuna
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+        run: npx tsx scripts/compliance/verify-pgaudit.ts --json
+        continue-on-error: true
 
       - name: Collect SOC 2 evidence
         working-directory: hotel-etuna
@@ -34,5 +51,7 @@ jobs:
         if: always()
         with:
           name: soc2-evidence
-          path: hotel-etuna/compliance/evidence/soc2/*.json
+          path: |
+            hotel-etuna/compliance/evidence/soc2/*.json
+            hotel-etuna/compliance/evidence/2026-*/pgaudit-status.json
           retention-days: 90

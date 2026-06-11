@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { db, properties } from '@/lib/db';
 import { and, eq } from 'drizzle-orm';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {

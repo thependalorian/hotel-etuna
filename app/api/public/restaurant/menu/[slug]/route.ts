@@ -7,7 +7,7 @@ import {
   restaurants,
 } from '@/lib/db';
 import { and, asc, eq } from 'drizzle-orm';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {

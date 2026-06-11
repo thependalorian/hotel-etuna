@@ -12,7 +12,7 @@
 This document maps **Namibian law and regulatory determinations** to Hotel Etuna product controls, policies, and evidence. It complements:
 
 - SOC 2 program: [`docs/project/SOC2_IMPLEMENTATION_PLAN.md`](../project/SOC2_IMPLEMENTATION_PLAN.md)
-- Commercial contract draft: [`docs/BUFFR_FINANCIAL_SERVICES_PROPOSAL_AND_SLA.md`](../BUFFR_FINANCIAL_SERVICES_PROPOSAL_AND_SLA.md)
+- Commercial terms (Buffr ↔ Etuna): handled with counsel out-of-band; technical canon in `docs/project/PLANNING.md` § Payment strategy
 - Engineering index: [`lib/compliance/regulatory-context.ts`](../../lib/compliance/regulatory-context.ts)
 - Security reviews: [`docs/SECURITY_PROMPT_PACK.md`](../SECURITY_PROMPT_PACK.md)
 

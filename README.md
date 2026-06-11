@@ -7,21 +7,21 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict-blue)](https://www.typescriptlang.org/)
 [![Neon](https://img.shields.io/badge/Database-Neon%20PostgreSQL-green)](https://neon.tech)
 
-**Forked from:** Buffr Host v1.0.0  
-**Version:** 2.0.0 (Hotel Etuna Hub-and-Spoke)  
-**Last Updated:** May 16, 2026
+**Lineage:** Evolved from Buffr Host v1.0.0 (internal platform codebase)  
+**Version:** 2.0.0 — **Single-property OS** (Hotel Etuna hub + referral partners)  
+**Last Updated:** June 2026
 
-**Production:** Deployed on **Vercel** (`hoteletuna.com`). **Canonical docs:** [`docs/project/PRD.md`](docs/project/PRD.md) · [`PLANNING.md`](docs/project/PLANNING.md) · [`TASK.md`](docs/project/TASK.md) (testing, deployment, smoke). Automated tests: **Vitest `427+ passed`** (`npm run test`); Playwright E2E: **`npm run test:e2e`**. Sofia RAG uses **Qdrant Cloud Inference** (`intfloat/multilingual-e5-small`, 384d); run `npm run rag:seed` after setting `QDRANT_*` in `.env.local`.
+**Canonical OS doc:** [`docs/project/HOTEL_ETUNA_OS.md`](docs/project/HOTEL_ETUNA_OS.md)
+
+**Production:** Deployed on **Vercel** (`hoteletuna.com`). **Canonical docs:** [`docs/project/PRD.md`](docs/project/PRD.md) · [`PLANNING.md`](docs/project/PLANNING.md) · [`TASK.md`](docs/project/TASK.md) (testing, deployment, smoke). Automated tests: **Vitest `777+ passed`** (`npm run test:ci`); Playwright E2E: **`npm run test:e2e`**. Sofia RAG uses **Qdrant Cloud Inference** (`intfloat/multilingual-e5-small`, 384d); run `npm run rag:seed` after setting `QDRANT_*` in `.env.local`.
 
 ---
 
 ## Overview
 
-Hotel Etuna is a custom hospitality platform serving:
-- **Hotel Etuna** (hub) - Full PMS, Sofia AI concierge, restaurant, CRM
-- **Referral Partners** (Jayla Accommodation, Aquarius Airbnb) - Self-service property listing
+Hotel Etuna is the **single-property operating system** for the flagship hotel in Ongwediva, with optional **referral partner listings** (JayLa, Aquarius) on the same public site.
 
-Built on a hub-and-spoke multi-tenant architecture with exclusive AI capabilities for the flagship property.
+Built as one hub property on shared infrastructure — not a multi-tenant Buffr Host SaaS signup.
 
 ---
 
@@ -37,7 +37,8 @@ Built on a hub-and-spoke multi-tenant architecture with exclusive AI capabilitie
 | **Guest CRM** | Profiles, preferences, loyalty tiers, marketing consent (PSD-4 compliant) |
 | **Guest services** | Airport shuttle, pool, on-site restaurant |
 | **Email Automation** | Booking confirmations, check-in reminders, post-stay follow-ups |
-| **Staff Management** | Roles, permissions, audit logging |
+| **Staff Management** | Roles, schedules, salary/hourly rates, `/staff/[id]/edit` |
+| **Namibia Payroll** | In-repo PAYE + SSC (`/payroll`), payslips, NamRA export CSVs |
 | **Housekeeping** | Task board, room status tracking, auto-task on checkout |
 | **Loyalty Program** | 4-tier (Bronze/Silver/Gold/Platinum), earn/burn points, rewards catalog |
 | **CMS** | Block editor for pages; menu item management |
@@ -190,10 +191,12 @@ CREATE TABLE tenants (
    STACK_SECRET_SERVER_KEY=<stack-secret>
    ```
 
-4. **Apply database migrations** (prefer reviewed SQL migrations; **never confirm** `drizzle-kit push` if it plans mass **`DROP POLICY`** — sync `lib/db/schema.ts` with Neon instead):
+4. **Apply database migrations** (canonical journal `0000`–`0054` — see `docs/project/MIGRATION_MASTER.md`; **never confirm** `drizzle-kit push` if it plans mass **`DROP POLICY`**):
    ```bash
-   npx drizzle-kit push   # inspect output first — abort if destructive
-   npm run db:seed  # if your repo provides seed scripts
+   npm run db:migrate:all      # idempotent operator SQL (0003–0060)
+   npm run test:db:migrations  # verify on Neon
+   npm run provision:hotel-team  # founder/admin/frontdesk/marketing/support logins
+   npm run seed:introducers      # sample CRM introducers + public directory
    ```
 
 5. **Start development server:**
@@ -248,7 +251,7 @@ hotel-etuna/
 │   ├── compliance/          # NamQR, SOC2 agents, security pack
 │   └── auth/                # NextAuth config + middleware
 ├── middleware.ts             # Tenant routing + security gate
-├── database/drizzle/         # SQL migration files (0000–0037)
+├── database/drizzle/         # SQL migration files (0000–0054)
 ├── e2e/                      # Playwright E2E specs (10 files)
 ├── tests/                    # Vitest unit + integration tests
 ├── docs/project/PRD.md       # Product requirements (canonical)
@@ -486,11 +489,9 @@ npm run test:e2e:ui
 |----------|---------|
 | [`docs/project/PRD.md`](docs/project/PRD.md) | Product requirements, design, appendices |
 | [`docs/project/PLANNING.md`](docs/project/PLANNING.md) | Architecture, phases, payment flows, DB design |
-| [`docs/project/TASK.md`](docs/project/TASK.md) | Smoke tests, deployment checklist, open work |
-| [`docs/AUDIT_FINDINGS.md`](docs/AUDIT_FINDINGS.md) | Documentation audit — status matrix + findings |
+| [`docs/project/TASK.md`](docs/project/TASK.md) | Smoke tests, deployment checklist, open work, **Production gaps** |
 | [`docs/naming-conventions.md`](docs/naming-conventions.md) | Naming conventions guide |
 | [`docs/compliance/`](docs/compliance/) | Policies, IRP, AML/KYC, Namibia regulatory framework |
-| [`docs/REBRAND_QUESTIONNAIRE_AND_LANDSCAPE.md`](docs/REBRAND_QUESTIONNAIRE_AND_LANDSCAPE.md) | Brand & market strategy |
 
 Canonical project docs live in `docs/project/`. Compliance docs live in `docs/compliance/`.
 

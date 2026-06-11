@@ -4,20 +4,22 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { requirePlatformAdmin } from '@/lib/auth/platform-admin';
+import { withPlatformAdminAuth } from '@/lib/auth/with-platform-admin-auth';
 import { AiObservabilityService } from '@/lib/services/platform/AiObservabilityService';
 import { securityLogger } from '@/lib/utils/security-logger';
 
 export async function GET(request: NextRequest) {
-  try {
-    await requirePlatformAdmin();
-    const days = Math.min(90, Math.max(7, Number(new URL(request.url).searchParams.get('days') ?? 30)));
-    const summary = await new AiObservabilityService().getSummary(days);
-    return NextResponse.json({ data: summary });
-  } catch (error) {
-    securityLogger.error('[GET ai-observability]', error);
-    const message = error instanceof Error ? error.message : 'Failed';
-    const status = message.includes('Unauthorized') ? 403 : 500;
-    return NextResponse.json({ error: message }, { status });
-  }
+  return withPlatformAdminAuth(request, async (req) => {
+    try {
+      const days = Math.min(
+        90,
+        Math.max(7, Number(new URL(req!.url).searchParams.get('days') ?? 30))
+      );
+      const summary = await new AiObservabilityService().getSummary(days);
+      return NextResponse.json({ data: summary });
+    } catch (error) {
+      securityLogger.error('[GET ai-observability]', error);
+      return NextResponse.json({ error: 'Failed to load AI observability' }, { status: 500 });
+    }
+  });
 }

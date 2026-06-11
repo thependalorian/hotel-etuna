@@ -16,6 +16,15 @@ Ensure Hotel Etuna can continue critical business operations during and after di
 
 All production systems supporting guest bookings, payments, and staff operations — including Vercel (application), Neon (database), Qdrant (AI), and Adumo (payments).
 
+
+## Definitions
+
+| Term | Definition |
+|------|------------|
+| **Hotel Etuna** | Hub hospitality platform and operating entity |
+| **Personnel** | Employees, contractors, and partners with access to Hotel Etuna systems |
+| **Production** | Live environment serving guests and partners (Vercel + Neon production branch) |
+
 ## 3. Recovery Objectives
 
 | Metric | Target | System |
@@ -71,16 +80,30 @@ All production systems supporting guest bookings, payments, and staff operations
 | **Front Desk** | Execute manual check-in; collect cash payments; log incidents |
 
 ## 8. Related Documents
+- [`INFORMATION_SECURITY_POLICY.md`](INFORMATION_SECURITY_POLICY.md)
+
+- [`NAMIBIA_REGULATORY_FRAMEWORK.md`](../NAMIBIA_REGULATORY_FRAMEWORK.md)
+
+- [`POLICY_IMPLEMENTATION_MATRIX.md`](../../../compliance/evidence/policies/POLICY_IMPLEMENTATION_MATRIX.md)
 
 - [`BACKUP_POLICY.md`](BACKUP_POLICY.md)
 - [`../BUSINESS_CONTINUITY_PLAN.md`](../BUSINESS_CONTINUITY_PLAN.md) — detailed procedures
 - [`../INCIDENT_RESPONSE_PLAN.md`](../INCIDENT_RESPONSE_PLAN.md)
 - [`VENDOR_MANAGEMENT_POLICY.md`](VENDOR_MANAGEMENT_POLICY.md)
 
+## Exceptions
+
+Exceptions require written approval from the Policy Owner and Executive Sponsor. Document compensating controls in the risk register.
+
+## Enforcement
+
+Violations may result in disciplinary action up to termination and reporting to regulators where required.
+
 ## 9. Revision History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1 | 2026-06-10 | CTO | Template conformance + implementation cross-ref |
 | 1.0 | 2026-06-02 | CTO | Initial policy |
 
 **Approved by:** _________________________ Date: _________

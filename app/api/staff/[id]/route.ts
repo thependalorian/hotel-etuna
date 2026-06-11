@@ -12,7 +12,7 @@ import { createStaffSchema } from '@/lib/utils/validation';
 import { entityId } from '@/lib/validation/entity-ids';
 import { AppError } from '@/lib/utils/errors';
 import type { NewStaff } from '@/lib/db/schema';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const staffService = new StaffService();
 

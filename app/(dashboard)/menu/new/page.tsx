@@ -116,7 +116,7 @@ export default function NewMenuItemPage() {
           </button>
         </Link>
         <div>
-          <h1 className="buffr-page-title mb-2">Add Menu Item</h1>
+          <h1 className="etuna-page-title mb-2">Add Menu Item</h1>
           <p className="text-base-content/70">
             Create a new menu item for your restaurant
           </p>

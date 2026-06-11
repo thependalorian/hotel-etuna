@@ -303,7 +303,7 @@ export class SecurityIncidentService {
           headers: {
             Authorization: `Bearer ${bonApiKey}`,
             'Content-Type': 'application/json',
-            'X-Reporting-Entity': 'buffr-host',
+            'X-Reporting-Entity': 'etuna-host',
           },
           body: JSON.stringify(reportPayload),
         });

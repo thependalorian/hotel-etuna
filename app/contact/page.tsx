@@ -56,9 +56,8 @@ export default function ContactPage() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-terracotta-900 mb-1">Address</h3>
-                        <p className="text-terracotta-800">
-                          5544 Valley Street<br />
-                          Ongwediva, Namibia
+                        <p className="text-terracotta-800 whitespace-pre-line">
+                          {brand.address.replace(/, /g, '\n')}
                         </p>
                       </div>
                     </div>
@@ -129,21 +128,18 @@ export default function ContactPage() {
                   </p>
                 </div>
 
-                {/* Social Media */}
+                {/* Events & media */}
                 <div className="bg-white rounded-2xl p-6 shadow-card">
-                  <h3 className="font-semibold text-terracotta-900 mb-4">Follow Us</h3>
-                  <div className="flex gap-3">
-                    {['facebook', 'instagram', 'linkedin', 'twitter'].map((platform) => (
-                      <a
-                        key={platform}
-                        href={`#${platform}`}
-                        className="w-12 h-12 bg-nude-100 hover:bg-khaki-600 rounded-full flex items-center justify-center text-terracotta-900 hover:text-white transition-colors"
-                        aria-label={`Follow us on ${platform}`}
-                      >
-                        {platform[0].toUpperCase()}
-                      </a>
-                    ))}
-                  </div>
+                  <h3 className="font-semibold text-terracotta-900 mb-2">Events &amp; media</h3>
+                  <p className="text-sm text-terracotta-800 mb-4">
+                    Conference hall, campsite, and marketing enquiries:
+                  </p>
+                  <a
+                    href={`mailto:${brand.emailMarketing}`}
+                    className="btn btn-outline rounded-full px-6 border-khaki-600 text-khaki-700 hover:bg-khaki-600 hover:text-white hover:border-khaki-600"
+                  >
+                    {brand.emailMarketing}
+                  </a>
                 </div>
               </div>
             </div>
@@ -158,21 +154,26 @@ export default function ContactPage() {
                 Find Us
               </h2>
               
-              {/* Map Placeholder */}
-              <div className="bg-nude-200 rounded-2xl h-[500px] flex items-center justify-center">
-                <div className="text-center">
-                  <MapPin className="w-16 h-16 text-terracotta-800 mx-auto mb-4" />
-                  <p className="text-terracotta-900 font-semibold text-lg mb-2">
-                    5544 Valley Street, Ongwediva, Namibia
-                  </p>
-                  <p className="text-terracotta-800">
-                    5 minutes from Ongwediva Trade Fair
-                  </p>
-                  <p className="text-sm text-terracotta-800 mt-4">
-                    Interactive map integration coming soon
-                  </p>
-                </div>
+              <div className="rounded-2xl overflow-hidden shadow-card h-[500px]">
+                <iframe
+                  title={`Map — ${brand.name}, Ongwediva`}
+                  src="https://maps.google.com/maps?q=5544+Valley+Street,+Ongwediva,+Namibia&z=15&output=embed"
+                  className="w-full h-full border-0"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  allowFullScreen
+                />
               </div>
+              <p className="text-center text-sm text-terracotta-800 mt-4">
+                <a
+                  href="https://maps.google.com/?q=5544+Valley+Street,+Ongwediva,+Namibia"
+                  className="text-khaki-700 hover:text-khaki-600 underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Open in Google Maps
+                </a>
+              </p>
 
               {/* Directions */}
               <div className="grid md:grid-cols-2 gap-6 mt-8">

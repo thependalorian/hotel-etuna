@@ -11,7 +11,7 @@
  * - User session validation
  * 
  * Stack Auth Project ID: 8935f921-3c67-4e2e-b40f-76c9af7bf79d
- * Trusted Domain: https://host.buffr.ai
+ * Trusted domain: NEXT_PUBLIC_APP_URL (https://www.hoteletuna.com in production)
  */
 
 import { stackServerApp } from '@/stack';

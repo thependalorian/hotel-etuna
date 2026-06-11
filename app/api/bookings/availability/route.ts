@@ -1,17 +1,30 @@
+/**
+ * @fileoverview Room availability API (public, optional-auth).
+ *
+ * GET/POST /api/bookings/availability — returns available rooms for a property
+ * and date range. Anonymous callers receive rate-stripped rows (gated pricing);
+ * authenticated callers (Stack Auth or NextAuth, via the shared dual-auth
+ * cascade in lib/utils/api-helpers) receive full rates.
+ */
 import { NextResponse, NextRequest } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+import { getAuthenticatedUser } from '@/lib/utils/api-helpers';
 import { BookingService } from '@/lib/services/booking/BookingService';
 import { stripRatesFromAvailabilityRow } from '@/lib/rooms/public-rate';
 import { AppError } from '@/lib/utils/errors';
 
 const bookingService = new BookingService();
 
+/**
+ * Shape the availability payload based on auth state.
+ * Anonymous users get rate-stripped rows; authenticated users get full rates.
+ */
 async function respondWithAvailability(
+  request: NextRequest,
   availableRooms: Awaited<ReturnType<BookingService['getAvailableRooms']>>,
 ) {
-  const session = await getServerSession(authOptions);
-  const isAuthenticated = Boolean(session?.user);
+  // Dual-auth cascade (Stack Auth → NextAuth) so both auth systems unlock rates.
+  const user = await getAuthenticatedUser(request);
+  const isAuthenticated = Boolean(user);
   const payload = isAuthenticated
     ? availableRooms
     : availableRooms.map((room) => stripRatesFromAvailabilityRow(room));
@@ -36,7 +49,7 @@ export async function GET(request: NextRequest) {
       new Date(checkOutDate)
     );
 
-    return respondWithAvailability(availableRooms);
+    return respondWithAvailability(request, availableRooms);
   } catch (error) {
     if (error instanceof AppError) {
       return NextResponse.json({ message: error.message }, { status: error.statusCode });
@@ -62,7 +75,7 @@ export async function POST(request: NextRequest) {
       new Date(checkOutDate)
     );
 
-    return respondWithAvailability(availableRooms);
+    return respondWithAvailability(request, availableRooms);
   } catch (error) {
     if (error instanceof AppError) {
       return NextResponse.json({ message: error.message }, { status: error.statusCode });

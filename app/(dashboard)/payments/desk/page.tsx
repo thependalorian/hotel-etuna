@@ -44,6 +44,14 @@ export default function PaymentsDeskPage() {
         <p className="mt-2 text-xs text-base-content/60">
           Open a booking in Bookings, copy its ID, then record payment or tie NamQR to the stay.
         </p>
+        {bookingId.trim() ? (
+          <Link
+            href={`/bookings/${bookingId.trim()}#documents`}
+            className="btn btn-outline btn-sm rounded-full mt-3"
+          >
+            Financial documents for this booking →
+          </Link>
+        ) : null}
       </Card>
 
       <Card className="p-4 md:p-6">

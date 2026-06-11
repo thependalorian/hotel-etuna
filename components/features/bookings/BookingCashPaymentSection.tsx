@@ -105,6 +105,26 @@ export function BookingCashPaymentSection({
               type="button"
               variant="outline"
               size="md"
+              onClick={async () => {
+                const list = await fetch(`/api/documents?bookingId=${booking.id}`);
+                const json = await list.json();
+                const rows = json.success ? (json.data ?? []) : [];
+                const receipt = rows.find(
+                  (d: { documentType: string }) => d.documentType === 'receipt'
+                );
+                if (receipt?.id) {
+                  window.open(`/api/documents/${receipt.id}/download`, '_blank', 'noopener');
+                  return;
+                }
+                document.getElementById('documents')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              Download PDF receipt
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="md"
               onClick={() => setShowReceiptModal(true)}
             >
               View / Print Receipt

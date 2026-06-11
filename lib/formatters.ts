@@ -14,11 +14,31 @@ export function formatDate(value: Date | string | number | null | undefined, loc
   return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(date);
 }
 
+export function formatDateLong(value: Date | string | number | null | undefined, locale = DEFAULT_LOCALE): string {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+  return new Intl.DateTimeFormat(locale, {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(date);
+}
+
 export function formatDateTime(value: Date | string | number | null | undefined, locale = DEFAULT_LOCALE): string {
   if (!value) return '-';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '-';
   return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(date);
+}
+
+/** Short time for chat bubbles (e.g. 14:30). */
+export function formatTime(value: Date | string | number | null | undefined, locale = DEFAULT_LOCALE): string {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+  return new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }).format(date);
 }
 
 export function formatCurrencyNAD(value: number | string | null | undefined, locale = DEFAULT_LOCALE): string {
@@ -27,6 +47,11 @@ export function formatCurrencyNAD(value: number | string | null | undefined, loc
     style: 'currency',
     currency: DEFAULT_CURRENCY,
   }).format(Number.isFinite(amount) ? amount : 0);
+}
+
+export function formatNumber(value: number | string | null | undefined, locale = DEFAULT_LOCALE): string {
+  const amount = Number(value ?? 0);
+  return new Intl.NumberFormat(locale).format(Number.isFinite(amount) ? amount : 0);
 }
 
 export function formatCompactNumber(value: number | string | null | undefined, locale = DEFAULT_LOCALE): string {

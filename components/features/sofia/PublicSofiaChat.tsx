@@ -25,15 +25,12 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/Card'
 import { SofiaAvatar } from '@/components/ui';
 import { cn } from '@/lib/utils/cn';
 import { apiUrl } from '@/lib/utils/api-url';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { SofiaChatMessagePane } from '@/components/features/sofia/SofiaChatMessagePane';
+import { SofiaChatInputRow } from '@/components/features/sofia/SofiaChatInputRow';
+import { useSofiaAutoScroll } from '@/components/features/sofia/useSofiaAutoScroll';
+import type { SofiaChatMessage } from '@/components/features/sofia/sofia-chat-types';
 import { MessageCircle, X, Minimize2 } from 'lucide-react';
 import { securityLogger } from '@/lib/utils/security-logger.client';
-
-interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp?: Date;
-}
 
 interface PublicSofiaChatProps {
   propertySlug: string;
@@ -43,7 +40,7 @@ interface PublicSofiaChatProps {
 export function PublicSofiaChat({ propertySlug, className }: PublicSofiaChatProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([
+  const [messages, setMessages] = useState<SofiaChatMessage[]>([
     {
       role: 'assistant',
       content: "Hello! I'm Sofia, your AI concierge. I can help you with bookings, reservations, and any questions about this property. How can I assist you today?",
@@ -56,24 +53,19 @@ export function PublicSofiaChat({ propertySlug, className }: PublicSofiaChatProp
   const [needsEmail, setNeedsEmail] = useState(false);
   const [emailInput, setEmailInput] = useState('');
   const [sessionId] = useState(() => `public_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const messagesEndRef = useSofiaAutoScroll(messages.length, loading, isOpen && !isMinimized);
 
   useEffect(() => {
     if (isOpen && !isMinimized) {
-      scrollToBottom();
       inputRef.current?.focus();
     }
-  }, [messages, isOpen, isMinimized]);
+  }, [isOpen, isMinimized]);
 
   const sendMessage = async () => {
     if (input.trim() === '' || loading) return;
 
-    const userMessage: ChatMessage = {
+    const userMessage: SofiaChatMessage = {
       role: 'user',
       content: input.trim(),
       timestamp: new Date(),
@@ -125,7 +117,7 @@ export function PublicSofiaChat({ propertySlug, className }: PublicSofiaChatProp
         setEmailInput('');
       }
       
-      const assistantMessage: ChatMessage = {
+      const assistantMessage: SofiaChatMessage = {
         role: 'assistant',
         content: data.response || 'I apologize, but I encountered an error. Please try again.',
         timestamp: new Date(),
@@ -134,7 +126,7 @@ export function PublicSofiaChat({ propertySlug, className }: PublicSofiaChatProp
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       securityLogger.error('Error sending message:', error);
-      const errorMessage: ChatMessage = {
+      const errorMessage: SofiaChatMessage = {
         role: 'assistant',
         content: 'I apologize, but I encountered an error. Please try again or contact us directly.',
         timestamp: new Date(),
@@ -142,13 +134,6 @@ export function PublicSofiaChat({ propertySlug, className }: PublicSofiaChatProp
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
     }
   };
 
@@ -209,49 +194,13 @@ export function PublicSofiaChat({ propertySlug, className }: PublicSofiaChatProp
 
         {!isMinimized && (
           <>
-            <CardContent className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
-              {messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={cn(
-                    'flex gap-3',
-                    message.role === 'user' ? 'justify-end' : 'justify-start'
-                  )}
-                >
-                  {message.role === 'assistant' && (
-                    <SofiaAvatar size="sm" variant="gradient" className="flex-shrink-0" />
-                  )}
-                  <div
-                    className={cn(
-                      'max-w-[80%] rounded-lg px-4 py-2',
-                      message.role === 'user'
-                        ? 'bg-primary text-primary-content'
-                        : 'bg-base-200 text-base-content'
-                    )}
-                  >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                    {message.timestamp && (
-                      <p className="text-xs opacity-60 mt-1">
-                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </p>
-                    )}
-                  </div>
-                  {message.role === 'user' && (
-                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs font-semibold text-primary">You</span>
-                    </div>
-                  )}
-                </div>
-              ))}
-              {loading && (
-                <div className="flex gap-3 justify-start">
-                  <SofiaAvatar size="sm" variant="gradient" />
-                  <div className="bg-base-200 rounded-lg px-4 py-2">
-                    <LoadingSpinner size="sm" />
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
+            <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
+              <SofiaChatMessagePane
+                messages={messages}
+                loading={loading}
+                endRef={messagesEndRef}
+                variant="public"
+              />
             </CardContent>
 
             <CardFooter className="border-t border-base-300 flex-shrink-0 p-4">
@@ -295,7 +244,7 @@ export function PublicSofiaChat({ propertySlug, className }: PublicSofiaChatProp
                             setInput(emailMsg);
                             setTimeout(() => {
                               // Create a synthetic message to send
-                              const syntheticMessage: ChatMessage = {
+                              const syntheticMessage: SofiaChatMessage = {
                                 role: 'user',
                                 content: emailMsg,
                                 timestamp: new Date(),
@@ -318,27 +267,14 @@ export function PublicSofiaChat({ propertySlug, className }: PublicSofiaChatProp
                   </div>
                 )}
                 
-                {/* Regular message input */}
-                <div className="flex gap-2 w-full">
-                  <Input
-                    ref={inputRef}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Type your message..."
-                    disabled={loading}
-                    className="flex-1"
-                    aria-label="Message input"
-                  />
-                  <Button
-                    onClick={sendMessage}
-                    disabled={loading || !input.trim()}
-                    className="min-h-[44px]"
-                    aria-label="Send message"
-                  >
-                    {loading ? <LoadingSpinner size="sm" /> : 'Send'}
-                  </Button>
-                </div>
+                <SofiaChatInputRow
+                  value={input}
+                  onChange={setInput}
+                  onSend={() => void sendMessage()}
+                  loading={loading}
+                  inputRef={inputRef}
+                  variant="compact"
+                />
               </div>
             </CardFooter>
           </>

@@ -17,17 +17,14 @@ import {
   createTestUser,
 } from '../utils/test-helpers';
 
-const { mockGetAuthenticatedUser } = vi.hoisted(() => ({
-  mockGetAuthenticatedUser: vi.fn(),
+// Reason: the route now uses withPlatformApiAuth (=withApiAuth), which calls
+// getAuthenticatedUser *internally* — mocking the api-helpers export no longer intercepts
+// it. Mock next-auth's getServerSession instead (the path getAuthenticatedUser falls through
+// to when Stack Auth is disabled in tests), matching tests/integration/reviews-api.test.ts.
+const getServerSessionMock = vi.fn();
+vi.mock('next-auth', () => ({
+  getServerSession: (...args: unknown[]) => getServerSessionMock(...args),
 }));
-
-vi.mock('@/lib/utils/api-helpers', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/utils/api-helpers')>();
-  return {
-    ...actual,
-    getAuthenticatedUser: (...args: unknown[]) => mockGetAuthenticatedUser(...args),
-  };
-});
 
 describe('POST /api/compliance/kyc/upgrade-prompts', () => {
   let tenantId: string;
@@ -68,11 +65,8 @@ describe('POST /api/compliance/kyc/upgrade-prompts', () => {
   });
 
   it('marks a prompt as shown and records audit trail', async () => {
-    mockGetAuthenticatedUser.mockResolvedValue({
-      id: userId,
-      email: 'kyc-api@example.com',
-      role: 'admin',
-      tenantId,
+    getServerSessionMock.mockResolvedValue({
+      user: { id: userId, email: 'kyc-api@example.com', role: 'admin', tenantId },
     });
 
     const { POST } = await import('@/app/api/compliance/kyc/upgrade-prompts/route');
@@ -110,11 +104,8 @@ describe('POST /api/compliance/kyc/upgrade-prompts', () => {
   }, 90_000);
 
   it('rejects prompt mutation from a different tenant', async () => {
-    mockGetAuthenticatedUser.mockResolvedValue({
-      id: userId,
-      email: 'kyc-api@example.com',
-      role: 'admin',
-      tenantId: otherTenantId,
+    getServerSessionMock.mockResolvedValue({
+      user: { id: userId, email: 'kyc-api@example.com', role: 'admin', tenantId: otherTenantId },
     });
 
     const { POST } = await import('@/app/api/compliance/kyc/upgrade-prompts/route');

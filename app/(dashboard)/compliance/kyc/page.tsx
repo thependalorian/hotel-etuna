@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { getSessionWithTenantContext } from '@/lib/auth/tenant-context';
 import { ComplianceVerificationService } from '@/lib/services/compliance/ComplianceVerificationService';
 import PageHeader from '@/components/shared/PageHeader';
+import { formatDateTime } from '@/lib/formatters';
 
 export const dynamic = 'force-dynamic';
 
@@ -102,7 +103,7 @@ export default async function ComplianceKycPage() {
                     <td>{c.kycTier}</td>
                     <td className="text-sm text-base-content/70">
                       {c.updatedAt
-                        ? new Date(c.updatedAt).toLocaleString()
+                        ? formatDateTime(c.updatedAt)
                         : '—'}
                     </td>
                     <td>

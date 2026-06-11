@@ -1,6 +1,9 @@
 /**
  * Sofia AI Chat Functionality Tests - COMPREHENSIVE
- * 
+ *
+ * LLM and EmailService are mocked so CI does not depend on live API keys or SMTP.
+ * Integration coverage with real providers: `tests/sofia/sofia-chat-comprehensive.test.ts` (manual).
+ *
  * Tests Sofia's complete chat capabilities:
  * - Basic chat responses (5 tests) ✅
  * - Intent detection (8 intents) ✅
@@ -15,7 +18,49 @@
  * Total: 53+ comprehensive tests
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
+
+const { mockSendEmail } = vi.hoisted(() => ({
+  mockSendEmail: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('@/lib/services/sofia/EmailService', () => ({
+  EmailService: class {
+    sendEmail = mockSendEmail;
+  },
+}));
+
+vi.mock('@/lib/services/ai/LLMProviderRouter', () => ({
+  LLMProviderRouter: class {
+    chat = vi.fn().mockImplementation(async (messages: { role: string; content: string }[]) => {
+      const lastUser = [...messages].reverse().find((m) => m.role === 'user')?.content ?? '';
+      const lower = lastUser.toLowerCase();
+      let reply = 'Thank you for contacting Hotel Etuna. How can I help you today?';
+      if (/\b(email|send|confirm|quotation|quote|details)\b/.test(lower)) {
+        reply =
+          'I can email those details to you. I have noted your request and will send the confirmation shortly.';
+      } else if (/\b(book|room|stay)\b/.test(lower)) {
+        reply = 'I can help you book a room. What dates are you looking for?';
+      } else if (/\b(food|menu|restaurant|table|reserve)\b/.test(lower)) {
+        reply = 'Our restaurant serves breakfast, lunch, and dinner. I can share the menu or reserve a table.';
+      }
+      return {
+        content: reply,
+        providerId: 'mock',
+        model: 'mock',
+        degraded: false,
+        attemptedProviders: ['mock'],
+      };
+    });
+  },
+}));
+
+vi.mock('@/lib/services/documents/RAGSearchService', () => ({
+  RAGSearchService: class {
+    search = vi.fn().mockResolvedValue([]);
+  },
+}));
+
 import { SofiaService } from '@/lib/services/sofia/SofiaService';
 import { SofiaConciergeService } from '@/lib/services/ai/SofiaConciergeService';
 import { KnowledgeBaseService } from '@/lib/services/ai/KnowledgeBaseService';
@@ -568,9 +613,7 @@ describe('Sofia - Entity Extraction (Complete)', () => {
     };
     const response = await conciergeService.processMessage(request, 'guest');
     expect(response.entities).toBeDefined();
-    if (response.entities?.emails) {
-      expect(response.entities.emails).toContain('pendanek@gmail.com');
-    }
+    expect(response.entities?.email).toBe('pendanek@gmail.com');
   });
 
   it('should extract names from context', async () => {
@@ -847,7 +890,7 @@ describe('Sofia - Conversation Management (Complete)', () => {
   });
 
   it('should retrieve conversation history', async () => {
-    const history = await conciergeService.getConversationHistory(sessionId);
+    const history = await conciergeService.getConversationHistory(sessionId, testTenantId);
     expect(history).toBeDefined();
   });
 
@@ -927,12 +970,15 @@ describe('Sofia - Automatic Email Intent Detection (Complete)', () => {
   });
 
   it('should trigger email send (mocked) when requested', async () => {
+    mockSendEmail.mockClear();
     const request = {
       message: 'Please email booking details to pendanek@gmail.com',
       context: { sessionId: uuidv4(), tenantId: testTenantId },
     };
     const response = await conciergeService.processMessage(request, 'guest');
     expect(response).toBeTruthy();
+    expect(response.intent).toMatch(/email_requested|booking|general/i);
+    expect(mockSendEmail).toHaveBeenCalled();
   });
 });
 

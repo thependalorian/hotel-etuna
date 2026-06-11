@@ -1,3 +1,10 @@
+/**
+ * @fileoverview CustomerService — CRM guest profiles and guest reviews.
+ *
+ * Manages `guest_profiles` (loyalty tier/points, spend) and `guest_reviews`
+ * with tenant scoping.
+ * Location: lib/services/crm/CustomerService.ts
+ */
 import { db, guestProfiles as guestProfilesSchema, guestReviews as guestReviewsSchema } from '@/lib/db';
 import { GuestProfileData, GuestReviewData } from '@/lib/types/crm';
 import { GuestProfile, GuestReview, NewGuestProfile, NewGuestReview } from '@/lib/db/schema';

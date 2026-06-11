@@ -7,7 +7,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { PropertyService } from '@/lib/services/property/PropertyService';
 import { AppError } from '@/lib/utils/errors';
 import * as z from 'zod';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 import {
   findOrCreateGuestIdByEmail,
   processSofiaConciergeMessage,

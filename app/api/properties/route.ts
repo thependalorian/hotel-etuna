@@ -21,7 +21,7 @@ import { NextRequest } from 'next/server';
 import { PropertyService } from '@/lib/services/property/PropertyService';
 import { withApiAuth, errorResponse, successResponse } from '@/lib/utils/api-helpers';
 import * as z from 'zod';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const propertySchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters').max(255, 'Name must be less than 255 characters'),

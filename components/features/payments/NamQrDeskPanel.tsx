@@ -7,7 +7,11 @@
 
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { HOTEL_ETUNA_SETTLEMENT } from '@/lib/platform/settlement-accounts';
+import { NamQrQrDisplay } from '@/components/features/payments/NamQrQrDisplay';
+import { NamQrSettlementNote } from '@/components/features/payments/NamQrSettlementNote';
+import { NamQrAmountField } from '@/components/features/payments/NamQrAmountField';
+import { NamQrBankReferenceField } from '@/components/features/payments/NamQrBankReferenceField';
+import { formatCurrencyNAD } from '@/lib/formatters';
 
 type NamQrDeskPanelProps = {
   /** When set (e.g. from booking folio), enables confirm-on-folio without re-entering ID */
@@ -97,7 +101,7 @@ export function NamQrDeskPanel({ bookingId: bookingIdProp, suggestedAmount }: Na
         throw new Error(json.error?.message ?? json.message ?? 'Confirm failed');
       }
       setSuccess(
-        `Recorded NAD ${json.data.amountSettled}. Balance remaining: NAD ${json.data.balanceRemaining}`
+        `Recorded ${formatCurrencyNAD(json.data.amountSettled)}. Balance remaining: ${formatCurrencyNAD(json.data.balanceRemaining)}`
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Confirm failed');
@@ -108,25 +112,13 @@ export function NamQrDeskPanel({ bookingId: bookingIdProp, suggestedAmount }: Na
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-base-content/70">
-        Guest pays to Hotel Etuna Nedbank{' '}
-        <span className="font-mono">{HOTEL_ETUNA_SETTLEMENT.accountNumber}</span> via banking
-        app scan. Payload follows NamQR v5.0 (BoN May 2025).
-      </p>
-      <div className="form-control">
-        <label className="label" htmlFor="namqr-amount">
-          <span className="label-text">Amount (NAD) — leave empty for open static QR</span>
-        </label>
-        <input
-          id="namqr-amount"
-          type="number"
-          step="0.01"
-          min="0"
-          className="input input-bordered w-full"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-        />
-      </div>
+      <NamQrSettlementNote variant="desk" />
+      <NamQrAmountField
+        id="namqr-amount"
+        label="Amount (NAD) — leave empty for open static QR"
+        value={amount}
+        onChange={setAmount}
+      />
       {!bookingIdProp && (
         <div className="form-control">
           <label className="label" htmlFor="namqr-booking">
@@ -146,57 +138,23 @@ export function NamQrDeskPanel({ bookingId: bookingIdProp, suggestedAmount }: Na
       <Button type="button" variant="primary" isLoading={isLoading} onClick={generateQr}>
         Generate NamQR
       </Button>
-      {qr && (
-        <div className="card bg-base-200 p-4 space-y-3">
-          <p className="text-sm">
-            Reference: <span className="font-mono">{qr.qrReference}</span>
-          </p>
-          {qr.expiresAt && (
-            <p className="text-xs text-base-content/60">
-              Expires: {new Date(qr.expiresAt).toLocaleString()}
-            </p>
-          )}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={qr.qrImageUrl}
-            alt="NamQR payment code"
-            className="mx-auto max-w-[240px] rounded-lg bg-white p-2"
-          />
-          <details className="text-xs">
-            <summary className="cursor-pointer">EMV payload</summary>
-            <pre className="mt-2 overflow-x-auto break-all whitespace-pre-wrap">{qr.qrPayload}</pre>
-          </details>
-        </div>
-      )}
+      {qr && <NamQrQrDisplay qr={qr} variant="desk" />}
 
       {bookingId.trim() && (
         <div className="space-y-3 border-t border-base-300 pt-4">
           <p className="text-sm font-medium">After guest pays in banking app</p>
-          <div className="form-control">
-            <label className="label" htmlFor="namqr-confirm-amount">
-              <span className="label-text">Amount received (NAD)</span>
-            </label>
-            <input
-              id="namqr-confirm-amount"
-              type="number"
-              step="0.01"
-              className="input input-bordered w-full"
-              value={confirmAmount}
-              onChange={(e) => setConfirmAmount(e.target.value)}
-            />
-          </div>
-          <div className="form-control">
-            <label className="label" htmlFor="namqr-bank-ref">
-              <span className="label-text">Bank reference</span>
-            </label>
-            <input
-              id="namqr-bank-ref"
-              type="text"
-              className="input input-bordered w-full"
-              value={bankReference}
-              onChange={(e) => setBankReference(e.target.value)}
-            />
-          </div>
+          <NamQrAmountField
+            id="namqr-confirm-amount"
+            label="Amount received (NAD)"
+            value={confirmAmount}
+            onChange={setConfirmAmount}
+          />
+          <NamQrBankReferenceField
+            id="namqr-bank-ref"
+            label="Bank reference"
+            value={bankReference}
+            onChange={setBankReference}
+          />
           <Button
             type="button"
             variant="secondary"

@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Playwright E2E — buffr-host (local browser journeys).
+ * Playwright E2E — etuna-host (local browser journeys).
  * Base URL: PLAYWRIGHT_BASE_URL or http://127.0.0.1:3010
  *
  * Skip auto-start of Next when you already run dev elsewhere:

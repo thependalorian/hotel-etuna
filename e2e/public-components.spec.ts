@@ -1,14 +1,16 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * E2E Test: Public Components
- * 
- * Tests that PublicHero, PublicFooter, and other public components
- * render correctly on the landing page
+ * E2E Test: Public homepage content
+ *
+ * Tests that the DB-driven public homepage (app/page.tsx) renders its hero,
+ * footer, navigation, about, reviews, rooms, and partners content correctly.
+ * Note: the homepage is rendered inline from database content — the legacy
+ * components/sections/landing/* section components were removed (June 2026).
  */
 
 test.describe('Public Components', () => {
-  test('should render PublicHero/HeroSection with correct content', async ({ page }) => {
+  test('should render hero with correct content', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('load');
     
@@ -21,7 +23,7 @@ test.describe('Public Components', () => {
     await expect(heroCTA).toBeVisible();
   });
 
-  test('should render PublicFooter with contact information', async ({ page }) => {
+  test('should render footer with contact information', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('load');
     
@@ -41,7 +43,7 @@ test.describe('Public Components', () => {
     expect(hasPhone || hasContact).toBe(true);
   });
 
-  test('should render NavigationHeader with correct links', async ({ page }) => {
+  test('should render navigation header with correct links', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('load');
     
@@ -54,7 +56,7 @@ test.describe('Public Components', () => {
     await expect(nav.getByRole('link', { name: 'Dining' })).toBeVisible();
   });
 
-  test('should render AboutSection on homepage', async ({ page }) => {
+  test('should render about section on homepage', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('load');
     
@@ -65,7 +67,7 @@ test.describe('Public Components', () => {
     }
   });
 
-  test('should render TrustSection with reviews', async ({ page }) => {
+  test('should render reviews section', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('load');
     
@@ -81,7 +83,7 @@ test.describe('Public Components', () => {
     expect(hasReviews || isEmpty).toBe(true);
   });
 
-  test('should render PricingSection with room types', async ({ page }) => {
+  test('should render rooms section with room types', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('load');
     

@@ -8,11 +8,15 @@
  */
 
 import { NextRequest } from 'next/server';
-import { getAuthenticatedUser, withApiAuth, errorResponse, successResponse } from '@/lib/utils/api-helpers';
+import {
+  withPlatformApiAuth,
+  errorResponse,
+  successResponse,
+} from '@/lib/utils/api-helpers';
 import { PropertyService } from '@/lib/services/property/PropertyService';
 import * as z from 'zod';
 import { AppError } from '@/lib/utils/errors';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const propertySchema = z.object({
   name: z.string().min(3),
@@ -20,11 +24,10 @@ const propertySchema = z.object({
   address: z.string().min(5),
 });
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  return withApiAuth(
+type RouteParams = { params: Promise<{ id: string }> };
+
+export async function GET(request: NextRequest, { params }: RouteParams) {
+  return withPlatformApiAuth(
     request,
     async (_req, user) => {
       const { id: propertyId } = await params;
@@ -42,62 +45,61 @@ export async function GET(
   );
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const user = await getAuthenticatedUser(request);
+export async function PUT(request: NextRequest, { params }: RouteParams) {
+  return withPlatformApiAuth(
+    request,
+    async (req, user) => {
+      try {
+        const { id: propertyId } = await params;
 
-    if (!user) {
-      return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
-    }
+        const propertyService = new PropertyService();
+        if (!user.tenantId) {
+          return errorResponse('Tenant ID is required', 400, 'VALIDATION_ERROR');
+        }
+        const property = await propertyService.getPropertyById(propertyId, user.tenantId);
+        if (!property || !user.id || property.ownerId !== user.id) {
+          return errorResponse('Forbidden', 403, 'FORBIDDEN');
+        }
 
-    const { id: propertyId } = await params;
+        const body = await req.json();
+        const validation = propertySchema.safeParse(body);
 
-    const propertyService = new PropertyService();
-    if (!user.tenantId) {
-      return errorResponse('Tenant ID is required', 400, 'VALIDATION_ERROR');
-    }
-    const property = await propertyService.getPropertyById(propertyId, user.tenantId);
-    if (!property || !user.id || property.ownerId !== user.id) {
-      return errorResponse('Forbidden', 403, 'FORBIDDEN');
-    }
+        if (!validation.success) {
+          return errorResponse(
+            'Invalid input',
+            400,
+            'VALIDATION_ERROR',
+            validation.error.flatten().fieldErrors
+          );
+        }
 
-    const body = await request.json();
-    const validation = propertySchema.safeParse(body);
+        const { name, description, address } = validation.data;
 
-    if (!validation.success) {
-      return errorResponse('Invalid input', 400, 'VALIDATION_ERROR', validation.error.flatten().fieldErrors);
-    }
+        const updatedProperty = await propertyService.updateProperty(propertyId, user.tenantId, {
+          name,
+          description,
+          address,
+        });
 
-    const { name, description, address } = validation.data;
-
-    const updatedProperty = await propertyService.updateProperty(propertyId, user.tenantId, {
-      name,
-      description,
-      address,
-    });
-
-    return successResponse(updatedProperty, 200);
-  } catch (error) {
-    securityLogger.error('Update property error:', error);
-    if (typeof error === 'object' && error !== null && 'statusCode' in error && 'message' in error) {
-      return errorResponse(
-        (error as AppError).message,
-        (error as AppError).statusCode,
-        'APP_ERROR'
-      );
-    }
-    return errorResponse('An unexpected error occurred.', 500, 'INTERNAL_ERROR');
-  }
+        return successResponse(updatedProperty, 200);
+      } catch (error) {
+        securityLogger.error('Update property error:', error);
+        if (typeof error === 'object' && error !== null && 'statusCode' in error && 'message' in error) {
+          return errorResponse(
+            (error as AppError).message,
+            (error as AppError).statusCode,
+            'APP_ERROR'
+          );
+        }
+        return errorResponse('An unexpected error occurred.', 500, 'INTERNAL_ERROR');
+      }
+    },
+    { rateLimit: true }
+  );
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  return withApiAuth(
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  return withPlatformApiAuth(
     request,
     async (_req, user) => {
       const { id: propertyId } = await params;

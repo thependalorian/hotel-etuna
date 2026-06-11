@@ -12,11 +12,11 @@ import PublicHero from '@/components/shared/PublicHero';
 import Footer from '@/components/shared/Footer';
 import NavigationHeader from '@/components/sections/landing/NavigationHeader';
 import { Button } from '@/components/ui/Button';
-import PublicRoomsBrowseBanner from '@/components/PublicRoomsBrowseBanner';
-import PublicRoomsSignedInBanner from '@/components/PublicRoomsSignedInBanner';
+import PublicRoomsBrowseBanner from '@/components/features/rooms/PublicRoomsBrowseBanner';
+import PublicRoomsSignedInBanner from '@/components/features/rooms/PublicRoomsSignedInBanner';
 import { publicCopy } from '@/lib/copy/public';
-import RoomsIncludedStrip from '@/components/RoomsIncludedStrip';
-import RoomsFilmstrip from '@/components/RoomsFilmstrip';
+import RoomsIncludedStrip from '@/components/features/rooms/RoomsIncludedStrip';
+import RoomsFilmstrip from '@/components/features/rooms/RoomsFilmstrip';
 
 export const dynamic = 'force-dynamic';
 

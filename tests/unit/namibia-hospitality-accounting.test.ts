@@ -8,7 +8,10 @@ import {
   revenueAccountForChargeType,
   getChartAccount,
 } from '@/lib/domain/accounting/namibia-hospitality-coa';
-import { computeHospitalityVatBreakdown } from '@/lib/platform/namibia-tax';
+import {
+  computeHospitalityVatBreakdown,
+  computeNightAuditTariffCharges,
+} from '@/lib/platform/namibia-tax';
 import type { TaxProfile } from '@/lib/platform/namibia-tax';
 import { NAMIBIA_STANDARD_VAT_RATE_PERCENT } from '@/lib/platform/namibia-tax';
 
@@ -37,6 +40,16 @@ describe('namibia-hospitality-coa', () => {
 
   it('includes NamRA VAT output account', () => {
     expect(getChartAccount('2100')?.name).toContain('VAT output');
+  });
+});
+
+describe('computeNightAuditTariffCharges', () => {
+  it('extracts VAT from inclusive nightly rate (not 15% on top)', () => {
+    const tariff = computeNightAuditTariffCharges(1150, etunaRegistered);
+    expect(tariff.roomAmount).toBe(1150);
+    expect(tariff.vatAmount).toBe(150);
+    expect(tariff.ntbLevyAmount).toBe(20);
+    expect(tariff.vatRatePercent).toBe(15);
   });
 });
 

@@ -132,15 +132,20 @@ export function runSecurityPreflightChecks(): SecurityPreflightReport {
     : '';
   const hasHeaders =
     vercelJson.includes('X-Content-Type-Options') && vercelJson.includes('X-Frame-Options');
+  const hasCsp =
+    vercelJson.includes('Content-Security-Policy') &&
+    existsSync(join(PROJECT_ROOT, 'lib/security/content-security-policy.ts'));
   checks.push({
     id: 'PF-09',
     section: 9,
     title: 'HTTPS security headers (vercel.json)',
-    status: statusFrom(hasHeaders),
-    detail: hasHeaders
-      ? 'X-Content-Type-Options and X-Frame-Options configured'
-      : 'Add security headers to vercel.json',
-    remediation: 'Consider HSTS and CSP in vercel.json or middleware',
+    status: statusFrom(hasHeaders && hasCsp),
+    detail: hasHeaders && hasCsp
+      ? 'X-Content-Type-Options, X-Frame-Options, HSTS, and CSP configured'
+      : hasHeaders
+        ? 'Base headers present; add CSP via lib/security/content-security-policy.ts + vercel.json'
+        : 'Add security headers to vercel.json',
+    remediation: 'Keep CSP in sync with lib/security/content-security-policy.ts PRODUCTION_CSP_HEADER',
   });
 
   // 7 — Rate limits on auth/payments

@@ -10,10 +10,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentPlatformAdmin, isSuperAdmin } from '@/lib/auth/platform-admin';
+import { withPlatformAdminAuth } from '@/lib/auth/with-platform-admin-auth';
 import { db, users } from '@/lib/db';
 import { eq } from 'drizzle-orm';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -21,15 +21,12 @@ interface RouteParams {
 
 // PATCH - Update user
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  return withPlatformAdminAuth(
+    request,
+    async (req) => {
   try {
     const { id } = await params;
-    const user = await getCurrentPlatformAdmin();
-    
-    if (!user || !isSuperAdmin(user)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    const body = await request.json();
+    const body = await req!.json();
     const { status, role } = body;
 
     // Check if user exists
@@ -62,17 +59,18 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       { status: 500 }
     );
   }
+    },
+    { superAdmin: true }
+  );
 }
 
 // DELETE - Delete user
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  return withPlatformAdminAuth(
+    request,
+    async () => {
   try {
     const { id } = await params;
-    const user = await getCurrentPlatformAdmin();
-    
-    if (!user || !isSuperAdmin(user)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
 
     // Check if user exists
     const [existingUser] = await db
@@ -98,4 +96,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       { status: 500 }
     );
   }
+    },
+    { superAdmin: true }
+  );
 }

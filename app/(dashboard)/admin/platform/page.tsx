@@ -130,7 +130,7 @@ export default async function PlatformAdminDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="buffr-page-title mb-2">Platform Dashboard</h1>
+        <h1 className="etuna-page-title mb-2">Platform Dashboard</h1>
         <p className="text-base-content/70">
           Overview of the Hotel Etuna platform
         </p>

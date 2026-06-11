@@ -16,7 +16,7 @@ import { RagIngestService } from '@/lib/services/documents/RagIngestService';
 import { PropertyService } from '@/lib/services/property/PropertyService';
 import { isQdrantConfigured } from '@/lib/integrations/qdrant';
 import { isRagEmbeddingConfigured } from '@/lib/integrations/embeddings-rag';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const ingestService = new RagIngestService();
 const propertyService = new PropertyService();

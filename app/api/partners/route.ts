@@ -8,7 +8,7 @@
 import { NextResponse } from 'next/server';
 import { db, properties, rooms, tenants } from '@/lib/db';
 import { and, asc, eq, inArray } from 'drizzle-orm';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export async function GET() {
   try {

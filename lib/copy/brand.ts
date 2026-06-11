@@ -4,8 +4,15 @@
  * Source: docs/REBRAND_QUESTIONNAIRE_AND_LANDSCAPE.md
  */
 
+/** Registered legal entity (Namibia CC) — align with HOTEL_ETUNA_LEGAL_NAME env on server. */
+export const HOTEL_ETUNA_LEGAL_NAME = 'Etuna Guesthouse And Tours CC';
+
 export const brand = {
   name: 'Hotel Etuna',
+  legalName: HOTEL_ETUNA_LEGAL_NAME,
+  /** Script tagline on the official logo lockup (English marketing line). */
+  logoTagline: 'Your house away from home',
+  /** Oshiwambo meaning — use in copy, footers, and brand voice (not on the logo image). */
   tagline: 'He takes care of us',
   taglineTitleCase: 'He Takes Care of Us',
   meaning:
@@ -27,6 +34,10 @@ export const brand = {
   emailMarketing: 'marketing@hoteletuna.com',
   /** Website, guest portal, and technical support */
   emailSupport: 'support@hoteletuna.com',
+  /** Security vulnerability reports (responsible disclosure) */
+  emailSecurity: 'support@hoteletuna.com',
+  /** Privacy and cookie policy inquiries */
+  emailPrivacy: 'admin@hoteletuna.com',
   /** Executive / ownership inquiries */
   emailFounder: 'founder@hoteletuna.com',
   /** Staff + transactional footers: `lib/email/hotel-etuna-email-signature.ts` */
@@ -37,7 +48,11 @@ export const brand = {
     loyalty: '100 loyalty points = N$50 folio credit (earn 1 point per N$10 settled)',
     roomService: 'Room service target: 30 minutes when checked in',
   },
-  roomTiersFrom: 'From N$850 per night',
+  roomTiersFrom: 'From N$800 per night',
+  assets: {
+    logoLockup: '/brand/hotel-etuna-logo.png',
+    logoMark: '/brand/hotel-etuna-mark.png',
+  },
   voice: {
     use: [
       'cared-for',

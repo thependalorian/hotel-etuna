@@ -1,15 +1,13 @@
 /**
- * Properties List Page
+ * Property Page
  * 
- * Purpose: Display and manage all properties in a responsive grid
+ * Purpose: View and manage Hotel Etuna's property details.
  * Location: /app/(dashboard)/properties/page.tsx
  * 
  * Design System v1.0.0:
  * - PageHeader component with actions
- * - Grid layout: 1 → 2 → 3 columns (mobile → tablet → desktop)
- * - Property cards with interactive Card variant
- * - EmptyState component when no properties
- * - Staggered animations on load
+ * - Single property card (Hotel Etuna is a single-property OS)
+ * - EmptyState component when no property seeded
  */
 
 import React from 'react';
@@ -47,37 +45,33 @@ const PropertiesPage = async () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
       <div className="space-y-6 animate-fade-in">
         <PageHeader
-          title="Properties"
-          description="Manage your hotels, restaurants, and venues"
+          title="Property"
+          description="Manage your hotel's details, rooms, and services."
           actions={
             <Link 
               href="/properties/new" 
               className="btn btn-primary gentle-lift min-h-[44px] shadow-nude-soft hover:shadow-nude-medium"
             >
               <Plus className="w-5 h-5 mr-2" />
-              Add Property
+              Edit Property
             </Link>
           }
         />
 
         {properties && properties.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {properties.map((property, index) => (
-              <div 
-                key={property.id}
-                className="animate-slide-up"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
+          <div className="max-w-2xl">
+            {properties.map((property) => (
+              <div key={property.id} className="animate-slide-up">
                 <PropertyCard property={property} />
               </div>
             ))}
           </div>
         ) : (
           <EmptyState
-            title="No Properties Found"
-            description="Get started by adding your first property to begin managing your hospitality business."
+            title="No Property Found"
+            description="Set up Hotel Etuna to begin managing your operations."
             action={{
-              label: "Create Your First Property",
+              label: "Set Up Your Property",
               href: "/properties/new"
             }}
             size="md"

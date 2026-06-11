@@ -201,7 +201,7 @@ export default function RestaurantMenuPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="buffr-page-title mb-2">Menu Management</h1>
+        <h1 className="etuna-page-title mb-2">Menu Management</h1>
         <p className="text-base-content/70">
           Manage your restaurant menu items and categories
         </p>

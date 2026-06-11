@@ -20,7 +20,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
@@ -66,13 +66,7 @@ export default function EditIntroducerPage() {
     website: '',
   });
 
-  useEffect(() => {
-    if (status === 'authenticated' && params.id) {
-      fetchIntroducer();
-    }
-  }, [status, params.id]);
-
-  const fetchIntroducer = async () => {
+  const fetchIntroducer = useCallback(async () => {
     try {
       const response = await fetch(apiUrl(`/api/introducers/${params.id}`));
       if (!response.ok) {
@@ -97,7 +91,13 @@ export default function EditIntroducerPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id]); // params.id is a dependency for fetchIntroducer
+
+  useEffect(() => {
+    if (status === 'authenticated' && params.id) {
+      fetchIntroducer();
+    }
+  }, [status, params.id, fetchIntroducer]); // Added fetchIntroducer to dependencies
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

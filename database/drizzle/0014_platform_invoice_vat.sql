@@ -1,4 +1,4 @@
--- VAT fields on Buffr platform invoices (NamRA tax invoice support)
+-- VAT fields on hub platform invoices (NamRA tax invoice support — Hotel Etuna)
 
 BEGIN;
 

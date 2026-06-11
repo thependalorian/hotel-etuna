@@ -28,6 +28,8 @@ import { logUnauthorizedAccess, logRateLimitExceeded } from '@/lib/utils/securit
 import { stackServerApp } from '@/stack';
 import { isStackAuthServerConfigured } from '@/lib/auth/stack-env';
 import { sanitizeRedirectPath } from '@/lib/auth/roles';
+import { applySecurityHeaders as addSecurityHeaders } from '@/lib/security/security-headers';
+import { hubTeamCanAccessRoute } from '@/lib/auth/hub-team';
 import { db, users } from '@/lib/db';
 import { eq, sql } from 'drizzle-orm';
 
@@ -46,6 +48,7 @@ const PUBLIC_ROUTES = [
   '/about',              // About Hotel Etuna
   '/contact',            // Contact page
   '/partners',           // Partner directory and details
+  '/introducers-directory', // Public introducer opt-in directory (PRD §3)
   '/payment',            // Adumo Virtual return URLs
   '/legal',              // Legal pages (all legal routes)
   '/privacy',            // Privacy policy (legacy route, redirects to /legal/privacy)
@@ -67,7 +70,7 @@ const PUBLIC_API_ROUTES = [
 // Guest-facing routes (require guest session but not full authentication)
 const GUEST_ROUTES = ['/guest'];
 
-/** Staff cannot access FinTech compliance surfaces — Buffr Hub only. */
+/** Staff cannot access FinTech compliance surfaces — platform console only. */
 const HOSPITALITY_STAFF_BLOCKED_PREFIXES = ['/compliance', '/fraud'];
 
 // Property owner routes (require property owner authentication)
@@ -82,6 +85,7 @@ const PROPERTY_OWNER_ROUTES = [
   '/crm',
   '/cms',
   '/staff',
+  '/payroll',
   '/settings',
   '/profile',
   '/menu',
@@ -97,6 +101,7 @@ const PAYMENT_2FA_ENDPOINTS = ['/api/payments/initiate'];
 
 type MiddlewareToken = {
   id?: string;
+  email?: string;
   tenantId?: string;
   propertyId?: string;
   role?: string;
@@ -145,7 +150,7 @@ function isPublicApiRoute(pathname: string): boolean {
   return PUBLIC_API_ROUTES.some((route) => normalized.startsWith(route));
 }
 
-function hasRouteAccess(pathname: string, role: string): boolean {
+function hasRouteAccess(pathname: string, role: string, email?: string | null): boolean {
   // Normalize role to lowercase for comparison
   const normalizedRole = role?.toLowerCase() || '';
   
@@ -180,7 +185,7 @@ function hasRouteAccess(pathname: string, role: string): boolean {
     }
   }
 
-  // Staff routes — operational dashboard (not legacy /staff-only paths)
+  // Hub team staff — scoped by @hoteletuna.com inbox (frontdesk, marketing, support)
   if (normalizedRole === 'staff') {
     if (HOSPITALITY_STAFF_BLOCKED_PREFIXES.some((p) => pathname.startsWith(p))) {
       return false;
@@ -188,12 +193,10 @@ function hasRouteAccess(pathname: string, role: string): boolean {
     if (pathname.startsWith('/admin/platform')) {
       return false;
     }
-    if (PROPERTY_OWNER_ROUTES.some((route) => pathname.startsWith(route))) {
+    if (hubTeamCanAccessRoute(email, normalizedRole, pathname)) {
       return true;
     }
-    if (GUEST_ROUTES.some((route) => pathname.startsWith(route))) {
-      return true;
-    }
+    return false;
   }
 
   // Partner self-service scope only
@@ -361,22 +364,6 @@ function redirectToUnauthorized(req: NextRequest): NextResponse {
   return NextResponse.redirect(new URL('/unauthorized', req.url));
 }
 
-function addSecurityHeaders(response: NextResponse): void {
-  // Security headers
-  response.headers.set('X-Frame-Options', 'DENY');
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-  
-  // CSP for production
-  if (process.env.NODE_ENV === 'production') {
-    response.headers.set(
-      'Content-Security-Policy',
-      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:;"
-    );
-  }
-}
-
 // Main proxy - checks public routes FIRST, then Stack Auth, then NextAuth
 export default withAuth(
   async function proxy(req) {
@@ -514,7 +501,7 @@ export default withAuth(
         
         if (stackAuthUser) {
           const stackRole = await resolveDbRoleForEmail(stackAuthUser.primaryEmail);
-          if (!hasRouteAccess(pathname, stackRole)) {
+          if (!hasRouteAccess(pathname, stackRole, stackAuthUser.primaryEmail)) {
             return redirectToUnauthorized(req);
           }
           const response = NextResponse.next();
@@ -568,19 +555,20 @@ export default withAuth(
     
     // Check user role and route access
     const userRole = (token.role as string)?.toLowerCase() || '';
+    const userEmail = (token.email as string) ?? null;
     
     // Debug logging in development only
     if (process.env.NODE_ENV === 'development') {
       console.log('[Middleware] Route access check:', {
         pathname,
         userRole,
-        hasAccess: hasRouteAccess(pathname, userRole),
+        hasAccess: hasRouteAccess(pathname, userRole, userEmail),
         tokenId: token.id,
       });
     }
     
     // Handle role-based access control
-    if (!hasRouteAccess(pathname, userRole)) {
+    if (!hasRouteAccess(pathname, userRole, userEmail)) {
       // Log unauthorized access attempt (non-blocking)
       if (process.env.NODE_ENV === 'development') {
         console.warn('[Middleware] Access denied:', {

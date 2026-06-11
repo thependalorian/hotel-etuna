@@ -37,8 +37,10 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { HotelEtunaLogo } from '@/components/brand/HotelEtunaLogo';
+import { dashboardCopy } from '@/lib/copy/dashboard';
 import { useSession } from "next-auth/react";
 import { isPlatformAdminRole } from "@/lib/auth/roles";
+import { hubTeamNavHrefAllowed } from "@/lib/auth/hub-team";
 
 interface NavItem {
   href: string;
@@ -49,8 +51,8 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: "/dashboard", label: "Command center", icon: LayoutDashboard, section: "Operations" },
-  { href: "/properties", label: "Properties", icon: Building2, section: "Operations" },
+  { href: "/dashboard", label: dashboardCopy.nav.today, icon: LayoutDashboard, section: "Operations" },
+  { href: "/properties", label: dashboardCopy.nav.property, icon: Building2, section: "Operations" },
   { href: "/bookings", label: "Bookings", icon: Calendar, section: "Operations" },
   { href: "/housekeeping", label: "Housekeeping", icon: Sparkles, section: "Operations" },
   { href: "/payments/desk", label: "Payments desk", icon: QrCode, section: "Operations" },
@@ -72,7 +74,7 @@ const navItems: NavItem[] = [
   { href: "/reports/property-vat", label: "VAT report", icon: FileBarChart, section: "Admin" },
   {
     href: "/payments/platform-billing",
-    label: "Platform billing",
+    label: dashboardCopy.nav.platformFees,
     icon: CreditCard,
     section: "Admin",
     platformOnly: true,
@@ -84,7 +86,7 @@ const navItems: NavItem[] = [
     section: "Admin",
     platformOnly: true,
   },
-  { href: "/admin", label: "Buffr Hub", icon: LayoutDashboard, section: "Admin", platformOnly: true },
+  { href: "/admin", label: dashboardCopy.nav.platformConsole, icon: LayoutDashboard, section: "Admin", platformOnly: true },
   { href: "/settings", label: "Settings", icon: Settings, section: "Admin" },
   { href: "/profile", label: "Profile", icon: User, section: "Admin" },
 ];
@@ -107,12 +109,16 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose }: SidebarProps) => {
       .toLowerCase()
       .endsWith('@buffr.ai');
 
-  const visibleNavItems = (isPartner
+  const userEmail = String(session?.user?.email ?? '');
+
+  const visibleNavItems = isPartner
     ? navItems.filter((item) =>
         ['/dashboard', '/properties', '/bookings', '/settings'].includes(item.href),
       )
-    : navItems.filter((item) => !item.platformOnly || isPlatformOperator)
-  );
+    : navItems.filter((item) => {
+        if (item.platformOnly && !isPlatformOperator) return false;
+        return hubTeamNavHrefAllowed(userEmail, role, item.href);
+      });
 
   useEffect(() => {
     if (pathname && isMobileOpen) {

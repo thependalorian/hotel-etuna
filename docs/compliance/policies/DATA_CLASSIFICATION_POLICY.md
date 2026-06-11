@@ -16,6 +16,15 @@ Establish a consistent scheme for classifying information so that protection, ac
 
 All data created, received, stored, or processed by Hotel Etuna (Buffr Host platform), including guest PII, payment metadata, partner data, staff records, and system secrets.
 
+
+## Definitions
+
+| Term | Definition |
+|------|------------|
+| **Hotel Etuna** | Hub hospitality platform and operating entity |
+| **Personnel** | Employees, contractors, and partners with access to Hotel Etuna systems |
+| **Production** | Live environment serving guests and partners (Vercel + Neon production branch) |
+
 ## 3. Classification levels
 
 | Level | Definition | Examples | Minimum controls |
@@ -53,15 +62,28 @@ All data created, received, stored, or processed by Hotel Etuna (Buffr Host plat
 
 ## 6. Related documents
 
+- [`NAMIBIA_REGULATORY_FRAMEWORK.md`](../NAMIBIA_REGULATORY_FRAMEWORK.md)
+
+- [`POLICY_IMPLEMENTATION_MATRIX.md`](../../../compliance/evidence/policies/POLICY_IMPLEMENTATION_MATRIX.md)
+
 - [`INFORMATION_SECURITY_POLICY.md`](INFORMATION_SECURITY_POLICY.md) §4.1  
 - [`DATA_RETENTION_POLICY.md`](DATA_RETENTION_POLICY.md)  
 - [`DATA_PROTECTION_POLICY_NAMIBIA.md`](DATA_PROTECTION_POLICY_NAMIBIA.md)  
 - [`ACCESS_CONTROL_POLICY.md`](ACCESS_CONTROL_POLICY.md)
 
+## Exceptions
+
+Exceptions require written approval from the Policy Owner and Executive Sponsor. Document compensating controls in the risk register.
+
+## Enforcement
+
+Violations may result in disciplinary action up to termination and reporting to regulators where required.
+
 ## 7. Revision history
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1 | 2026-06-10 | CTO | Template conformance + implementation cross-ref |
 | 1.0 | May 17, 2026 | CTO | Initial policy |
 
 **Approved by:** _________________________ Date: _________

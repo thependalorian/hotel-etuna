@@ -11,6 +11,7 @@ import { and, eq, sql } from 'drizzle-orm';
 import type { Booking } from '@/lib/db/schema';
 import { EmailService } from '@/lib/services/sofia/EmailService';
 import { EmailTemplateService } from '@/lib/services/sofia/EmailTemplateService';
+import { notificationDispatchService } from '@/lib/services/notifications/NotificationDispatchService';
 import { CrmOutreachService } from '@/lib/services/crm/CrmOutreachService';
 import { FolioService } from '@/lib/services/folio/FolioService';
 import { securityLogger } from '@/lib/utils/security-logger';
@@ -18,6 +19,16 @@ import {
   isAccommodationBookingKind,
   isFacilityBookingKind,
 } from '@/lib/bookings/booking-kind';
+import { GuestHubMagicLinkService } from '@/lib/services/guest/GuestHubMagicLinkService';
+import { siteBaseUrl } from '@/lib/email/sofia-email-helpers';
+import {
+  buildMagicLinkUrl,
+  buildPreArrivalWelcomeEmail,
+} from '@/lib/email/templates/pre-arrival-welcome';
+import {
+  scheduleQuotationPdfEmail,
+  schedulePaymentDocumentEmails,
+} from '@/lib/services/documents/documentLifecycleHooks';
 
 const emailService = new EmailService();
 const folioService = new FolioService();
@@ -86,6 +97,59 @@ async function outreachLog(opts: {
   });
 }
 
+export function schedulePreArrivalMagicLinkEmail(input: {
+  tenantId: string;
+  bookingId: string;
+  guestId: string;
+  propertyId: string | null;
+  bookingReference: string;
+  checkInDate: string;
+  bookingKind?: string | null;
+}): void {
+  if (!isAccommodationBookingKind(input.bookingKind ?? 'accommodation')) {
+    return;
+  }
+
+  fire(async () => {
+    const { guestEmail, guestName, propertyName } = await loadGuestAndPropertyEmails(
+      input.tenantId,
+      input.guestId,
+      input.propertyId
+    );
+    if (!guestEmail) return;
+
+    const magicLink = new GuestHubMagicLinkService();
+    const { rawToken } = await magicLink.createForBooking(input.tenantId, input.bookingId);
+    const base = siteBaseUrl();
+    const tpl = buildPreArrivalWelcomeEmail({
+      recipientName: guestName,
+      propertyName,
+      bookingReference: input.bookingReference,
+      checkInDate: input.checkInDate,
+      magicLinkUrl: buildMagicLinkUrl(rawToken),
+      financialDocumentsUrl: `${base}/guest/stays/${input.bookingId}#financial-documents`,
+    });
+
+    await emailService.sendEmail(input.tenantId, {
+      to: guestEmail,
+      subject: tpl.subject,
+      htmlContent: tpl.html,
+      textContent: tpl.text,
+      propertyId: input.propertyId ?? undefined,
+      metadata: { emailKind: 'pre_arrival_welcome' as const, bookingId: input.bookingId },
+    });
+
+    await outreachLog({
+      tenantId: input.tenantId,
+      guestId: input.guestId,
+      propertyId: input.propertyId,
+      campaignKey: 'pre_arrival_magic_link',
+      subject: tpl.subject,
+      body: tpl.text,
+    });
+  });
+}
+
 export function scheduleBookingCreatedEffects(input: {
   tenantId: string;
   bookingId: string;
@@ -95,6 +159,8 @@ export function scheduleBookingCreatedEffects(input: {
   checkInDate: string;
   checkOutDate: string;
   bookingKind?: string | null;
+  paymentStatus?: string | null;
+  totalAmount?: number;
 }): void {
   fire(async () => {
     const { guestEmail, guestName, propertyName } = await loadGuestAndPropertyEmails(
@@ -144,6 +210,25 @@ export function scheduleBookingCreatedEffects(input: {
       subject: tpl.subject,
       body: tpl.text,
     });
+
+    schedulePreArrivalMagicLinkEmail({
+      tenantId: input.tenantId,
+      bookingId: input.bookingId,
+      guestId: input.guestId,
+      propertyId: input.propertyId,
+      bookingReference: input.bookingReference,
+      checkInDate: input.checkInDate,
+      bookingKind: input.bookingKind,
+    });
+
+    scheduleQuotationPdfEmail({
+      tenantId: input.tenantId,
+      bookingId: input.bookingId,
+      guestId: input.guestId,
+      propertyId: input.propertyId,
+      paymentStatus: input.paymentStatus ?? 'pending',
+      totalAmount: input.totalAmount ?? 0,
+    });
   });
 }
 
@@ -170,6 +255,8 @@ export function scheduleBookingTransitionEffects(input: {
         checkInDate: String(booking.checkInDate),
         checkOutDate: String(booking.checkOutDate),
         bookingKind: booking.bookingKind,
+        paymentStatus: booking.paymentStatus,
+        totalAmount: Number.parseFloat(String(booking.totalAmount ?? 0)) || 0,
       });
       return;
     }
@@ -367,14 +454,21 @@ export async function runCheckInReminderJob(): Promise<{ sent: number; skipped: 
       bookingReference: b.bookingReference ?? b.id.slice(0, 8),
     });
 
-    await emailService.sendEmail(b.tenantId, {
-      to: guestEmail,
+    const dispatchResult = await notificationDispatchService.dispatchGuestTransactional({
+      tenantId: b.tenantId,
+      guestId: b.guestId,
+      guestEmail,
+      notificationType: 'booking_check_in_reminder',
       subject: tpl.subject,
+      content: tpl.text,
       htmlContent: tpl.html,
-      textContent: tpl.text,
-      propertyId: b.propertyId,
-      metadata: { emailKind: 'check_in_reminder' as const, bookingId: b.id },
+      metadata: { emailKind: 'check_in_reminder' as const, bookingId: b.id, propertyId: b.propertyId },
     });
+
+    if (dispatchResult.errors.length > 0) {
+      skipped++;
+      continue;
+    }
 
     await outreachLog({
       tenantId: b.tenantId,
@@ -401,6 +495,7 @@ export function schedulePaymentReceiptEmail(input: {
   currency?: string;
   paymentMethod: string;
   bookingReference?: string;
+  transactionId?: string;
 }): void {
   fire(async () => {
     const { guestEmail, guestName, propertyName } = await loadGuestAndPropertyEmails(
@@ -441,5 +536,17 @@ export function schedulePaymentReceiptEmail(input: {
       subject: tpl.subject,
       body: tpl.text,
     });
+
+    if (input.transactionId) {
+      schedulePaymentDocumentEmails({
+        tenantId: input.tenantId,
+        bookingId: input.bookingId,
+        guestId: input.guestId,
+        propertyId: input.propertyId,
+        transactionId: input.transactionId,
+        paymentMethod: input.paymentMethod,
+        amount: input.amount,
+      });
+    }
   });
 }

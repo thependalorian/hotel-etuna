@@ -1,3 +1,7 @@
+/**
+ * @fileoverview StaffService — staff record CRUD and filtering (`staff`).
+ * Location: lib/services/staff/StaffService.ts
+ */
 import { db } from '@/lib/db';
 import { AppError, handleServiceError } from '@/lib/utils/errors';
 import { sql } from 'drizzle-orm';
@@ -17,6 +21,30 @@ interface StaffStats {
   byDepartment?: Record<string, number>;
 }
 
+const STAFF_SELECT = sql`
+  id, tenant_id, property_id, user_id, employee_number, first_name, last_name, email, phone,
+  position, department, employment_type, status, hire_date, termination_date,
+  hourly_rate, salary, currency, created_at, updated_at
+`;
+
+function normalizeStatus(status: string | undefined | null): string {
+  const raw = String(status ?? 'active').toLowerCase().replace(/-/g, '_');
+  if (raw === 'active' || raw === 'inactive' || raw === 'terminated' || raw === 'on_leave') {
+    return raw;
+  }
+  return raw === 'pending_verification' ? 'pending_verification' : 'active';
+}
+
+function normalizeEmploymentType(value: string | undefined | null): string {
+  const raw = String(value ?? 'full_time').toLowerCase().replace(/-/g, '_');
+  return raw;
+}
+
+function isActiveStatus(status: string | null | undefined): boolean {
+  const s = normalizeStatus(status);
+  return s === 'active';
+}
+
 export class StaffService {
   private mapStaffRow(row: Record<string, unknown>): Staff {
     return {
@@ -31,24 +59,23 @@ export class StaffService {
       phone: (row.phone as string) ?? null,
       position: row.position as string,
       department: (row.department as string) ?? null,
-      employmentType: (row.employmentType as string) ?? (row.employment_type as string) ?? 'full_time',
-      status: (row.status as string) ?? 'active',
+      employmentType:
+        (row.employmentType as string) ?? (row.employment_type as string) ?? 'full_time',
+      status: normalizeStatus((row.status as string) ?? 'active'),
       hireDate: (row.hireDate as string) ?? (row.hire_date as string),
       terminationDate: (row.terminationDate as string) ?? (row.termination_date as string) ?? null,
       hourlyRate: (row.hourlyRate as string) ?? (row.hourly_rate as string) ?? null,
       salary: (row.salary as string) ?? null,
-      currency: (row.currency as string) ?? null,
+      currency: (row.currency as string) ?? 'NAD',
       createdAt: (row.createdAt as Date) ?? (row.created_at as Date) ?? null,
       updatedAt: (row.updatedAt as Date) ?? (row.updated_at as Date) ?? null,
     };
   }
-  /**
-   * Get all staff for the current tenant.
-   */
+
   async getStaff(tenantId: string): Promise<Staff[]> {
     try {
       const rows = await db.execute(sql`
-        SELECT id, tenant_id, property_id, employee_number, first_name, last_name, email, phone, position, department, employment_type, status, hire_date, created_at, updated_at
+        SELECT ${STAFF_SELECT}
         FROM staff
         WHERE tenant_id = ${tenantId}
       `);
@@ -58,13 +85,10 @@ export class StaffService {
     }
   }
 
-  /**
-   * Get staff by tenant with optional filters.
-   */
   async getStaffByTenant(tenantId: string, filters?: StaffFilters): Promise<Staff[]> {
     try {
       const rows = await db.execute(sql`
-        SELECT id, tenant_id, property_id, employee_number, first_name, last_name, email, phone, position, department, employment_type, status, hire_date, created_at, updated_at
+        SELECT ${STAFF_SELECT}
         FROM staff
         WHERE tenant_id = ${tenantId}
         ORDER BY created_at DESC
@@ -78,8 +102,12 @@ export class StaffService {
               member.lastName?.toLowerCase().includes(search) ||
               member.email?.toLowerCase().includes(search)
             : true;
-          const matchesDepartment = filters?.department ? member.department === filters.department : true;
-          const matchesProperty = filters?.propertyId ? member.propertyId === filters.propertyId : true;
+          const matchesDepartment = filters?.department
+            ? member.department === filters.department
+            : true;
+          const matchesProperty = filters?.propertyId
+            ? member.propertyId === filters.propertyId
+            : true;
           return matchesSearch && matchesDepartment && matchesProperty;
         });
     } catch (error) {
@@ -87,9 +115,6 @@ export class StaffService {
     }
   }
 
-  /**
-   * Get staff statistics for the tenant.
-   */
   async getStaffStats(tenantId: string): Promise<StaffStats> {
     try {
       const result = await db.execute(sql`
@@ -97,9 +122,13 @@ export class StaffService {
         FROM staff
         WHERE tenant_id = ${tenantId}
       `);
-      const rows = result.rows as Array<{ department: string | null; status: string | null; hire_date: string | null }>;
+      const rows = result.rows as Array<{
+        department: string | null;
+        status: string | null;
+        hire_date: string | null;
+      }>;
       const totalStaff = rows.length;
-      const activeStaff = rows.filter((r) => (r.status ?? '').toUpperCase() === 'ACTIVE').length;
+      const activeStaff = rows.filter((r) => isActiveStatus(r.status)).length;
       const byDepartment: Record<string, number> = {};
       let newHiresThisMonth = 0;
       const monthStart = new Date();
@@ -127,25 +156,28 @@ export class StaffService {
     }
   }
 
-  /**
-   * Create a new staff member.
-   */
   async createStaff(tenantId: string, data: Partial<NewStaff>): Promise<Staff> {
     try {
-      const employeeNumber = data.employeeNumber || `EMP-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const employeeNumber =
+        data.employeeNumber || `EMP-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const hireDate = data.hireDate
-        ? (typeof data.hireDate === 'string' ? data.hireDate : new Date(data.hireDate).toISOString().slice(0, 10))
+        ? typeof data.hireDate === 'string'
+          ? data.hireDate
+          : new Date(data.hireDate).toISOString().slice(0, 10)
         : new Date().toISOString().slice(0, 10);
-      const employment = String(data.employmentType ?? 'FULL_TIME').toUpperCase();
-      const status = String(data.status ?? 'ACTIVE').toUpperCase();
+      const employment = normalizeEmploymentType(data.employmentType as string);
+      const status = normalizeStatus(data.status as string);
       const insertedStaff = await db.execute(sql`
         INSERT INTO staff (
-          id, tenant_id, property_id, employee_number, first_name, last_name, email, phone, position, department, employment_type, status, hire_date, created_at, updated_at
+          id, tenant_id, property_id, user_id, employee_number, first_name, last_name, email, phone,
+          position, department, employment_type, status, hire_date, termination_date,
+          hourly_rate, salary, currency, created_at, updated_at
         )
         VALUES (
           gen_random_uuid(),
           ${tenantId},
           ${data.propertyId ?? null},
+          ${data.userId ?? null},
           ${employeeNumber},
           ${data.firstName ?? 'Test'},
           ${data.lastName ?? 'Staff'},
@@ -156,10 +188,14 @@ export class StaffService {
           ${employment},
           ${status},
           ${hireDate},
+          ${data.terminationDate ? String(data.terminationDate).slice(0, 10) : null},
+          ${data.hourlyRate ?? null},
+          ${data.salary ?? null},
+          ${data.currency ?? 'NAD'},
           NOW(),
           NOW()
         )
-        RETURNING id, tenant_id, property_id, employee_number, first_name, last_name, email, phone, position, department, employment_type, status, hire_date, created_at, updated_at
+        RETURNING ${STAFF_SELECT}
       `);
 
       return this.mapStaffRow(insertedStaff.rows[0] as Record<string, unknown>);
@@ -171,7 +207,7 @@ export class StaffService {
   async getStaffById(staffId: string, tenantId: string): Promise<Staff | null> {
     try {
       const rows = await db.execute(sql`
-        SELECT id, tenant_id, property_id, employee_number, first_name, last_name, email, phone, position, department, employment_type, status, hire_date, created_at, updated_at
+        SELECT ${STAFF_SELECT}
         FROM staff
         WHERE id = ${staffId} AND tenant_id = ${tenantId}
         LIMIT 1
@@ -191,14 +227,15 @@ export class StaffService {
       }
 
       const employment = data.employmentType
-        ? String(data.employmentType).toUpperCase()
+        ? normalizeEmploymentType(data.employmentType as string)
         : undefined;
-      const status = data.status ? String(data.status).toUpperCase() : undefined;
+      const status = data.status ? normalizeStatus(data.status as string) : undefined;
 
       const rows = await db.execute(sql`
         UPDATE staff
         SET
           property_id = COALESCE(${data.propertyId ?? null}, property_id),
+          user_id = COALESCE(${data.userId ?? null}, user_id),
           first_name = COALESCE(${data.firstName ?? null}, first_name),
           last_name = COALESCE(${data.lastName ?? null}, last_name),
           email = COALESCE(${data.email ?? null}, email),
@@ -207,9 +244,14 @@ export class StaffService {
           department = COALESCE(${data.department ?? null}, department),
           employment_type = COALESCE(${employment ?? null}, employment_type),
           status = COALESCE(${status ?? null}, status),
+          hire_date = COALESCE(${data.hireDate ? String(data.hireDate).slice(0, 10) : null}, hire_date),
+          termination_date = COALESCE(${data.terminationDate ? String(data.terminationDate).slice(0, 10) : null}, termination_date),
+          hourly_rate = COALESCE(${data.hourlyRate ?? null}, hourly_rate),
+          salary = COALESCE(${data.salary ?? null}, salary),
+          currency = COALESCE(${data.currency ?? null}, currency),
           updated_at = NOW()
         WHERE id = ${staffId} AND tenant_id = ${tenantId}
-        RETURNING id, tenant_id, property_id, employee_number, first_name, last_name, email, phone, position, department, employment_type, status, hire_date, created_at, updated_at
+        RETURNING ${STAFF_SELECT}
       `);
 
       if (!rows.rows[0]) {

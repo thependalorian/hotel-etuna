@@ -26,6 +26,12 @@ import {
 } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  HOTEL_ETUNA_FACILITY_COUNT,
+  HOTEL_ETUNA_GUEST_ROOM_INVENTORY,
+  isFacilityInventoryRow,
+  isGuestRoomInventoryRow,
+} from '@/lib/data/hotel-etuna-room-inventory';
 
 describe('Database - Connection & Setup', () => {
   it('should connect to database', async () => {
@@ -595,7 +601,7 @@ describe('Database - Hotel Etuna seed integrity', () => {
     expect(defaultExpr.rows.length).toBe(1);
   });
 
-  it('hub property should have exactly 5 rooms', async () => {
+  it('hub property should have full guest + facility inventory', async () => {
     const hubTenantId = process.env.HUB_TENANT_ID;
     expect(hubTenantId).toBeTruthy();
 
@@ -607,8 +613,27 @@ describe('Database - Hotel Etuna seed integrity', () => {
 
     expect(hubProperty?.id).toBeTruthy();
 
-    const hubRooms = await db.select({ id: rooms.id }).from(rooms).where(eq(rooms.propertyId, hubProperty!.id));
-    expect(hubRooms.length).toBe(5);
+    const hubRooms = await db
+      .select({
+        id: rooms.id,
+        roomNumber: rooms.roomNumber,
+        inventoryKind: rooms.inventoryKind,
+      })
+      .from(rooms)
+      .where(eq(rooms.propertyId, hubProperty!.id));
+
+    const guestNumbers = new Set(
+      hubRooms
+        .filter((r) => isGuestRoomInventoryRow(r.inventoryKind))
+        .map((r) => r.roomNumber),
+    );
+
+    for (const row of HOTEL_ETUNA_GUEST_ROOM_INVENTORY) {
+      expect(guestNumbers.has(row.roomNumber)).toBe(true);
+    }
+
+    const facilityCount = hubRooms.filter((r) => isFacilityInventoryRow(r.inventoryKind)).length;
+    expect(facilityCount).toBe(HOTEL_ETUNA_FACILITY_COUNT);
   });
 
   it('cms_menu_items should filter by is_available', async () => {

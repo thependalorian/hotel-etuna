@@ -23,9 +23,6 @@ vi.mock('@/lib/services/fraud/FraudDetectionService', () => ({
 vi.mock('@/lib/services/compliance/AMLMonitoringService', () => ({
   AMLMonitoringService: { monitorTransaction: vi.fn(), getPendingAlerts: vi.fn().mockResolvedValue([]) },
 }));
-vi.mock('@/lib/services/compliance/PEPScreeningService', () => ({
-  PEPScreeningService: { screenGuest: vi.fn(), getActivePEPFlags: vi.fn().mockResolvedValue([]), getPendingEDDReviews: vi.fn().mockResolvedValue([]) },
-}));
 vi.mock('@/lib/services/compliance/STRGenerationService', () => ({
   STRGenerationService: { createSTR: vi.fn(), getSTRs: vi.fn().mockResolvedValue([]), submitSTR: vi.fn(), getApproachingDeadlines: vi.fn().mockResolvedValue([]), getOverdueSTRs: vi.fn().mockResolvedValue([]), getSTRStatistics: vi.fn().mockResolvedValue({}) },
 }));
@@ -68,8 +65,6 @@ describe('Auth Gates — 12 fixed routes return non-200 without auth', () => {
   it('POST /fraud/analyze', async () => { const { POST } = await import('@/app/api/fraud/analyze/route'); await notOk(POST, req('/api/fraud/analyze', 'POST', {})); });
   it('POST /compliance/aml/monitor', async () => { const { POST } = await import('@/app/api/compliance/aml/monitor/route'); await notOk(POST, req('/api/compliance/aml/monitor', 'POST', {})); });
   it('GET /compliance/aml/monitor', async () => { const { GET } = await import('@/app/api/compliance/aml/monitor/route'); await notOk(GET, req('/api/compliance/aml/monitor')); });
-  it('POST /compliance/aml/pep/screen', async () => { const { POST } = await import('@/app/api/compliance/aml/pep/screen/route'); await notOk(POST, req('/api/compliance/aml/pep/screen', 'POST', {})); });
-  it('GET /compliance/aml/pep/screen', async () => { const { GET } = await import('@/app/api/compliance/aml/pep/screen/route'); await notOk(GET, req('/api/compliance/aml/pep/screen')); });
   it('POST /compliance/aml/str/create', async () => { const { POST } = await import('@/app/api/compliance/aml/str/create/route'); await notOk(POST, req('/api/compliance/aml/str/create', 'POST', {})); });
   it('GET /compliance/aml/str/create', async () => { const { GET } = await import('@/app/api/compliance/aml/str/create/route'); await notOk(GET, req('/api/compliance/aml/str/create')); });
   it('POST /compliance/aml/str/submit', async () => { const { POST } = await import('@/app/api/compliance/aml/str/submit/route'); await notOk(POST, req('/api/compliance/aml/str/submit', 'POST', {})); });

@@ -11,7 +11,7 @@ import { NextRequest } from 'next/server';
 import { FolioService } from '@/lib/services/folio/FolioService';
 import { errorResponse, successResponse } from '@/lib/utils/api-helpers';
 import { AppError } from '@/lib/utils/errors';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const folioService = new FolioService();
 

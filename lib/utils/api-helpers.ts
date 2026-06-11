@@ -589,3 +589,37 @@ export async function verifyTenantAccess(
   // User must belong to the tenant
   return user.tenantId === resourceTenantId;
 }
+
+/** Hub staff routes — alias for batch migration from hand-rolled getServerSession handlers. */
+export { withApiAuth as withPlatformApiAuth };
+
+export type TenantSessionUser = {
+  id: string;
+  tenantId: string;
+  role: string;
+  email?: string | null;
+  propertyId?: string | null;
+  name?: string | null;
+};
+
+/**
+ * Tenant-scoped API wrapper — auth + rate limit + RLS, requires user.id and user.tenantId.
+ * Replaces bare `requireTenantSessionUser` in route handlers.
+ */
+export async function withTenantApiAuth(
+  req: NextRequest,
+  handler: (req: NextRequest, user: TenantSessionUser) => Promise<NextResponse>,
+  options?: Parameters<typeof withApiAuth>[2]
+): Promise<NextResponse> {
+  return withApiAuth(req, async (request, user) => {
+    if (!user?.id || !user.tenantId) {
+      return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+    }
+    return handler(request, {
+      ...user,
+      id: user.id,
+      tenantId: user.tenantId,
+      role: user.role ?? 'user',
+    });
+  }, options);
+}

@@ -30,7 +30,7 @@ import { recordAuditTrail } from '@/lib/compliance/record-audit';
 import { adumoVirtualIsConfigured } from '@/lib/config/adumo';
 import { entityId } from '@/lib/validation/entity-ids';
 import { z } from 'zod';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 // ============================================================================
 // REQUEST VALIDATION

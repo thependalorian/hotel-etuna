@@ -6,6 +6,8 @@
 import Link from 'next/link';
 import { PropertyVatReportPanel } from '@/components/features/tax/PropertyVatReportPanel';
 import { Button } from '@/components/ui/Button';
+import { brand } from '@/lib/copy/brand';
+import { dashboardCopy } from '@/lib/copy/dashboard';
 
 export default function PropertyVatReportPage() {
   return (
@@ -14,7 +16,7 @@ export default function PropertyVatReportPage() {
         <div>
           <h1 className="text-3xl font-bold text-nude-900">Property VAT report</h1>
           <p className="text-nude-600 mt-1">
-            Hotel Etuna guest room, F&B, and folio supplies — separate from Buffr platform fees
+            {brand.name} guest room, F&amp;B, and folio supplies — separate from platform fees
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -25,7 +27,7 @@ export default function PropertyVatReportPage() {
           </Link>
           <Link href="/payments/platform-billing">
             <Button variant="outline" size="sm">
-              Buffr platform billing
+              {dashboardCopy.nav.platformFees}
             </Button>
           </Link>
         </div>

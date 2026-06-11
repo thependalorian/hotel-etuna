@@ -2,7 +2,7 @@
 @config "../tailwind.config.ts";
 
 /**
- * Buffr Host — global styles (Design System v1.0.0)
+ * Hotel Etuna — global styles (Design System)
  * Design tokens: ../tailwind.config.ts (single source of truth).
  */
 
@@ -107,7 +107,9 @@
     @apply inline-flex items-center gap-1.5 rounded-full border border-nude-200 bg-surface-elevated/80 px-2.5 py-1.5 text-xs font-bold text-nude-700;
   }
 
-  @keyframes buffr-fade-in {
+  /* --- Dashboard layout --- */
+
+  @keyframes etuna-fade-in {
     from {
       opacity: 0;
     }
@@ -116,154 +118,224 @@
     }
   }
 
-  .buffr-dashboard-main {
+  .etuna-dashboard-main {
     flex: 1 1 0%;
     overflow-y: auto;
     padding: 1.25rem 1rem;
   }
 
   @media (min-width: 640px) {
-    .buffr-dashboard-main {
+    .etuna-dashboard-main {
       padding-left: 1.5rem;
       padding-right: 1.5rem;
     }
   }
 
   @media (min-width: 768px) {
-    .buffr-dashboard-main {
+    .etuna-dashboard-main {
       padding: 2rem;
     }
   }
 
-  .buffr-dashboard-inner {
+  .etuna-dashboard-inner {
     margin-left: auto;
     margin-right: auto;
     width: 100%;
     max-width: 80rem;
-    animation: buffr-fade-in 200ms ease-out;
+    animation: etuna-fade-in 200ms ease-out;
   }
 
-  .buffr-page-stack {
+  /* --- Dashboard responsive grids (per specification) --- */
+
+  /**
+   * Dashboard card grid:
+   * - <768px: 1 column
+   * - 768-1023px: 2 columns
+   * - 1024-1279px: 2-3 columns
+   * - ≥1280px: 3-4 columns
+   */
+  .etuna-dashboard-grid {
+    @apply grid grid-cols-1 gap-6;
+  }
+
+  @media (min-width: 768px) {
+    .etuna-dashboard-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .etuna-dashboard-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .etuna-dashboard-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  /**
+   * Dashboard stats grid (KPI cards):
+   * - <768px: 1 column
+   * - 768-1023px: 2 columns
+   * - ≥1024px: 3 columns
+   * - ≥1280px: 4 columns (for 4 stat cards)
+   */
+  .etuna-dashboard-stats-grid {
+    @apply grid grid-cols-1 gap-6;
+  }
+
+  @media (min-width: 768px) {
+    .etuna-dashboard-stats-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .etuna-dashboard-stats-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .etuna-dashboard-stats-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  /* --- Page structure --- */
+
+  .etuna-page-stack {
     @apply flex flex-col gap-6 md:gap-8;
   }
 
-  .buffr-page-title {
+  .etuna-page-title {
     @apply font-display text-3xl font-bold leading-tight tracking-tight text-nude-900 md:text-4xl;
   }
 
-  .buffr-page-title.buffr-page-title--emphasis {
+  .etuna-page-title--emphasis {
     @apply font-black;
   }
 
-  .buffr-page-title--hero {
+  .etuna-page-title--hero {
     @apply font-display text-4xl font-bold leading-tight tracking-tight text-nude-900 md:text-5xl;
   }
 
-  .buffr-page-title.buffr-page-title--fluid {
+  .etuna-page-title--fluid {
     @apply text-2xl sm:text-3xl md:text-4xl;
   }
 
-  .buffr-page-title--compact {
+  .etuna-page-title--compact {
     @apply font-display text-xl font-bold leading-tight tracking-tight text-nude-900 md:text-2xl;
   }
 
-  .buffr-heading-display {
+  .etuna-heading-display {
     @apply font-display text-2xl font-bold leading-tight tracking-tight text-nude-900 md:text-3xl;
   }
 
-  .buffr-page-desc {
+  .etuna-page-desc {
     @apply max-w-2xl text-base leading-relaxed text-nude-700;
   }
 
-  .buffr-eyebrow {
+  .etuna-eyebrow {
     @apply text-xs font-bold uppercase tracking-widest text-nude-500;
   }
 
-  .buffr-link {
+  .etuna-link {
     @apply font-semibold text-nude-700 underline-offset-4 transition-colors duration-fast hover:text-nude-900 hover:underline;
   }
 
-  .buffr-panel {
+  /* --- Panels --- */
+
+  .etuna-panel {
     @apply rounded-2xl border border-nude-200 bg-nude-50 shadow-nude-medium;
   }
 
-  .buffr-panel-hover {
+  .etuna-panel-hover {
     @apply transition-all duration-normal;
   }
 
-  .buffr-panel-hover:hover {
+  .etuna-panel-hover:hover {
     @apply -translate-y-px border-nude-300 shadow-card-hover;
   }
 
-  .buffr-legal-content {
+  /* --- Legal content --- */
+
+  .etuna-legal-content {
     @apply max-w-none text-nude-800;
   }
 
-  .buffr-legal-content h1 {
+  .etuna-legal-content h1 {
     @apply mb-8 font-display text-4xl font-bold tracking-tight text-nude-900;
   }
 
-  .buffr-legal-content h2 {
+  .etuna-legal-content h2 {
     @apply mb-4 mt-10 text-2xl font-semibold text-nude-900;
   }
 
-  .buffr-legal-content h3 {
+  .etuna-legal-content h3 {
     @apply mb-3 mt-6 text-lg font-semibold text-nude-900;
   }
 
-  .buffr-legal-content p {
+  .etuna-legal-content p {
     @apply mb-4 leading-relaxed;
   }
 
-  .buffr-legal-content ul {
+  .etuna-legal-content ul {
     @apply mb-4 ml-6 list-disc;
   }
 
-  .buffr-legal-content ul > li + li {
+  .etuna-legal-content ul > li + li {
     @apply mt-2;
   }
 
-  .buffr-legal-content ol {
+  .etuna-legal-content ol {
     @apply mb-4 ml-6 list-decimal;
   }
 
-  .buffr-legal-content ol > li + li {
+  .etuna-legal-content ol > li + li {
     @apply mt-2;
   }
 
-  .buffr-legal-content li {
+  .etuna-legal-content li {
     @apply leading-relaxed;
   }
 
-  .buffr-legal-content a {
+  .etuna-legal-content a {
     @apply font-semibold text-nude-700 underline-offset-2 hover:text-nude-900 hover:underline;
   }
 
-  .buffr-legal-content img {
+  .etuna-legal-content img {
     @apply my-4 h-auto max-w-full rounded-xl;
   }
 
-  .buffr-legal-meta {
+  .etuna-legal-meta {
     @apply mb-8 text-sm text-nude-600;
   }
 
-  .buffr-section-y {
+  /* --- Sections --- */
+
+  .etuna-section-y {
     @apply py-12 md:py-16 lg:py-20;
   }
 
-  .buffr-container-marketing {
+  .etuna-container-marketing {
     @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
   }
 
-  .buffr-hero-band {
+  .etuna-hero-band {
     @apply relative overflow-hidden rounded-2xl border border-nude-200 bg-gradient-to-br from-surface-elevated via-nude-50 to-nude-100 shadow-nude-soft;
   }
 
-  .buffr-card-nude {
+  .etuna-card-nude {
     @apply rounded-2xl border border-nude-200 bg-surface-elevated/95 p-6 shadow-nude-soft md:p-8;
   }
 
-  @keyframes buffr-shine {
+  /* --- Shine effect --- */
+
+  @keyframes etuna-shine {
     0% {
       background-position: -200% 0;
     }
@@ -272,7 +344,7 @@
     }
   }
 
-  .buffr-shine-edge {
+  .etuna-shine-edge {
     background: linear-gradient(
       110deg,
       transparent 0%,
@@ -280,13 +352,13 @@
       transparent 90%
     );
     background-size: 200% 100%;
-    animation: buffr-shine 2.5s ease-in-out infinite;
+    animation: etuna-shine 2.5s ease-in-out infinite;
   }
 }
 
 @layer utilities {
   @media (prefers-reduced-motion: reduce) {
-    .buffr-shine-edge,
+    .etuna-shine-edge,
     .animate-bento-float,
     .animate-shimmer,
     .animate-ai-pulse {

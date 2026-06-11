@@ -1,3 +1,7 @@
+/**
+ * @fileoverview PropertyService — CRUD and lookup for `properties`.
+ * Location: lib/services/property/PropertyService.ts
+ */
 import { db, properties as propertiesSchema } from '@/lib/db';
 import { AppError, handleServiceError } from '@/lib/utils/errors';
 import { eq, sql } from 'drizzle-orm';

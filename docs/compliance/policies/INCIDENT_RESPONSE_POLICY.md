@@ -16,6 +16,15 @@ Establish requirements for detecting, reporting, containing, and recovering from
 
 All cybersecurity incidents, data breaches, payment system failures, and compliance violations affecting Hotel Etuna production systems or guest data.
 
+
+## Definitions
+
+| Term | Definition |
+|------|------------|
+| **Hotel Etuna** | Hub hospitality platform and operating entity |
+| **Personnel** | Employees, contractors, and partners with access to Hotel Etuna systems |
+| **Production** | Live environment serving guests and partners (Vercel + Neon production branch) |
+
 ## 3. Incident Definition
 
 Any event that compromises (or threatens to compromise) the **confidentiality, integrity, or availability** of Hotel Etuna systems or data. Includes suspected incidents pending confirmation.
@@ -65,15 +74,28 @@ The Incident Commander (CTO or delegated senior staff) MUST:
 
 ## 9. Related Documents
 
+- [`NAMIBIA_REGULATORY_FRAMEWORK.md`](../NAMIBIA_REGULATORY_FRAMEWORK.md)
+
+- [`POLICY_IMPLEMENTATION_MATRIX.md`](../../../compliance/evidence/policies/POLICY_IMPLEMENTATION_MATRIX.md)
+
 - [`../INCIDENT_RESPONSE_PLAN.md`](../INCIDENT_RESPONSE_PLAN.md) — full procedures with contact details
 - [`INFORMATION_SECURITY_POLICY.md`](INFORMATION_SECURITY_POLICY.md)
 - [`LOGGING_AND_MONITORING_POLICY.md`](LOGGING_AND_MONITORING_POLICY.md)
 - Code: `lib/services/compliance/SecurityIncidentService.ts`, `cybersecurity_incidents` table
 
+## Exceptions
+
+Exceptions require written approval from the Policy Owner and Executive Sponsor. Document compensating controls in the risk register.
+
+## Enforcement
+
+Violations may result in disciplinary action up to termination and reporting to regulators where required.
+
 ## 10. Revision History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1 | 2026-06-10 | CTO | Template conformance + implementation cross-ref |
 | 1.0 | 2026-06-02 | CTO | Initial policy; references IRP for procedures |
 
 **Approved by:** _________________________ Date: _________

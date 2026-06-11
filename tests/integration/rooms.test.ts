@@ -57,7 +57,7 @@ describe('RoomService Integration Tests', () => {
       expect(room.propertyId).toBe(propertyId);
     });
 
-    it('should create room with default status AVAILABLE', async () => {
+    it('should create room with default status available', async () => {
       const room = await roomService.createRoom({
         room_number: '102',
         room_type: 'Deluxe',
@@ -65,7 +65,7 @@ describe('RoomService Integration Tests', () => {
         property_id: propertyId,
       });
 
-      expect(room.status).toBe('AVAILABLE');
+      expect(room.status).toBe('available');
     });
 
     it('should reject duplicate room numbers for same property', async () => {

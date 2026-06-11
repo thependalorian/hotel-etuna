@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Analytics domain DTOs (filters, KPI aggregates).
+ * Location: lib/types/analytics.ts
+ */
 export interface AnalyticsFilters {
   tenantId: string;
   propertyId?: string;

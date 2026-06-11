@@ -13,7 +13,7 @@ import { db, partnerInvites, properties, tenants, users } from '@/lib/db';
 import { eq } from 'drizzle-orm';
 import { rateLimitResponse } from '@/lib/utils/api-helpers';
 import { checkRateLimit, shouldRateLimit } from '@/lib/utils/rate-limit';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const claimSchema = z.object({
   token: z.string().min(10),

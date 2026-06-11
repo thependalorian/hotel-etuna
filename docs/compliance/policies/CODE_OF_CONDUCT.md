@@ -16,6 +16,15 @@ Set ethical standards for Hotel Etuna and Buffr personnel when serving guests, p
 
 All employees, contractors, directors, and representatives acting on behalf of Hotel Etuna or the Buffr Host platform.
 
+
+## Definitions
+
+| Term | Definition |
+|------|------------|
+| **Hotel Etuna** | Hub hospitality platform and operating entity |
+| **Personnel** | Employees, contractors, and partners with access to Hotel Etuna systems |
+| **Production** | Live environment serving guests and partners (Vercel + Neon production branch) |
+
 ## 3. Core principles
 
 ### 3.1 Integrity and honesty
@@ -61,15 +70,25 @@ All employees, contractors, directors, and representatives acting on behalf of H
 Violations may result in coaching, disciplinary action, termination, civil liability, or referral to law enforcement/regulators as appropriate.
 
 ## 6. Related documents
+- [`INFORMATION_SECURITY_POLICY.md`](INFORMATION_SECURITY_POLICY.md)
+
+- [`NAMIBIA_REGULATORY_FRAMEWORK.md`](../NAMIBIA_REGULATORY_FRAMEWORK.md)
+
+- [`POLICY_IMPLEMENTATION_MATRIX.md`](../../../compliance/evidence/policies/POLICY_IMPLEMENTATION_MATRIX.md)
 
 - [`ACCEPTABLE_USE_POLICY.md`](ACCEPTABLE_USE_POLICY.md)  
 - [`HR_SECURITY_POLICY.md`](HR_SECURITY_POLICY.md)  
 - [`AML_FICA_COMPLIANCE_PROGRAM.md`](../AML_FICA_COMPLIANCE_PROGRAM.md)
 
+## Exceptions
+
+Exceptions require written approval from the Policy Owner and Executive Sponsor. Document compensating controls in the risk register.
+
 ## 7. Revision history
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1 | 2026-06-10 | CTO | Template conformance + implementation cross-ref |
 | 1.0 | May 17, 2026 | Executive Sponsor | Initial code |
 
 **Approved by:** _________________________ Date: _________

@@ -71,7 +71,7 @@ Good: `interface Booking { id: string }`.
 
 | Prefix | Domain | Tables |
 |--------|--------|--------|
-| `aml_` | Anti-money laundering | `aml_pep_database`, `aml_transaction_alerts`, … |
+| `aml_` | Anti-money laundering | `aml_transaction_alerts`, `aml_monitoring_rules`, … (`aml_pep_*` dormant — PEP screening out of scope for Namibia OS) |
 | `cms_` | Content management | `cms_pages`, `cms_blocks`, `cms_menu_items` |
 | `sofia_` | Sofia AI channel persistence | `sofia_email_logs`, `sofia_voice_sessions`, … |
 
@@ -536,7 +536,8 @@ Components follow a three-tier hierarchy:
 
 ```
 components/
-├── <ComponentName>.tsx         ← cross-cutting, no domain (ErrorBoundary, RoomPhotoTour)
+├── <ComponentName>.tsx         ← cross-cutting, no domain only (RootErrorBoundary, PlatformToastProvider)
+│                               ← domain UI lives under components/features/<domain>/ (e.g. rooms/RoomPhotoTour)
 ├── brand/                      ← Hotel Etuna brand assets only
 ├── dining/                     ← public digital menu (no staff ops)
 ├── compliance/                 ← standalone compliance widgets

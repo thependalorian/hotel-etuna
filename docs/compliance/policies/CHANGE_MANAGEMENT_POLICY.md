@@ -16,6 +16,15 @@ Ensure changes to Hotel Etuna production systems are planned, tested, approved, 
 
 Application code, database migrations, infrastructure (Vercel, Neon), environment variables, and payment/NamQR configuration.
 
+
+## Definitions
+
+| Term | Definition |
+|------|------------|
+| **Hotel Etuna** | Hub hospitality platform and operating entity |
+| **Personnel** | Employees, contractors, and partners with access to Hotel Etuna systems |
+| **Production** | Live environment serving guests and partners (Vercel + Neon production branch) |
+
 ## 3. Change categories
 
 | Category | Examples | Approval |
@@ -48,8 +57,25 @@ Application code, database migrations, infrastructure (Vercel, Neon), environmen
 - Migration files
 - Monthly export to `docs/compliance/evidence/YYYY-MM/`
 
+## Exceptions
+
+Exceptions require written approval from the Policy Owner and Executive Sponsor. Document compensating controls in the risk register.
+
+## Enforcement
+
+Violations may result in disciplinary action up to termination and reporting to regulators where required.
+
+## Related Documents
+
+- [`INFORMATION_SECURITY_POLICY.md`](INFORMATION_SECURITY_POLICY.md)
+- [`NAMIBIA_REGULATORY_FRAMEWORK.md`](../NAMIBIA_REGULATORY_FRAMEWORK.md)
+- [`POLICY_IMPLEMENTATION_MATRIX.md`](../../../compliance/evidence/policies/POLICY_IMPLEMENTATION_MATRIX.md)
+
 ## 7. Revision history
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1 | 2026-06-10 | CTO | Template conformance + implementation cross-ref |
 | 1.0 | May 16, 2026 | CTO | Initial policy |
+
+**Approved by:** _________________________ Date: _________

@@ -28,7 +28,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { OAuthService, PushedAuthorizationRequest } from '@/lib/services/openbanking/OAuthService';
 import { db, obApiTransactions } from '@/lib/db';
 import crypto from 'crypto';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();

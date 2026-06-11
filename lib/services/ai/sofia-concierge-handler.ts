@@ -2,10 +2,11 @@
  * Shared Sofia concierge HTTP handler — single pipeline for all chat API routes.
  * Location: lib/services/ai/sofia-concierge-handler.ts
  *
- * Wires: validation → role mapping → pricing gate → SofiaConciergeService → ai_conversations / ai_messages.
+ * Wires: validation → role mapping → pricing gate → SofiaPipelineService (primary) → ai_conversations / ai_messages.
  */
 
 import { SofiaConciergeService } from '@/lib/services/ai/SofiaConciergeService';
+import { SofiaPipelineService } from '@/lib/services/sofia/SofiaPipelineService';
 import type { UserRole } from '@/lib/services/ai/DataFilterService';
 import type { AIConversationChannel, AIRequest, AIResponse } from '@/lib/types/ai';
 import { isStaffRole, isPlatformAdminRole } from '@/lib/auth/roles';
@@ -15,6 +16,11 @@ export const SOFIA_SENSITIVE_PRICING_PATTERN =
   /\b(price|pricing|rate|rates|cost|costs|nad|availability|available|book|booking)\b/i;
 
 const concierge = new SofiaConciergeService();
+const pipeline = new SofiaPipelineService();
+
+function shouldUseLegacyConciergeService(): boolean {
+  return process.env.SOFIA_USE_LEGACY_CONCIERGE === 'true';
+}
 
 export function mapSessionRoleToSofiaUserRole(role: string | null | undefined): UserRole {
   if (isStaffRole(role) || isPlatformAdminRole(role)) {
@@ -76,7 +82,7 @@ export function buildSofiaAiRequest(input: ProcessSofiaConciergeInput): AIReques
 }
 
 /**
- * Process a user message through the full Sofia stack (RAG, KB, CRM memory, persistence).
+ * Process a user message through the Sofia pipeline (RAG, memory, optional tool graph, persistence).
  */
 export async function processSofiaConciergeMessage(
   input: ProcessSofiaConciergeInput,
@@ -88,7 +94,41 @@ export async function processSofiaConciergeMessage(
     return sofiaPricingGateResponse();
   }
 
-  return concierge.processMessage(buildSofiaAiRequest(input), userRole);
+  if (shouldUseLegacyConciergeService()) {
+    return concierge.processMessage(buildSofiaAiRequest(input), userRole);
+  }
+
+  try {
+    const result = await pipeline.process({
+      message: input.message,
+      sessionId: input.sessionId,
+      tenantId: input.tenantId,
+      propertyId: input.propertyId,
+      guestId: input.guestId,
+      bookingId: input.bookingId,
+      channel: input.channel ?? 'WEB',
+    });
+
+    return {
+      response: result.response,
+      confidence: result.confidence,
+      intent: result.intent,
+      entities: {},
+      suggestions: [],
+      actions: [],
+      rag:
+        typeof result.metadata.ragChunks === 'number' && result.metadata.ragChunks > 0
+          ? {
+              chunkCount: result.metadata.ragChunks,
+              snippets: [],
+              sources: [],
+            }
+          : undefined,
+    };
+  } catch (error) {
+    securityLogger.error('[sofia-concierge-handler] pipeline failed, falling back to concierge:', error);
+    return concierge.processMessage(buildSofiaAiRequest(input), userRole);
+  }
 }
 
 /** Resolve guest id by email for a tenant (public widget / property pages). */
@@ -120,4 +160,8 @@ export async function findOrCreateGuestIdByEmail(
 
 export function getSofiaConciergeService(): SofiaConciergeService {
   return concierge;
+}
+
+export function getSofiaPipelineService(): SofiaPipelineService {
+  return pipeline;
 }

@@ -10,7 +10,7 @@ import { withApiAuth, errorResponse, successResponse } from '@/lib/utils/api-hel
 import { HospitalityNamQrPaymentService } from '@/lib/services/payment/HospitalityNamQrPaymentService';
 import { entityId } from '@/lib/validation/entity-ids';
 import { AppError } from '@/lib/utils/errors';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const bodySchema = z.object({
   reason: z.string().max(500).optional(),

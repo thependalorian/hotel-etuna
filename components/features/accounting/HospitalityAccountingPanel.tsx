@@ -11,6 +11,9 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { GlPeriodCloseCard } from '@/components/features/accounting/GlPeriodCloseCard';
+import { JournalEntryTable } from '@/components/features/accounting/JournalEntryTable';
+import type { JournalLine } from '@/lib/domain/accounting/types';
 
 type AccountingReport = {
   period: { from: string; to: string };
@@ -66,6 +69,29 @@ export function HospitalityAccountingPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showTb, setShowTb] = useState(false);
+  const [propertyId, setPropertyId] = useState<string | null>(null);
+  const [journalLines, setJournalLines] = useState<JournalLine[]>([]);
+  const [journalLoading, setJournalLoading] = useState(false);
+
+  const loadJournalLines = useCallback(async () => {
+    setJournalLoading(true);
+    try {
+      const params = new URLSearchParams({
+        from: new Date(from).toISOString(),
+        to: new Date(`${to}T23:59:59.999Z`).toISOString(),
+      });
+      const res = await fetch(`/api/reports/accounting/journal-lines?${params}`, {
+        credentials: 'include',
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error?.message || 'Failed to load journal lines');
+      setJournalLines((json.data?.lines as JournalLine[]) ?? []);
+    } catch {
+      setJournalLines([]);
+    } finally {
+      setJournalLoading(false);
+    }
+  }, [from, to]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -81,17 +107,33 @@ export function HospitalityAccountingPanel() {
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error?.message || 'Failed to load accounting report');
       setReport(json.data as AccountingReport);
+      void loadJournalLines();
     } catch (e) {
       setReport(null);
+      setJournalLines([]);
       setError(e instanceof Error ? e.message : 'Failed to load');
     } finally {
       setLoading(false);
     }
-  }, [from, to]);
+  }, [from, to, loadJournalLines]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch('/api/properties', { credentials: 'include' });
+        const json = await res.json();
+        if (!res.ok) return;
+        const list = (json.data ?? json.properties ?? []) as Array<{ id: string }>;
+        if (list[0]?.id) setPropertyId(list[0].id);
+      } catch {
+        /* property optional for read-only report */
+      }
+    })();
+  }, []);
 
   const c = report?.currency ?? 'NAD';
   const is = report?.incomeStatement;
@@ -133,6 +175,12 @@ export function HospitalityAccountingPanel() {
           </Button>
         </div>
       </Card>
+
+      <GlPeriodCloseCard
+        propertyId={propertyId}
+        periodEnd={to}
+        onClosed={() => void load()}
+      />
 
       {error && (
         <div className="alert alert-error">
@@ -250,6 +298,13 @@ export function HospitalityAccountingPanel() {
           <Button variant="outline" size="sm" onClick={() => setShowTb((v) => !v)}>
             {showTb ? 'Hide' : 'Show'} trial balance
           </Button>
+
+          <JournalEntryTable
+            lines={journalLines}
+            currency={c}
+            loading={journalLoading}
+            periodLabel={`${from}_to_${to}`}
+          />
 
           {showTb && report.trialBalance.length > 0 && (
             <Card className="p-4 overflow-x-auto">

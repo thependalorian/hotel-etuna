@@ -5,7 +5,7 @@
 
 import { db, users, auditTrail, paymentSecurityAudit } from '@/lib/db';
 import { sql, gte, lte, and, eq } from 'drizzle-orm';
-import { existsSync } from 'fs';
+import { existsSync, readdirSync } from 'fs';
 import { join } from 'path';
 import type { Soc2AgentRunResult } from '../types';
 import { pickAgentControls, mergeControl } from './shared';
@@ -89,17 +89,40 @@ export async function runAccessControlAgent(
     remediation: ['Run `npx tsx scripts/db/verify-tenant-rls.ts` each release; attach output to evidence'],
   });
 
+  const policiesDir = join(process.cwd(), 'docs/compliance/policies');
+  const policyFiles = existsSync(policiesDir)
+    ? readdirSync(policiesDir).filter(
+        (f) => f.endsWith('.md') && f !== 'POLICY_TEMPLATE.md'
+      )
+    : [];
+  const policyCount = policyFiles.length;
+  const hasPolicyPack = policyCount >= 21;
+
   controls = mergeControl(controls, 'CC1.1', {
-    status: 'gap',
-    evidence: ['PLANNING.md, TASK.md security sections exist'],
-    gaps: [
-      'Formal signed Acceptable Use, Access Control, IR policies not in repo',
-      'Annual policy owner review not tracked in system',
+    status: hasPolicyPack ? 'partial' : 'gap',
+    evidence: [
+      `${policyCount} policy files under docs/compliance/policies/ (drafted May 17, 2026)`,
+      'PLANNING.md, TASK.md security sections exist',
+      'POLICY_IMPLEMENTATION_MATRIX.md — implementation validation 2026-06-10',
     ],
-    remediation: [
-      'Publish 21-policy pack under docs/compliance/policies/',
-      'Track policy acceptance in HR or GRC tool',
-    ],
+    gaps: hasPolicyPack
+      ? [
+          'Executive signatures missing on all policies (see compliance/evidence/policies/SIGN_OFF_CHECKLIST.md)',
+          'Annual policy owner review not tracked in system',
+        ]
+      : [
+          'Policy pack incomplete — expect ≥21 files in docs/compliance/policies/',
+          'Annual policy owner review not tracked in system',
+        ],
+    remediation: hasPolicyPack
+      ? [
+          'CEO/CTO sign all policies; store PDFs in compliance/evidence/policies/',
+          'Track policy acceptance in HR or GRC tool',
+        ]
+      : [
+          'Publish 21-policy pack under docs/compliance/policies/',
+          'Track policy acceptance in HR or GRC tool',
+        ],
   });
 
   return {

@@ -1,8 +1,9 @@
--- Buffr platform billing: settlement profiles, fee accruals, monthly invoices (PRD §3.5.3)
+-- Hotel Etuna hub settlement: fee accruals, introducer commissions, monthly invoices (PRD §3.5.3)
+-- Single-property OS — not multi-hotel SaaS. `platform` party = hub operator billing profile.
 
 BEGIN;
 
--- Settlement bank profiles (property guest collections vs Buffr platform billing)
+-- Settlement bank profiles (guest collections vs hub operator billing)
 CREATE TABLE IF NOT EXISTS settlement_accounts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,

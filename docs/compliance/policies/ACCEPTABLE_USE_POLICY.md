@@ -16,6 +16,15 @@ Define acceptable use of Hotel Etuna information systems, email, and guest data 
 
 All staff, contractors, and partners with system access.
 
+
+## Definitions
+
+| Term | Definition |
+|------|------------|
+| **Hotel Etuna** | Hub hospitality platform and operating entity |
+| **Personnel** | Employees, contractors, and partners with access to Hotel Etuna systems |
+| **Production** | Live environment serving guests and partners (Vercel + Neon production branch) |
+
 ## 3. Acceptable use
 
 Users **may**:
@@ -51,8 +60,21 @@ Hotel Etuna may monitor system use per [`INFORMATION_SECURITY_POLICY.md`](INFORM
 
 Report violations to CTO. Violations may result in access revocation, discipline, or law enforcement referral.
 
+## Exceptions
+
+Exceptions require written approval from the Policy Owner and Executive Sponsor. Document compensating controls in the risk register.
+
+## Related Documents
+
+- [`INFORMATION_SECURITY_POLICY.md`](INFORMATION_SECURITY_POLICY.md)
+- [`NAMIBIA_REGULATORY_FRAMEWORK.md`](../NAMIBIA_REGULATORY_FRAMEWORK.md)
+- [`POLICY_IMPLEMENTATION_MATRIX.md`](../../../compliance/evidence/policies/POLICY_IMPLEMENTATION_MATRIX.md)
+
 ## 8. Revision history
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1 | 2026-06-10 | CTO | Template conformance + implementation cross-ref |
 | 1.0 | May 16, 2026 | CTO | Initial policy |
+
+**Approved by:** _________________________ Date: _________

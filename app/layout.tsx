@@ -10,6 +10,7 @@ import OfflineBanner from "@/components/providers/OfflineBanner";
 import { DevTestSessionBanner } from "@/components/shared/DevTestSessionBanner";
 import ServiceWorkerRegistration from "@/components/providers/ServiceWorkerRegistration";
 import { Toaster } from "@/components/ui";
+import { CookieConsentBanner } from "@/components/features/compliance/CookieConsentBanner";
 import { Suspense } from "react";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -111,6 +112,7 @@ export default function RootLayout({
           </Suspense>
         </SessionProviderWrapper>
         <Toaster />
+        <CookieConsentBanner />
       </body>
     </html>
   );

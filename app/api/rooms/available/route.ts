@@ -1,50 +1,55 @@
-import { NextResponse, NextRequest } from 'next/server';
+import { NextRequest } from 'next/server';
+import {
+  withPlatformApiAuth,
+  errorResponse,
+  successResponse,
+} from '@/lib/utils/api-helpers';
 import { BookingService } from '@/lib/services/booking/BookingService';
-import { getAuthenticatedUser } from '@/lib/utils/api-helpers';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 const bookingService = new BookingService();
 
 export async function GET(request: NextRequest) {
-  try {
-    const user = await getAuthenticatedUser(request);
+  return withPlatformApiAuth(
+    request,
+    async (req, user) => {
+      if (!user.tenantId) {
+        return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+      }
 
-    if (!user || !user.tenantId) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
+      try {
+        const { searchParams } = new URL(req.url);
+        const propertyId = searchParams.get('propertyId');
+        const checkIn = searchParams.get('checkIn');
+        const checkOut = searchParams.get('checkOut');
 
-    const { searchParams } = new URL(request.url);
-    const propertyId = searchParams.get('propertyId');
-    const checkIn = searchParams.get('checkIn');
-    const checkOut = searchParams.get('checkOut');
+        if (!propertyId || !checkIn || !checkOut) {
+          return errorResponse(
+            'Missing required parameters: propertyId, checkIn, checkOut',
+            400,
+            'VALIDATION_ERROR'
+          );
+        }
 
-    if (!propertyId || !checkIn || !checkOut) {
-      return NextResponse.json(
-        { message: 'Missing required parameters: propertyId, checkIn, checkOut' },
-        { status: 400 }
-      );
-    }
+        const checkInDate = new Date(checkIn);
+        const checkOutDate = new Date(checkOut);
 
-    const checkInDate = new Date(checkIn);
-    const checkOutDate = new Date(checkOut);
+        if (checkInDate >= checkOutDate) {
+          return errorResponse('Check-out date must be after check-in date', 400, 'VALIDATION_ERROR');
+        }
 
-    // Validate dates
-    if (checkInDate >= checkOutDate) {
-      return NextResponse.json(
-        { message: 'Check-out date must be after check-in date' },
-        { status: 400 }
-      );
-    }
+        const availableRooms = await bookingService.getAvailableRooms(
+          propertyId,
+          checkInDate,
+          checkOutDate
+        );
 
-    const availableRooms = await bookingService.getAvailableRooms(
-      propertyId,
-      checkInDate,
-      checkOutDate
-    );
-
-    return NextResponse.json(availableRooms, { status: 200 });
-  } catch (error) {
-    securityLogger.error('Error fetching available rooms:', error);
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
-  }
+        return successResponse(availableRooms);
+      } catch (error) {
+        securityLogger.error('Error fetching available rooms:', error);
+        return errorResponse('Internal server error', 500, 'INTERNAL_ERROR');
+      }
+    },
+    { rateLimit: true }
+  );
 }

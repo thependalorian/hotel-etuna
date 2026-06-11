@@ -8,6 +8,7 @@
 import React from 'react';
 import { getCurrentPlatformAdmin } from '@/lib/auth/platform-admin';
 import AuditLogViewer from '@/components/features/admin/platform/AuditLogViewer';
+import { AuditChainVerifyCard } from '@/components/features/compliance/AuditChainVerifyCard';
 import { REGULATORY_PACK_FOLDER, REGULATORY_MATERIALS_INDEX } from '@/lib/compliance/regulatory-context';
 import { Shield } from 'lucide-react';
 
@@ -21,7 +22,7 @@ export default async function PlatformAuditPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="buffr-page-title mb-2">Audit logs</h1>
+        <h1 className="etuna-page-title mb-2">Audit logs</h1>
         <p className="text-base-content/70">
           Court-admissible-style trail (ETA-oriented) — filter by resource type and action. Pair entries with
           your counsel’s reading of PSD, NamQR, Open Banking, and fraud guidance.
@@ -53,6 +54,8 @@ export default async function PlatformAuditPage() {
           </details>
         </div>
       </div>
+
+      <AuditChainVerifyCard />
 
       <AuditLogViewer />
     </div>

@@ -16,6 +16,15 @@ Ensure security-relevant events are logged, retained, and reviewed to detect and
 
 Application audit trail, authentication events, payment and fraud actions, infrastructure logs, and compliance exports.
 
+
+## Definitions
+
+| Term | Definition |
+|------|------------|
+| **Hotel Etuna** | Hub hospitality platform and operating entity |
+| **Personnel** | Employees, contractors, and partners with access to Hotel Etuna systems |
+| **Production** | Live environment serving guests and partners (Vercel + Neon production branch) |
+
 ## 3. What to log
 
 | Event type | Minimum fields | Storage |
@@ -39,6 +48,8 @@ Logs SHALL NOT contain passwords, API secrets, full PAN, or CVV.
 | Neon / pgAudit | Per Neon plan | Enable where available |
 | Fraud alerts | 7 years | Regulatory alignment |
 
+**Implementation note (2026-06-10):** pgAudit on Neon is **not yet confirmed enabled** (TASK.md Production Gap #6). Requirement stands; track remediation in [`IMPLEMENTATION_VALIDATION_2026-06-10.md`](../../../compliance/evidence/policies/IMPLEMENTATION_VALIDATION_2026-06-10.md).
+
 ## 5. Monitoring activities
 
 | Activity | Frequency | Owner |
@@ -58,15 +69,39 @@ Alert thresholds and on-call rotation documented in [`INCIDENT_RESPONSE_PLAN.md`
 - Logging Restricted secrets at INFO level.
 
 ## 7. Related documents
+- [`INFORMATION_SECURITY_POLICY.md`](INFORMATION_SECURITY_POLICY.md)
+
+- [`NAMIBIA_REGULATORY_FRAMEWORK.md`](../NAMIBIA_REGULATORY_FRAMEWORK.md)
+
+- [`POLICY_IMPLEMENTATION_MATRIX.md`](../../../compliance/evidence/policies/POLICY_IMPLEMENTATION_MATRIX.md)
 
 - [`DATA_RETENTION_POLICY.md`](DATA_RETENTION_POLICY.md)  
 - [`INCIDENT_RESPONSE_PLAN.md`](../INCIDENT_RESPONSE_PLAN.md)  
 - [`lib/compliance/record-audit.ts`](../../../lib/compliance/record-audit.ts)
 
+## Exceptions
+
+Exceptions require written approval from the Policy Owner and Executive Sponsor. Document compensating controls in the risk register.
+
+## Enforcement
+
+Violations may result in disciplinary action up to termination and reporting to regulators where required.
+
 ## 8. Revision history
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.2 | 2026-06-10 | CTO | Runtime anchors: record-audit, export-audit-trail, verify-pgaudit script |
+| 1.1 | 2026-06-10 | CTO | Template conformance + implementation cross-ref |
 | 1.0 | May 17, 2026 | CTO | Initial policy |
+
+## Implementation notes (2026-06-10)
+
+| Control | Runtime anchor | Verify |
+|---------|----------------|--------|
+| Application audit events | `lib/compliance/record-audit.ts` → `audit_trail` | SOC2 monitoring agent |
+| Monthly archive | `scripts/compliance/export-audit-trail.ts` | `export-monthly-evidence.ts` |
+| DB statement audit | `scripts/compliance/enable-pgaudit.sql` | `npm run verify:pgaudit` (**operator gate IMP-01**) |
+| CI evidence | `.github/workflows/soc2-evidence.yml` | Weekly workflow + artifacts |
 
 **Approved by:** _________________________ Date: _________

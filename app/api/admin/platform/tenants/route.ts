@@ -10,20 +10,15 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentPlatformAdmin, isPlatformAdmin, isSuperAdmin } from '@/lib/auth/platform-admin';
+import { withPlatformAdminAuth } from '@/lib/auth/with-platform-admin-auth';
 import { db, tenants } from '@/lib/db';
 import { desc, eq, sql } from 'drizzle-orm';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 // GET - List all tenants
 export async function GET(request: NextRequest) {
+  return withPlatformAdminAuth(request, async () => {
   try {
-    const user = await getCurrentPlatformAdmin();
-    
-    if (!user || !isPlatformAdmin(user)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     // Fetch partner tenants only (hub is fixed for Hotel Etuna)
     const allTenants = await db
       .select()
@@ -39,18 +34,16 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+  });
 }
 
 // POST - Create new tenant
 export async function POST(request: NextRequest) {
+  return withPlatformAdminAuth(
+    request,
+    async (req) => {
   try {
-    const user = await getCurrentPlatformAdmin();
-    
-    if (!user || !isSuperAdmin(user)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    const body = await request.json();
+    const body = await req!.json();
     const { name, subdomain, domain, property_type, room_count, has_restaurant_features, parent_tenant_id, commission_percent } = body;
 
     if (!name) {
@@ -85,4 +78,7 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+    },
+    { superAdmin: true }
+  );
 }

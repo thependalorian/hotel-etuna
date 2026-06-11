@@ -19,7 +19,7 @@ export default async function PlatformAnalyticsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="buffr-page-title mb-2">Platform Analytics</h1>
+        <h1 className="etuna-page-title mb-2">Platform Analytics</h1>
         <p className="text-base-content/70">
           Platform-wide metrics and usage analytics
         </p>

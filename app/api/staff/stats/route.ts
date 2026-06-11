@@ -1,29 +1,52 @@
-import { NextResponse, NextRequest } from 'next/server';
-import { getAuthenticatedUser } from '@/lib/utils/api-helpers';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { NextRequest } from 'next/server';
+import {
+  withPlatformApiAuth,
+  errorResponse,
+  successResponse,
+} from '@/lib/utils/api-helpers';
+import { securityLogger } from '@/lib/utils/security-logger';
+import { db, staff } from '@/lib/db';
+import { eq, sql } from 'drizzle-orm';
 
-export async function GET(
-   
-  request: NextRequest
-) {
-  const user = await getAuthenticatedUser(request);
+/**
+ * GET /api/staff/stats
+ * Response: { totalStaff, activeStaff, departments, newHiresThisMonth }
+ */
+export async function GET(request: NextRequest) {
+  return withPlatformApiAuth(
+    request,
+    async (_req, user) => {
+      if (!user.tenantId) {
+        return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
+      }
 
-  if (!user || !user.tenantId) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-  }
+      try {
+        const tenantId = user.tenantId;
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
 
-  try {
-    // Mock stats data
-    const stats = {
-      totalStaff: 2,
-      activeStaff: 2,
-      departments: 2,
-      newHiresThisMonth: 0
-    };
+        const [aggregate] = await db
+          .select({
+            totalStaff: sql<number>`count(*)::int`,
+            activeStaff: sql<number>`count(*) filter (where ${staff.status} = 'active')::int`,
+            departments: sql<number>`count(distinct ${staff.department})::int`,
+            newHiresThisMonth: sql<number>`count(*) filter (where ${staff.hireDate} >= ${startOfMonth.toISOString().slice(0, 10)})::int`,
+          })
+          .from(staff)
+          .where(eq(staff.tenantId, tenantId));
 
-    return NextResponse.json(stats, { status: 200 });
-  } catch (error) {
-    securityLogger.error('Error fetching staff stats:', error);
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
-  }
+        return successResponse({
+          totalStaff: aggregate?.totalStaff ?? 0,
+          activeStaff: aggregate?.activeStaff ?? 0,
+          departments: aggregate?.departments ?? 0,
+          newHiresThisMonth: aggregate?.newHiresThisMonth ?? 0,
+        });
+      } catch (error) {
+        securityLogger.error('Error fetching staff stats:', error);
+        return errorResponse('Internal server error', 500, 'INTERNAL_ERROR');
+      }
+    },
+    { rateLimit: true }
+  );
 }

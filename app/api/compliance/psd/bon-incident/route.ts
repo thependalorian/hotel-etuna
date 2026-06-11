@@ -15,13 +15,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { requireTenantSessionUser } from '@/lib/utils/api-helpers';
-import { AppError } from '@/lib/utils/errors';
+import { withTenantApiAuth } from '@/lib/utils/api-helpers';
 import { BonIncidentReportingService } from '@/lib/services/compliance/BonIncidentReportingService';
 import { neon } from '@neondatabase/serverless';
 import { entityId } from '@/lib/validation/entity-ids';
 import { z } from 'zod';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 // Preliminary report schema (24-hour notification)
 const preliminaryReportSchema = z.object({
@@ -67,168 +66,160 @@ const reportSchema = z.discriminatedUnion('reportType', [
  * 2. impact_assessment_30d - Must be submitted within 30 days of incident
  */
 export async function POST(req: NextRequest) {
-  try {
-    const user = await requireTenantSessionUser(req);
-    // Parse and validate request
-    const body = await req.json();
-    const validatedData = reportSchema.parse(body);
-    
-    securityLogger.info('[API:BonIncident] Processing incident report', {
-      reportType: validatedData.reportType,
-      incidentId: validatedData.incidentId,
-      tenantId: user.tenantId,
-    });
-    
-    // Initialize service
-    const bonService = new BonIncidentReportingService();
-    
-    // Generate appropriate report based on type
-    let report;
-    if (validatedData.reportType === 'preliminary_24h') {
-      // Fetch incident details from database
-      const sql = neon(process.env.DATABASE_URL!);
-      const incident = await sql`
-        SELECT id, tenant_id, category, severity, description, created_at
-        FROM cybersecurity_incidents
-        WHERE id = ${validatedData.incidentId}::uuid
-      `;
+  return withTenantApiAuth(req, async (request, user) => {
+    try {
+      // Parse and validate request
+      const body = await request.json();
+      const validatedData = reportSchema.parse(body);
       
-      if (!incident || incident.length === 0) {
-        return NextResponse.json(
-          { error: 'Incident not found' },
-          { status: 404 }
-        );
-      }
-      
-      report = await bonService.generatePreliminaryReport({
-        id: incident[0].id,
-        tenantId: incident[0].tenant_id,
-        category: incident[0].category,
-        severity: incident[0].severity,
-        description: incident[0].description,
-        createdAt: new Date(incident[0].created_at),
+      securityLogger.info('[API:BonIncident] Processing incident report', {
+        reportType: validatedData.reportType,
+        incidentId: validatedData.incidentId,
+        tenantId: user.tenantId,
       });
       
-    } else {
-      // Impact assessment (30-day)
-      const sql = neon(process.env.DATABASE_URL!);
-      const incident = await sql`
-        SELECT id, tenant_id, category, severity, description, created_at
-        FROM cybersecurity_incidents
-        WHERE id = ${validatedData.incidentId}::uuid
-      `;
+      // Initialize service
+      const bonService = new BonIncidentReportingService();
       
-      if (!incident || incident.length === 0) {
-        return NextResponse.json(
-          { error: 'Incident not found' },
-          { status: 404 }
-        );
-      }
-      
-      report = await bonService.generateImpactAssessment(
-        {
+      // Generate appropriate report based on type
+      let report;
+      if (validatedData.reportType === 'preliminary_24h') {
+        // Fetch incident details from database
+        const sql = neon(process.env.DATABASE_URL!);
+        const incident = await sql`
+          SELECT id, tenant_id, category, severity, description, created_at
+          FROM cybersecurity_incidents
+          WHERE id = ${validatedData.incidentId}::uuid
+        `;
+        
+        if (!incident || incident.length === 0) {
+          return NextResponse.json(
+            { error: 'Incident not found' },
+            { status: 404 }
+          );
+        }
+        
+        report = await bonService.generatePreliminaryReport({
           id: incident[0].id,
           tenantId: incident[0].tenant_id,
           category: incident[0].category,
           severity: incident[0].severity,
           description: incident[0].description,
           createdAt: new Date(incident[0].created_at),
-        },
-        {
-          financialLoss: validatedData.financialLoss,
-          dataLossRecords: validatedData.dataLossRecords,
-          availabilityLossMinutes: validatedData.availabilityLossMinutes,
-          affectedUsersCount: validatedData.affectedUsersCount,
-          affectedSystems: validatedData.affectedSystems,
-          impactDetails: validatedData.impactDetails,
-          mitigationActions: validatedData.mitigationActions,
-          recoveryActions: validatedData.recoveryActions,
-          lessonsLearned: validatedData.lessonsLearned || '',
+        });
+        
+      } else {
+        // Impact assessment (30-day)
+        const sql = neon(process.env.DATABASE_URL!);
+        const incident = await sql`
+          SELECT id, tenant_id, category, severity, description, created_at
+          FROM cybersecurity_incidents
+          WHERE id = ${validatedData.incidentId}::uuid
+        `;
+        
+        if (!incident || incident.length === 0) {
+          return NextResponse.json(
+            { error: 'Incident not found' },
+            { status: 404 }
+          );
         }
+        
+        report = await bonService.generateImpactAssessment(
+          {
+            id: incident[0].id,
+            tenantId: incident[0].tenant_id,
+            category: incident[0].category,
+            severity: incident[0].severity,
+            description: incident[0].description,
+            createdAt: new Date(incident[0].created_at),
+          },
+          {
+            financialLoss: validatedData.financialLoss,
+            dataLossRecords: validatedData.dataLossRecords,
+            availabilityLossMinutes: validatedData.availabilityLossMinutes,
+            affectedUsersCount: validatedData.affectedUsersCount,
+            affectedSystems: validatedData.affectedSystems,
+            impactDetails: validatedData.impactDetails,
+            mitigationActions: validatedData.mitigationActions,
+            recoveryActions: validatedData.recoveryActions,
+            lessonsLearned: validatedData.lessonsLearned || '',
+          }
+        );
+      }
+      
+      // Submit to Bank of Namibia
+      const submissionResult = await bonService.submitToBoN(
+        user.tenantId,
+        report,
+        validatedData.submittedBy
       );
-    }
-    
-    // Submit to Bank of Namibia
-    const submissionResult = await bonService.submitToBoN(
-      user.tenantId,
-      report,
-      validatedData.submittedBy
-    );
-    
-    if (!submissionResult.success) {
+      
+      if (!submissionResult.success) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Failed to submit to Bank of Namibia',
+            message: submissionResult.message,
+          },
+          { status: 500 }
+        );
+      }
+      
+      securityLogger.info('[API:BonIncident] Report submitted successfully', {
+        bonReference: submissionResult.bonReference,
+        reportType: validatedData.reportType,
+        tenantId: user.tenantId,
+      });
+      
+      return NextResponse.json({
+        success: true,
+        data: {
+          bonReference: submissionResult.bonReference,
+          acknowledged: submissionResult.acknowledged,
+          reportType: validatedData.reportType,
+          submittedAt: new Date().toISOString(),
+        },
+        message: 'Incident successfully reported to Bank of Namibia',
+      });
+      
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Validation error',
+            details: error.issues,
+          },
+          { status: 400 }
+        );
+      }
+      
+      securityLogger.error('[API:BonIncident] Error:', error);
+      
       return NextResponse.json(
         {
           success: false,
-          error: 'Failed to submit to Bank of Namibia',
-          message: submissionResult.message,
+          error: 'Failed to process incident report',
+          message: error instanceof Error ? error.message : 'Unknown error',
         },
         { status: 500 }
       );
     }
-    
-    securityLogger.info('[API:BonIncident] Report submitted successfully', {
-      bonReference: submissionResult.bonReference,
-      reportType: validatedData.reportType,
-      tenantId: user.tenantId,
-    });
-    
-    return NextResponse.json({
-      success: true,
-      data: {
-        bonReference: submissionResult.bonReference,
-        acknowledged: submissionResult.acknowledged,
-        reportType: validatedData.reportType,
-        submittedAt: new Date().toISOString(),
-      },
-      message: 'Incident successfully reported to Bank of Namibia',
-    });
-    
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Validation error',
-          details: error.issues,
-        },
-        { status: 400 }
-      );
-    }
-    
-    securityLogger.error('[API:BonIncident] Error:', error);
-    
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to process incident report',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
-  }
+  });
 }
 
 /**
- * GET /api/compliance/psd/bon-incident?tenantId=xxx
+ * GET /api/compliance/psd/bon-incident (tenant from session via withTenantApiAuth)
  * 
  * Get incident reporting compliance dashboard
  */
 export async function GET(req: NextRequest) {
+  return withTenantApiAuth(req, async (_request, user) => {
   try {
-    const { searchParams } = new URL(req.url);
-    const tenantId = searchParams.get('tenantId');
-    
-    if (!tenantId) {
-      return NextResponse.json(
-        { error: 'tenantId is required' },
-        { status: 400 }
-      );
-    }
-    
     const bonService = new BonIncidentReportingService();
     
     // Get compliance dashboard
-    const dashboard = await bonService.getComplianceDashboard(tenantId);
+    const dashboard = await bonService.getComplianceDashboard(user.tenantId);
     
     // Calculate compliance rate
     const totalPreliminary = Number(dashboard.preliminary_reports || 0);
@@ -270,4 +261,5 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   }
+  });
 }

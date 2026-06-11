@@ -437,6 +437,11 @@ Hotel Etuna maintains a register of all processing activities:
   - Material change to business operations
 
 ## 15. Related Policies
+- [`INFORMATION_SECURITY_POLICY.md`](INFORMATION_SECURITY_POLICY.md)
+
+- [`NAMIBIA_REGULATORY_FRAMEWORK.md`](../NAMIBIA_REGULATORY_FRAMEWORK.md)
+
+- [`POLICY_IMPLEMENTATION_MATRIX.md`](../../../compliance/evidence/policies/POLICY_IMPLEMENTATION_MATRIX.md)
 
 - Information Security Policy
 - Access Control Policy
@@ -483,10 +488,15 @@ Date: _______________
 
 ---
 
+## Exceptions
+
+Exceptions require written approval from the Policy Owner and Executive Sponsor. Document compensating controls in the risk register.
+
 ## Revision History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1 | 2026-06-10 | CTO | Template conformance + implementation cross-ref |
 | 1.0 | May 16, 2026 | CTO | Initial policy aligned with Namibia Data Protection Bill 2023 (pending), GDPR, POPIA |
 
 ---
@@ -554,6 +564,10 @@ To verify your identity, please provide:
 [CTO Name]  
 [Phone]  
 [Email]
+
+---
+
+**Approved by:** _________________________ Date: _________
 
 ---
 

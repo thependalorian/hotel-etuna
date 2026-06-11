@@ -16,6 +16,15 @@ Define how long Hotel Etuna retains data to meet legal, tax, and operational nee
 
 All electronic records in Neon, Qdrant, Vercel logs, backups, and offline exports.
 
+
+## Definitions
+
+| Term | Definition |
+|------|------------|
+| **Hotel Etuna** | Hub hospitality platform and operating entity |
+| **Personnel** | Employees, contractors, and partners with access to Hotel Etuna systems |
+| **Production** | Live environment serving guests and partners (Vercel + Neon production branch) |
+
 ## 3. Retention schedule
 
 | Data type | Retention period | Legal / business basis | Deletion method |
@@ -51,8 +60,38 @@ When litigation or regulatory investigation is notified, suspend deletion for af
 | Finance | Approve tax record destruction |
 | Legal | Issue legal holds |
 
+## Exceptions
+
+Exceptions require written approval from the Policy Owner and Executive Sponsor. Document compensating controls in the risk register.
+
+## Enforcement
+
+Violations may result in disciplinary action up to termination and reporting to regulators where required.
+
+## Related Documents
+
+- [`DATA_PROTECTION_POLICY_NAMIBIA.md`](DATA_PROTECTION_POLICY_NAMIBIA.md)
+- [`INFORMATION_SECURITY_POLICY.md`](INFORMATION_SECURITY_POLICY.md)
+- [`NAMIBIA_REGULATORY_FRAMEWORK.md`](../NAMIBIA_REGULATORY_FRAMEWORK.md)
+- [`POLICY_IMPLEMENTATION_MATRIX.md`](../../../compliance/evidence/policies/POLICY_IMPLEMENTATION_MATRIX.md)
+
 ## 7. Revision history
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.2 | 2026-06-10 | CTO | Retention services + Vercel cron wired; unit tests added |
+| 1.1 | 2026-06-10 | CTO | Template conformance + implementation cross-ref |
 | 1.0 | May 16, 2026 | CTO | Initial schedule |
+
+## Implementation notes (2026-06-10)
+
+| Data class | Service / route | Schedule |
+|------------|-----------------|----------|
+| Financial records (7y) | `RetentionEnforcementService` | `vercel.json` cron → `/api/cron/retention-enforcement` |
+| Sofia chat (24mo) | `SofiaChatRetentionService` | Same cron (tenant-scoped purge + audit) |
+| Dry-run evidence | `?dryRun=true` on cron | Archive to `compliance/evidence/YYYY-MM/retention-dry-run.json` |
+
+**Tests:** `tests/unit/retention-enforcement-service.test.ts`, `tests/unit/sofia-chat-retention.test.ts`  
+**Validate:** `npm run validate:policy-implementation` (POL-12)
+
+**Approved by:** _________________________ Date: _________

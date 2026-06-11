@@ -14,7 +14,7 @@ import { sendWhatsAppTextMessage } from '@/lib/integrations/whatsapp/whatsapp-gr
 import { getTenantWhatsappByPhoneNumberId } from '@/lib/services/whatsapp/tenantWhatsappLookup';
 import { findGuestIdByWhatsappPhone } from '@/lib/services/whatsapp/findGuestByWhatsappPhone';
 import { checkRateLimit } from '@/lib/utils/rate-limit';
-import { securityLogger } from '@/lib/utils/security-logger.client';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export const dynamic = 'force-dynamic';
 

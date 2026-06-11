@@ -15,7 +15,6 @@ import {
   validateNamQrPayload,
 } from '@/lib/compliance/namqr/nrtc-payload';
 import {
-  encodeNamQrPayloadV5,
   validateNamQrCrc,
   parseNamQrTlv,
   NAMQR_CURRENCY_NAD,
