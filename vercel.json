@@ -16,11 +16,11 @@
     },
     {
       "path": "/api/cron/payment-outbox-dispatch",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 4 * * *"
     },
     {
       "path": "/api/cron/scheduler-dispatch",
-      "schedule": "*/2 * * * *"
+      "schedule": "0 5 * * *"
     },
     {
       "path": "/api/cron/uptime-monitor",
