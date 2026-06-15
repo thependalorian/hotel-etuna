@@ -341,6 +341,39 @@ lib/services/ai/sofia-api-handlers.ts                 ✅ already kebab-case
 lib/services/qr/namqr-core.ts                         ✅ already kebab-case
 ```
 
+#### The one rule that governs file casing (read this before "fixing" a filename)
+
+A file's casing is decided **by what the file exports, not by which folder it lives in**:
+
+| File's primary export… | Casing | Example |
+|------------------------|--------|---------|
+| A `class` | `PascalCase.ts`, filename = class name | `FraudDetectionService.ts` |
+| Only functions / constants / types (no class) | `kebab-case.ts` | `tenant-fraud-rules.ts`, `namqr-core.ts` |
+
+**`lib/services/` deliberately mixes both casings in the same folder — this is correct, not an inconsistency
+to "clean up."** A domain folder holds its stateful service class next to its pure-function helpers, and each
+file follows its own rule:
+
+```
+lib/services/fraud/
+├── FraudDetectionService.ts   ← class      → PascalCase  ✅
+└── tenant-fraud-rules.ts      ← functions  → kebab-case  ✅   (same folder, different casing — by design)
+
+lib/services/qr/
+├── NamQrService.ts            ← class      → PascalCase  ✅
+└── namqr-core.ts              ← functions  → kebab-case  ✅
+```
+
+> ⚠️ **Do not rename a kebab-case helper inside `lib/services/` to PascalCase to "match its neighbours."**
+> If it exports no class, kebab-case is its intended, correct name.
+>
+> `lib/utils/` is uniformly kebab-case only because it contains no service classes — that uniformity is a
+> consequence of its contents, not a folder-level rule. Never infer "this folder is all kebab-case" or "all
+> PascalCase" from a folder name; check the file's exports.
+
+The camelCase files flagged ⚠️ above are the only genuine violations here: they export functions but use
+camelCase instead of kebab-case. See the migration table below.
+
 **Existing violations** (camelCase non-class files — rename when touching these files):
 
 | Current | Correct |
