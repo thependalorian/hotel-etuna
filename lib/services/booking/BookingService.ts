@@ -28,7 +28,7 @@ import {
   type CampsitePricingInput,
 } from '@/lib/services/booking/FacilityBookingPricing';
 import { isFacilityBookingKind, type BookingKind } from '@/lib/bookings/booking-kind';
-import { DEFAULT_BOOKING_DEPOSIT_PERCENT, withDepositPricingDetails } from '@/lib/booking/deposit';
+import { DEFAULT_BOOKING_DEPOSIT_PERCENT, withDepositPricingDetails } from '@/lib/bookings/deposit';
 
 // A DTO for creating a booking
 export interface CreateBookingDTO {
