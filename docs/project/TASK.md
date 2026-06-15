@@ -1662,3 +1662,7 @@ See `docs/audit/CODEBASE_AUDIT_2026-06-10.md` for the full report.
 - [x] **Guest financial PDF wiring gate:** `npm run validate:document-wiring` (in `test:ci`) + integration tests under `tests/integration/documents-*.test.ts`
 - [ ] **Tech debt:** `lib/services/ai/SofiaConciergeService.ts` is 1,140+ lines (>500-line guideline) — candidate for modular split
 - [x] **Docs:** `CLAUDE.md` now points to `docs/project/MIGRATION_MASTER.md` (journal index through `0063`)
+
+## Discovered during work (2026-06-15 — Communications Act applicability)
+
+- [x] **Communications Act 8 of 2009 (as amended by Act 6/2020) applicability assessment produced** — `docs/compliance/COMMUNICATIONS_ACT_2009_APPLICABILITY.md`. Conclusion: Hotel Etuna is **not** a CRAN licensee / telecom-broadcast-postal provider (s1, s37); **no direct code obligations**. Part 6 interception/retention (s71) and customer/SIM-registration (s73) duties bind telecom SPs only — **do not implement**. Guest WiFi covered by s43 private-network exemption. Marketing consent model assessed **ALIGNED** with the s75(d)(iC) "general consent is not valid consent" principle (separate `marketing_consent` flag, gated sends, append-only `crm_consent_events`) — no schema/behavior change. No telecom touchpoints found (no captive portal/RADIUS/VoIP/SIP/PBX/SMS-reselling).
