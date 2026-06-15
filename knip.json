@@ -1,0 +1,70 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "app/**/{page,layout,route,loading,error,not-found,template,default,global-error}.{ts,tsx}",
+    "app/**/{opengraph-image,twitter-image,icon,apple-icon,sitemap,robots,manifest}.{ts,tsx}",
+    "app/**/route.ts",
+    "next.config.ts",
+    "instrumentation.ts",
+    "instrumentation-client.ts",
+    "proxy.ts",
+    "middleware.ts",
+    "stack.ts",
+    "next-auth.d.ts",
+    "drizzle.config.ts",
+    "tailwind.config.ts",
+    "postcss.config.mjs",
+    "vitest.config.ts",
+    "vitest.smoke.config.ts",
+    "playwright.config.ts"
+  ],
+  "project": [
+    "app/**/*.{ts,tsx}",
+    "lib/**/*.{ts,tsx}",
+    "components/**/*.{ts,tsx}",
+    "types/**/*.{ts,tsx}"
+  ],
+  "ignore": [
+    "**/*.d.ts",
+    ".next/**",
+    "public/**"
+  ],
+  "ignoreBinaries": ["supabase", "vercel", "tree"],
+  "ignoreDependencies": [
+    "@tailwindcss/postcss",
+    "tailwindcss",
+    "baseline-browser-mapping"
+  ],
+  "workspaces": {
+    ".": {
+      "entry": [
+        "scripts/**/*.{ts,mts,mjs}",
+        "tests/**/*.{test,spec}.{ts,tsx}",
+        "tests/setup/**/*.ts",
+        "tests/utils/**/*.ts",
+        "tests/fixtures/**/*.ts",
+        "e2e/**/*.{test,spec}.ts"
+      ]
+    }
+  },
+  "vitest": {
+    "config": ["vitest.config.ts", "vitest.smoke.config.ts"],
+    "entry": ["tests/**/*.{test,spec}.{ts,tsx}", "tests/setup/**/*.ts"]
+  },
+  "playwright": {
+    "config": ["playwright.config.ts"],
+    "entry": ["e2e/**/*.{test,spec}.ts"]
+  },
+  "next": {
+    "entry": [
+      "app/**/{page,layout,route,loading,error,not-found,template,default,global-error}.{ts,tsx}",
+      "instrumentation.ts",
+      "instrumentation-client.ts",
+      "proxy.ts",
+      "middleware.ts"
+    ]
+  },
+  "drizzle": {
+    "config": ["drizzle.config.ts"]
+  }
+}
