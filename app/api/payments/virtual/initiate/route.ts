@@ -24,7 +24,7 @@ import {
 } from '@/lib/services/folio/guestStayAccess';
 import { AdumoVirtualService } from '@/lib/services/payment/AdumoVirtualService';
 import { FolioService } from '@/lib/services/folio/FolioService';
-import { resolveBookingDepositAmount } from '@/lib/booking/deposit';
+import { resolveBookingDepositAmount } from '@/lib/bookings/deposit';
 import { PsdFraudGate } from '@/lib/services/fraud/FraudDetectionService';
 import { logSecurityIncident } from '@/lib/services/security/SecurityIncidentService';
 

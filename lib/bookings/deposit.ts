@@ -1,6 +1,6 @@
 /**
  * Booking deposit helpers — single source for deposit % and payable amount.
- * Location: lib/booking/deposit.ts
+ * Location: lib/bookings/deposit.ts
  */
 
 export const DEFAULT_BOOKING_DEPOSIT_PERCENT = Number(

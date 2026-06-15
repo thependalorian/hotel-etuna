@@ -1,6 +1,10 @@
 /**
  * Guest stays list API
  *
+ * GUEST SELF-SERVICE portal (singular `guest`) — the authenticated guest views
+ * their own stays. Distinct from the staff CRM at /api/guests (plural) and
+ * /api/crm/guests.
+ *
  * Purpose: List active stays for the authenticated guest (by email).
  * Location: /app/api/guest/stays/route.ts
  *

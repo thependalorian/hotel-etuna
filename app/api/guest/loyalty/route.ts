@@ -1,6 +1,10 @@
 /**
  * Guest Loyalty API
- * 
+ *
+ * GUEST SELF-SERVICE portal (singular `guest`) — the authenticated guest views
+ * their own loyalty balance. Distinct from the staff CRM at /api/guests (plural)
+ * and /api/crm/guests.
+ *
  * GET /api/guest/loyalty - Get guest's loyalty balance and transaction history
  */
 

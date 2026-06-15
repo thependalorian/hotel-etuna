@@ -1,6 +1,10 @@
 /**
  * Guest profile API — the signed-in guest's own contact details + stay preferences.
  *
+ * GUEST SELF-SERVICE portal (singular `guest`) — the authenticated guest acts on
+ * their own record. Distinct from the staff CRM at /api/guests (plural) and
+ * /api/crm/guests, which let staff manage all guests.
+ *
  * Location: app/api/guest/profile/route.ts
  *
  * GET   → { data: GuestProfile }
