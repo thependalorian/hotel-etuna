@@ -423,6 +423,7 @@ export function rateLimitResponse(result: {
 
   return NextResponse.json(
     {
+      success: false,
       error: {
         message: 'Too many requests',
         code: 'RATE_LIMIT_EXCEEDED',
@@ -457,6 +458,7 @@ export function paginatedResponse(
   total: number
 ): NextResponse {
   return NextResponse.json({
+    success: true,
     data,
     pagination: {
       page,

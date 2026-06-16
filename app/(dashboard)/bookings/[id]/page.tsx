@@ -25,9 +25,9 @@ import { WorkflowStatusActions } from '@/components/shared/WorkflowStatusActions
 import {
   BookingCashPaymentSection,
   type BookingCashRow,
-} from '@/components/features/bookings/BookingCashPaymentSection';
-import { BookingFolioSection } from '@/components/features/bookings/BookingFolioSection';
-import { BookingDocumentsSection } from '@/components/features/bookings/BookingDocumentsSection';
+} from '@/components/features/booking/BookingCashPaymentSection';
+import { BookingFolioSection } from '@/components/features/booking/BookingFolioSection';
+import { BookingDocumentsSection } from '@/components/features/booking/BookingDocumentsSection';
 import { Card } from '@/components/ui/Card';
 import PageHeader from '@/components/shared/PageHeader';
 import { Calendar, MapPin, User, Mail, Phone } from 'lucide-react';

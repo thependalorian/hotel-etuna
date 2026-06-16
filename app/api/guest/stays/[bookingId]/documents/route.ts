@@ -17,7 +17,7 @@ import {
 import { assertStayAccess } from '@/lib/services/folio/guestStayAccess';
 import { GuestDocumentVaultService } from '@/lib/services/guest/GuestDocumentVaultService';
 import { GUEST_API_ROLES } from '@/lib/auth/roles';
-import { entityId } from '@/lib/validation/entity-ids';
+import { isValidEntityIdWithMessage } from '@/lib/validation/entity-ids';
 import { AppError } from '@/lib/utils/errors';
 
 const vault = new GuestDocumentVaultService();
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     request,
     async (_req, user) => {
       const { bookingId } = await params;
-      if (!entityId('Invalid booking ID').safeParse(bookingId).success) {
+      if (!isValidEntityIdWithMessage(bookingId, 'Invalid booking ID')) {
         return errorResponse('Invalid booking ID', 400, 'VALIDATION_ERROR');
       }
 
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     request,
     async (req, user) => {
       const { bookingId } = await params;
-      if (!entityId('Invalid booking ID').safeParse(bookingId).success) {
+      if (!isValidEntityIdWithMessage(bookingId, 'Invalid booking ID')) {
         return errorResponse('Invalid booking ID', 400, 'VALIDATION_ERROR');
       }
 

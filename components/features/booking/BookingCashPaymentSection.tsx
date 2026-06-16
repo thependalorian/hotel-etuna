@@ -2,15 +2,15 @@
  * BookingCashPaymentSection
  *
  * Purpose: Dashboard wiring for cash mark-paid (CashPaymentModal) and printable receipt (BookingReceipt) on booking detail.
- * Location: components/features/bookings/BookingCashPaymentSection.tsx
+ * Location: components/features/booking/BookingCashPaymentSection.tsx
  */
 
 'use client';
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { CashPaymentModal } from '@/components/features/bookings/CashPaymentModal';
-import { BookingReceipt } from '@/components/features/bookings/BookingReceipt';
+import { CashPaymentModal } from '@/components/features/booking/CashPaymentModal';
+import { BookingReceipt } from '@/components/features/booking/BookingReceipt';
 import { BookingDepositPayCard } from '@/components/payments/BookingDepositPayCard';
 import { Button } from '@/components/ui/Button';
 
@@ -189,3 +189,4 @@ export function BookingCashPaymentSection({
     </div>
   );
 }
+

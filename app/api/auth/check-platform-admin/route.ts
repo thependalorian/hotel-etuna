@@ -5,17 +5,17 @@
  * Response: { ok: true } when current session is a platform admin; 401/403 otherwise.
  */
 
-import { NextResponse } from 'next/server';
 import { getCurrentPlatformAdmin } from '@/lib/auth/platform-admin';
+import { errorResponse, successResponse } from '@/lib/utils/api-helpers';
 
 export async function GET() {
   try {
     const admin = await getCurrentPlatformAdmin();
     if (!admin) {
-      return NextResponse.json({ ok: false, error: 'Forbidden' }, { status: 403 });
+      return errorResponse('Forbidden', 403, 'FORBIDDEN');
     }
-    return NextResponse.json({ ok: true });
+    return successResponse({ isPlatformAdmin: true });
   } catch {
-    return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+    return errorResponse('Unauthorized', 401, 'UNAUTHORIZED');
   }
 }

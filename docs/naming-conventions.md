@@ -595,7 +595,7 @@ components/
 ### KISS Violations Found
 | Location | Issue | Action |
 |----------|-------|--------|
-| `components/features/bookings/` | Plural folder alongside `booking/` | Merge into `booking/` |
+| `components/features/booking/` | Consolidated singular booking domain folder | Keep as canonical booking feature path |
 | `HospitalityNamQrPaymentService.ts` | Over-qualified name | Rename to `NamQrPaymentService.ts` |
 | `bookingLifecycleSideEffects.ts` (camelCase) | Inconsistent with adjacent PascalCase files | Rename to `booking-lifecycle-side-effects.ts` |
 

@@ -10,6 +10,7 @@ export default defineConfig({
       '**/node_modules/**',
       '**/dist/**',
       '.next/**',
+      '**/.claude/worktrees/**',
       'tests/smoke/**',
       /** Playwright specs — run with `npm run test:e2e`, not Vitest */
       '**/e2e/**',

@@ -10,7 +10,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['tests/smoke/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
-    exclude: ['**/node_modules/**', '**/dist/**', '.next/**'],
+    exclude: ['**/node_modules/**', '**/dist/**', '.next/**', '**/.claude/worktrees/**'],
     setupFiles: ['./tests/setup/load-env.ts', './tests/setup/test-setup.ts'],
     testTimeout: 30000,
     hookTimeout: 60000,

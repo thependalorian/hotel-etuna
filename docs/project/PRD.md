@@ -330,7 +330,7 @@ P0 folio capabilities are **implemented in codebase** (see **In production** abo
 |--------|------------|------------------|------------------------------|
 | ☐ | Migration `0009` + RLS `0010` | `database/drizzle/0009_booking_charges_folio.sql`, `0010_booking_charges_rls.sql` | `\d booking_charges`; RLS enabled; hub tenant policies active |
 | ☐ | Guest stay UI + APIs | `app/guest/**`, `app/api/guest/stays/**` | Guest login → `/guest/stays` → folio, order, settle (cash/card) |
-| ☐ | Staff folio on booking detail | `components/features/bookings/BookingFolioSection.tsx` | Hub booking detail → cash/card settle, line items, balance |
+| ☐ | Staff folio on booking detail | `components/features/booking/BookingFolioSection.tsx` | Hub booking detail → cash/card settle, line items, balance |
 | ☐ | Room QR + folio hook | `app/api/public/room-qr/[code]`, `BookingService` room charge line | Scan room QR → resolves checked-in booking; room service posts to folio |
 | ☐ | Loyalty redeem + accrual | `POST /api/guest/loyalty/redeem`, `FolioService` | Points on settlement; redeem adjusts folio |
 | ☐ | Sofia folio context | `SofiaConciergeService` | Active stay balance surfaced in concierge chat |

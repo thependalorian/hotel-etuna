@@ -151,13 +151,13 @@ export default function PropertyManagement({ properties: initialProperties, user
 
         <div className="flex gap-2">
           <button 
-            className={`btn btn-sm ${viewMode === 'grid' ? 'btn-primary' : 'btn-ghost'}`}
+            className={`btn btn-sm rounded-full px-4 ${viewMode === 'grid' ? 'btn-primary' : 'btn-ghost'}`}
             onClick={() => setViewMode('grid')}
           >
             <Grid3X3 className="w-4 h-4" />
           </button>
           <button 
-            className={`btn btn-sm ${viewMode === 'list' ? 'btn-primary' : 'btn-ghost'}`}
+            className={`btn btn-sm rounded-full px-4 ${viewMode === 'list' ? 'btn-primary' : 'btn-ghost'}`}
             onClick={() => setViewMode('list')}
           >
             <List className="w-4 h-4" />
@@ -222,13 +222,13 @@ export default function PropertyManagement({ properties: initialProperties, user
                 <div className="card-actions justify-end flex-wrap gap-1">
                   <Link
                     href={`/admin/platform/properties/${property.id}`}
-                    className="btn btn-primary btn-sm"
+                    className="btn btn-primary btn-sm rounded-full px-4"
                   >
                     Open page
                   </Link>
                   <button
                     type="button"
-                    className="btn btn-ghost btn-sm"
+                    className="btn btn-ghost btn-sm rounded-full px-4"
                     onClick={() => {
                       setSelectedProperty(property);
                       setShowDetailModal(true);
@@ -295,14 +295,14 @@ export default function PropertyManagement({ properties: initialProperties, user
                     <div className="flex gap-1">
                       <Link
                         href={`/admin/platform/properties/${property.id}`}
-                        className="btn btn-ghost btn-sm"
+                        className="btn btn-ghost btn-sm rounded-full px-4"
                         title="Open detail page"
                       >
                         <Eye className="w-4 h-4" />
                       </Link>
                       <button
                         type="button"
-                        className="btn btn-ghost btn-sm"
+                        className="btn btn-ghost btn-sm rounded-full px-4"
                         title="Quick view"
                         onClick={() => {
                           setSelectedProperty(property);
@@ -373,7 +373,7 @@ export default function PropertyManagement({ properties: initialProperties, user
             </div>
             <div className="modal-action">
               <button 
-                className="btn" 
+                className="btn rounded-full px-6" 
                 onClick={() => {
                   setShowDetailModal(false);
                   setSelectedProperty(null);

@@ -7,13 +7,14 @@
  * Response: { logs: Array<{ id, tenantId, userId, action, resourceType, resourceId, timestamp, ... }> }
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db';
 import { auditTrail, tenants, users } from '@/lib/db';
 import { eq, desc, and } from 'drizzle-orm';
 import { withPlatformAdminAuth } from '@/lib/auth/with-platform-admin-auth';
 import { recordAuditTrail } from '@/lib/compliance/record-audit';
+import { errorResponse, successResponse } from '@/lib/utils/api-helpers';
 import { entityIdNullableOptional } from '@/lib/validation/entity-ids';
 import { securityLogger } from '@/lib/utils/security-logger';
 
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
     const json: unknown = await req!.json().catch(() => null);
     const parsed = postBodySchema.safeParse(json);
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid body', details: parsed.error.flatten() }, { status: 400 });
+      return errorResponse('Invalid body', 400, 'VALIDATION_ERROR', parsed.error.flatten());
     }
 
     await recordAuditTrail({
@@ -53,10 +54,10 @@ export async function POST(request: NextRequest) {
       request: req!,
     });
 
-    return NextResponse.json({ ok: true });
+    return successResponse({ recorded: true });
   } catch (err) {
     securityLogger.error('[Platform Admin Audit POST]', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return errorResponse('Internal server error', 500, 'INTERNAL_ERROR');
   }
     },
     { superAdmin: true }
@@ -98,7 +99,7 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .offset(offset);
 
-    return NextResponse.json({
+    return successResponse({
       logs: rows.map(({ log, tenantName, userEmail }) => ({
         id: log.id,
         tenantId: log.tenantId,
@@ -116,10 +117,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (err) {
     securityLogger.error('[Platform Admin Audit]', err);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return errorResponse('Internal server error', 500, 'INTERNAL_ERROR');
   }
   });
 }

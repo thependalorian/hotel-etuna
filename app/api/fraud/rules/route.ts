@@ -9,11 +9,11 @@
  * PATCH response: { success: true, data: FraudRule }
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { db, fraudDetectionRules } from '@/lib/db';
 import { and, asc, eq } from 'drizzle-orm';
-import { withApiAuth } from '@/lib/utils/api-helpers';
+import { errorResponse, successResponse, withApiAuth } from '@/lib/utils/api-helpers';
 import { securityLogger } from '@/lib/utils/security-logger';
 
 const patchSchema = z.object({
@@ -27,7 +27,7 @@ const ADMIN_ROLES = ['owner', 'manager', 'admin'];
 export async function GET(request: NextRequest) {
   return withApiAuth(request, async (_req, user) => {
     if (!user.tenantId) {
-      return NextResponse.json({ success: false, error: 'Tenant required' }, { status: 400 });
+      return errorResponse('Tenant required', 400, 'MISSING_TENANT');
     }
 
     const rules = await db
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       .where(eq(fraudDetectionRules.tenantId, user.tenantId))
       .orderBy(asc(fraudDetectionRules.priority), asc(fraudDetectionRules.ruleName));
 
-    return NextResponse.json({ success: true, data: rules });
+    return successResponse(rules);
   }, { rateLimit: true });
 }
 
@@ -56,25 +56,22 @@ export async function PATCH(request: NextRequest) {
   return withApiAuth(request, async (req, user) => {
     const role = (user.role ?? '').toLowerCase();
     if (!ADMIN_ROLES.includes(role)) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+      return errorResponse('Forbidden', 403, 'FORBIDDEN');
     }
     if (!user.tenantId) {
-      return NextResponse.json({ success: false, error: 'Tenant required' }, { status: 400 });
+      return errorResponse('Tenant required', 400, 'MISSING_TENANT');
     }
 
     let body: unknown;
     try {
       body = await req.json();
     } catch {
-      return NextResponse.json({ success: false, error: 'Invalid JSON' }, { status: 400 });
+      return errorResponse('Invalid JSON', 400, 'INVALID_JSON');
     }
 
     const parsed = patchSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json(
-        { success: false, error: 'Validation failed', details: parsed.error.flatten() },
-        { status: 400 }
-      );
+      return errorResponse('Validation failed', 400, 'VALIDATION_ERROR', parsed.error.flatten());
     }
 
     const updates: Partial<{ isActive: boolean; priority: number; updatedAt: Date }> = {
@@ -95,7 +92,7 @@ export async function PATCH(request: NextRequest) {
       .returning();
 
     if (!updated) {
-      return NextResponse.json({ success: false, error: 'Rule not found' }, { status: 404 });
+      return errorResponse('Rule not found', 404, 'NOT_FOUND');
     }
 
     securityLogger.info('[FraudRules] updated', {
@@ -105,6 +102,6 @@ export async function PATCH(request: NextRequest) {
       isActive: updated.isActive,
     });
 
-    return NextResponse.json({ success: true, data: updated });
+    return successResponse(updated);
   }, { rateLimit: true });
 }

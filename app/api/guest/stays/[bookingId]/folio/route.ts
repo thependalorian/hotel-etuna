@@ -16,7 +16,7 @@ import {
 import { FolioService } from '@/lib/services/folio/FolioService';
 import { assertStayAccess } from '@/lib/services/folio/guestStayAccess';
 import { GUEST_API_ROLES } from '@/lib/auth/roles';
-import { entityId } from '@/lib/validation/entity-ids';
+import { isValidEntityIdWithMessage } from '@/lib/validation/entity-ids';
 
 const folioService = new FolioService();
 
@@ -27,8 +27,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     request,
     async (req, user) => {
       const { bookingId } = await params;
-      const idCheck = entityId('Invalid booking ID').safeParse(bookingId);
-      if (!idCheck.success) {
+      if (!isValidEntityIdWithMessage(bookingId, 'Invalid booking ID')) {
         return errorResponse('Invalid booking ID', 400, 'VALIDATION_ERROR');
       }
 

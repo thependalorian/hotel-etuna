@@ -1,6 +1,6 @@
 /**
  * BookingDocumentsSection — staff generate and download guest financial PDFs.
- * Location: components/features/bookings/BookingDocumentsSection.tsx
+ * Location: components/features/booking/BookingDocumentsSection.tsx
  */
 
 'use client';
@@ -83,7 +83,7 @@ export function BookingDocumentsSection({ bookingId }: BookingDocumentsSectionPr
     }
   }
 
-  function downloadExisting(id: string, reference: string) {
+  function downloadExisting(id: string, _reference: string) {
     window.open(`/api/documents/${id}/download`, '_blank', 'noopener,noreferrer');
   }
 
@@ -184,3 +184,4 @@ export function BookingDocumentsSection({ bookingId }: BookingDocumentsSectionPr
     </Card>
   );
 }
+

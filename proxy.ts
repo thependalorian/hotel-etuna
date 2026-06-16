@@ -30,8 +30,6 @@ import { isStackAuthServerConfigured } from '@/lib/auth/stack-env';
 import { sanitizeRedirectPath } from '@/lib/auth/roles';
 import { applySecurityHeaders as addSecurityHeaders } from '@/lib/security/security-headers';
 import { hubTeamCanAccessRoute } from '@/lib/auth/hub-team';
-import { db, users } from '@/lib/db';
-import { eq, sql } from 'drizzle-orm';
 
 // Public routes that don't require authentication
 const PUBLIC_ROUTES = [
@@ -349,15 +347,18 @@ function redirectToLogin(req: NextRequest): NextResponse {
   return NextResponse.redirect(url);
 }
 
-async function resolveDbRoleForEmail(email: string | null | undefined): Promise<string> {
+function resolveRoleForEmail(email: string | null | undefined): string {
   if (!email) return '';
   const normalized = email.trim().toLowerCase();
-  const rows = await db
-    .select({ role: users.role })
-    .from(users)
-    .where(sql`lower(${users.email}) = ${normalized}`)
-    .limit(1);
-  return (rows[0]?.role ?? '').toLowerCase();
+
+  // Keep proxy runtime edge-safe: avoid DB access in middleware.
+  if (normalized.endsWith('@buffr.ai')) {
+    return 'admin';
+  }
+  if (normalized.endsWith('@hoteletuna.com')) {
+    return 'staff';
+  }
+  return 'guest';
 }
 
 function redirectToUnauthorized(req: NextRequest): NextResponse {
@@ -500,7 +501,7 @@ export default withAuth(
         }
         
         if (stackAuthUser) {
-          const stackRole = await resolveDbRoleForEmail(stackAuthUser.primaryEmail);
+          const stackRole = resolveRoleForEmail(stackAuthUser.primaryEmail);
           if (!hasRouteAccess(pathname, stackRole, stackAuthUser.primaryEmail)) {
             return redirectToUnauthorized(req);
           }

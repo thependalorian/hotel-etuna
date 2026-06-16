@@ -1,18 +1,8 @@
 /**
  * Cash Payment Modal Component
- * 
+ *
  * Purpose: Modal for marking cash bookings as paid
- * Location: components/features/bookings/CashPaymentModal.tsx
- * 
- * Features:
- * - Input amount tendered
- * - Auto-calculate change
- * - Real-time validation
- * - Calls PATCH /api/bookings/[id]/payment
- * - Success/error feedback
- * 
- * @version 1.0.0
- * @since April 28, 2026
+ * Location: components/features/booking/CashPaymentModal.tsx
  */
 
 'use client';
@@ -44,15 +34,11 @@ export function CashPaymentModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Calculate change
-  const tenderedNumber = parseFloat(amountTendered) || 0;
+  const tenderedNumber = Number.parseFloat(amountTendered) || 0;
   const changeGiven = tenderedNumber > 0 ? tenderedNumber - totalAmount : 0;
-
-  // Validation
   const isValid = tenderedNumber >= totalAmount;
   const insufficientAmount = tenderedNumber > 0 && tenderedNumber < totalAmount;
 
-  // Reset form when modal opens/closes
   useEffect(() => {
     if (isOpen) {
       setAmountTendered('');
@@ -63,7 +49,7 @@ export function CashPaymentModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!isValid) {
       setError('Amount tendered must be at least the total amount');
       return;
@@ -91,7 +77,6 @@ export function CashPaymentModal({
         throw new Error(data.error || data.message || 'Failed to mark payment as paid');
       }
 
-      // Success!
       onSuccess();
       onClose();
     } catch (err) {
@@ -106,35 +91,25 @@ export function CashPaymentModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 sm:mx-auto overflow-hidden">
-        {/* Header */}
         <div className="bg-terracotta-600 text-white px-6 py-4">
           <h2 className="text-xl font-semibold">Mark Cash Payment as Paid</h2>
-          <p className="text-terracotta-100 text-sm mt-1">
-            Booking: {bookingReference}
-          </p>
+          <p className="text-terracotta-100 text-sm mt-1">Booking: {bookingReference}</p>
         </div>
 
-        {/* Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Total Amount Display */}
           <div className="bg-khaki-50 border-2 border-khaki-200 rounded-lg p-4">
-            <div className="text-sm text-khaki-700 font-medium mb-1">
-              Total Amount Due
-            </div>
+            <div className="text-sm text-khaki-700 font-medium mb-1">Total Amount Due</div>
             <div className="text-3xl font-bold text-terracotta-900">
               {currency} {totalAmount.toFixed(2)}
             </div>
           </div>
 
-          {/* Amount Tendered Input */}
           <div>
             <label htmlFor="amountTendered" className="block text-sm font-medium text-nude-700 mb-2">
               Amount Tendered <span className="text-red-600">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-nude-500">
-                {currency}
-              </span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-nude-500">{currency}</span>
               <input
                 id="amountTendered"
                 type="number"
@@ -143,9 +118,7 @@ export function CashPaymentModal({
                 value={amountTendered}
                 onChange={(e) => setAmountTendered(e.target.value)}
                 className={`w-full pl-16 pr-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 ${
-                  insufficientAmount 
-                    ? 'border-red-300 bg-red-50' 
-                    : 'border-gray-200'
+                  insufficientAmount ? 'border-red-300 bg-red-50' : 'border-gray-200'
                 }`}
                 placeholder="0.00"
                 required
@@ -155,31 +128,26 @@ export function CashPaymentModal({
             </div>
             {insufficientAmount && (
               <p className="text-red-600 text-sm mt-1">
-                ⚠️ Insufficient amount (need at least {currency} {totalAmount.toFixed(2)})
+                Insufficient amount (need at least {currency} {totalAmount.toFixed(2)})
               </p>
             )}
           </div>
 
-          {/* Change Given Display */}
-          <div className={`border-2 rounded-lg p-4 ${
-            changeGiven > 0 ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
-          }`}>
-            <div className="text-sm font-medium text-nude-700 mb-1">
-              Change to Give
-            </div>
-            <div className={`text-2xl font-bold ${
-              changeGiven > 0 ? 'text-green-700' : 'text-nude-400'
-            }`}>
+          <div
+            className={`border-2 rounded-lg p-4 ${
+              changeGiven > 0 ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
+            }`}
+          >
+            <div className="text-sm font-medium text-nude-700 mb-1">Change to Give</div>
+            <div
+              className={`text-2xl font-bold ${
+                changeGiven > 0 ? 'text-green-700' : 'text-nude-400'
+              }`}
+            >
               {currency} {changeGiven.toFixed(2)}
             </div>
-            {changeGiven > 0 && (
-              <p className="text-xs text-green-600 mt-1">
-                ✓ Return this amount to the guest
-              </p>
-            )}
           </div>
 
-          {/* Notes (Optional) */}
           <div>
             <label htmlFor="notes" className="block text-sm font-medium text-nude-700 mb-2">
               Notes (Optional)
@@ -195,16 +163,12 @@ export function CashPaymentModal({
             />
           </div>
 
-          {/* Error Message */}
           {error && (
             <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
-              <p className="text-red-700 text-sm font-medium">
-                ❌ {error}
-              </p>
+              <p className="text-red-700 text-sm font-medium">{error}</p>
             </div>
           )}
 
-          {/* Actions */}
           <div className="flex gap-3 pt-2">
             <Button
               type="button"
@@ -221,29 +185,7 @@ export function CashPaymentModal({
               disabled={!isValid || isSubmitting}
               className="flex-1"
             >
-              {isSubmitting ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4" viewBox="0 0 24 24">
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                      fill="none"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                    />
-                  </svg>
-                  Processing...
-                </>
-              ) : (
-                'Mark as Paid'
-              )}
+              {isSubmitting ? 'Processing...' : 'Mark as Paid'}
             </Button>
           </div>
         </form>
@@ -251,3 +193,4 @@ export function CashPaymentModal({
     </div>
   );
 }
+

@@ -30,3 +30,11 @@ export function isValidEntityId(value: string | undefined | null): boolean {
   if (value == null || value === '') return false;
   return value.length <= MAX_LEN;
 }
+
+export function isValidEntityIdWithMessage(
+  value: string | undefined | null,
+  message = 'Invalid id'
+): boolean {
+  if (value == null) return false;
+  return entityId(message).safeParse(value).success;
+}

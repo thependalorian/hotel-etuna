@@ -232,7 +232,7 @@ export default function GuestProfilePage() {
             <div className="card-actions justify-end pt-4">
               <button 
                 type="submit" 
-                className="btn btn-primary gentle-lift min-h-[44px]" 
+                className="btn btn-primary gentle-lift min-h-[44px] rounded-full px-6" 
                 disabled={saving}
               >
                 {saving ? (

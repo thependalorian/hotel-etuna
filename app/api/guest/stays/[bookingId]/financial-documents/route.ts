@@ -12,7 +12,7 @@ import {
 } from '@/lib/utils/api-helpers';
 import { GUEST_API_ROLES } from '@/lib/auth/roles';
 import { assertStayAccess } from '@/lib/services/folio/guestStayAccess';
-import { entityId } from '@/lib/validation/entity-ids';
+import { isValidEntityIdWithMessage } from '@/lib/validation/entity-ids';
 import { guestFinancialDocumentBodySchema } from '@/lib/services/documents/document-types';
 import { documentGenerationService } from '@/lib/services/documents/DocumentGenerationService';
 import { db, properties } from '@/lib/db';
@@ -27,8 +27,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     request,
     async (req, user) => {
       const { bookingId } = await params;
-      const idCheck = entityId('Invalid booking ID').safeParse(bookingId);
-      if (!idCheck.success) {
+      if (!isValidEntityIdWithMessage(bookingId, 'Invalid booking ID')) {
         return errorResponse('Invalid booking ID', 400, 'VALIDATION_ERROR');
       }
 
@@ -45,8 +44,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     request,
     async (req, user) => {
       const { bookingId } = await params;
-      const idCheck = entityId('Invalid booking ID').safeParse(bookingId);
-      if (!idCheck.success) {
+      if (!isValidEntityIdWithMessage(bookingId, 'Invalid booking ID')) {
         return errorResponse('Invalid booking ID', 400, 'VALIDATION_ERROR');
       }
 

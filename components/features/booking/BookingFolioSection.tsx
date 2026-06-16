@@ -2,7 +2,7 @@
  * BookingFolioSection
  *
  * Purpose: Staff view of in-stay folio — line items, balance, cash/card settlement.
- * Location: /components/features/bookings/BookingFolioSection.tsx
+ * Location: /components/features/booking/BookingFolioSection.tsx
  */
 
 'use client';
@@ -183,3 +183,4 @@ export function BookingFolioSection({ bookingId, bookingStatus }: BookingFolioSe
     </Card>
   );
 }
+

@@ -13,8 +13,7 @@ import {
   HOTEL_ETUNA_FACILITY_RATES,
 } from '@/lib/constants/hotel-etuna-room-types';
 import { calculateCampsiteTotal } from '@/lib/services/booking/FacilityBookingPricing';
-import { apiUrl } from '@/lib/utils/api-url';
-import { extractBookingId } from '@/lib/bookings/booking-response';
+import { submitFacilityBooking } from '@/components/features/booking/facility-booking-submit';
 
 type CampsiteBookingFormProps = {
   roomId: string;
@@ -52,33 +51,22 @@ export function CampsiteBookingForm({ roomId, redirectTo }: CampsiteBookingFormP
     }
     setLoading(true);
     try {
-      const response = await fetch(apiUrl('/api/bookings'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const result = await submitFacilityBooking({
+        payload: {
           bookingKind: 'campsite',
           checkInDate,
           checkOutDate,
           namibianGuests,
           nonNamibianGuests,
           roomId,
-        }),
+        },
+        redirectTo,
       });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        setError(data.message || data.error || 'Could not create booking.');
+      if (!result.ok) {
+        setError(result.error);
         return;
       }
-      const bookingId = extractBookingId(data);
-      if (redirectTo) {
-        router.push(bookingId ? `/bookings/${bookingId}` : redirectTo);
-      } else if (bookingId) {
-        router.push(`/payment/booking-deposit?bookingId=${bookingId}`);
-      } else {
-        router.push('/bookings');
-      }
-    } catch {
-      setError('An unexpected error occurred. Please try again.');
+      router.push(result.nextPath);
     } finally {
       setLoading(false);
     }
