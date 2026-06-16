@@ -130,7 +130,7 @@
     "@vitest/ui": "^4.0.16",
     "baseline-browser-mapping": "^2.9.14",
     "dotenv": "^16.4.7",
-    "drizzle-kit": "^0.27.2",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.0.4",
     "happy-dom": "^20.1.0",
