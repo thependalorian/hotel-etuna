@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { ImagePlaceholder } from '@/components/ui';
 import Link from 'next/link';
 import { FileText, Image as ImageIcon } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import { apiUrl } from '@/lib/utils/api-url';
 import { securityLogger } from '@/lib/utils/security-logger.client';
 import {
@@ -106,14 +107,12 @@ export function RoomManagement({ propertyId, initialRooms }: RoomManagementProps
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Room Management</h2>
-        <Link 
-          href="/cms" 
-          className="btn btn-primary btn-sm min-h-[44px]"
-          aria-label="Manage room content and images in CMS"
-        >
-          <FileText className="w-4 h-4 mr-2" />
-          Manage Room Content
-        </Link>
+        <Button asChild size="sm" aria-label="Manage room content and images in CMS">
+          <Link href="/cms">
+            <FileText className="w-4 h-4 mr-2" />
+            Manage Room Content
+          </Link>
+        </Button>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

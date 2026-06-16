@@ -1,3 +1,8 @@
+/**
+ * @fileoverview API route //api/auth/register
+ * Location: /app/api/auth/register/route.ts
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { db, users, sofiaEmailLogs } from '@/lib/db';
 import { eq, sql } from 'drizzle-orm';
@@ -172,6 +177,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       message: 'User registered successfully. Please check your email for verification code.',
       requiresVerification: true,
+      ...(process.env.E2E_TURNSTILE_BYPASS === '1' ? { e2eOtp: otp } : {}),
     }, { status: 201 });
 
   } catch (error: unknown) {

@@ -16,6 +16,7 @@ import { getSessionWithTenantContext } from '@/lib/auth/tenant-context';
 import { redirect } from 'next/navigation';
 import ErrorDisplay from '@/components/shared/ErrorDisplay';
 import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
 
 export default async function AdminPage() {
   const session = await getSessionWithTenantContext();
@@ -54,13 +55,9 @@ export default async function AdminPage() {
             <h2 className="card-title text-xl font-display">System Settings</h2>
             <p className="text-base-content/70">Configure system-wide settings and preferences</p>
             <div className="card-actions justify-end mt-4">
-              <Link
-                href="/admin/platform/settings"
-                className="btn btn-primary btn-sm min-h-[44px]"
-                aria-label="Configure system settings"
-              >
-                Configure
-              </Link>
+              <Button asChild size="sm" aria-label="Configure system settings">
+                <Link href="/admin/platform/settings">Configure</Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -71,13 +68,9 @@ export default async function AdminPage() {
             <h2 className="card-title text-xl font-display">User Management</h2>
             <p className="text-base-content/70">Manage users, roles, and permissions</p>
             <div className="card-actions justify-end mt-4">
-              <Link
-                href="/admin/platform/users"
-                className="btn btn-primary btn-sm min-h-[44px]"
-                aria-label="Manage users, roles, and permissions"
-              >
-                Manage Users
-              </Link>
+              <Button asChild size="sm" aria-label="Manage users, roles, and permissions">
+                <Link href="/admin/platform/users">Manage Users</Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -88,13 +81,9 @@ export default async function AdminPage() {
             <h2 className="card-title text-xl font-display">Partner tenants</h2>
             <p className="text-base-content/70">Referral partners (JayLa, Aquarius) — hub is Hotel Etuna only</p>
             <div className="card-actions justify-end mt-4">
-              <Link
-                href="/admin/platform/tenants"
-                className="btn btn-primary btn-sm min-h-[44px]"
-                aria-label="Manage referral partner tenants"
-              >
-                Manage partners
-              </Link>
+              <Button asChild size="sm" aria-label="Manage referral partner tenants">
+                <Link href="/admin/platform/tenants">Manage partners</Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -105,13 +94,9 @@ export default async function AdminPage() {
             <h2 className="card-title text-xl font-display">System Health</h2>
             <p className="text-base-content/70">Monitor system performance and health</p>
             <div className="card-actions justify-end mt-4">
-              <Link
-                href="/admin/platform"
-                className="btn btn-primary btn-sm min-h-[44px]"
-                aria-label="View system health and performance"
-              >
-                View Health
-              </Link>
+              <Button asChild size="sm" aria-label="View system health and performance">
+                <Link href="/admin/platform">View Health</Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -122,13 +107,9 @@ export default async function AdminPage() {
             <h2 className="card-title text-xl font-display">System Analytics</h2>
             <p className="text-base-content/70">View system-wide analytics and metrics</p>
             <div className="card-actions justify-end mt-4">
-              <Link
-                href="/admin/platform/analytics"
-                className="btn btn-primary btn-sm min-h-[44px]"
-                aria-label="View system-wide analytics"
-              >
-                View Analytics
-              </Link>
+              <Button asChild size="sm" aria-label="View system-wide analytics">
+                <Link href="/admin/platform/analytics">View Analytics</Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -139,13 +120,9 @@ export default async function AdminPage() {
             <h2 className="card-title text-xl font-display">Audit Logs</h2>
             <p className="text-base-content/70">View system audit trails and logs</p>
             <div className="card-actions justify-end mt-4">
-              <Link
-                href="/admin/platform/audit"
-                className="btn btn-primary btn-sm min-h-[44px]"
-                aria-label="View system audit trails and logs"
-              >
-                View Logs
-              </Link>
+              <Button asChild size="sm" aria-label="View system audit trails and logs">
+                <Link href="/admin/platform/audit">View Logs</Link>
+              </Button>
             </div>
           </div>
         </div>

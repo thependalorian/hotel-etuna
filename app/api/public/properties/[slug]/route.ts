@@ -1,3 +1,8 @@
+/**
+ * @fileoverview API route //api/public/properties/[slug]
+ * Location: /app/api/public/properties/[slug]/route.ts
+ */
+
 import { NextResponse, NextRequest } from 'next/server';
 import { db, properties } from '@/lib/db';
 import { and, eq } from 'drizzle-orm';

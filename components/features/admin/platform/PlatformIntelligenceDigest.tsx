@@ -9,6 +9,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Mail, RefreshCw } from 'lucide-react';
 import { apiUrl } from '@/lib/utils/api-url';
 import type { IntelligenceDigest } from '@/lib/services/platform/IntelligenceReportService';
+import { Button } from '@/components/ui/Button';
 
 type Cadence = 'daily' | 'weekly' | 'monthly';
 
@@ -90,14 +91,15 @@ export default function PlatformIntelligenceDigest() {
           </div>
           <div className="flex flex-wrap gap-2">
             {(['daily', 'weekly', 'monthly'] as const).map((c) => (
-              <button
+              <Button
                 key={c}
                 type="button"
-                className={`btn btn-sm rounded-full px-4 ${cadence === c ? 'btn-primary' : 'btn-outline'}`}
+                size="sm"
+                variant={cadence === c ? 'primary' : 'outline'}
                 onClick={() => setCadence(c)}
               >
                 {c}
-              </button>
+              </Button>
             ))}
             <button
               type="button"
@@ -108,14 +110,15 @@ export default function PlatformIntelligenceDigest() {
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} aria-hidden />
               Refresh
             </button>
-            <button
+            <Button
               type="button"
-              className="btn btn-primary btn-sm rounded-full px-6"
+              size="sm"
               onClick={() => void sendTestDigest()}
               disabled={sending || loading}
+              isLoading={sending}
             >
-              {sending ? 'Sending…' : 'Send test digest'}
-            </button>
+              Send test digest
+            </Button>
           </div>
         </div>
 

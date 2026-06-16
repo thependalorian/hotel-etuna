@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/guest/stays/[bookingId]/requests
+ * Location: /app/api/guest/stays/[bookingId]/requests/route.ts
+ */
+
+/**
  * Guest service & maintenance requests API
  *
  * Purpose: Let an in-stay guest raise housekeeping/amenity requests or report a

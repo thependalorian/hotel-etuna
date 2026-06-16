@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/restaurant/orders
+ * Location: /app/api/restaurant/orders/route.ts
+ */
+
+/**
  * Restaurant Orders API Route
  * 
  * Purpose: Manage restaurant orders with system design principles

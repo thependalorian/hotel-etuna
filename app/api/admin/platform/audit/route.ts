@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/admin/platform/audit
+ * Location: /app/api/admin/platform/audit/route.ts
+ */
+
+/**
  * Platform Admin - Audit Logs API
  *
  * Purpose: List audit trail entries for platform admin (Drizzle)

@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/restaurant/reservations/pay/initiate
+ * Location: /app/api/restaurant/reservations/pay/initiate/route.ts
+ */
+
+/**
  * Start Adumo Virtual deposit for a dining reservation (Namibia — no Stripe).
  * POST body: { bookingCode, returnSuccessUrl?, returnFailUrl? }
  * Response: { data: { actionUrl, fields, merchantReference } }

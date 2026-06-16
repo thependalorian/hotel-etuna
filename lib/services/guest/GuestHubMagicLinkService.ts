@@ -1,4 +1,5 @@
 /**
+ * @fileoverview GuestHubMagicLinkService — domain service module.
  * GuestHubMagicLinkService — pre-arrival passwordless hub entry (Phase 8).
  * Location: lib/services/guest/GuestHubMagicLinkService.ts
  */

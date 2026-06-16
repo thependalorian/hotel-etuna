@@ -1,4 +1,5 @@
 /**
+ * @fileoverview GuestStayService — domain service module.
  * GuestStayService — guest-facing stay list and menu context
  *
  * Purpose: Resolve active stays for a guest email (room service / folio entry).

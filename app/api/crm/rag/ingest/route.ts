@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/crm/rag/ingest
+ * Location: /app/api/crm/rag/ingest/route.ts
+ */
+
+/**
  * RAG knowledge ingest — chunk, embed, upsert to Qdrant (tenant-scoped)
  *
  * Purpose: Operational path to load property/tenant KB text into the same collection RAGSearchService reads.

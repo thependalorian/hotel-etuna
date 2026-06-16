@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/admin/platform/ai-observability
+ * Location: /app/api/admin/platform/ai-observability/route.ts
+ */
+
+/**
  * Platform AI observability — token usage, confidence evals (Buffr admin only).
  * GET /api/admin/platform/ai-observability?days=30
  */

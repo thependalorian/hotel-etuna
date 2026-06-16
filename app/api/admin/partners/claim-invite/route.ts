@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/admin/partners/claim-invite
+ * Location: /app/api/admin/partners/claim-invite/route.ts
+ */
+
+/**
  * Partner Invite Claim API
  *
  * Purpose: Convert a valid invite token into partner tenant + property + partner admin account.

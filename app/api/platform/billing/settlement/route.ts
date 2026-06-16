@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/platform/billing/settlement
+ * Location: /app/api/platform/billing/settlement/route.ts
+ */
+
+/**
  * GET settlement bank profiles (property + Buffr billing).
  * Location: app/api/platform/billing/settlement/route.ts
  */

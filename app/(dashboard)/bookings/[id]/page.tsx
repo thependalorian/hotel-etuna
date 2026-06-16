@@ -19,7 +19,6 @@ import { getSessionWithTenantContext } from '@/lib/auth/tenant-context';
 import { AppError } from '@/lib/utils/errors';
 import { bookingStatusBadgeClass } from '@/lib/utils/status-normalize';
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
 import { BOOKING_STATUS_TRANSITIONS } from '@/lib/workflows/domainTransitions';
 import { WorkflowStatusActions } from '@/components/shared/WorkflowStatusActions';
 import {
@@ -34,6 +33,8 @@ import { Calendar, MapPin, User, Mail, Phone } from 'lucide-react';
 import { securityLogger } from '@/lib/utils/security-logger.client';
 import { formatDateLong } from '@/lib/formatters';
 import { formatFolioAmount } from '@/lib/utils/money';
+import { BookingDetailLoadError } from '@/components/features/booking/BookingDetailLoadError';
+import { BookingPricingDetails } from '@/components/features/booking/BookingPricingDetails';
 import {
   bookingKindBadgeClass,
   bookingKindLabel,
@@ -72,22 +73,7 @@ const BookingDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
   const booking = await getBooking(id);
 
   if (!booking) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <Card variant="elevated" className="text-center py-12">
-          <div className="w-20 h-20 rounded-full bg-semantic-error-light flex items-center justify-center mx-auto mb-6">
-            <svg className="w-10 h-10 text-semantic-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h3 className="text-xl font-bold font-display mb-2 text-nude-900">Error Loading Booking</h3>
-          <p className="text-semantic-error font-medium mb-4">Unable to load booking details. Please try again.</p>
-          <Link href="/bookings" className="btn btn-primary">
-            Back to Bookings
-          </Link>
-        </Card>
-      </div>
-    );
+    return <BookingDetailLoadError />;
   }
 
   const guest = booking.guest ?? {};
@@ -221,14 +207,12 @@ const BookingDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
                 </div>
               </div>
 
-              {pricingDetails && Object.keys(pricingDetails).length > 0 && (
-                <div className="mb-6">
-                  <h3 className="font-display text-lg font-semibold mb-3 text-nude-900">Pricing details</h3>
-                  <pre className="text-sm bg-nude-50 border border-nude-200 rounded-lg p-4 overflow-x-auto">
-                    {JSON.stringify(pricingDetails, null, 2)}
-                  </pre>
-                </div>
-              )}
+              {pricingDetails && Object.keys(pricingDetails).length > 0 ? (
+                <BookingPricingDetails
+                  details={pricingDetails}
+                  currency={String(booking.currency ?? 'NAD')}
+                />
+              ) : null}
 
               {booking.special_requests && (
                 <div>

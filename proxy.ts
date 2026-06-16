@@ -25,6 +25,8 @@ import { checkRateLimit, shouldRateLimit } from '@/lib/utils/rate-limit';
 import { normalizePathnameForRateLimit } from '@/lib/utils/api-url';
 import { extractSubdomain, validateTenant } from '@/lib/utils/tenant-validation';
 import { logUnauthorizedAccess, logRateLimitExceeded } from '@/lib/utils/security-logger';
+import { devLog, devError } from '@/lib/utils/dev-log';
+import { serverLogger } from '@/lib/utils/server-logger';
 import { stackServerApp } from '@/stack';
 import { isStackAuthServerConfigured } from '@/lib/auth/stack-env';
 import { sanitizeRedirectPath } from '@/lib/auth/roles';
@@ -287,7 +289,7 @@ async function handleApiRoutes(req: NextRequest, token: MiddlewareToken | null, 
         );
       }
     } catch (rateLimitError) {
-      console.error('[Middleware] Rate limiting error:', rateLimitError);
+      serverLogger.error('[Middleware] Rate limiting error', { error: rateLimitError });
       if (process.env.NODE_ENV === 'production' || process.env.RATE_LIMIT_REDIS_REQUIRED === 'true') {
         return NextResponse.json(
           {
@@ -466,7 +468,7 @@ export default withAuth(
                     primaryEmailVerified: userData.primaryEmailVerified ?? false,
                   };
                   if (process.env.NODE_ENV === 'development') {
-                    console.log('[Middleware] Stack Auth user verified via REST API:', userData.primaryEmail);
+                    devLog('[Middleware] Stack Auth user verified via REST API', { email: userData.primaryEmail });
                   }
                 } else {
                   // REST API verification failed - this is expected if STACK_SECRET_SERVER_KEY is not set
@@ -476,13 +478,19 @@ export default withAuth(
                   try {
                     const errorData = JSON.parse(errorText);
                     if (errorData.code !== 'INVALID_SECRET_SERVER_KEY' && process.env.NODE_ENV === 'development') {
-                      console.log('[Middleware] Stack Auth REST API verification failed:', userResponse.status, errorText.substring(0, 200));
+                      devLog('[Middleware] Stack Auth REST API verification failed', {
+                        status: userResponse.status,
+                        body: errorText.substring(0, 200),
+                      });
                     }
                     // Silently continue - JWT verification is the primary method
                   } catch {
                     // Not JSON, check if it contains the expected error code
                     if (!errorText.includes('INVALID_SECRET_SERVER_KEY') && process.env.NODE_ENV === 'development') {
-                      console.log('[Middleware] Stack Auth REST API verification failed:', userResponse.status, errorText.substring(0, 200));
+                      devLog('[Middleware] Stack Auth REST API verification failed', {
+                        status: userResponse.status,
+                        body: errorText.substring(0, 200),
+                      });
                     }
                   }
                 }
@@ -494,7 +502,7 @@ export default withAuth(
               // Don't log timeout errors in production
               const message = getErrorMessage(tokenError);
               if (process.env.NODE_ENV === 'development' || !message.includes('aborted')) {
-                console.error('[Middleware] Stack Auth token verification error:', message);
+                devError('[Middleware] Stack Auth token verification error', { message });
               }
             }
           }
@@ -531,7 +539,7 @@ export default withAuth(
         // Silently fail - tenant validation will happen in API routes
         // Don't log in production to avoid noise
         if (process.env.NODE_ENV === 'development') {
-          console.error('[Middleware] Tenant validation error:', error);
+          devError('[Middleware] Tenant validation error', { error });
         }
       }
     }
@@ -560,7 +568,7 @@ export default withAuth(
     
     // Debug logging in development only
     if (process.env.NODE_ENV === 'development') {
-      console.log('[Middleware] Route access check:', {
+      devLog('[Middleware] Route access check', {
         pathname,
         userRole,
         hasAccess: hasRouteAccess(pathname, userRole, userEmail),
@@ -572,7 +580,7 @@ export default withAuth(
     if (!hasRouteAccess(pathname, userRole, userEmail)) {
       // Log unauthorized access attempt (non-blocking)
       if (process.env.NODE_ENV === 'development') {
-        console.warn('[Middleware] Access denied:', {
+        devLog('[Middleware] Access denied', {
           pathname,
           userRole,
           tokenId: token.id,
@@ -599,8 +607,7 @@ export default withAuth(
     
     return response;
     } catch (error: unknown) {
-      // Log error but don't expose details to client
-      console.error('[Middleware] Unhandled error:', {
+      serverLogger.error('[Middleware] Unhandled error', {
         message: getErrorMessage(error),
         pathname: req.nextUrl.pathname,
         stack: getErrorStack(error)?.substring(0, 200),
@@ -700,12 +707,16 @@ export default withAuth(
           }
         }
         
-        // Fall back to NextAuth token check
-        // If token exists, allow access - the main middleware will check role-based access
+        // Protected API routes: pass through so handlers return JSON 401/403 (not HTML login redirect).
+        if (pathname.startsWith('/api') && !isPublicApiRoute(pathname)) {
+          return true;
+        }
+
+        // Fall back to NextAuth token check for page routes
         if (token) {
           return true;
         }
-        
+
         return false;
       },
     },

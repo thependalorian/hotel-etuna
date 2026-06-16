@@ -11,6 +11,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { Save, User, Bell, Lock } from 'lucide-react';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { Button } from '@/components/ui/Button';
 
 export default function PartnerSettingsPage() {
   const { data: session, status } = useSession();
@@ -132,11 +133,20 @@ export default function PartnerSettingsPage() {
 
       {/* Save */}
       <div className="flex items-center gap-3">
-        <button type="submit" className="btn btn-primary" disabled={saving}>
-          {saving ? <span className="loading loading-spinner loading-sm" /> : <Save className="w-4 h-4" />}
-          {saving ? 'Saving…' : 'Save changes'}
-        </button>
-        {saved && <span className="text-success text-sm">✓ Changes saved</span>}
+        <Button type="submit" disabled={saving} aria-busy={saving || undefined}>
+          {saving ? (
+            <>
+              <span className="loading loading-spinner loading-sm" aria-hidden />
+              Saving…
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4" aria-hidden />
+              Save changes
+            </>
+          )}
+        </Button>
+        {saved && <span className="text-success text-sm" role="status">✓ Changes saved</span>}
       </div>
     </form>
   );

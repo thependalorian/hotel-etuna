@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { dismissCookies } from './helpers/dismiss-cookie-consent';
 
 /**
  * E2E Test: Gated Pricing
@@ -8,6 +9,12 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('Gated Pricing', () => {
+  test.describe.configure({ timeout: 120_000 });
+
+  test.beforeEach(async ({ page }) => {
+    await dismissCookies(page);
+  });
+
   test('should hide room prices for unauthenticated users', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('load');
@@ -27,11 +34,9 @@ test.describe('Gated Pricing', () => {
   });
 
   test('should show room prices after login', async ({ page }) => {
-    // Login as manager
-    await page.goto('/login');
-    await page.waitForLoadState('load');
-    
-    await page.getByLabel(/email/i).fill('admin@hoteletuna.com');
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+
+    await page.getByLabel(/email/i).fill('manager@hoteletuna.com');
     await page.getByLabel(/password/i).fill('Test1234!');
     await page.getByRole('button', { name: /sign in/i }).click();
     
@@ -50,16 +55,15 @@ test.describe('Gated Pricing', () => {
   });
 
   test('should show gated pricing on rooms page', async ({ page }) => {
-    await page.goto('/rooms');
-    await page.waitForLoadState('load');
-    
-    // Check for gated pricing indicators
-    const signInPrompt = page.locator('text=/sign in|login/i');
-    const hasPrompt = await signInPrompt.count() > 0;
-    
-    // At minimum, should have some indication that auth is needed for rates
-    if (hasPrompt) {
-      expect(await signInPrompt.first().isVisible()).toBe(true);
+    await page.goto('/rooms', { waitUntil: 'domcontentloaded' });
+
+    const signInLink = page.getByRole('link', { name: /sign in/i });
+    const signInText = page.getByText(/sign in|login/i);
+    const hasLink = (await signInLink.count()) > 0;
+    const hasText = (await signInText.count()) > 0;
+    expect(hasLink || hasText).toBe(true);
+    if (hasLink) {
+      await expect(signInLink.first()).toBeVisible();
     }
   });
 

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { apiUrl } from '@/lib/utils/api-url';
 import { securityLogger } from '@/lib/utils/security-logger.client';
+import { Button } from '@/components/ui/Button';
 
 interface MediaUploaderProps {
   propertyId: string;
@@ -162,9 +163,9 @@ export default function MediaUploader({ propertyId, onMediaUploaded }: MediaUplo
           />
         </div>
 
-        <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? 'Uploading...' : 'Upload Media'}
-        </button>
+        <Button type="submit" isLoading={loading}>
+          Upload Media
+        </Button>
       </form>
     </div>
   );

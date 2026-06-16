@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/documents/[id]/download
+ * Location: /app/api/documents/[id]/download/route.ts
+ */
+
+/**
  * GET /api/documents/[id]/download — re-render PDF from metadata snapshot.
  * Location: app/api/documents/[id]/download/route.ts
  */

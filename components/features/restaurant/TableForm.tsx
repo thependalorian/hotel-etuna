@@ -30,6 +30,7 @@
  */
 
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { Button } from '@/components/ui/Button';
 
 interface TableFormProps {
   formData: {
@@ -119,20 +120,9 @@ export default function TableForm({ formData, onChange, onSubmit, loading, error
             >
               Cancel
             </button>
-            <button 
-              type="submit" 
-              className="btn btn-primary gentle-lift min-h-[44px]" 
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <LoadingSpinner size="sm" />
-                  Adding...
-                </>
-              ) : (
-                'Add Table'
-              )}
-            </button>
+            <Button type="submit" className="gentle-lift" isLoading={loading}>
+              Add Table
+            </Button>
           </div>
         </form>
       </div>

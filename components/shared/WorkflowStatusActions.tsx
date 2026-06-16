@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation';
 import { normalizeWorkflowStatus } from '@/lib/workflows/domainTransitions';
 import { cn } from '@/lib/utils/cn';
 import { securityLogger } from '@/lib/utils/security-logger.client';
+import { Button } from '@/components/ui/Button';
 
 type WorkflowStatusActionsProps = {
   currentStatus?: string | null;
@@ -84,21 +85,19 @@ export function WorkflowStatusActions({
       {nextStatuses.length > 0 ? (
         <div className={cn('flex flex-wrap gap-2', compact && 'justify-end')}>
           {nextStatuses.map((status) => (
-            <button
+            <Button
               key={status}
               type="button"
-              className={cn(
-                'btn min-h-[40px] rounded-xl text-xs capitalize',
-                compact ? 'btn-sm' : 'btn-md',
-                status === 'cancelled' || status === 'no_show' ? 'btn-outline btn-error' : 'btn-primary'
-              )}
+              size="sm"
+              variant={status === 'cancelled' || status === 'no_show' ? 'destructive' : 'primary'}
+              className={cn('capitalize', compact && 'text-xs')}
               onClick={() => transition(status)}
               disabled={Boolean(pendingStatus)}
               aria-label={`Move workflow to ${defaultLabel(status)}`}
+              isLoading={pendingStatus === status}
             >
-              {pendingStatus === status && <span className="loading loading-spinner loading-xs" />}
               {labels?.[status] ?? defaultLabel(status)}
-            </button>
+            </Button>
           ))}
         </div>
       ) : (

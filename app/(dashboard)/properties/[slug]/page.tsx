@@ -9,6 +9,7 @@ import { BookingList } from '@/components/features/booking/BookingList';
 import { UpdatePropertyForm } from '@/components/features/property/UpdatePropertyForm';
 import { db, cmsContent, cmsMedia, eq, and, desc, asc } from '@/lib/db';
 import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
 import { FileText, Image as ImageIcon } from 'lucide-react';
 
 interface PropertyDetailPageProps {
@@ -76,10 +77,12 @@ export default async function PropertyDetailPage({ params }: PropertyDetailPageP
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h3 className="text-xl font-bold">Content & Media Management</h3>
-            <Link href="/cms" className="btn btn-primary">
-              <FileText className="w-4 h-4 mr-2" />
-              Manage in CMS
-            </Link>
+            <Button asChild>
+              <Link href="/cms">
+                <FileText className="w-4 h-4 mr-2" />
+                Manage in CMS
+              </Link>
+            </Button>
           </div>
           
           {/* Property Images Gallery */}
@@ -141,10 +144,12 @@ export default async function PropertyDetailPage({ params }: PropertyDetailPageP
             <Card>
               <CardContent className="text-center py-12">
                 <p className="text-base-content/70 mb-4">No content or media found for this property.</p>
-                <Link href="/cms" className="btn btn-primary">
-                  <FileText className="w-4 h-4 mr-2" />
-                  Add Content & Media
-                </Link>
+                <Button asChild>
+                  <Link href="/cms">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Add Content & Media
+                  </Link>
+                </Button>
               </CardContent>
             </Card>
           )}

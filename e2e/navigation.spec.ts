@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { dismissCookies } from './helpers/dismiss-cookie-consent';
 
 /**
  * E2E Test: Navigation
@@ -11,7 +12,13 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('Navigation', () => {
-  const assertRouteLoads = async (page: any, route: string) => {
+  test.beforeEach(async ({ page }) => {
+    await dismissCookies(page);
+  });
+
+  test.describe.configure({ timeout: 120_000 });
+
+  const assertRouteLoads = async (page: import('@playwright/test').Page, route: string) => {
     let response;
     try {
       response = await page.goto(route, { waitUntil: 'domcontentloaded', timeout: 45_000 });
@@ -23,7 +30,6 @@ test.describe('Navigation', () => {
   };
 
   test('public routes should load without 404', async ({ page }) => {
-    test.setTimeout(120_000);
     const routes = [
       '/rooms',
       '/rooms/standard-room-type-a',
@@ -64,37 +70,37 @@ test.describe('Navigation', () => {
     await page.goto('/');
     
     // Look for hamburger menu or mobile menu button
-    const mobileMenuButton = page.locator(
-      'button[aria-label*="menu"], button[aria-label*="navigation"], button:has-text("menu"), [class*="menu-toggle"]'
-    );
-    
-    if (await mobileMenuButton.count() > 0) {
-      const button = mobileMenuButton.first();
-      await expect(button).toBeVisible();
-      
-      // Try to click it
-      await button.click();
-      await page.waitForTimeout(500);
-      
-      // Menu should expand or become visible
-      // (implementation specific, so we just check it's clickable)
+    const menuButton = page.getByRole('button', { name: /toggle mobile menu/i });
+    await expect(menuButton).toBeVisible({ timeout: 30_000 });
+    await menuButton.click();
+    await expect(page.locator('#mobile-menu')).toBeVisible();
+  });
+
+  test('public header includes Partners link', async ({ page }, testInfo) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    if (testInfo.project.name === 'mobile-chrome') {
+      await page.getByRole('button', { name: /toggle mobile menu/i }).click();
+      await expect(page.locator('#mobile-menu').getByRole('link', { name: 'Partners' })).toBeVisible();
+    } else {
+      await expect(page.getByRole('navigation').getByRole('link', { name: 'Partners' })).toBeVisible();
     }
   });
 
-  test('public header includes Partners link', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.getByRole('navigation').getByRole('link', { name: 'Partners' })).toBeVisible();
-  });
+  test('should have accessible navigation landmarks', async ({ page }, testInfo) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
 
-  test('should have accessible navigation landmarks', async ({ page }) => {
-    await page.goto('/');
-    
-    // Check for proper ARIA landmarks
-    const nav = page.locator('[role="navigation"], nav');
-    const main = page.locator('[role="main"], main');
-    
-    await expect(nav.first()).toBeVisible();
-    await expect(main.first()).toBeVisible();
+    await expect(page.locator('[role="main"], main').first()).toBeVisible({ timeout: 30_000 });
+
+    if (testInfo.project.name === 'mobile-chrome') {
+      await expect(page.getByRole('button', { name: /toggle mobile menu/i })).toBeVisible({
+        timeout: 30_000,
+      });
+      await expect(page.locator('#mobile-menu')).toBeAttached();
+    } else {
+      await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible({
+        timeout: 30_000,
+      });
+    }
   });
 
   test('should support keyboard navigation', async ({ page }) => {

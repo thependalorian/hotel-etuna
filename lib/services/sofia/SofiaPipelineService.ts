@@ -1,4 +1,5 @@
 /**
+ * @fileoverview SofiaPipelineService — domain service module.
  * Sofia AI Pipeline Service
  * 
  * Multi-stage AI processing pipeline inspired by JackTheButler/src/core/pipeline/index.ts

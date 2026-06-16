@@ -1,3 +1,8 @@
+/**
+ * @fileoverview API route //api/restaurant/details
+ * Location: /app/api/restaurant/details/route.ts
+ */
+
 import { NextRequest } from 'next/server';
 import {
   withPlatformApiAuth,

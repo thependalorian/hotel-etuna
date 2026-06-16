@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/documents
+ * Location: /app/api/documents/route.ts
+ */
+
+/**
  * GET /api/documents — list generated financial documents (staff).
  * Location: app/api/documents/route.ts
  *

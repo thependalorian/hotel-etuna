@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/introducers/[id]/bookings
+ * Location: /app/api/introducers/[id]/bookings/route.ts
+ */
+
+/**
  * Introducer Bookings API Route
  * 
  * Purpose: Get all bookings attributed to an introducer

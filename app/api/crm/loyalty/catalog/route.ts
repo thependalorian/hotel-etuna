@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/crm/loyalty/catalog
+ * Location: /app/api/crm/loyalty/catalog/route.ts
+ */
+
+/**
  * Loyalty Rewards Catalog API
  * 
  * GET  /api/crm/loyalty/catalog - List all rewards

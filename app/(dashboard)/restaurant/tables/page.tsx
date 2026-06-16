@@ -33,6 +33,7 @@ import TableForm from '@/components/features/restaurant/TableForm';
 import TableCard from '@/components/features/restaurant/TableCard';
 import { apiUrl } from '@/lib/utils/api-url';
 import { securityLogger } from '@/lib/utils/security-logger.client';
+import { Button } from '@/components/ui/Button';
 
 interface Property {
   id: string;
@@ -238,12 +239,13 @@ export default function RestaurantTablesPage() {
         <div>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <h3 className="text-xl font-semibold font-display">Current Tables</h3>
-            <button 
-              onClick={() => setShowAddTableForm(!showAddTableForm)} 
-              className="btn btn-primary gentle-lift min-h-[44px]"
+            <Button
+              type="button"
+              onClick={() => setShowAddTableForm(!showAddTableForm)}
+              className="gentle-lift"
             >
               {showAddTableForm ? 'Hide Form' : 'Add New Table'}
-            </button>
+            </Button>
           </div>
 
           {showAddTableForm && (

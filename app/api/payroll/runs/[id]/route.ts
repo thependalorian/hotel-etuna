@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/payroll/runs/[id]
+ * Location: /app/api/payroll/runs/[id]/route.ts
+ */
+
+/**
  * Payroll run detail API
  * GET /api/payroll/runs/[id] — run with computed lines
  *

@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/cron/uptime-monitor
+ * Location: /app/api/cron/uptime-monitor/route.ts
+ */
+
+/**
  * Uptime Monitoring Cron Job (PSD-12 Compliance)
  * 
  * Purpose: Scheduled health checks for system uptime monitoring

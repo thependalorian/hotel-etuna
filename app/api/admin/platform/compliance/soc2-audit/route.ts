@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/admin/platform/compliance/soc2-audit
+ * Location: /app/api/admin/platform/compliance/soc2-audit/route.ts
+ */
+
+/**
  * SOC 2 readiness audit (automated agents).
  * GET /api/admin/platform/compliance/soc2-audit?from=ISO&to=ISO
  *

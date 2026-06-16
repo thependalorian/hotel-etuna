@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/compliance/kyc-cases/[caseId]
+ * Location: /app/api/compliance/kyc-cases/[caseId]/route.ts
+ */
+
+/**
  * Single KYC/KYB case — detail + documents
  *
  * Purpose: Fetch one case and attached evidence for reviewer UI

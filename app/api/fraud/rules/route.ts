@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/fraud/rules
+ * Location: /app/api/fraud/rules/route.ts
+ */
+
+/**
  * Tenant fraud detection rules API
  *
  * Purpose: List and toggle tenant-scoped fraud rules (CNP/EFT thresholds, geo mismatch, etc.).

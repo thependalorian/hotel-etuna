@@ -1,3 +1,8 @@
+/**
+ * @fileoverview API route //api/qr
+ * Location: /app/api/qr/route.ts
+ */
+
 import { NextRequest } from 'next/server';
 import {
   withPlatformApiAuth,

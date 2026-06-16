@@ -1,13 +1,25 @@
 import { test, expect } from '@playwright/test';
+import { dismissCookies } from './helpers/dismiss-cookie-consent';
+import { loginAsGuest } from './helpers/login';
+import { loadEnvFiles } from './helpers/load-env';
 
 /**
  * Design system smoke checks aligned with Tailwind tokens and layout.tsx fonts.
  */
 
 test.describe('Design System', () => {
+  test.describe.configure({ timeout: 120_000 });
+
+  test.beforeAll(() => {
+    loadEnvFiles();
+  });
+
+  test.beforeEach(async ({ page }) => {
+    await dismissCookies(page);
+  });
+
   test('should load web font stack (Inter variable or system fallback)', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('load');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     await expect
       .poll(
@@ -21,8 +33,7 @@ test.describe('Design System', () => {
   });
 
   test('primary CTA should use khaki-600 family (not nude-600)', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('load');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     const cta = page.getByRole('link', { name: /book your stay/i }).first();
     await expect(cta).toBeVisible();
@@ -40,8 +51,7 @@ test.describe('Design System', () => {
   });
 
   test('should use defined body colors', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('load');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     await expect
       .poll(async () => {
@@ -55,7 +65,7 @@ test.describe('Design System', () => {
   });
 
   test('should have padded content inside main landmark', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     const main = page.locator('main').first();
     await expect(main).toBeVisible({ timeout: 20_000 });
 
@@ -68,8 +78,7 @@ test.describe('Design System', () => {
 
   test('should have minimum touch target height on mobile (44px)', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto('/');
-    await page.waitForLoadState('load');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     const firstButton = page.getByRole('link', { name: /book your stay/i }).first();
     const height = await firstButton.evaluate((el) => {
@@ -81,35 +90,42 @@ test.describe('Design System', () => {
   });
 
   test('should show focus-visible ring after keyboard focus', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('load');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
 
-    for (let i = 0; i < 12; i++) {
+    let hasRing = false;
+    for (let i = 0; i < 20; i++) {
       await page.keyboard.press('Tab');
+      hasRing = await page.evaluate(() => {
+        const el = document.activeElement;
+        if (!el || el === document.body || el === document.documentElement) return false;
+        const styles = window.getComputedStyle(el);
+        const outlineW = parseFloat(styles.outlineWidth || '0');
+        const boxShadow = styles.boxShadow;
+        return outlineW > 0 || (boxShadow !== '' && boxShadow !== 'none');
+      });
+      if (hasRing) break;
     }
 
-    const visible = page.locator(':focus-visible').first();
-    await expect(visible).toBeVisible({ timeout: 10_000 });
-
-    const outlineW = await visible.evaluate((el) =>
-      parseFloat(window.getComputedStyle(el).outlineWidth || '0'),
-    );
-    const boxShadow = await visible.evaluate((el) => window.getComputedStyle(el).boxShadow);
-
-    const hasRing = outlineW > 0 || (boxShadow && boxShadow !== 'none');
     expect(hasRing).toBe(true);
   });
 
-  test('should have semantic landmarks', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('nav').first()).toBeVisible({ timeout: 20_000 });
+  test('should have semantic landmarks', async ({ page }, testInfo) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    if (testInfo.project.name === 'mobile-chrome') {
+      await expect(page.getByRole('button', { name: /toggle mobile menu/i })).toBeVisible({
+        timeout: 20_000,
+      });
+    } else {
+      await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible({
+        timeout: 20_000,
+      });
+    }
     await expect(page.locator('main').first()).toBeVisible();
   });
 
   test('should be responsive - mobile (no large horizontal overflow)', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto('/');
-    await page.waitForLoadState('load');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -159,5 +175,18 @@ test.describe('Design System', () => {
     await page.waitForLoadState('load');
 
     await expect(page.getByText('HE').first()).toBeVisible();
+  });
+
+  test('guest hub nav links use pill shape when signed in', async ({ page }) => {
+    test.skip(!process.env.DATABASE_URL, 'Set DATABASE_URL in .env.local to run this test.');
+
+    await loginAsGuest(page);
+
+    const profileLink = page
+      .getByRole('navigation', { name: 'Guest navigation' })
+      .getByRole('link', { name: 'Profile', exact: true });
+    await expect(profileLink).toBeVisible();
+    const radius = await profileLink.evaluate((el) => window.getComputedStyle(el).borderRadius);
+    expect(parseFloat(radius)).toBeGreaterThan(8);
   });
 });

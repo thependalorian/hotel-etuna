@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/fraud/analyze
+ * Location: /app/api/fraud/analyze/route.ts
+ */
+
+/**
  * Fraud Analysis API Endpoint
  * 
  * Purpose: Analyze transactions for fraud in real-time

@@ -1,3 +1,8 @@
+/**
+ * @fileoverview API route //api/auth/resend-otp
+ * Location: /app/api/auth/resend-otp/route.ts
+ */
+
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';

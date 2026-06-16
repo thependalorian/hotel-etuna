@@ -15,6 +15,8 @@ export interface AdumoVirtualPaymentFormProps {
   purpose?: 'booking_deposit' | 'folio_settle';
   returnSuccessUrl?: string;
   returnFailUrl?: string;
+  /** When false, parent must gate mount until the guest confirms (deposit / card pay). Default true. */
+  autoStart?: boolean;
   onError?: (message: string) => void;
 }
 
@@ -24,12 +26,15 @@ export function AdumoVirtualPaymentForm({
   purpose = 'booking_deposit',
   returnSuccessUrl,
   returnFailUrl,
+  autoStart = true,
   onError,
 }: AdumoVirtualPaymentFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
-  const [redirecting, setRedirecting] = useState(true);
+  const [redirecting, setRedirecting] = useState(autoStart);
 
   useEffect(() => {
+    if (!autoStart) return;
+
     let cancelled = false;
 
     async function start() {
@@ -91,14 +96,15 @@ export function AdumoVirtualPaymentForm({
     return () => {
       cancelled = true;
     };
-  }, [bookingId, amount, purpose, returnSuccessUrl, returnFailUrl, onError]);
+  }, [autoStart, bookingId, amount, purpose, returnSuccessUrl, returnFailUrl, onError]);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" aria-busy={redirecting} aria-live="polite">
       {redirecting && (
-        <p className="text-sm text-terracotta-800">
+        <div className="flex items-center gap-2 text-sm text-terracotta-800" role="status">
+          <span className="loading loading-spinner loading-sm" aria-hidden />
           Redirecting to secure card payment…
-        </p>
+        </div>
       )}
       <form ref={formRef} className="hidden" aria-hidden />
     </div>

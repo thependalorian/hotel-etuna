@@ -40,21 +40,22 @@ interface QuickAction {
 }
 
 export function GuestDashboard() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const hub = useGuestHub();
+  const { reload, ...hubState } = hub;
   const insights = useMemo(
     () => computeGuestInsights({
-      activeStays: hub.activeStays,
-      pastStays: hub.pastStays,
-      loyalty: hub.loyalty,
+      activeStays: hubState.activeStays,
+      pastStays: hubState.pastStays,
+      loyalty: hubState.loyalty,
     }),
-    [hub.activeStays, hub.pastStays, hub.loyalty],
+    [hubState.activeStays, hubState.pastStays, hubState.loyalty],
   );
 
   const firstName =
     session?.user?.name?.split(' ')[0] || session?.user?.email?.split('@')[0] || 'guest';
 
-  const activeStay = hub.activeStays[0];
+  const activeStay = hubState.activeStays[0];
 
   const quickActions: QuickAction[] = [
     {
@@ -73,27 +74,42 @@ export function GuestDashboard() {
       <WelcomeBanner firstName={firstName} loyaltyTier={insights.loyaltyTier} />
 
       {/* At-a-glance insights */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatsCard
-          label="Nights with us"
-          value={String(insights.totalNights)}
-          hint={`${insights.totalStays} ${insights.totalStays === 1 ? 'stay' : 'stays'}${
-            insights.topProperty ? ` · ${insights.topProperty}` : ''
-          }`}
-          icon={Moon}
-        />
-        <StatsCard
-          label="Lifetime spend"
-          value={money(insights.currency, insights.lifetimeSpend)}
-          hint="Across completed stays"
-          icon={Wallet}
-        />
-        <StatsCard
-          label="Loyalty points"
-          value={insights.loyaltyPoints.toLocaleString()}
-          hint={insights.loyaltyTier ? `${insights.loyaltyTier} tier` : 'Earn points each stay'}
-          icon={Star}
-        />
+      <div
+        className="grid grid-cols-1 gap-4 sm:grid-cols-3"
+        aria-busy={hubState.loading}
+        aria-live="polite"
+      >
+        {hubState.loading ? (
+          <>
+            <div className="skeleton h-28 rounded-2xl" aria-hidden />
+            <div className="skeleton h-28 rounded-2xl" aria-hidden />
+            <div className="skeleton h-28 rounded-2xl" aria-hidden />
+            <p className="sr-only">Loading your stay insights…</p>
+          </>
+        ) : (
+          <>
+            <StatsCard
+              label="Nights with us"
+              value={String(insights.totalNights)}
+              hint={`${insights.totalStays} ${insights.totalStays === 1 ? 'stay' : 'stays'}${
+                insights.topProperty ? ` · ${insights.topProperty}` : ''
+              }`}
+              icon={Moon}
+            />
+            <StatsCard
+              label="Lifetime spend"
+              value={money(insights.currency, insights.lifetimeSpend)}
+              hint="Across completed stays"
+              icon={Wallet}
+            />
+            <StatsCard
+              label="Loyalty points"
+              value={insights.loyaltyPoints.toLocaleString()}
+              hint={insights.loyaltyTier ? `${insights.loyaltyTier} tier` : 'Earn points each stay'}
+              icon={Star}
+            />
+          </>
+        )}
       </div>
 
       {/* Quick actions */}
@@ -114,7 +130,11 @@ export function GuestDashboard() {
       </div>
 
       {/* Stays, payment due, past — single fetch shared with insights */}
-      <GuestStaysSections {...hub} />
+      <GuestStaysSections
+        {...hubState}
+        onRetry={reload}
+        isSignedIn={status === 'authenticated'}
+      />
     </div>
   );
 }

@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/staff/[id]/shifts
+ * Location: /app/api/staff/[id]/shifts/route.ts
+ */
+
+/**
  * Staff shifts for one employee
  * Location: app/api/staff/[id]/shifts/route.ts
  *

@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/payments/reconciliation
+ * Location: /app/api/payments/reconciliation/route.ts
+ */
+
+/**
  * Cash Reconciliation API Endpoint
  *
  * Purpose: Daily cash-up reports for staff

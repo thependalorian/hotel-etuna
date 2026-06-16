@@ -25,6 +25,7 @@ import PageHeader from '@/components/shared/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { apiUrl } from '@/lib/utils/api-url';
 import { securityLogger } from '@/lib/utils/security-logger.client';
+import { Button } from '@/components/ui/Button';
 
 interface LoyaltyBalance {
   points: number;
@@ -314,15 +315,14 @@ export default function GuestLoyaltyPage() {
                     )}
                   </div>
                   
-                  <button
+                  <Button
                     onClick={() => handleRedeem(reward.id)}
                     disabled={!canRedeemReward || redeeming}
-                    className={`btn btn-primary w-full ${
-                      !canRedeemReward ? 'btn-disabled' : ''
-                    }`}
+                    isLoading={redeeming}
+                    className="w-full"
                   >
-                    {redeeming ? 'Redeeming...' : canRedeemReward ? 'Redeem' : 'Insufficient Points'}
-                  </button>
+                    {canRedeemReward ? 'Redeem' : 'Insufficient Points'}
+                  </Button>
                 </Card>
               );
             })}

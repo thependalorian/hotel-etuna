@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/bookings/night-audit
+ * Location: /app/api/bookings/night-audit/route.ts
+ */
+
+/**
  * Night audit API — run end-of-day hospitality audit for a property.
  *
  * POST /api/bookings/night-audit

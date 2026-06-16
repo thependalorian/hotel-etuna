@@ -33,4 +33,10 @@ describe('hub-team', () => {
     expect(hubTeamCanAccessRoute('support@hoteletuna.com', 'staff', '/sofia/email')).toBe(true);
     expect(hubTeamCanAccessRoute('support@hoteletuna.com', 'staff', '/payments/reconciliation')).toBe(false);
   });
+
+  it('frontdesk and support can reach communications hub', () => {
+    expect(hubTeamCanAccessRoute('frontdesk@hoteletuna.com', 'staff', '/communications')).toBe(true);
+    expect(hubTeamCanAccessRoute('support@hoteletuna.com', 'staff', '/communications/wa:tenant:264')).toBe(true);
+    expect(hubTeamCanAccessRoute('marketing@hoteletuna.com', 'staff', '/communications')).toBe(false);
+  });
 });

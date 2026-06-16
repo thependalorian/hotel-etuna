@@ -8,6 +8,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
 function WelcomeContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -55,9 +56,9 @@ function WelcomeContent() {
       <div className="max-w-md mx-auto py-16 text-center space-y-4">
         <h1 className="font-display text-2xl font-bold text-nude-900">Welcome link problem</h1>
         <p className="text-nude-600">{error}</p>
-        <Link href="/login" className="btn btn-primary rounded-full px-6">
-          Sign in instead
-        </Link>
+        <Button asChild>
+          <Link href="/login">Sign in instead</Link>
+        </Button>
       </div>
     );
   }

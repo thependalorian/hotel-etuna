@@ -40,6 +40,11 @@
 }
 
 @layer components {
+  /* Keyboard skip link — visible on focus only (Part 9.9 / UX-PUBLIC-08) */
+  .buffr-skip-link {
+    @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:min-h-touch-mobile focus:rounded-full focus:bg-primary focus:px-6 focus:py-3 focus:text-primary-content focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-nude-500 focus:ring-offset-2;
+  }
+
   /* WCAG 2.1 AA Touch Target (44x44px minimum on mobile) */
   .touch-target {
     @apply min-h-[44px] min-w-[44px];

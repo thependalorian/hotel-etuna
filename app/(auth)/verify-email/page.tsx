@@ -43,11 +43,8 @@ function VerifyEmailForm() {
       }
 
       setSuccess(true);
-      
-      // Redirect to login after 2 seconds
-      setTimeout(() => {
-        router.push('/login?verified=true');
-      }, 2000);
+      setLoading(false);
+      router.replace('/login?verified=true');
 
     } catch {
       setError('An unexpected error occurred. Please try again.');

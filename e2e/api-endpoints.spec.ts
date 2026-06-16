@@ -13,8 +13,6 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('API Endpoints - Critical Paths', () => {
-  const api = test.info().project.use.baseURL;
-
   test.describe.configure({ mode: 'parallel' });
 
   // ===========================================

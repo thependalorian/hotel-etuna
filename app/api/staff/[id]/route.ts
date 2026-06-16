@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/staff/[id]
+ * Location: /app/api/staff/[id]/route.ts
+ */
+
+/**
  * Single staff member API
  * Location: app/api/staff/[id]/route.ts
  *

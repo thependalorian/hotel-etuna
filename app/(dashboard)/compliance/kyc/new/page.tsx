@@ -11,6 +11,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/shared/PageHeader';
+import { Button } from '@/components/ui/Button';
 
 export default function NewComplianceCasePage() {
   const router = useRouter();
@@ -243,13 +244,9 @@ export default function NewComplianceCasePage() {
             )}
           </div>
 
-          <button
-            type="submit"
-            className="btn btn-primary min-h-[44px]"
-            disabled={loading}
-          >
-            {loading ? 'Creating…' : 'Create case'}
-          </button>
+          <Button type="submit" isLoading={loading}>
+            Create case
+          </Button>
         </div>
       </form>
     </div>

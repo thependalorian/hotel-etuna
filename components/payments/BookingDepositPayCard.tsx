@@ -47,7 +47,11 @@ export function BookingDepositPayCard({
         </p>
       </div>
 
-      {error && <p className="text-sm text-error">{error}</p>}
+      {error && (
+        <div className="alert alert-error text-sm" role="alert">
+          <span>{error}</span>
+        </div>
+      )}
 
       <PropertyHospitalityVatNote amount={amount} currency={currency} />
 

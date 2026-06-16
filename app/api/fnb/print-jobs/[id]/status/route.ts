@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/fnb/print-jobs/[id]/status
+ * Location: /app/api/fnb/print-jobs/[id]/status/route.ts
+ */
+
+/**
  * F&B Print Job Status API
  *
  * Purpose: Update kitchen ticket print job status (kanban drag / staff actions).

@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/bookings/[id]/status
+ * Location: /app/api/bookings/[id]/status/route.ts
+ */
+
+/**
  * Booking status transitions (LangGraph-validated lifecycle)
  *
  * Purpose: checked_in / checked_out / cancel with room side-effects

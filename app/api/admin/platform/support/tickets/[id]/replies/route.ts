@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/admin/platform/support/tickets/[id]/replies
+ * Location: /app/api/admin/platform/support/tickets/[id]/replies/route.ts
+ */
+
+/**
  * Platform support ticket — admin reply
  * POST /api/admin/platform/support/tickets/[id]/replies
  * Body: { message: string }

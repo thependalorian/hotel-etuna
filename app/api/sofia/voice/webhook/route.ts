@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/sofia/voice/webhook
+ * Location: /app/api/sofia/voice/webhook/route.ts
+ */
+
+/**
  * Voice webhook for Sofia (telephony STT/TTS bridge)
  *
  * Purpose: Authenticated POST endpoint for provider call events; delegates to `VoiceChannelAdapter`.

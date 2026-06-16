@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/Button';
 
 const STORAGE_KEY = 'hoteletuna_cookie_consent_v1';
 
@@ -62,13 +63,9 @@ export function CookieConsentBanner() {
           >
             Essential only
           </button>
-          <button
-            type="button"
-            className="btn btn-primary btn-sm rounded-full px-4"
-            onClick={() => accept(true)}
-          >
+          <Button type="button" size="sm" onClick={() => accept(true)}>
             Accept all
-          </button>
+          </Button>
         </div>
       </div>
     </div>

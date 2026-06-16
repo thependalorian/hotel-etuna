@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/admin/platform/secrets-status
+ * Location: /app/api/admin/platform/secrets-status/route.ts
+ */
+
+/**
  * Platform secrets status — configured flags only, no values.
  * GET /api/admin/platform/secrets-status
  */

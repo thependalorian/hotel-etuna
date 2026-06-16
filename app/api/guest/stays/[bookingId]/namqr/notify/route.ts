@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/guest/stays/[bookingId]/namqr/notify
+ * Location: /app/api/guest/stays/[bookingId]/namqr/notify/route.ts
+ */
+
+/**
  * POST /api/guest/stays/[bookingId]/namqr/notify — guest "I've paid" (Option B)
  *
  * Body: { amountClaimed: number, bankReference: string, qrReference?: string }

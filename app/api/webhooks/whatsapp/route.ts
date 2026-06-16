@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/webhooks/whatsapp
+ * Location: /app/api/webhooks/whatsapp/route.ts
+ */
+
+/**
  * WhatsApp Cloud API webhook — verification (GET) and inbound messages (POST).
  *
  * Purpose: Meta callback URL for Sofia; routes by phone_number_id → tenant via tenant_whatsapp_settings.
@@ -8,11 +13,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { processSofiaConciergeMessage } from '@/lib/services/ai/sofia-concierge-handler';
 import { verifyMetaWebhookSignature } from '@/lib/integrations/whatsapp/meta-webhook-signature';
 import { sendWhatsAppTextMessage } from '@/lib/integrations/whatsapp/whatsapp-graph-api';
+import { processWhatsappInboundForSofia } from '@/lib/services/whatsapp/processWhatsappInboundForSofia';
 import { getTenantWhatsappByPhoneNumberId } from '@/lib/services/whatsapp/tenantWhatsappLookup';
-import { findGuestIdByWhatsappPhone } from '@/lib/services/whatsapp/findGuestByWhatsappPhone';
 import { checkRateLimit } from '@/lib/utils/rate-limit';
 import { securityLogger } from '@/lib/utils/security-logger';
 
@@ -102,7 +106,7 @@ export async function POST(request: NextRequest) {
 
     const routing = await getTenantWhatsappByPhoneNumberId(phoneNumberId);
     if (!routing) {
-      securityLogger.warn('[whatsapp-webhook] unmapped phone_number_id', phoneNumberId);
+      securityLogger.warn('[whatsapp-webhook] unmapped phone_number_id');
       return new NextResponse('OK', { status: 200 });
     }
 
@@ -112,7 +116,6 @@ export async function POST(request: NextRequest) {
     }
 
     if (message.type !== 'text' || !message.text?.body) {
-      // Phase 1: text only; ack other types without error.
       return new NextResponse('OK', { status: 200 });
     }
 
@@ -125,32 +128,26 @@ export async function POST(request: NextRequest) {
       return new NextResponse('OK', { status: 200 });
     }
 
-    const waFrom = message.from;
-    const sessionId = `wa:${routing.tenantId}:${waFrom}`;
-    const guestId = await findGuestIdByWhatsappPhone(routing.tenantId, waFrom);
-
-    const aiResponse = await processSofiaConciergeMessage(
-      {
-        message: message.text.body,
-        sessionId,
-        tenantId: routing.tenantId,
-        propertyId: routing.defaultPropertyId ?? undefined,
-        guestId,
-        language: 'en',
-        channel: 'WHATSAPP',
-      },
-      'guest'
-    );
+    const { responseText } = await processWhatsappInboundForSofia({
+      tenantId: routing.tenantId,
+      defaultPropertyId: routing.defaultPropertyId,
+      guestPhone: message.from,
+      text: message.text.body,
+      provider: 'meta',
+    });
 
     const sendResult = await sendWhatsAppTextMessage({
-      to: waFrom,
-      text: aiResponse.response,
+      to: message.from,
+      text: responseText,
       phoneNumberId,
       accessToken,
     });
 
     if (!sendResult.ok) {
-      securityLogger.error('[whatsapp-webhook] Graph API send failed', { status: sendResult.status, body: sendResult.body });
+      securityLogger.error('[whatsapp-webhook] Graph API send failed', {
+        status: sendResult.status,
+        body: sendResult.body,
+      });
     }
 
     return new NextResponse('OK', { status: 200 });

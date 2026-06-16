@@ -1,4 +1,9 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
+import { BookingDepositCheckout } from '@/components/payments/BookingDepositCheckout';
+import { loadBookingWithGuest } from '@/lib/services/folio/guestStayAccess';
+import { resolveBookingDepositAmount } from '@/lib/bookings/deposit';
 
 export const metadata: Metadata = {
   title: 'Complete Your Booking',
@@ -15,15 +20,10 @@ export const metadata: Metadata = {
  * Flow:
  * 1. User creates booking (via BookingForm)
  * 2. Redirected here with bookingId
- * 3. AdumoVirtualPaymentForm initiates hosted payment
+ * 3. Guest confirms amount, then AdumoVirtualPaymentForm redirects to hosted payment
  * 4. On success, booking payment_status updated to 'paid'
  * 5. On failure, user can retry
  */
-
-import { Suspense } from 'react';
-import Link from 'next/link';
-import { AdumoVirtualPaymentForm } from '@/components/payments/AdumoVirtualPaymentForm';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 interface PageProps {
   searchParams: Promise<{ bookingId?: string }>;
@@ -31,6 +31,7 @@ interface PageProps {
 
 export default async function BookingDepositPage({ searchParams }: PageProps) {
   const { bookingId } = await searchParams;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
   if (!bookingId) {
     return (
@@ -41,41 +42,53 @@ export default async function BookingDepositPage({ searchParams }: PageProps) {
         <p className="text-nude-600 mb-8">
           We could not find the booking you want to pay for. Please return to your booking.
         </p>
-        <Link href="/" className="btn btn-primary rounded-full px-6">
-          Back to Home
-        </Link>
+        <Button asChild>
+          <Link href="/">Back to Home</Link>
+        </Button>
       </div>
     );
   }
 
+  let bookingReference = bookingId.slice(0, 8);
+  let depositAmount = 0;
+  let currency = 'NAD';
+  let loadError: string | null = null;
+
+  try {
+    const { booking } = await loadBookingWithGuest(bookingId);
+    bookingReference = booking.bookingReference;
+    currency = booking.currency || 'NAD';
+    depositAmount = resolveBookingDepositAmount(booking);
+  } catch {
+    loadError = 'We could not load this booking. Check the link or contact front desk.';
+  }
+
   return (
-    <div className="min-h-screen bg-base-100 py-12 px-4">
+    <div className="min-h-[60vh] bg-base-100 py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="etuna-page-title mb-4">Secure Deposit Payment</h1>
           <p className="text-lg text-base-content/70">
-            Complete your deposit payment to confirm your booking. You will be redirected to our
-            secure payment partner.
+            Review your deposit, then continue to our secure payment partner when you are ready.
           </p>
         </div>
 
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body p-8">
-            <Suspense
-              fallback={
-                <div className="flex items-center justify-center py-8">
-                  <LoadingSpinner size="lg" text="Preparing secure payment..." />
-                </div>
-              }
-            >
-              <AdumoVirtualPaymentForm
+            {loadError ? (
+              <div className="alert alert-error" role="alert">
+                <span>{loadError}</span>
+              </div>
+            ) : (
+              <BookingDepositCheckout
                 bookingId={bookingId}
-                purpose="booking_deposit"
-                amount={undefined}
-                returnSuccessUrl={`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/payment/success?bookingId=${bookingId}&purpose=booking_deposit`}
-                returnFailUrl={`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/payment/failed?bookingId=${bookingId}&purpose=booking_deposit`}
+                bookingReference={bookingReference}
+                amount={depositAmount}
+                currency={currency}
+                returnSuccessUrl={`${appUrl}/payment/success?bookingId=${bookingId}&purpose=booking_deposit`}
+                returnFailUrl={`${appUrl}/payment/failed?bookingId=${bookingId}&purpose=booking_deposit`}
               />
-            </Suspense>
+            )}
           </div>
         </div>
 

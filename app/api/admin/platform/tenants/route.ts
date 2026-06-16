@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/admin/platform/tenants
+ * Location: /app/api/admin/platform/tenants/route.ts
+ */
+
+/**
  * Platform Tenants API Route
  * 
  * Purpose: API endpoint for platform admin tenant management

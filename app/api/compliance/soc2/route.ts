@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/compliance/soc2
+ * Location: /app/api/compliance/soc2/route.ts
+ */
+
+/**
  * SOC 2 Compliance API — status and CPA evidence export (hub admin).
  * GET /api/compliance/soc2?action=export|status|full-report
  * Audit agents: GET /api/compliance/soc2/audit

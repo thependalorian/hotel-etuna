@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/admin/platform/analytics
+ * Location: /app/api/admin/platform/analytics/route.ts
+ */
+
+/**
  * Platform Admin — aggregate analytics (Drizzle, server-only)
  *
  * Purpose: Replace client-side Supabase queries; safe for platform admins only.

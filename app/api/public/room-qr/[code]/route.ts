@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/public/room-qr/[code]
+ * Location: /app/api/public/room-qr/[code]/route.ts
+ */
+
+/**
  * Public room QR resolver
  *
  * Purpose: Map in-room QR to the active checked-in booking for room service.

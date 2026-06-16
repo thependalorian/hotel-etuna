@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/crm/guests/[id]/consent
+ * Location: /app/api/crm/guests/[id]/consent/route.ts
+ */
+
+/**
  * CRM guest consent event API
  *
  * Purpose: Read and append marketing consent evidence for a tenant guest.

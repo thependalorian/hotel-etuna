@@ -49,6 +49,11 @@ export const brand = {
     roomService: 'Room service target: 30 minutes when checked in',
   },
   roomTiersFrom: 'From N$800 per night',
+  /** Official logo palette (burgundy square mark + cream monogram). */
+  colors: {
+    burgundy: '#7b161e',
+    cream: '#f1e6d2',
+  },
   assets: {
     logoLockup: '/brand/hotel-etuna-logo.png',
     logoMark: '/brand/hotel-etuna-mark.png',

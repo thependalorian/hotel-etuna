@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/guest/stays/[bookingId]/namqr/generate
+ * Location: /app/api/guest/stays/[bookingId]/namqr/generate/route.ts
+ */
+
+/**
  * POST /api/guest/stays/[bookingId]/namqr/generate — guest folio NamQR (Option B)
  *
  * Body: { amount?: number } — defaults to full folio balance

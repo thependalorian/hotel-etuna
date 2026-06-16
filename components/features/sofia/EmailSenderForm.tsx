@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { apiUrl } from '@/lib/utils/api-url';
 import { securityLogger } from '@/lib/utils/security-logger.client';
+import { Button } from '@/components/ui/Button';
 
 export default function EmailSenderForm() {
   const { data: session } = useSession();
@@ -146,21 +147,13 @@ export default function EmailSenderForm() {
           />
         </div>
 
-        <button 
-          type="submit" 
-          className="btn btn-primary min-h-[44px]" 
-          disabled={loading}
+        <Button
+          type="submit"
+          isLoading={loading}
           aria-label={loading ? 'Sending email...' : 'Send email'}
         >
-          {loading ? (
-            <>
-              <LoadingSpinner size="sm" />
-              <span className="ml-2">Sending...</span>
-            </>
-          ) : (
-            'Send Email'
-          )}
-        </button>
+          Send Email
+        </Button>
       </form>
     </div>
   );

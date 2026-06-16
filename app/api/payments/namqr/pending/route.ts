@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/payments/namqr/pending
+ * Location: /app/api/payments/namqr/pending/route.ts
+ */
+
+/**
  * GET /api/payments/namqr/pending — staff queue of guest NamQR claims (Option B)
  *
  * Query: status=pending|approved|rejected (default pending)

@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/compliance/kyc-cases/[caseId]/documents
+ * Location: /app/api/compliance/kyc-cases/[caseId]/documents/route.ts
+ */
+
+/**
  * Register uploaded evidence for a KYC/KYB case
  *
  * Purpose: Link document type + URL after client uploads to storage

@@ -7,6 +7,7 @@ import type { Staff, Property } from '@/lib/db/schema';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Plus, Search, Edit, Trash2, Users, Calendar, Mail, Phone } from 'lucide-react';
 import { securityLogger } from '@/lib/utils/security-logger.client';
+import { Button } from '@/components/ui/Button';
 
 type StaffWithProperty = Staff & {
   property?: Property | null;
@@ -191,12 +192,12 @@ export default function StaffList({ initialStaff, properties }: StaffListProps) 
             <p className="text-base-content/70 mb-6">
               Get started by adding your first staff member.
             </p>
-            <Link href="/staff/new">
-              <button className="btn btn-primary gentle-lift min-h-[44px]">
+            <Button asChild className="gentle-lift">
+              <Link href="/staff/new">
                 <Plus className="w-5 h-5 mr-2" />
                 Add Staff Member
-              </button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
       )}

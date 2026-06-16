@@ -29,6 +29,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import PageHeader from '@/components/shared/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { apiUrl } from '@/lib/utils/api-url';
+import { Button } from '@/components/ui/Button';
 
 interface Introducer {
   id: string;
@@ -129,12 +130,9 @@ export default function IntroducersListPage() {
           title="Introducer Partners"
           description="Manage referral partners and commission tracking"
           actions={
-            <Link 
-              href="/crm/introducers/new" 
-              className="btn btn-primary min-h-[44px] shadow-nude-soft hover:shadow-nude-medium"
-            >
-              Add Introducer
-            </Link>
+            <Button asChild className="shadow-nude-soft hover:shadow-nude-medium">
+              <Link href="/crm/introducers/new">Add Introducer</Link>
+            </Button>
           }
         />
 

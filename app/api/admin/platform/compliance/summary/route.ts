@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/admin/platform/compliance/summary
+ * Location: /app/api/admin/platform/compliance/summary/route.ts
+ */
+
+/**
  * Compliance snapshot for platform admins (reporting)
  * GET /api/admin/platform/compliance/summary
  *

@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/introducers/validate
+ * Location: /app/api/introducers/validate/route.ts
+ */
+
+/**
  * Introducer Code Validation API
  * 
  * Purpose: Validate introducer referral codes for booking attribution

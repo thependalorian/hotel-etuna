@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/bookings
+ * Location: /app/api/bookings/route.ts
+ */
+
+/**
  * Bookings API Route
  * 
  * Purpose: Manage bookings with system design principles

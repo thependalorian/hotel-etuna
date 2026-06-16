@@ -4,9 +4,8 @@
  * Purpose: Render a guest's active stays, deposit-due bookings, and past stays.
  * Location: /components/features/guest/GuestStaysList.tsx
  *
- * `GuestStaysSections` is presentational (takes hub data); `GuestStaysList` is the
- * self-fetching wrapper. The guest dashboard fetches once via `useGuestHub` and renders
- * `GuestStaysSections` directly (no duplicate request).
+ * `GuestStaysSections` is presentational (takes hub data). The guest dashboard fetches once
+ * via `useGuestHub` and renders `GuestStaysSections` directly.
  */
 
 'use client';
@@ -18,7 +17,7 @@ import { Card } from '@/components/ui/Card';
 import { BookingDepositPayCard } from '@/components/payments/BookingDepositPayCard';
 import { GuestLoyaltySummary } from '@/components/features/guest/GuestLoyaltySummary';
 import { guestCopy } from '@/lib/copy/guest';
-import { useGuestHub, type GuestHubState } from '@/components/features/guest/useGuestHub';
+import type { GuestHubState } from '@/components/features/guest/useGuestHub';
 import { LoyaltyRedeemModal } from '@/components/features/guest/LoyaltyRedeemModal';
 import { PastStayCard } from '@/components/features/guest/PastStayCard';
 
@@ -30,7 +29,9 @@ export function GuestStaysSections({
   loyalty,
   loading,
   error,
-}: GuestHubState) {
+  onRetry,
+  isSignedIn = false,
+}: GuestHubState & { onRetry?: () => void; isSignedIn?: boolean }) {
   const [redeemModalOpen, setRedeemModalOpen] = useState(false);
 
   if (loading) {
@@ -40,10 +41,20 @@ export function GuestStaysSections({
   if (error) {
     return (
       <Card variant="elevated" className="p-8 text-center">
-        <p className="text-semantic-error-dark mb-4">{error}</p>
-        <Link href="/login?redirect=/guest">
-          <Button>Sign in</Button>
-        </Link>
+        <div className="alert alert-error mb-4 text-left" role="alert">
+          <span>{error}</span>
+        </div>
+        <div className="flex flex-wrap justify-center gap-3">
+          {isSignedIn && onRetry ? (
+            <Button type="button" onClick={onRetry}>
+              Retry
+            </Button>
+          ) : (
+            <Button asChild>
+              <Link href="/login?redirect=/guest">Sign in</Link>
+            </Button>
+          )}
+        </div>
       </Card>
     );
   }
@@ -177,10 +188,4 @@ export function GuestStaysSections({
       />
     </div>
   );
-}
-
-/** Self-fetching wrapper (backward compatible). */
-export function GuestStaysList() {
-  const hub = useGuestHub();
-  return <GuestStaysSections {...hub} />;
 }

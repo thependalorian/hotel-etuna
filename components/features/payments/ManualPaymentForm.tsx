@@ -147,7 +147,7 @@ export function ManualPaymentForm({
           onChange={(e) => setNotes(e.target.value)}
         />
       </div>
-      {error && <div className="alert alert-error text-sm">{error}</div>}
+      {error && <div className="alert alert-error text-sm" role="alert"><span>{error}</span></div>}
       {success && <div className="alert alert-success text-sm">{success}</div>}
       <Button type="submit" variant="primary" isLoading={isSubmitting} className="w-full">
         Record payment

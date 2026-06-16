@@ -11,6 +11,7 @@ import { EmploymentType, StaffStatus } from '@/lib/db/schema';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { apiUrl } from '@/lib/utils/api-url';
 import { securityLogger } from '@/lib/utils/security-logger.client';
+import { Button } from '@/components/ui/Button';
 
 type StaffFormData = z.infer<typeof createStaffSchema>;
 
@@ -202,20 +203,9 @@ const StaffForm = () => {
       </div>
 
       <div className="flex justify-end pt-4">
-        <button 
-          type="submit" 
-          className="btn btn-primary gentle-lift min-h-[44px]" 
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <>
-              <LoadingSpinner size="sm" />
-              Creating...
-            </>
-          ) : (
-            'Create Staff Member'
-          )}
-        </button>
+        <Button type="submit" className="gentle-lift" isLoading={isSubmitting}>
+          Create Staff Member
+        </Button>
       </div>
     </form>
   );

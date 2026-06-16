@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/admin/platform/properties
+ * Location: /app/api/admin/platform/properties/route.ts
+ */
+
+/**
  * Platform Admin - Properties API
  *
  * Purpose: List properties across tenants for platform admin (Drizzle)

@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/payments/namqr/generate
+ * Location: /app/api/payments/namqr/generate/route.ts
+ */
+
+/**
  * POST /api/payments/namqr/generate — staff desk NamQR (BoN v5.0)
  * Location: app/api/payments/namqr/generate/route.ts
  *

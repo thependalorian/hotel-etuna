@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/partners/[slug]
+ * Location: /app/api/partners/[slug]/route.ts
+ */
+
+/**
  * Partner Public Profile API
  *
  * Purpose: Return public partner property profile by slug.

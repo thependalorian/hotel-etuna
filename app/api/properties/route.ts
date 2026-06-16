@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/properties
+ * Location: /app/api/properties/route.ts
+ */
+
+/**
  * Properties API Route
  * 
  * Purpose: Manage properties with system design principles

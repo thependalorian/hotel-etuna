@@ -10,6 +10,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
 
 type AdumoPaymentReturnProps = {
   mode: 'success' | 'failed';
@@ -96,16 +97,19 @@ export function AdumoPaymentReturn({ mode }: AdumoPaymentReturnProps) {
       <p className="max-w-md text-sm text-terracotta-800 sm:text-base">{message}</p>
       <div className="flex w-full max-w-xs flex-col gap-2 sm:max-w-sm sm:flex-row sm:justify-center">
         {diningRetryHref ? (
-          <Link href={diningRetryHref} className="btn btn-primary btn-block min-h-11 sm:btn-wide">
-            Try payment again
-          </Link>
+          <Button asChild className="w-full sm:w-auto min-h-11">
+            <Link href={diningRetryHref}>Try payment again</Link>
+          </Button>
         ) : null}
-        <Link
-          href={diningCode ? '/dining' : '/guest'}
-          className={`btn btn-outline btn-block min-h-11 sm:btn-wide ${diningRetryHref ? '' : 'btn-primary'}`}
+        <Button
+          asChild
+          variant={diningRetryHref ? 'outline' : 'primary'}
+          className="w-full sm:w-auto min-h-11"
         >
-          {diningCode ? 'Back to dining' : 'Back to guest hub'}
-        </Link>
+          <Link href={diningCode ? '/dining' : '/guest'}>
+            {diningCode ? 'Back to dining' : 'Back to guest hub'}
+          </Link>
+        </Button>
       </div>
     </div>
   );

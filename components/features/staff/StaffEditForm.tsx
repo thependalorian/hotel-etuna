@@ -16,6 +16,7 @@ import { EmploymentType, StaffStatus } from '@/lib/db/schema';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { apiUrl } from '@/lib/utils/api-url';
 import { securityLogger } from '@/lib/utils/security-logger.client';
+import { Button } from '@/components/ui/Button';
 
 type StaffFormData = z.infer<typeof createStaffSchema>;
 
@@ -169,9 +170,9 @@ export default function StaffEditForm({ staff }: StaffEditFormProps) {
         <button type="button" className="btn btn-ghost rounded-full px-6" onClick={() => router.back()}>
           Cancel
         </button>
-        <button type="submit" className="btn btn-primary rounded-full px-6 min-h-[44px]" disabled={isSubmitting}>
-          {isSubmitting ? <><LoadingSpinner size="sm" /> Saving…</> : 'Save Changes'}
-        </button>
+        <Button type="submit" isLoading={isSubmitting}>
+          Save Changes
+        </Button>
       </div>
     </form>
   );

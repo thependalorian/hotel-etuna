@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/payments/virtual/confirm
+ * Location: /app/api/payments/virtual/confirm/route.ts
+ */
+
+/**
  * Adumo Virtual — confirm payment after redirect (validates _RESPONSE_TOKEN).
  * Location: app/api/payments/virtual/confirm/route.ts
  */

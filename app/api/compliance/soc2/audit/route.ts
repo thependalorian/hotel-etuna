@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/compliance/soc2/audit
+ * Location: /app/api/compliance/soc2/audit/route.ts
+ */
+
+/**
  * SOC 2 audit agents — backward-compatible alias for full report.
  * GET /api/compliance/soc2/audit?from=ISO&to=ISO
  * Prefer: GET /api/compliance/soc2?action=full-report&from=&to=

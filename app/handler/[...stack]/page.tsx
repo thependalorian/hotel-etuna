@@ -6,6 +6,7 @@
  */
 
 import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
 import { StackHandler } from '@stackframe/stack';
 import { stackServerApp } from '@/stack';
 import { isStackAuthServerConfigured } from '@/lib/auth/stack-env';
@@ -24,9 +25,9 @@ export default function HandlerPage(props: {
           <p className="mt-3 text-sm text-terracotta-800">
             Stack Auth is not configured on this environment. Use email sign-in instead.
           </p>
-          <Link href="/login" className="btn btn-primary mt-6 min-h-11">
-            Go to sign in
-          </Link>
+          <Button asChild className="mt-6">
+            <Link href="/login">Go to sign in</Link>
+          </Button>
         </div>
       </main>
     );

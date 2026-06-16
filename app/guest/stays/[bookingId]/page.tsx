@@ -7,6 +7,7 @@
 
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
 import { redirect } from 'next/navigation';
 import { GuestFolioPanel } from '@/components/features/guest/GuestFolioPanel';
 import { GuestServiceRequestCard } from '@/components/features/guest/GuestServiceRequestCard';
@@ -46,9 +47,9 @@ export default async function GuestStayDetailPage({ params }: PageProps) {
         <p className="text-nude-600 mb-6">
           This booking is not linked to your account or is no longer active.
         </p>
-        <Link href="/guest" className="btn btn-primary">
-          Back to my stays
-        </Link>
+        <Button asChild>
+          <Link href="/guest">Back to my stays</Link>
+        </Button>
       </div>
     );
   }

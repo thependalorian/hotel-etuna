@@ -1,3 +1,8 @@
+/**
+ * @fileoverview API route //api/properties/[id]/rooms
+ * Location: /app/api/properties/[id]/rooms/route.ts
+ */
+
 import { NextRequest } from 'next/server';
 import {
   withPlatformApiAuth,

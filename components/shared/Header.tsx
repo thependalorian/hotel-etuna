@@ -29,7 +29,6 @@ interface HeaderProps {
 const Header = ({ onMobileMenuToggle }: HeaderProps) => {
   const { data: session } = useSession();
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [hasUnreadNotifications] = useState(true);
 
   return (
     <header className="h-16 bg-surface-elevated/95 backdrop-blur-md border-b border-nude-200 shadow-sm sticky top-0 z-30">
@@ -57,30 +56,35 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
         {/* Right Section */}
         <div className="flex items-center gap-2 md:gap-3 shrink-0">
           <PropertySwitcher />
-          {/* Search */}
-          <div className="hidden md:flex relative">
+          {/* Search — disabled until global search ships (UX-STAFF-05) */}
+          <div
+            className="hidden md:flex relative opacity-60"
+            title="Global search coming soon"
+          >
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-nude-600 pointer-events-none" aria-hidden="true" />
             <input
-              type="text"
-              placeholder="Search..."
+              type="search"
+              placeholder="Search (coming soon)"
               aria-label="Search bookings, properties, and guests"
-              className="w-64 h-10 pl-10 pr-4 rounded-full bg-nude-50 border border-nude-200 text-sm text-nude-800 placeholder:text-nude-600 focus:outline-none focus:ring-2 focus:ring-nude-400 focus:border-nude-400 transition-all"
+              disabled
+              aria-disabled="true"
+              className="w-64 h-10 pl-10 pr-4 rounded-full bg-nude-50 border border-nude-200 text-sm text-nude-800 placeholder:text-nude-600 cursor-not-allowed"
             />
           </div>
 
-          {/* Notifications */}
+          {/* Notifications — disabled until inbox ships (UX-STAFF-05) */}
           <button
+            type="button"
+            disabled
+            aria-disabled="true"
+            title="Notifications coming soon"
             className={cn(
-              'relative p-2 rounded-lg transition-colors',
-              'hover:bg-nude-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nude-400',
+              'relative p-2 rounded-lg transition-colors opacity-60 cursor-not-allowed',
               'min-w-[44px] min-h-[44px] flex items-center justify-center'
             )}
-            aria-label={hasUnreadNotifications ? "Notifications - You have unread notifications" : "Notifications"}
+            aria-label="Notifications (coming soon)"
           >
             <Bell className="w-5 h-5 text-nude-600" aria-hidden="true" />
-            {hasUnreadNotifications && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-semantic-error rounded-full" aria-hidden="true" />
-            )}
           </button>
 
           {/* User Menu */}

@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/compliance/cyber-incidents/[id]/status
+ * Location: /app/api/compliance/cyber-incidents/[id]/status/route.ts
+ */
+
+/**
  * Cybersecurity incident status (PSD-12 style workflow)
  *
  * Purpose: Validated transitions for cybersecurity_incidents

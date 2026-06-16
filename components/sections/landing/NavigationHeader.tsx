@@ -58,9 +58,9 @@ export default function NavigationHeader() {
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
             <PublicAuthNav variant="header" />
-            <Link href="/rooms?book=1">
-              <Button variant="primary" size="default" className="min-h-[44px]">Book Now</Button>
-            </Link>
+            <Button asChild variant="primary" size="default" className="min-h-[44px]">
+              <Link href="/#booking">Book Now</Link>
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -81,15 +81,15 @@ export default function NavigationHeader() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div 
-          id="mobile-menu"
-          className="md:hidden border-t border-base-300 bg-base-100"
-          role="dialog"
-          aria-label="Mobile navigation"
-        >
-          <nav className="px-4 py-4 space-y-3" aria-label="Mobile navigation">
+      {/* Mobile Menu — keep in DOM for aria-controls; hide when closed */}
+      <div
+        id="mobile-menu"
+        className={`md:hidden border-t border-base-300 bg-base-100 ${mobileMenuOpen ? '' : 'hidden'}`}
+        role="dialog"
+        aria-label="Mobile navigation"
+        aria-hidden={!mobileMenuOpen}
+      >
+        <nav className="px-4 py-4 space-y-3" aria-label="Mobile navigation">
             <Link 
               href="/rooms" 
               className="py-3 text-base font-medium text-base-content hover:text-primary transition-colors min-h-[44px] flex items-center"
@@ -111,12 +111,13 @@ export default function NavigationHeader() {
               className="py-1"
               onNavigate={() => setMobileMenuOpen(false)}
             />
-            <Link href="/rooms?book=1" className="block" onClick={() => setMobileMenuOpen(false)}>
-              <Button variant="primary" size="lg" className="w-full min-h-12">Book Now</Button>
-            </Link>
+            <Button asChild variant="primary" size="lg" className="w-full min-h-12">
+              <Link href="/#booking" onClick={() => setMobileMenuOpen(false)}>
+                Book Now
+              </Link>
+            </Button>
           </nav>
         </div>
-      )}
     </header>
   );
 }

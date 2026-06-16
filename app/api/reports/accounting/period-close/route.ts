@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/reports/accounting/period-close
+ * Location: /app/api/reports/accounting/period-close/route.ts
+ */
+
+/**
  * GL period close — lock accounting period after draft folio guard passes.
  * POST /api/reports/accounting/period-close { propertyId, periodEnd }
  * GET  /api/reports/accounting/period-close?propertyId=uuid

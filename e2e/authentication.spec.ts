@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
+import { dismissCookies } from './helpers/dismiss-cookie-consent';
 
 /**
  * E2E Test: Authentication Flow
@@ -13,8 +14,14 @@ import path from 'node:path';
  */
 
 test.describe('Authentication', () => {
+  test.describe.configure({ timeout: 120_000 });
+
+  test.beforeEach(async ({ page }) => {
+    await dismissCookies(page);
+  });
+
   test('login with valid manager credentials should redirect to dashboard area', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('load');
 
     await page.getByLabel(/email/i).fill('manager@hoteletuna.com');

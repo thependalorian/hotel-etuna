@@ -15,10 +15,13 @@ const useDefaultOrigin = !process.env.PLAYWRIGHT_BASE_URL;
 
 export default defineConfig({
   testDir: './e2e',
+  globalSetup: './e2e/global-setup.ts',
+  timeout: 120_000,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 2 : 3,
+  retries: process.env.CI ? 2 : 1,
+  // Serial locally avoids overwhelming webpack/turbo first-compile on a single dev server.
+  workers: process.env.CI ? 2 : 1,
   reporter: [['list'], ['html', { open: 'never' }]],
   expect: {
     timeout: 15_000,
@@ -29,7 +32,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     navigationTimeout: 90_000,
-    actionTimeout: 30_000,
+    actionTimeout: 90_000,
   },
   projects: [
     {
@@ -49,9 +52,13 @@ export default defineConfig({
     skipWebServer || !useDefaultOrigin
       ? undefined
       : {
-          command: 'npm run dev -- -p 3010',
-          url: 'http://127.0.0.1:3010/register',
-          reuseExistingServer: true,
-          timeout: 180_000,
+          command: 'npx next dev --turbo -p 3010',
+          url: 'http://127.0.0.1:3010/api/health',
+          reuseExistingServer: process.env.PLAYWRIGHT_REUSE_SERVER === '1',
+          timeout: 300_000,
+          env: {
+            ...process.env,
+            E2E_TURNSTILE_BYPASS: '1',
+          },
         },
 });

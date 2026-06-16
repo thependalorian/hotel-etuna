@@ -1,3 +1,8 @@
+/**
+ * @fileoverview API route //api/staff/stats
+ * Location: /app/api/staff/stats/route.ts
+ */
+
 import { NextRequest } from 'next/server';
 import {
   withPlatformApiAuth,

@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/crm/outreach/[id]
+ * Location: /app/api/crm/outreach/[id]/route.ts
+ */
+
+/**
  * CRM outreach touch — PATCH status (lifecycle-validated, consent-gated for scheduled/sent)
  *
  * Purpose: Move touches through `draft → scheduled → sent` / `cancelled` per `CRM_OUTREACH_TOUCH_TRANSITIONS`.

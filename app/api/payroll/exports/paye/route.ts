@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/payroll/exports/paye
+ * Location: /app/api/payroll/exports/paye/route.ts
+ */
+
+/**
  * PAYE statutory export API
  * GET /api/payroll/exports/paye?periodId=<uuid>
  *

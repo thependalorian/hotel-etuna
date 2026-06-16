@@ -67,6 +67,7 @@ export function GuestNamQrPayPanel({
   async function generateQr() {
     setError(null);
     setMessage(null);
+    setBankReference('');
     setBusy(true);
     try {
       const res = await fetch(`/api/guest/stays/${bookingId}/namqr/generate`, {
@@ -124,6 +125,8 @@ export function GuestNamQrPayPanel({
   }
 
   const hasPending = statusItems.some((i) => i.status === 'pending');
+  const stepScan = qr !== null;
+  const stepNotify = stepScan && bankReference.trim().length > 0;
 
   return (
     <div className="space-y-4 border-t border-nude-200 pt-4">
@@ -131,6 +134,15 @@ export function GuestNamQrPayPanel({
         <h4 className="font-semibold text-terracotta-900">Pay with banking app (NamQR)</h4>
         <NamQrSettlementNote variant="guest" />
       </div>
+
+      <ul
+        className="steps steps-vertical sm:steps-horizontal w-full text-xs"
+        aria-label="NamQR payment steps"
+      >
+        <li className="step step-primary">Choose amount</li>
+        <li className={`step ${stepScan ? 'step-primary' : ''}`}>Scan &amp; pay</li>
+        <li className={`step ${stepNotify ? 'step-primary' : ''}`}>Notify hotel</li>
+      </ul>
 
       <NamQrAmountField
         id="guest-namqr-amount"
@@ -142,38 +154,51 @@ export function GuestNamQrPayPanel({
       />
 
       <Button type="button" disabled={busy || payAmount <= 0} onClick={() => void generateQr()}>
-        Show payment QR
+        {qr ? 'Refresh payment QR' : 'Show payment QR'}
       </Button>
 
       {qr && (
-        <NamQrQrDisplay
-          qr={qr}
-          variant="guest"
-          imageAlt="NamQR payment code for Hotel Etuna"
-        />
+        <>
+          <NamQrQrDisplay
+            qr={qr}
+            variant="guest"
+            imageAlt="NamQR payment code for Hotel Etuna"
+          />
+
+          <div className="space-y-2 border-t border-nude-200 pt-4">
+            <p className="text-sm font-medium text-terracotta-900">
+              Step 3 — After paying in your banking app
+            </p>
+            <NamQrBankReferenceField
+              id="guest-namqr-bank-ref"
+              label="Bank reference (from your app after paying)"
+              value={bankReference}
+              onChange={setBankReference}
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={busy || !bankReference.trim()}
+              onClick={() => void submitPaid()}
+            >
+              I&apos;ve paid — notify hotel
+            </Button>
+          </div>
+        </>
       )}
 
-      <div className="space-y-2">
-        <NamQrBankReferenceField
-          id="guest-namqr-bank-ref"
-          label="Bank reference (from your app after paying)"
-          value={bankReference}
-          onChange={setBankReference}
-        />
-        <Button
-          type="button"
-          variant="secondary"
-          disabled={busy || !bankReference.trim()}
-          onClick={() => void submitPaid()}
-        >
-          I&apos;ve paid — notify hotel
-        </Button>
-      </div>
-
-      {error && <div className="alert alert-error text-sm">{error}</div>}
-      {message && <div className="alert alert-success text-sm">{message}</div>}
+      {error && (
+        <div className="alert alert-error text-sm" role="alert">
+          <span>{error}</span>
+        </div>
+      )}
+      {message && (
+        <div className="alert alert-success text-sm" role="status">
+          <span>{message}</span>
+        </div>
+      )}
       {hasPending && (
-        <p className="text-sm text-info">
+        <p className="text-sm text-info" role="status">
           A payment is awaiting confirmation. Your folio balance will update after reception
           approves it.
         </p>

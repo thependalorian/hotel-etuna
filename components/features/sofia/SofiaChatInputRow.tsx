@@ -112,15 +112,16 @@ export function SofiaChatInputRow({
         disabled={loading}
         aria-label="Message input"
       />
-      <button
+      <Button
         type="button"
         onClick={onSend}
         disabled={!value.trim() || loading}
-        className="btn btn-primary btn-sm min-h-[44px]"
+        size="sm"
+        className="min-h-[44px]"
         aria-label="Send message"
       >
         {loading ? <LoadingSpinner size="sm" /> : <Send className="w-4 h-4" />}
-      </button>
+      </Button>
     </div>
   );
 }

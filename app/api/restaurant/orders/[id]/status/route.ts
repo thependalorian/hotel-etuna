@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/restaurant/orders/[id]/status
+ * Location: /app/api/restaurant/orders/[id]/status/route.ts
+ */
+
+/**
  * Restaurant order status transitions (kitchen workflow)
  *
  * Purpose: LangGraph-validated F&B order lifecycle

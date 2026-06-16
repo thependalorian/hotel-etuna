@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/cron/booking-reminders
+ * Location: /app/api/cron/booking-reminders/route.ts
+ */
+
+/**
  * Booking check-in reminders (one day before arrival)
  *
  * Location: app/api/cron/booking-reminders/route.ts

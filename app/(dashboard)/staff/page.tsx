@@ -7,6 +7,7 @@ import StaffList from '@/components/features/staff/StaffList';
 import { Plus, Users, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import PageHeader from '@/components/shared/PageHeader';
+import { Button } from '@/components/ui/Button';
 import { securityLogger } from '@/lib/utils/security-logger.client';
 
 // Force dynamic rendering for authenticated routes
@@ -67,15 +68,12 @@ const StaffPage = async ({ searchParams }: { searchParams: { [key: string]: stri
             <Link href="/compliance/kyc" className="btn btn-outline min-h-[44px]">
               KYC / KYB queue
             </Link>
-            <Link href="/staff/new">
-              <button
-                className="btn btn-primary gentle-lift min-h-[44px]"
-                aria-label="Add new staff member"
-              >
+            <Button asChild className="gentle-lift" aria-label="Add new staff member">
+              <Link href="/staff/new">
                 <Plus className="w-5 h-5 mr-2" />
                 Add Staff Member
-              </button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         }
       />

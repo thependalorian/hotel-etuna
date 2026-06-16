@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/payments/namqr/confirm
+ * Location: /app/api/payments/namqr/confirm/route.ts
+ */
+
+/**
  * POST /api/payments/namqr/confirm — staff confirms guest paid via banking app (NamQR / EFT)
  * Location: app/api/payments/namqr/confirm/route.ts
  *

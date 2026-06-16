@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { dismissCookies } from './helpers/dismiss-cookie-consent';
 
 /**
  * E2E Test: Homepage
@@ -11,9 +12,14 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('Homepage', () => {
+  test.describe.configure({ timeout: 120_000 });
+
+  test.beforeEach(async ({ page }) => {
+    await dismissCookies(page);
+  });
+
   test('should load and render hero section', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('load');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page).toHaveTitle(/Hotel Etuna/i);
 
     await expect(page.getByRole('heading', { level: 1, name: /he takes care of us/i })).toBeVisible({
@@ -28,12 +34,18 @@ test.describe('Homepage', () => {
     await expect(page.locator('body')).toBeVisible();
   });
 
-  test('should have navigation elements', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('load');
-    await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible({
-      timeout: 60_000,
-    });
+  test('should have navigation elements', async ({ page }, testInfo) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    if (testInfo.project.name === 'mobile-chrome') {
+      await expect(page.getByRole('button', { name: /toggle mobile menu/i })).toBeVisible({
+        timeout: 60_000,
+      });
+      await expect(page.locator('#mobile-menu')).toBeAttached();
+    } else {
+      await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible({
+        timeout: 60_000,
+      });
+    }
   });
 
   test('should display primary CTA to booking', async ({ page }) => {
@@ -123,17 +135,20 @@ test.describe('Homepage', () => {
     await expect(page.locator('#booking')).toBeVisible();
   });
 
-  test('header navigation links should work', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('load');
+  test('header navigation links should work', async ({ page }, testInfo) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
 
-    const header = page.getByRole('navigation', { name: 'Main navigation' });
-    await expect(header.getByRole('link', { name: 'Rooms' })).toBeVisible();
-    await expect(header.getByRole('link', { name: 'Dining' })).toBeVisible();
-    await expect(header.getByRole('link', { name: 'About' })).toBeVisible();
-    await expect(header.getByRole('link', { name: 'Contact' })).toBeVisible();
-
-    await header.getByRole('link', { name: 'Rooms' }).click();
+    if (testInfo.project.name === 'mobile-chrome') {
+      await page.getByRole('button', { name: /toggle mobile menu/i }).click();
+      await page.locator('#mobile-menu').getByRole('link', { name: 'Rooms' }).click();
+    } else {
+      const header = page.getByRole('navigation', { name: 'Main navigation' });
+      await expect(header.getByRole('link', { name: 'Rooms' })).toBeVisible();
+      await expect(header.getByRole('link', { name: 'Dining' })).toBeVisible();
+      await expect(header.getByRole('link', { name: 'About' })).toBeVisible();
+      await expect(header.getByRole('link', { name: 'Contact' })).toBeVisible();
+      await header.getByRole('link', { name: 'Rooms' }).click();
+    }
     await expect(page).toHaveURL(/\/rooms$/);
   });
 

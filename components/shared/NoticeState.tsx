@@ -34,7 +34,7 @@ export interface NoticeStateProps {
   priority?: 'normal' | 'assertive';
 }
 
-export function NoticeState({
+function NoticeState({
   variant,
   title,
   message,

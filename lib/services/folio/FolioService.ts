@@ -1,4 +1,5 @@
 /**
+ * @fileoverview FolioService — domain service module.
  * FolioService — per-stay charges (room, F&B, settlement)
  *
  * Purpose: Folio ledger for checked-in guests; separate from guest_profiles loyalty.

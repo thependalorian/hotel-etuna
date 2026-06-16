@@ -37,6 +37,7 @@ import SecuritySettingsForm from '@/components/features/settings/SecuritySetting
 import AppearanceSettingsForm from '@/components/features/settings/AppearanceSettingsForm';
 import { apiUrl } from '@/lib/utils/api-url';
 import { securityLogger } from '@/lib/utils/security-logger.client';
+import { Button } from '@/components/ui/Button';
 
 interface SettingsData {
   siteName: string;
@@ -188,14 +189,10 @@ export default function SettingsPage() {
 
           <div className="divider"></div>
           <div className="flex justify-end">
-            <button
-              className="btn btn-primary min-h-[44px]"
-              onClick={handleSave}
-              disabled={loading}
-            >
+            <Button onClick={handleSave} isLoading={loading}>
               <Save className="w-4 h-4 mr-2" />
-              {loading ? 'Saving...' : 'Save Settings'}
-            </button>
+              Save Settings
+            </Button>
           </div>
         </div>
       </div>

@@ -17,6 +17,7 @@ import { redirect } from 'next/navigation';
 import { db, cmsPages, users } from '@/lib/db';
 import { eq, desc } from 'drizzle-orm';
 import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,25 +56,24 @@ export default async function CmsPagesListPage() {
             Manage your website pages with the block editor
           </p>
         </div>
-        <Link
-          href="/cms/pages/new"
-          className="btn btn-primary"
-        >
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          New Page
-        </Link>
+        <Button asChild>
+          <Link href="/cms/pages/new">
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            New Page
+          </Link>
+        </Button>
       </div>
 
       {pages.length === 0 ? (
@@ -82,9 +82,9 @@ export default async function CmsPagesListPage() {
             <h2 className="card-title justify-center">No pages yet</h2>
             <p>Create your first page to get started with the block editor.</p>
             <div className="card-actions justify-center">
-              <Link href="/cms/pages/new" className="btn btn-primary">
-                Create First Page
-              </Link>
+              <Button asChild>
+                <Link href="/cms/pages/new">Create First Page</Link>
+              </Button>
             </div>
           </div>
         </div>

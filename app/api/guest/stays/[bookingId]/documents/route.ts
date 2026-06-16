@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/guest/stays/[bookingId]/documents
+ * Location: /app/api/guest/stays/[bookingId]/documents/route.ts
+ */
+
+/**
  * Guest document vault API — encrypted travel ID storage per stay (Phase 8).
  * Location: app/api/guest/stays/[bookingId]/documents/route.ts
  *

@@ -39,16 +39,14 @@ export function PublicAuthNav({
 
   if (status === 'loading') {
     return (
-      <span
-        className={cn(
-          isHeader ? 'text-sm text-base-content/50' : 'text-sm text-nude-200',
-          className,
-        )}
-        role="status"
-        aria-live="polite"
+      <Link
+        href={GUEST_SIGN_IN_HREF}
+        className={cn(linkClass, className)}
+        onClick={onNavigate}
+        aria-label={publicCopy.nav.guestSignInAria}
       >
-        Loading…
-      </span>
+        {publicCopy.nav.guestSignIn}
+      </Link>
     );
   }
 

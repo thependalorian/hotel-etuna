@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/cron/retention-enforcement
+ * Location: /app/api/cron/retention-enforcement/route.ts
+ */
+
+/**
  * Cron — data-retention enforcement.
  * Location: app/api/cron/retention-enforcement/route.ts
  *

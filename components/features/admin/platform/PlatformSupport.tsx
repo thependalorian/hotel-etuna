@@ -18,6 +18,7 @@ import NoticeState from '@/components/shared/NoticeState';
 import { LifeBuoy, ExternalLink } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { apiUrl } from '@/lib/utils/api-url';
+import { Button } from '@/components/ui/Button';
 
 /** Normalized row (API returns snake_case from SupportTicketListItem) */
 export type SupportTicketRow = {
@@ -405,14 +406,15 @@ export default function PlatformSupport() {
                   placeholder="Your message will be emailed to the property contact."
                   disabled={sendingReply}
                 />
-                <button
+                <Button
                   type="button"
-                  className="btn btn-primary mt-2"
+                  className="mt-2"
                   disabled={sendingReply || !replyBody.trim()}
                   onClick={sendReply}
+                  isLoading={sendingReply}
                 >
-                  {sendingReply ? <span className="loading loading-spinner loading-sm" /> : 'Send reply'}
-                </button>
+                  Send reply
+                </Button>
               </div>
             </>
           )}

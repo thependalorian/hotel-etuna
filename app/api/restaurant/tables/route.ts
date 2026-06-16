@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/restaurant/tables
+ * Location: /app/api/restaurant/tables/route.ts
+ */
+
+/**
  * Restaurant Tables API Route
  * 
  * Purpose: Manage restaurant tables with system design principles

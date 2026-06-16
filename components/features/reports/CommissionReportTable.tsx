@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { apiUrl } from '@/lib/utils/api-url';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { Button } from '@/components/ui/Button';
 
 type CommissionRow = {
   partnerId: string;
@@ -70,9 +71,9 @@ export default function CommissionReportTable() {
           <span className="label-text">To</span>
           <input type="date" className="input input-bordered" value={to} onChange={(e) => setTo(e.target.value)} />
         </label>
-        <button type="button" className="btn btn-primary rounded-full px-6" onClick={fetchReport}>
+        <Button type="button" onClick={fetchReport}>
           Apply
-        </button>
+        </Button>
         <button type="button" className="btn btn-outline rounded-full px-6" onClick={exportCsv}>
           Export CSV
         </button>

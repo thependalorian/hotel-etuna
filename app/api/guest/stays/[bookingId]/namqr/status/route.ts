@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/guest/stays/[bookingId]/namqr/status
+ * Location: /app/api/guest/stays/[bookingId]/namqr/status/route.ts
+ */
+
+/**
  * GET /api/guest/stays/[bookingId]/namqr/status — guest NamQR submission history
  *
  * Response: { data: { items: PendingItem[] } }

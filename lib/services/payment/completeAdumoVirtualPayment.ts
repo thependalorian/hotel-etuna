@@ -1,4 +1,5 @@
 /**
+ * @fileoverview completeAdumoVirtualPayment — domain service module.
  * Finalise Adumo Virtual payment — shared by redirect confirm + webhook.
  * Location: lib/services/payment/completeAdumoVirtualPayment.ts
  */

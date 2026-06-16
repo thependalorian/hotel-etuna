@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/compliance/psd/bon-incident
+ * Location: /app/api/compliance/psd/bon-incident/route.ts
+ */
+
+/**
  * Bank of Namibia Incident Reporting API
  * 
  * Purpose: Submit cybersecurity incidents to Bank of Namibia

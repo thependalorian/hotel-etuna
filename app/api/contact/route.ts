@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/contact
+ * Location: /app/api/contact/route.ts
+ */
+
+/**
  * Contact Form Submission
  *
  * Purpose: Accept public contact form submissions and forward by email.

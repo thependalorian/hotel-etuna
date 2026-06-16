@@ -32,9 +32,10 @@ import {
   tenants,
 } from '@/lib/db';
 import { resolvePublicHubProperty } from '@/lib/utils/public-property';
-import { getHubRoomTypeCatalog } from '@/lib/data/room-type-catalog';
+import { getHubRoomTypeCatalog, getStaticRoomTypeCatalogFallback } from '@/lib/data/room-type-catalog';
 import NavigationHeader from '@/components/sections/landing/NavigationHeader';
 import { LandingBookingWidget } from '@/components/sections/landing/LandingBookingWidget';
+import { LandingContentDegradedBanner } from '@/components/sections/landing/LandingContentDegradedBanner';
 import { Button } from '@/components/ui/Button';
 import { slugify } from '@/lib/utils/slugify';
 import Footer from '@/components/shared/Footer';
@@ -139,6 +140,7 @@ export default async function LandingPage() {
     images: unknown;
   }> = [];
   let openingHours: OpeningHours = {};
+  let contentDegraded = false;
 
   try {
     const resolved = await resolvePublicHubProperty();
@@ -249,14 +251,25 @@ export default async function LandingPage() {
     partners = partnerRows.filter((partner) => partner.propertyId).slice(0, 3);
     openingHours = (restaurant?.openingHours as OpeningHours | null) ?? {};
   } catch (error) {
+    contentDegraded = true;
     securityLogger.error('[LandingPage] DB content load failed, rendering safe fallback:', error);
+    if (roomCatalog.length === 0) {
+      roomCatalog = getStaticRoomTypeCatalogFallback();
+      for (const room of roomCatalog) {
+        const amount = Number(room.baseRate);
+        if (!Number.isNaN(amount)) {
+          rateMap.set(room.id, { amount, currency: room.currency ?? 'NAD' });
+        }
+      }
+    }
   }
   const propertyId = hubProperty?.id ?? process.env.DEFAULT_PROPERTY_ID ?? '';
 
   return (
     <div className="min-h-screen bg-surface-background">
       <NavigationHeader />
-      <main>
+      <main id="main-content">
+        {contentDegraded ? <LandingContentDegradedBanner /> : null}
         <section className="relative h-[600px] md:h-[700px] flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 bg-linear-to-b from-terracotta-900/60 via-terracotta-900/40 to-nude-900/60 z-10" />
           <Image
@@ -463,7 +476,14 @@ export default async function LandingPage() {
               <p className="text-lg text-terracotta-800 max-w-2xl mx-auto">{publicCopy.home.partners.subtitle}</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-              {partners.map((partner) => (
+              {partners.length === 0 ? (
+                <div className="md:col-span-2 rounded-2xl border border-base-300 bg-white p-8 text-center text-terracotta-800 shadow-card">
+                  {contentDegraded
+                    ? 'Partner listings are temporarily unavailable. Please try again shortly.'
+                    : 'No partner properties to show right now.'}
+                </div>
+              ) : (
+              partners.map((partner) => (
                 <Link key={partner.propertyId} href={`/partners/${partner.propertySlug}`} className="group bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300">
                   <div className="aspect-video relative bg-nude-200">
                     <Image
@@ -482,7 +502,8 @@ export default async function LandingPage() {
                     </div>
                   </div>
                 </Link>
-              ))}
+              ))
+              )}
             </div>
           </div>
         </section>

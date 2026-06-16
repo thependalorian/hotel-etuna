@@ -1,3 +1,8 @@
+/**
+ * @fileoverview API route //api/crm/guests/[id]
+ * Location: /app/api/crm/guests/[id]/route.ts
+ */
+
 import { NextRequest } from 'next/server';
 import {
   withPlatformApiAuth,

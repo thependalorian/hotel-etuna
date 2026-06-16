@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/payments/disputes
+ * Location: /app/api/payments/disputes/route.ts
+ */
+
+/**
  * Payment disputes — list + open (chargeback / refund / reversal).
  * Location: app/api/payments/disputes/route.ts
  *

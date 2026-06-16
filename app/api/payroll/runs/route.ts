@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/payroll/runs
+ * Location: /app/api/payroll/runs/route.ts
+ */
+
+/**
  * Payroll runs API
  * POST /api/payroll/runs — create draft run and compute lines for a period
  *

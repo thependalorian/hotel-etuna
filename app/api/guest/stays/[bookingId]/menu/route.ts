@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/guest/stays/[bookingId]/menu
+ * Location: /app/api/guest/stays/[bookingId]/menu/route.ts
+ */
+
+/**
  * Guest stay menu API
  *
  * Purpose: Menu for room service on a stay's property.

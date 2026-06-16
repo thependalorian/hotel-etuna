@@ -1,4 +1,5 @@
 /**
+ * @fileoverview NotificationDispatchService — domain service module.
  * NotificationDispatchService — route notifications via user preferences + history log.
  *
  * Purpose: Central dispatch for email/SMS with notification_preferences gating (Novu pattern).

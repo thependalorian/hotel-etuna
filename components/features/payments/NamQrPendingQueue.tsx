@@ -5,9 +5,11 @@
 
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
+import EmptyState from '@/components/shared/EmptyState';
+import { Inbox } from 'lucide-react';
 
 type PendingItem = {
   id: string;
@@ -24,6 +26,9 @@ export function NamQrPendingQueue() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [rejectTargetId, setRejectTargetId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const rejectDialogRef = useRef<HTMLDialogElement>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -46,6 +51,16 @@ export function NamQrPendingQueue() {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    const dialog = rejectDialogRef.current;
+    if (!dialog) return;
+    if (rejectTargetId) {
+      if (!dialog.open) dialog.showModal();
+    } else if (dialog.open) {
+      dialog.close();
+    }
+  }, [rejectTargetId]);
+
   async function approve(id: string) {
     setBusyId(id);
     setError(null);
@@ -67,15 +82,31 @@ export function NamQrPendingQueue() {
     }
   }
 
-  async function reject(id: string) {
-    const reason = window.prompt('Reason for rejection (optional):') ?? undefined;
+  function openRejectDialog(id: string) {
+    setRejectReason('');
+    setRejectTargetId(id);
+  }
+
+  function closeRejectDialog() {
+    setRejectTargetId(null);
+    setRejectReason('');
+  }
+
+  async function confirmReject() {
+    const id = rejectTargetId;
+    if (!id) return;
+
     setBusyId(id);
     setError(null);
+    closeRejectDialog();
+
     try {
       const res = await fetch(`/api/payments/namqr/pending/${id}/reject`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason }),
+        body: JSON.stringify({
+          reason: rejectReason.trim() || undefined,
+        }),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -90,7 +121,13 @@ export function NamQrPendingQueue() {
   }
 
   if (loading) {
-    return <p className="text-sm text-base-content/60">Loading guest NamQR queue…</p>;
+    return (
+      <div className="space-y-2" aria-busy="true" role="status">
+        <p className="sr-only">Loading guest NamQR queue…</p>
+        <div className="skeleton h-4 w-full" aria-hidden />
+        <div className="skeleton h-16 w-full" aria-hidden />
+      </div>
+    );
   }
 
   return (
@@ -98,15 +135,20 @@ export function NamQrPendingQueue() {
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm text-base-content/70">
           Guests who paid via banking app and submitted a reference. Match against Nedbank
-          statement, then approve.
+          statement, then post to folio.
         </p>
-        <button type="button" className="btn btn-ghost btn-xs" onClick={() => void load()}>
+        <Button type="button" variant="ghost" size="sm" onClick={() => void load()}>
           Refresh
-        </button>
+        </Button>
       </div>
-      {error && <div className="alert alert-error text-sm">{error}</div>}
+      {error && <div className="alert alert-error text-sm" role="alert"><span>{error}</span></div>}
       {items.length === 0 ? (
-        <p className="text-sm text-success">No pending guest NamQR payments.</p>
+        <EmptyState
+          icon={Inbox}
+          size="sm"
+          title="No pending NamQR payments"
+          description="When a guest submits a bank reference from the guest portal, it will appear here for approval."
+        />
       ) : (
         <ul className="space-y-3">
           {items.map((item) => (
@@ -140,27 +182,71 @@ export function NamQrPendingQueue() {
                   disabled={busyId === item.id}
                   onClick={() => void approve(item.id)}
                 >
-                  Approve on folio
+                  Post to folio
                 </Button>
                 <Button
                   size="sm"
                   variant="outline"
                   disabled={busyId === item.id}
-                  onClick={() => void reject(item.id)}
+                  onClick={() => openRejectDialog(item.id)}
                 >
                   Reject
                 </Button>
-                <Link
-                  href={`/bookings/${item.bookingId}`}
-                  className="btn btn-ghost btn-sm"
-                >
-                  Open booking
-                </Link>
+                <Button asChild size="sm" variant="ghost">
+                  <Link href={`/bookings/${item.bookingId}`}>Open booking</Link>
+                </Button>
               </div>
             </li>
           ))}
         </ul>
       )}
+
+      <dialog ref={rejectDialogRef} className="modal" aria-labelledby="namqr-reject-title">
+        <div className="modal-box">
+          <h3 id="namqr-reject-title" className="font-bold text-lg">
+            Reject guest NamQR payment?
+          </h3>
+          <p className="py-2 text-sm text-base-content/70">
+            Optional: add a reason for the guest or audit trail.
+          </p>
+          <label className="form-control w-full">
+            <span className="label">
+              <span className="label-text">Reason (optional)</span>
+            </span>
+            <textarea
+              className="textarea textarea-bordered w-full"
+              rows={3}
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="e.g. Bank reference not found on statement"
+            />
+          </label>
+          <div className="modal-action">
+            <form method="dialog">
+              <button
+                type="button"
+                className="btn btn-ghost rounded-full px-6"
+                onClick={closeRejectDialog}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-error rounded-full px-6"
+                disabled={busyId === rejectTargetId}
+                onClick={() => void confirmReject()}
+              >
+                Reject payment
+              </button>
+            </form>
+          </div>
+        </div>
+        <form method="dialog" className="modal-backdrop">
+          <button type="button" onClick={closeRejectDialog}>
+            close
+          </button>
+        </form>
+      </dialog>
     </div>
   );
 }

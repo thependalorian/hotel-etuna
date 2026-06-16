@@ -1,3 +1,8 @@
+/**
+ * @fileoverview API route //api/rooms/available
+ * Location: /app/api/rooms/available/route.ts
+ */
+
 import { NextRequest } from 'next/server';
 import {
   withPlatformApiAuth,

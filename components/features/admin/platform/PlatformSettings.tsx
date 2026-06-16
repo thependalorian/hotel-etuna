@@ -15,6 +15,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Button } from '@/components/ui/Button';
 import { brand } from '@/lib/copy/brand';
 import { apiUrl } from '@/lib/utils/api-url';
 import { getPublicAppUrl } from '@/lib/utils/public-app-url';
@@ -479,18 +480,10 @@ export default function PlatformSettings({ userRole }: PlatformSettingsProps) {
 
           {/* Save Button */}
           <div className="mt-6 pt-6 border-t flex justify-end">
-            <button 
-              className="btn btn-primary"
-              onClick={handleSave}
-              disabled={loading}
-            >
-              {loading ? (
-                <span className="loading loading-spinner loading-sm"></span>
-              ) : (
-                <Save className="w-4 h-4 mr-2" />
-              )}
+            <Button type="button" onClick={handleSave} isLoading={loading}>
+              {!loading ? <Save className="w-4 h-4 mr-2" aria-hidden /> : null}
               Save Settings
-            </button>
+            </Button>
           </div>
         </div>
       </div>

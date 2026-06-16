@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { securityLogger } from '@/lib/utils/security-logger.client';
+import { Button } from '@/components/ui/Button';
 
 const REQUEST_TYPES = [
   { value: 'access', label: 'Access my data', description: 'Request a copy of all personal data we hold about you' },
@@ -96,9 +97,9 @@ export default function GuestDsarPage() {
       <div className="max-w-2xl mx-auto px-4 py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Data Rights Request</h1>
         <p className="text-base-content/70 mb-6">You must be signed in to submit a data rights request.</p>
-        <button className="btn btn-primary rounded-full px-6" onClick={() => router.push('/login?redirect=/guest/dsar')}>
+        <Button onClick={() => router.push('/login?redirect=/guest/dsar')}>
           Sign in
-        </button>
+        </Button>
       </div>
     );
   }
@@ -170,9 +171,9 @@ export default function GuestDsarPage() {
               </div>
             )}
 
-            <button type="submit" className="btn btn-primary rounded-full px-6" disabled={submitting}>
-              {submitting ? <span className="loading loading-spinner loading-sm" /> : 'Submit Request'}
-            </button>
+            <Button type="submit" isLoading={submitting}>
+              Submit Request
+            </Button>
           </div>
         </form>
       )}

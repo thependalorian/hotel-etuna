@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/payments/namqr/pending/[id]/reject
+ * Location: /app/api/payments/namqr/pending/[id]/reject/route.ts
+ */
+
+/**
  * POST /api/payments/namqr/pending/[id]/reject — staff rejects guest NamQR claim
  *
  * Body: { reason?: string }

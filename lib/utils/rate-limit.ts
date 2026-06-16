@@ -129,6 +129,10 @@ export async function checkRateLimit(
   req: NextRequest,
   userId?: string
 ): Promise<{ allowed: boolean; remaining: number; resetAt: number }> {
+  if (process.env.E2E_TURNSTILE_BYPASS === '1') {
+    return { allowed: true, remaining: 999, resetAt: Date.now() + 60_000 };
+  }
+
   const pathname = req.nextUrl.pathname;
   const config = getRateLimitConfig(pathname);
   const key = getRateLimitKey(req, userId);

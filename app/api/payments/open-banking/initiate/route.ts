@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/payments/open-banking/initiate
+ * Location: /app/api/payments/open-banking/initiate/route.ts
+ */
+
+/**
  * Hub Open Banking payment initiation
  *
  * Purpose: Staff/guest-facing payment start aligned with BoN NamQR v5.0 (primary) and

@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/folio/charges/[id]/void
+ * Location: /app/api/folio/charges/[id]/void/route.ts
+ */
+
+/**
  * Folio charge void API — immutable reversal pattern with reason code.
  *
  * POST /api/folio/charges/[id]/void

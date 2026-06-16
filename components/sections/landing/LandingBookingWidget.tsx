@@ -35,11 +35,13 @@
 import { FormEvent, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import { Calendar } from 'lucide-react';
+import { Input } from '@/components/ui/Input';
+import { Calendar, BedDouble } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { publicCopy } from '@/lib/copy/public';
 import { extractBookingId } from '@/lib/bookings/booking-response';
+import EmptyState from '@/components/shared/EmptyState';
 
 type AvailabilityRoom = {
   id: string;
@@ -68,6 +70,9 @@ export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
   const [results, setResults] = useState<AvailabilityRoom[]>([]);
   const [bookingRoomId, setBookingRoomId] = useState<string | null>(null);
   const [bookingError, setBookingError] = useState<string | null>(null);
+  const [hasSearched, setHasSearched] = useState(false);
+
+  const todayIso = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
   const filteredResults = useMemo(() => {
     if (!roomType) return results;
@@ -78,9 +83,20 @@ export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
     event.preventDefault();
     setError(null);
     setResults([]);
+    setHasSearched(false);
 
     if (!checkInDate || !checkOutDate) {
       setError('Please select check-in and check-out dates.');
+      return;
+    }
+
+    if (checkInDate < todayIso) {
+      setError('Check-in cannot be in the past.');
+      return;
+    }
+
+    if (checkOutDate <= checkInDate) {
+      setError('Check-out must be after check-in.');
       return;
     }
 
@@ -113,8 +129,10 @@ export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
               return { ...rest, baseRate: null };
             }),
       );
+      setHasSearched(true);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Unable to check availability');
+      setHasSearched(false);
     } finally {
       setIsLoading(false);
     }
@@ -160,14 +178,27 @@ export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
   return (
     <div className="bg-white rounded-2xl p-6 md:p-8">
       <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-semibold text-terracotta-900 mb-2">Check-in Date</label>
-          <input type="date" value={checkInDate} onChange={(e) => setCheckInDate(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-nude-300 text-terracotta-900 focus:ring-2 focus:ring-khaki-600 focus:border-transparent" />
-        </div>
-        <div>
-          <label className="block text-sm font-semibold text-terracotta-900 mb-2">Check-out Date</label>
-          <input type="date" value={checkOutDate} onChange={(e) => setCheckOutDate(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-nude-300 text-terracotta-900 focus:ring-2 focus:ring-khaki-600 focus:border-transparent" />
-        </div>
+        <Input
+          label="Check-in Date"
+          type="date"
+          value={checkInDate}
+          min={todayIso}
+          onChange={(e) => {
+            setCheckInDate(e.target.value);
+            if (checkOutDate && e.target.value >= checkOutDate) {
+              setCheckOutDate('');
+            }
+          }}
+          required
+        />
+        <Input
+          label="Check-out Date"
+          type="date"
+          value={checkOutDate}
+          min={checkInDate || todayIso}
+          onChange={(e) => setCheckOutDate(e.target.value)}
+          required
+        />
         <div>
           <label className="block text-sm font-semibold text-terracotta-900 mb-2">Guests</label>
           <select value={guests} onChange={(e) => setGuests(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-nude-300 text-terracotta-900 focus:ring-2 focus:ring-khaki-600 focus:border-transparent">
@@ -196,12 +227,18 @@ export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
         </div>
       </form>
 
-      {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
+      {error ? (
+        <div className="alert alert-error mt-4 text-sm" role="alert">
+          <span>{error}</span>
+        </div>
+      ) : null}
       {!error && filteredResults.length > 0 ? (
         <div className="mt-6 space-y-3">
           <h3 className="font-semibold text-terracotta-900">Available Rooms</h3>
           {bookingError ? (
-            <p className="text-sm text-red-600" role="alert">{bookingError}</p>
+            <div className="alert alert-error text-sm" role="alert">
+              <span>{bookingError}</span>
+            </div>
           ) : null}
           {filteredResults.map((room) => (
             <div
@@ -245,6 +282,22 @@ export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
               </Button>
             </div>
           ) : null}
+        </div>
+      ) : null}
+      {!error && hasSearched && filteredResults.length === 0 ? (
+        <div className="mt-6">
+          <EmptyState
+            icon={BedDouble}
+            title="No rooms for these dates"
+            description={`We could not find availability for ${checkInDate} to ${checkOutDate}${
+              roomType ? ` in your selected room type` : ''
+            }. Try different dates or contact us — we may still have options.`}
+            size="sm"
+            action={{
+              label: 'Contact front desk',
+              href: '/contact',
+            }}
+          />
         </div>
       ) : null}
     </div>

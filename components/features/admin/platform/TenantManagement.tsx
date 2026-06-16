@@ -28,6 +28,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import NoticeState from '@/components/shared/NoticeState';
 import { Building2, Search, Plus, Eye, CheckCircle, XCircle } from 'lucide-react';
 import { securityLogger } from '@/lib/utils/security-logger.client';
+import { Button } from '@/components/ui/Button';
 
 interface TenantWithCounts {
   id: string;
@@ -214,13 +215,12 @@ export default function TenantManagement({ tenants: initialTenants, userRole }: 
         </div>
 
         {isSuperAdmin && (
-          <button 
-            className="btn btn-primary"
+          <Button
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
             <Plus className="w-4 h-4 mr-2" />
             Review Tenants
-          </button>
+          </Button>
         )}
       </div>
 

@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/compliance/aml/reports/dashboard
+ * Location: /app/api/compliance/aml/reports/dashboard/route.ts
+ */
+
+/**
  * AML Compliance Dashboard API
  * 
  * Purpose: Aggregated compliance reporting and statistics

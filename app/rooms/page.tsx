@@ -5,6 +5,7 @@
 
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { getHubRoomTypeCatalog } from '@/lib/data/room-type-catalog';
@@ -17,6 +18,7 @@ import PublicRoomsSignedInBanner from '@/components/features/rooms/PublicRoomsSi
 import { publicCopy } from '@/lib/copy/public';
 import RoomsIncludedStrip from '@/components/features/rooms/RoomsIncludedStrip';
 import RoomsFilmstrip from '@/components/features/rooms/RoomsFilmstrip';
+import { RoomsBookRedirect } from '@/components/features/rooms/RoomsBookRedirect';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,6 +37,9 @@ export default async function RoomsPage() {
   return (
     <div className="min-h-screen bg-surface-background">
       <NavigationHeader />
+      <Suspense fallback={null}>
+        <RoomsBookRedirect />
+      </Suspense>
 
       <main>
         <PublicHero

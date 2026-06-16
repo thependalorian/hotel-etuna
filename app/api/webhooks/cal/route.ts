@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/webhooks/cal
+ * Location: /app/api/webhooks/cal/route.ts
+ */
+
+/**
  * Cal.com webhook — booking mirror upserts with HMAC verification.
  *
  * POST /api/webhooks/cal

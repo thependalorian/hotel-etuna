@@ -23,7 +23,9 @@ import {
   X,
   UtensilsCrossed,
   BookOpenCheck,
-  LifeBuoy,
+  MessageCircle,
+  Mail,
+  Headphones,
   ClipboardCheck,
   QrCode,
   Banknote,
@@ -48,7 +50,14 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   section: "Operations" | "Experience" | "Admin";
   platformOnly?: boolean;
+  /** Nested group within Experience — reduces flat nav overload (UX-STAFF-06). */
+  experienceGroup?: "guests" | "sofia";
 }
+
+const EXPERIENCE_GROUPS = [
+  { key: "guests" as const, label: "Guests & loyalty" },
+  { key: "sofia" as const, label: "Sofia & comms" },
+];
 
 const navItems: NavItem[] = [
   { href: "/dashboard", label: dashboardCopy.nav.today, icon: LayoutDashboard, section: "Operations" },
@@ -56,18 +65,19 @@ const navItems: NavItem[] = [
   { href: "/bookings", label: "Bookings", icon: Calendar, section: "Operations" },
   { href: "/housekeeping", label: "Housekeeping", icon: Sparkles, section: "Operations" },
   { href: "/payments/desk", label: "Payments desk", icon: QrCode, section: "Operations" },
-  { href: "/payments/reconciliation", label: "Cash reconciliation", icon: Banknote, section: "Operations" },
+  { href: "/payments/reconciliation", label: "Payment reconciliation", icon: Banknote, section: "Operations" },
   { href: "/restaurant/orders", label: "Restaurant orders", icon: UtensilsCrossed, section: "Operations" },
   { href: "/restaurant/menu", label: "Restaurant menu", icon: BookOpenCheck, section: "Operations" },
-  { href: "/crm", label: "Guest CRM", icon: Users, section: "Experience" },
-  { href: "/crm/reviews", label: "Reviews", icon: FileText, section: "Experience" },
-  { href: "/crm/introducers", label: "Introducers", icon: UserCheck, section: "Experience" },
-  { href: "/crm/loyalty/catalog", label: "Loyalty catalog", icon: Gift, section: "Experience" },
-  { href: "/crm/loyalty/transactions", label: "Loyalty ledger", icon: Receipt, section: "Experience" },
-  { href: "/cms/pages", label: "CMS pages", icon: PanelLeft, section: "Experience" },
-  { href: "/crm/knowledge", label: "Sofia knowledge", icon: FileText, section: "Experience" },
-  { href: "/ai", label: "Sofia AI", icon: Bot, section: "Experience" },
-  { href: "/sofia/email", label: "Sofia email", icon: LifeBuoy, section: "Experience" },
+  { href: "/crm", label: "Guest CRM", icon: Users, section: "Experience", experienceGroup: "guests" },
+  { href: "/crm/reviews", label: "Reviews", icon: FileText, section: "Experience", experienceGroup: "guests" },
+  { href: "/crm/introducers", label: "Introducers", icon: UserCheck, section: "Experience", experienceGroup: "guests" },
+  { href: "/crm/loyalty/catalog", label: "Loyalty catalog", icon: Gift, section: "Experience", experienceGroup: "guests" },
+  { href: "/crm/loyalty/transactions", label: "Loyalty ledger", icon: Receipt, section: "Experience", experienceGroup: "guests" },
+  { href: "/cms/pages", label: "CMS pages", icon: PanelLeft, section: "Experience", experienceGroup: "sofia" },
+  { href: "/crm/knowledge", label: "Sofia knowledge", icon: FileText, section: "Experience", experienceGroup: "sofia" },
+  { href: "/ai", label: "Sofia AI", icon: Bot, section: "Experience", experienceGroup: "sofia" },
+  { href: "/communications", label: "Communications", icon: MessageCircle, section: "Experience", experienceGroup: "sofia" },
+  { href: "/sofia/email", label: "Sofia email", icon: Mail, section: "Experience", experienceGroup: "sofia" },
   { href: "/staff", label: "Staff", icon: ClipboardCheck, section: "Operations" },
   { href: "/analytics", label: "Analytics", icon: BarChart3, section: "Admin" },
   { href: "/reports/accounting", label: "Accounting", icon: FileBarChart, section: "Admin" },
@@ -82,7 +92,7 @@ const navItems: NavItem[] = [
   {
     href: "/admin/platform/support",
     label: "Support",
-    icon: LifeBuoy,
+    icon: Headphones,
     section: "Admin",
     platformOnly: true,
   },
@@ -110,6 +120,36 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose }: SidebarProps) => {
       .endsWith('@buffr.ai');
 
   const userEmail = String(session?.user?.email ?? '');
+
+  const renderNavLink = (item: NavItem) => {
+    const Icon = item.icon;
+    const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+
+    return (
+      <li key={item.href}>
+        <Link
+          href={item.href}
+          className={cn(
+            "flex min-h-touch-mobile items-center gap-3 rounded-lg px-4 py-3 font-medium transition-all duration-normal md:min-h-touch-desktop",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nude-500 focus-visible:ring-offset-2",
+            isActive
+              ? "border border-nude-200 bg-surface-elevated text-nude-900 shadow-nude-soft"
+              : "text-nude-700 hover:border-nude-200/80 hover:bg-nude-50/90 hover:text-nude-900",
+            !isActive && "hover:-translate-y-px"
+          )}
+        >
+          <Icon
+            className={cn("h-5 w-5 shrink-0", isActive ? "text-nude-600" : "text-nude-500")}
+            aria-hidden
+          />
+          <span>{item.label}</span>
+          {isActive ? (
+            <span className="ml-auto h-2 w-2 shrink-0 rounded-full bg-nude-500" aria-hidden />
+          ) : null}
+        </Link>
+      </li>
+    );
+  };
 
   const visibleNavItems = isPartner
     ? navItems.filter((item) =>
@@ -190,40 +230,32 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose }: SidebarProps) => {
               <p className="px-4 pb-2 text-[0.68rem] font-bold uppercase tracking-widest text-nude-500">
                 {section}
               </p>
-              <ul className="space-y-1">
-                {sectionItems.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
-
+              {section === "Experience" ? (
+                <div className="space-y-1">
+                  {EXPERIENCE_GROUPS.map(({ key, label }) => {
+                    const groupItems = sectionItems.filter((item) => item.experienceGroup === key);
+                    if (groupItems.length === 0) return null;
+                    const groupActive = groupItems.some(
+                      (item) => pathname === item.href || pathname?.startsWith(`${item.href}/`),
+                    );
                     return (
-                      <li key={item.href}>
-                        <Link
-                          href={item.href}
-                          className={cn(
-                            "flex min-h-touch-mobile items-center gap-3 rounded-lg px-4 py-3 font-medium transition-all duration-normal md:min-h-touch-desktop",
-                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nude-500 focus-visible:ring-offset-2",
-                            isActive
-                              ? "border border-nude-200 bg-surface-elevated text-nude-900 shadow-nude-soft"
-                              : "text-nude-700 hover:border-nude-200/80 hover:bg-nude-50/90 hover:text-nude-900",
-                            !isActive && "hover:-translate-y-px"
-                          )}
-                        >
-                          <Icon
-                            className={cn(
-                              "h-5 w-5 shrink-0",
-                              isActive ? "text-nude-600" : "text-nude-500"
-                            )}
-                            aria-hidden
-                          />
-                          <span>{item.label}</span>
-                          {isActive ? (
-                            <span className="ml-auto h-2 w-2 shrink-0 rounded-full bg-nude-500" aria-hidden />
-                          ) : null}
-                        </Link>
-                      </li>
+                      <details key={key} className="group px-1" open={groupActive}>
+                        <summary className="flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wide text-nude-600 hover:bg-nude-50/90 [&::-webkit-details-marker]:hidden">
+                          {label}
+                          <span className="text-nude-400 transition-transform group-open:rotate-180" aria-hidden>
+                            ▾
+                          </span>
+                        </summary>
+                        <ul className="mt-1 space-y-1 border-l border-nude-200/80 ml-4 pl-1">
+                          {groupItems.map((item) => renderNavLink(item))}
+                        </ul>
+                      </details>
                     );
                   })}
-              </ul>
+                </div>
+              ) : (
+                <ul className="space-y-1">{sectionItems.map((item) => renderNavLink(item))}</ul>
+              )}
             </div>
           );
           })}

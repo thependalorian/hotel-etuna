@@ -34,6 +34,7 @@ import MenuFilters from '@/components/features/menu/MenuFilters';
 import MenuItemCard from '@/components/features/menu/MenuItemCard';
 import { apiUrl } from '@/lib/utils/api-url';
 import { securityLogger } from '@/lib/utils/security-logger.client';
+import { Button } from '@/components/ui/Button';
 
 interface MenuItem {
   id: string;
@@ -153,12 +154,12 @@ export default function MenuPage() {
             Manage your restaurant menu items and categories
           </p>
         </div>
-        <Link href="/menu/new">
-          <button className="btn btn-primary gentle-lift min-h-[44px]">
+        <Button asChild className="gentle-lift">
+          <Link href="/menu/new">
             <Plus className="w-5 h-5 mr-2" />
             Add Menu Item
-          </button>
-        </Link>
+          </Link>
+        </Button>
       </div>
 
       {stats && <MenuStatsCards stats={stats} />}

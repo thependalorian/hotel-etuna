@@ -2,7 +2,7 @@
  * Hotel Etuna — HTML and plain-text email signatures (staff + transactional footers).
  * Location: lib/email/hotel-etuna-email-signature.ts
  *
- * PRD palette: terracotta-800 #8b4a2e, khaki-600 #b8955a, nude-800 #7d452e, nude-50 #fef7f0.
+ * Logo burgundy #7b161e + cream #f1e6d2; body copy uses terracotta/khaki/nude PRD palette.
  * Address: 5544 Valley Street (not Valley of the Leopard). Tours omitted from marketing copy.
  */
 
@@ -10,6 +10,8 @@ import { brand } from '@/lib/copy/brand';
 
 /** Brand tokens for email clients that ignore class names */
 export const EMAIL_SIGNATURE_COLORS = {
+  logoBurgundy: brand.colors.burgundy,
+  logoCream: brand.colors.cream,
   terracotta800: '#8b4a2e',
   khaki600: '#b8955a',
   nude800: '#7d452e',
@@ -65,7 +67,7 @@ export function getHotelEtunaEmailSignatureHtml(
     options.staffName != null && options.staffName.length > 0
       ? `
         <tr>
-          <td style="padding-bottom: 8px; font-size: 15px; font-weight: 600; color: ${c.terracotta800};">
+          <td style="padding-bottom: 8px; font-size: 15px; font-weight: 600; color: ${c.logoBurgundy};">
             ${escapeHtml(options.staffName)}${options.staffTitle ? `<span style="font-weight: 400; color: ${c.nude800};"> · ${escapeHtml(options.staffTitle)}</span>` : ''}
           </td>
         </tr>`
@@ -115,7 +117,7 @@ export function getHotelEtunaEmailSignatureHtml(
         <tr>
           ${logoCell}
           <td style="vertical-align: top;">
-            <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 26px; font-weight: 700; color: ${c.terracotta800}; letter-spacing: 0.5px;">
+            <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 26px; font-weight: 700; color: ${c.logoBurgundy}; letter-spacing: 0.5px;">
               ${brand.name}
             </div>
             <div style="font-size: 14px; font-style: italic; color: ${c.khaki600}; padding-top: 4px;">

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { apiUrl } from '@/lib/utils/api-url';
 import { securityLogger } from '@/lib/utils/security-logger.client';
+import { Button } from '@/components/ui/Button';
 
 interface ContentEditorProps {
   propertyId: string;
@@ -149,9 +150,9 @@ export default function ContentEditor({ propertyId, onContentAdded }: ContentEdi
           </select>
         </div>
 
-        <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? 'Saving...' : 'Save Content'}
-        </button>
+        <Button type="submit" isLoading={loading}>
+          Save Content
+        </Button>
       </form>
     </div>
   );

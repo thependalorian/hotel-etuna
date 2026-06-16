@@ -8,7 +8,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Button } from '@/components/ui/Button';
+import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { AdumoVirtualPaymentForm } from '@/components/payments/AdumoVirtualPaymentForm';
 import { NamQrDeskPanel } from '@/components/features/payments/NamQrDeskPanel';
@@ -57,9 +57,18 @@ export function BookingFolioSection({ bookingId, bookingStatus }: BookingFolioSe
     }
   }, [bookingId]);
 
+  const folioVisibleStatuses = ['checked_in', 'stayover', 'due_out', 'checked_out'];
+  const isFolioOpen = folioVisibleStatuses.includes(bookingStatus);
+  const preCheckInStatuses = ['pending', 'confirmed'];
+  const showDepositDeskLink = preCheckInStatuses.includes(bookingStatus);
+
   useEffect(() => {
+    if (!isFolioOpen) {
+      setLoading(false);
+      return;
+    }
     void load();
-  }, [load]);
+  }, [load, isFolioOpen]);
 
   const settle = async (paymentMethod: 'cash' | 'card') => {
     setBusy(true);
@@ -86,9 +95,30 @@ export function BookingFolioSection({ bookingId, bookingStatus }: BookingFolioSe
     }
   };
 
-  const folioVisibleStatuses = ['checked_in', 'stayover', 'due_out', 'checked_out'];
-  if (!folioVisibleStatuses.includes(bookingStatus)) {
-    return null;
+  if (!isFolioOpen) {
+    const isTerminal = bookingStatus === 'cancelled' || bookingStatus === 'no_show';
+    return (
+      <Card variant="elevated" className="p-6">
+        <h3 className="font-display text-lg font-semibold text-nude-900 mb-2">Stay folio</h3>
+        {isTerminal ? (
+          <p className="text-sm text-nude-600">
+            This booking is {bookingStatus.replace('_', ' ')}. There is no active folio to view.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-sm text-nude-600">
+              Folio opens at check-in. Room charges, F&amp;B, and incidentals will appear here once the
+              guest is in-house.
+            </p>
+            {showDepositDeskLink ? (
+              <Link href="/payments/desk" className="btn btn-outline btn-sm rounded-full px-6">
+                Record deposit on payments desk
+              </Link>
+            ) : null}
+          </div>
+        )}
+      </Card>
+    );
   }
 
   const canVoidCharges = Boolean(
@@ -166,6 +196,7 @@ export function BookingFolioSection({ bookingId, bookingStatus }: BookingFolioSe
               <NamQrDeskPanel
                 bookingId={bookingId}
                 suggestedAmount={resolveFolioPayAmount(amount, folio.balanceDue)}
+                onConfirmed={() => void load()}
               />
             </div>
           )}

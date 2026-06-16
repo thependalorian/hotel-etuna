@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/guest/stays/[bookingId]/folio
+ * Location: /app/api/guest/stays/[bookingId]/folio/route.ts
+ */
+
+/**
  * Guest stay folio API
  *
  * Purpose: Return open/settled folio lines for a booking (guest or hub staff).

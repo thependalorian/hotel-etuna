@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/admin/platform/compliance/payments
+ * Location: /app/api/admin/platform/compliance/payments/route.ts
+ */
+
+/**
  * Payments by rail — reporting (grouped transactions)
  * GET /api/admin/platform/compliance/payments?days=7
  *

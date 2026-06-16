@@ -25,7 +25,7 @@ const iconSize: Record<NonNullable<NotFoundStateProps['size']>, string> = {
   lg: 'h-12 w-12',
 };
 
-export function NotFoundState({
+function NotFoundState({
   title = 'Not found',
   description,
   homeHref,

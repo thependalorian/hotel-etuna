@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/payroll/exports/ssc
+ * Location: /app/api/payroll/exports/ssc/route.ts
+ */
+
+/**
  * SSC statutory export API
  * GET /api/payroll/exports/ssc?periodId=<uuid>
  *

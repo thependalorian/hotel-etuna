@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/dashboard/activity
+ * Location: /app/api/dashboard/activity/route.ts
+ */
+
+/**
  * Dashboard Recent Activity API Route
  * 
  * Purpose: Fetch recent booking and order activity

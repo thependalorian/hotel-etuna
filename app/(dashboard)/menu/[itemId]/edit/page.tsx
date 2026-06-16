@@ -14,6 +14,7 @@ import BasicInfoForm, {
   type MenuBasicInfoFormData,
 } from '@/components/features/menu/forms/BasicInfoForm';
 import { apiUrl } from '@/lib/utils/api-url';
+import { Button } from '@/components/ui/Button';
 
 type MenuItemRecord = {
   name: string;
@@ -143,10 +144,10 @@ export default function EditMenuItemPage() {
           variant="edit"
         />
         <div className="flex flex-wrap gap-3">
-          <button type="submit" className="btn btn-primary min-h-11 gap-2" disabled={saving}>
+          <Button type="submit" className="gap-2" isLoading={saving}>
             <Save className="h-4 w-4" aria-hidden />
-            {saving ? 'Saving…' : 'Save changes'}
-          </button>
+            Save changes
+          </Button>
           <Link href="/menu" className="btn btn-ghost min-h-11">
             Cancel
           </Link>

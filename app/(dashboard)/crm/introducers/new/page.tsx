@@ -27,6 +27,7 @@ import ErrorDisplay from '@/components/shared/ErrorDisplay';
 import PageHeader from '@/components/shared/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { apiUrl } from '@/lib/utils/api-url';
+import { Button } from '@/components/ui/Button';
 
 export default function CreateIntroducerPage() {
   const router = useRouter();
@@ -241,13 +242,9 @@ export default function CreateIntroducerPage() {
             </div>
 
             <div className="flex gap-4">
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn btn-primary min-h-[44px]"
-              >
-                {loading ? <LoadingSpinner size="sm" /> : 'Create Introducer'}
-              </button>
+              <Button type="submit" isLoading={loading}>
+                Create Introducer
+              </Button>
               <button
                 type="button"
                 onClick={() => router.back()}

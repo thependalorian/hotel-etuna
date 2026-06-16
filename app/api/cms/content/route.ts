@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/cms/content
+ * Location: /app/api/cms/content/route.ts
+ */
+
+/**
  * CMS Content API Route
  * 
  * Purpose: Manage CMS content (property descriptions, room content, service descriptions)

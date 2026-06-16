@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/guest/loyalty
+ * Location: /app/api/guest/loyalty/route.ts
+ */
+
+/**
  * Guest Loyalty API
  *
  * GUEST SELF-SERVICE portal (singular `guest`) — the authenticated guest views

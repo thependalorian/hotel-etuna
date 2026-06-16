@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/payments/initiate
+ * Location: /app/api/payments/initiate/route.ts
+ */
+
+/**
  * Payment Initiation API (PSD-12 Compliance)
  * 
  * Purpose: Initiate payments with full PSD-12 security compliance

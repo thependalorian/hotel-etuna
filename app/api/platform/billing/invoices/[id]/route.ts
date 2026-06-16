@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/platform/billing/invoices/[id]
+ * Location: /app/api/platform/billing/invoices/[id]/route.ts
+ */
+
+/**
  * Single platform invoice — detail, issue, mark paid.
  * Location: app/api/platform/billing/invoices/[id]/route.ts
  */

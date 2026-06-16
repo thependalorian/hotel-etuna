@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/rooms
+ * Location: /app/api/rooms/route.ts
+ */
+
+/**
  * Rooms API Route
  * 
  * Purpose: Manage rooms with system design principles

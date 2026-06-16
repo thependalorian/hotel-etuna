@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/reports/accounting/summary
+ * Location: /app/api/reports/accounting/summary/route.ts
+ */
+
+/**
  * Hospitality bookkeeping period summary (Namibia — Hotel Etuna).
  * GET /api/reports/accounting/summary?from=ISO&to=ISO
  *

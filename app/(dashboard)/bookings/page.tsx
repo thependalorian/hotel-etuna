@@ -15,6 +15,7 @@ import PageHeader from '@/components/shared/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { resolvePublicHubProperty } from '@/lib/utils/public-property';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { Button } from '@/components/ui/Button';
 import type { BookingKind } from '@/lib/bookings/booking-kind';
 
 export const dynamic = 'force-dynamic';
@@ -68,14 +69,16 @@ const BookingsPage = async ({
               >
                 Night audit
               </Link>
-              <Link
-                href="/bookings/new"
-                className="btn btn-primary gentle-lift min-h-[44px] shadow-nude-soft hover:shadow-nude-medium rounded-full px-6"
+              <Button
+                asChild
+                className="gentle-lift shadow-nude-soft hover:shadow-nude-medium"
                 aria-label="Create new room stay booking"
               >
-                <Plus className="w-5 h-5 mr-2" />
-                New stay
-              </Link>
+                <Link href="/bookings/new">
+                  <Plus className="w-5 h-5 mr-2" />
+                  New stay
+                </Link>
+              </Button>
             </div>
           }
         />

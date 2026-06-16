@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/reports/commission
+ * Location: /app/api/reports/commission/route.ts
+ */
+
+/**
  * Partner commission report — aggregates by partner tenant and date range.
  * Location: app/api/reports/commission/route.ts
  *

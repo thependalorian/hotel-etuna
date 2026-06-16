@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/bon/v1/common/par
+ * Location: /app/api/bon/v1/common/par/route.ts
+ */
+
+/**
  * Pushed Authorization Request (PAR) API Route
  * 
  * Purpose: OAuth 2.0 PAR endpoint (RFC 9126)

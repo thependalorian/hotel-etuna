@@ -30,6 +30,7 @@ import {
   Bed,
   Bath
 } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 
 interface PropertyWithCounts {
   id: string;
@@ -150,18 +151,22 @@ export default function PropertyManagement({ properties: initialProperties, user
         </div>
 
         <div className="flex gap-2">
-          <button 
-            className={`btn btn-sm rounded-full px-4 ${viewMode === 'grid' ? 'btn-primary' : 'btn-ghost'}`}
+          <Button
+            type="button"
+            size="sm"
+            variant={viewMode === 'grid' ? 'primary' : 'ghost'}
             onClick={() => setViewMode('grid')}
           >
             <Grid3X3 className="w-4 h-4" />
-          </button>
-          <button 
-            className={`btn btn-sm rounded-full px-4 ${viewMode === 'list' ? 'btn-primary' : 'btn-ghost'}`}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={viewMode === 'list' ? 'primary' : 'ghost'}
             onClick={() => setViewMode('list')}
           >
             <List className="w-4 h-4" />
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -220,12 +225,11 @@ export default function PropertyManagement({ properties: initialProperties, user
                   {property.tenant_name || 'Unknown Tenant'}
                 </div>
                 <div className="card-actions justify-end flex-wrap gap-1">
-                  <Link
-                    href={`/admin/platform/properties/${property.id}`}
-                    className="btn btn-primary btn-sm rounded-full px-4"
-                  >
-                    Open page
-                  </Link>
+                  <Button asChild size="sm">
+                    <Link href={`/admin/platform/properties/${property.id}`}>
+                      Open page
+                    </Link>
+                  </Button>
                   <button
                     type="button"
                     className="btn btn-ghost btn-sm rounded-full px-4"

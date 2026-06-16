@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/staff
+ * Location: /app/api/staff/route.ts
+ */
+
+/**
  * Staff API Route
  * 
  * Purpose: Manage staff operations with system design principles

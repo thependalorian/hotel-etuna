@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/properties/[id]
+ * Location: /app/api/properties/[id]/route.ts
+ */
+
+/**
  * Single-property API
  * Location: app/api/properties/[id]/route.ts
  *

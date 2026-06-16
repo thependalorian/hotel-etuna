@@ -1,4 +1,5 @@
 /**
+ * @fileoverview HospitalityNamQrPaymentService — domain service module.
  * Hospitality NamQR — payee-presented QR for Hotel Etuna (BoN v5.0).
  * Location: lib/services/payment/HospitalityNamQrPaymentService.ts
  */

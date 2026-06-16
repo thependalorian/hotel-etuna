@@ -9,6 +9,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/Button';
 
 export default function CmsPageForm() {
   const router = useRouter();
@@ -148,20 +149,9 @@ export default function CmsPageForm() {
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <span className="loading loading-spinner loading-sm"></span>
-                  Creating...
-                </>
-              ) : (
-                'Create Page'
-              )}
-            </button>
+            <Button type="submit" isLoading={loading}>
+              Create Page
+            </Button>
           </div>
         </div>
       </div>

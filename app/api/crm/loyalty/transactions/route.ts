@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/crm/loyalty/transactions
+ * Location: /app/api/crm/loyalty/transactions/route.ts
+ */
+
+/**
  * Loyalty Transactions Ledger API
  * 
  * GET /api/crm/loyalty/transactions - List all transactions (staff only, cross-guest)

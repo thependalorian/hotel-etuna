@@ -7,6 +7,7 @@
 'use client';
 
 import React from 'react';
+import { Button } from '@/components/ui/Button';
 
 interface Props {
   content: {
@@ -106,9 +107,9 @@ export default function BlockHero({ content, onUpdate }: Props) {
               {content.heading || 'Heading'}
             </h1>
             <p className="mb-5">{content.subheading || 'Subheading'}</p>
-            <button className="btn btn-primary">
+            <Button type="button">
               {content.buttonText || 'Button'}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

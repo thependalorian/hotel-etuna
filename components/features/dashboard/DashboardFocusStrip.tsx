@@ -7,6 +7,7 @@
  */
 
 import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
 import { CalendarCheck, ShieldCheck, AlertTriangle } from 'lucide-react';
 
 const priorities = [
@@ -59,21 +60,24 @@ export default function DashboardFocusStrip() {
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
           {priorities.map(({ href, label, hint, icon: Icon, variant }) => (
-            <Link
+            <Button
               key={href}
-              href={href}
+              asChild
+              variant={variant === 'primary' ? 'primary' : 'outline'}
               className={
                 variant === 'primary'
-                  ? 'btn btn-primary min-h-[44px] gap-2 rounded-xl px-4 shadow-md transition-transform duration-200 hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2'
-                  : 'btn btn-outline btn-primary min-h-[44px] gap-2 rounded-xl border-base-300 bg-white/70 px-4 hover:border-brand-400 hover:bg-white focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2'
+                  ? 'min-h-[44px] gap-2 rounded-xl px-4 shadow-md transition-transform duration-200 hover:-translate-y-0.5'
+                  : 'min-h-[44px] gap-2 rounded-xl border-base-300 bg-white/70 px-4 hover:border-brand-400 hover:bg-white'
               }
             >
-              <Icon className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
-              <span className="flex flex-col items-start text-left leading-tight">
-                <span className="font-bold">{label}</span>
-                <span className="text-xs font-normal opacity-80">{hint}</span>
-              </span>
-            </Link>
+              <Link href={href}>
+                <Icon className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
+                <span className="flex flex-col items-start text-left leading-tight">
+                  <span className="font-bold">{label}</span>
+                  <span className="text-xs font-normal opacity-80">{hint}</span>
+                </span>
+              </Link>
+            </Button>
           ))}
         </div>
       </div>

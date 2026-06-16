@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/bon/v1/banking/payments/[id]/status
+ * Location: /app/api/bon/v1/banking/payments/[id]/status/route.ts
+ */
+
+/**
  * Namibia Open Banking — Get Payment Status (PIS Use Case 3)
  *
  * Purpose: Track a previously initiated payment by PaymentId.

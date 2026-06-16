@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/auth/check-platform-admin
+ * Location: /app/api/auth/check-platform-admin/route.ts
+ */
+
+/**
  * Platform admin session probe — used by /admin/platform layout client guard.
  * Location: app/api/auth/check-platform-admin/route.ts
  *

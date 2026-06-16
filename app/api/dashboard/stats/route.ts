@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/dashboard/stats
+ * Location: /app/api/dashboard/stats/route.ts
+ */
+
+/**
  * Dashboard Stats API Route - Drizzle
  * Purpose: Fetch real-time dashboard statistics
  * Location: app/api/dashboard/stats/route.ts

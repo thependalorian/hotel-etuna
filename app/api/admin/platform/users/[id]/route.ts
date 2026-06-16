@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/admin/platform/users/[id]
+ * Location: /app/api/admin/platform/users/[id]/route.ts
+ */
+
+/**
  * Platform User API Route (Dynamic)
  * 
  * Purpose: API endpoint for individual user operations

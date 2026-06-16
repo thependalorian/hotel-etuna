@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/housekeeping/tasks
+ * Location: /app/api/housekeeping/tasks/route.ts
+ */
+
+/**
  * Housekeeping Tasks API
  *
  * Endpoints:

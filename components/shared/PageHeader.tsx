@@ -32,7 +32,7 @@ interface PageHeaderProps {
   className?: string;
 }
 
-export function PageHeader({
+function PageHeader({
   eyebrow,
   title,
   description,

@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/guest/stays/[bookingId]/financial-documents
+ * Location: /app/api/guest/stays/[bookingId]/financial-documents/route.ts
+ */
+
+/**
  * Guest financial documents API — list and request PDF resend.
  * Location: app/api/guest/stays/[bookingId]/financial-documents/route.ts
  */

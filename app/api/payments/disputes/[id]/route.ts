@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/payments/disputes/[id]
+ * Location: /app/api/payments/disputes/[id]/route.ts
+ */
+
+/**
  * Payment dispute — resolve (won / lost / refunded / reversed / under_review).
  * Location: app/api/payments/disputes/[id]/route.ts
  *

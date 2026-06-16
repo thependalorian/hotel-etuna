@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/compliance/aml/str/create
+ * Location: /app/api/compliance/aml/str/create/route.ts
+ */
+
+/**
  * STR Creation API Endpoint
  * 
  * Purpose: Create Suspicious Transaction Reports

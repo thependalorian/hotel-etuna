@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/dining/favourites
+ * Location: /app/api/dining/favourites/route.ts
+ */
+
+/**
  * Dining favourites — optional-auth public endpoint.
  * Unauthenticated callers receive `{ items: [] }` (not 401).
  * Uses getAuthenticatedUser instead of withPlatformApiAuth to preserve that contract.

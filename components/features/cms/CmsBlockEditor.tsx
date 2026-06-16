@@ -9,6 +9,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/Button';
 import BlockHero from './blocks/BlockHero';
 import BlockText from './blocks/BlockText';
 import BlockImage from './blocks/BlockImage';
@@ -216,13 +217,9 @@ export default function CmsBlockEditor({ page, initialBlocks }: Props) {
       {/* Block Editor */}
       <div className="lg:col-span-2">
         <div className="mb-4 flex gap-2">
-          <button
-            onClick={saveBlocks}
-            className="btn btn-primary"
-            disabled={loading}
-          >
-            {loading ? 'Saving...' : 'Save Changes'}
-          </button>
+          <Button onClick={saveBlocks} isLoading={loading}>
+            Save Changes
+          </Button>
           {page.status !== 'published' && (
             <button
               onClick={publishPage}

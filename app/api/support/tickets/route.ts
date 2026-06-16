@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/support/tickets
+ * Location: /app/api/support/tickets/route.ts
+ */
+
+/**
  * Tenant support ticket creation and listing
  *
  * Purpose: Allow authenticated tenant users to open support tickets without using

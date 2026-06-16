@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/reports/accounting/journal-lines
+ * Location: /app/api/reports/accounting/journal-lines/route.ts
+ */
+
+/**
  * Journal lines for an accounting period (Namibia hospitality COA).
  * GET /api/reports/accounting/journal-lines?from=ISO&to=ISO
  *

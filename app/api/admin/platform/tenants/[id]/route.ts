@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/admin/platform/tenants/[id]
+ * Location: /app/api/admin/platform/tenants/[id]/route.ts
+ */
+
+/**
  * Platform Tenant API Route (Dynamic)
  * 
  * Purpose: API endpoint for individual tenant operations

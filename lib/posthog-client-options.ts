@@ -7,7 +7,7 @@
  */
 
 import type { PostHogConfig } from 'posthog-js';
-import { securityLogger } from '@/lib/utils/security-logger';
+import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export function getPostHogApiKey(): string | undefined {
   return process.env.NEXT_PUBLIC_POSTHOG_KEY?.trim() || undefined;

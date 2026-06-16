@@ -1,4 +1,5 @@
 /**
+ * @fileoverview FraudDetectionService — domain service module.
  * Fraud Detection Service
  * 
  * Purpose: Real-time fraud detection and prevention based on Namibian fraud trends

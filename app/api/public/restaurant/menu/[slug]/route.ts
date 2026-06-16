@@ -1,3 +1,8 @@
+/**
+ * @fileoverview API route //api/public/restaurant/menu/[slug]
+ * Location: /app/api/public/restaurant/menu/[slug]/route.ts
+ */
+
 import { NextResponse, NextRequest } from 'next/server';
 import {
   db,

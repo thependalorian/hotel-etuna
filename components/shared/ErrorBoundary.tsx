@@ -13,6 +13,7 @@
 import React, { Component, type ErrorInfo, type ReactNode } from 'react';
 import Link from 'next/link';
 import { AlertCircle, Home, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import { captureClientException } from '@/lib/monitoring/capture-client-exception';
 import { securityLogger } from '@/lib/utils/security-logger.client';
 
@@ -114,14 +115,16 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 </pre>
               ) : null}
               <div className="card-actions flex-wrap justify-end gap-2">
-                <button type="button" className="btn btn-outline btn-sm gap-2" onClick={this.handleReset}>
+                <Button type="button" variant="outline" size="sm" onClick={this.handleReset}>
                   <RefreshCw className="h-4 w-4" aria-hidden />
                   Try again
-                </button>
-                <Link href={homeHref} className="btn btn-primary btn-sm gap-2">
-                  <Home className="h-4 w-4" aria-hidden />
-                  {homeLabel}
-                </Link>
+                </Button>
+                <Button asChild size="sm">
+                  <Link href={homeHref}>
+                    <Home className="h-4 w-4" aria-hidden />
+                    {homeLabel}
+                  </Link>
+                </Button>
               </div>
             </div>
           </div>

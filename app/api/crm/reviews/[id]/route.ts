@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/crm/reviews/[id]
+ * Location: /app/api/crm/reviews/[id]/route.ts
+ */
+
+/**
  * Guest Review Approval API Endpoint
  *
  * Purpose: Toggle public visibility of guest reviews

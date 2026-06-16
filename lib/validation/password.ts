@@ -16,5 +16,3 @@ export const passwordSchema = z
   .regex(/[a-z]/, { message: 'Password must include a lowercase letter.' })
   .regex(/[A-Z]/, { message: 'Password must include an uppercase letter.' })
   .regex(/[0-9]/, { message: 'Password must include a number.' });
-
-export const registerPasswordField = passwordSchema;

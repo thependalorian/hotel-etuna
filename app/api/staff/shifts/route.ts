@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/staff/shifts
+ * Location: /app/api/staff/shifts/route.ts
+ */
+
+/**
  * Staff shifts API (property-wide)
  * Location: app/api/staff/shifts/route.ts
  *

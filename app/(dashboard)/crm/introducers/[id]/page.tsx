@@ -29,6 +29,7 @@ import ErrorDisplay from '@/components/shared/ErrorDisplay';
 import PageHeader from '@/components/shared/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { apiUrl } from '@/lib/utils/api-url';
+import { Button } from '@/components/ui/Button';
 
 interface Introducer {
   id: string;
@@ -333,13 +334,9 @@ export default function EditIntroducerPage() {
             </div>
 
             <div className="flex gap-4">
-              <button
-                type="submit"
-                disabled={saving}
-                className="btn btn-primary min-h-[44px]"
-              >
-                {saving ? <LoadingSpinner size="sm" /> : 'Save Changes'}
-              </button>
+              <Button type="submit" isLoading={saving}>
+                Save Changes
+              </Button>
               <button
                 type="button"
                 onClick={() => router.back()}

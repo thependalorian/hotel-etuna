@@ -39,6 +39,7 @@ import GuestPreferencesForm from '@/components/features/crm/forms/GuestPreferenc
 import GuestCrmMemoryPanel from '@/components/features/crm/GuestCrmMemoryPanel';
 import { apiUrl } from '@/lib/utils/api-url';
 import { securityLogger } from '@/lib/utils/security-logger.client';
+import { Button } from '@/components/ui/Button';
 
 interface Guest {
   id: string;
@@ -230,20 +231,9 @@ export default function GuestProfilePage() {
             <GuestPreferencesForm formData={formData} onChange={handleChange} />
 
             <div className="card-actions justify-end pt-4">
-              <button 
-                type="submit" 
-                className="btn btn-primary gentle-lift min-h-[44px] rounded-full px-6" 
-                disabled={saving}
-              >
-                {saving ? (
-                  <>
-                    <LoadingSpinner size="sm" />
-                    Saving...
-                  </>
-                ) : (
-                  'Save Changes'
-                )}
-              </button>
+              <Button type="submit" className="gentle-lift" isLoading={saving}>
+                Save Changes
+              </Button>
             </div>
           </form>
         </div>

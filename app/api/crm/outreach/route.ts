@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/crm/outreach
+ * Location: /app/api/crm/outreach/route.ts
+ */
+
+/**
  * CRM outreach touches — list & create (tenant-scoped)
  *
  * Purpose: Hospitality marketing touches; lifecycle updates on `/api/crm/outreach/[id]`.

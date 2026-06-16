@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/menu/[itemId]
+ * Location: /app/api/menu/[itemId]/route.ts
+ */
+
+/**
  * Single menu item API
  * Location: app/api/menu/[itemId]/route.ts
  *

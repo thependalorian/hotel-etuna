@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/guests
+ * Location: /app/api/guests/route.ts
+ */
+
+/**
  * Guests API compatibility route.
  *
  * Staff CRM guest CRUD — distinct from /api/guest/* (guest self-service portal).

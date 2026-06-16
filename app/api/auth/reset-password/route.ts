@@ -1,3 +1,8 @@
+/**
+ * @fileoverview API route //api/auth/reset-password
+ * Location: /app/api/auth/reset-password/route.ts
+ */
+
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';

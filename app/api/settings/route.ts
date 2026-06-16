@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/settings
+ * Location: /app/api/settings/route.ts
+ */
+
+/**
  * Settings API Route
  *
  * Purpose: Fetch and update user/tenant settings

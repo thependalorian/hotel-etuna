@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/guest/stays/[bookingId]/orders
+ * Location: /app/api/guest/stays/[bookingId]/orders/route.ts
+ */
+
+/**
  * Guest room service orders API
  *
  * Purpose: Place F&B orders charged to the stay folio while checked in.

@@ -33,6 +33,7 @@ import PropertySelector from '@/components/features/restaurant/PropertySelector'
 import MenuCategoryCard from '@/components/features/restaurant/menu/MenuCategoryCard';
 import { apiUrl } from '@/lib/utils/api-url';
 import { securityLogger } from '@/lib/utils/security-logger.client';
+import { Button } from '@/components/ui/Button';
 
 interface MenuItem {
   id: string;
@@ -229,7 +230,7 @@ export default function RestaurantMenuPage() {
                 Manage Images
               </Link>
               <button className="btn btn-secondary gentle-lift min-h-[44px]">Add Category</button>
-              <button className="btn btn-primary gentle-lift min-h-[44px]">Add Menu Item</button>
+              <Button type="button" className="gentle-lift">Add Menu Item</Button>
             </div>
           </div>
 

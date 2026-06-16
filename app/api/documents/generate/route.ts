@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/documents/generate
+ * Location: /app/api/documents/generate/route.ts
+ */
+
+/**
  * POST /api/documents/generate — staff generate guest financial PDF.
  * Location: app/api/documents/generate/route.ts
  *

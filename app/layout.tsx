@@ -77,6 +77,13 @@ export const metadata: Metadata = {
     // Add verification codes when available
   },
   manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/brand/hotel-etuna-mark.png', type: 'image/png' },
+      { url: '/icons/icon.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/icons/apple-touch-icon.png',
+  },
 };
 
 export const viewport: Viewport = {
@@ -84,7 +91,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  themeColor: '#b8955a',
+  themeColor: '#7b161e',
 };
 
 export default function RootLayout({
@@ -97,6 +104,9 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${playfairDisplay.variable} ${jetbrainsMono.variable} ${dancingScript.variable} min-h-screen bg-surface-background text-surface-foreground font-sans antialiased`}
       >
+        <a href="#main-content" className="buffr-skip-link">
+          Skip to main content
+        </a>
         <ServiceWorkerRegistration />
         <OfflineBanner />
         <SessionProviderWrapper>

@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/admin/platform/support/tickets/[id]/escalate
+ * Location: /app/api/admin/platform/support/tickets/[id]/escalate/route.ts
+ */
+
+/**
  * Escalate support ticket to Buffr internal engineering queue (no Linear).
  * POST /api/admin/platform/support/tickets/[id]/escalate
  * Location: app/api/admin/platform/support/tickets/[id]/escalate/route.ts

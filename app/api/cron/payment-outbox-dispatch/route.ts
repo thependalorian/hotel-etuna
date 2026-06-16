@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/cron/payment-outbox-dispatch
+ * Location: /app/api/cron/payment-outbox-dispatch/route.ts
+ */
+
+/**
  * Payment outbox dispatch cron — delivers queued payment side effects.
  *
  * Location: app/api/cron/payment-outbox-dispatch/route.ts

@@ -347,6 +347,11 @@ const MIGRATIONS: Migration[] = [
     label: 'Generated financial documents audit log',
     skip: async (p) => tableExists(p, 'generated_documents'),
   },
+  {
+    file: '0065_tenant_whatsapp_openwa.sql',
+    label: 'Tenant WhatsApp OpenWA dual provider',
+    skip: async (p) => columnExists(p, 'tenant_whatsapp_settings', 'openwa_session_id'),
+  },
 ];
 
 async function main() {

@@ -14,6 +14,7 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
+import ErrorDisplay from '@/components/shared/ErrorDisplay';
 import { SofiaChat } from '@/components/features/sofia/SofiaChat';
 import { useEffect, useState } from 'react';
 import DashboardWelcome from '@/components/features/dashboard/DashboardWelcome';
@@ -27,7 +28,7 @@ import { apiUrl } from '@/lib/utils/api-url';
 import { securityLogger } from '@/lib/utils/security-logger.client';
 
 export default function DashboardHomePage() {
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const [loading, setLoading] = useState(true);
   const [hasProperties, setHasProperties] = useState(false);
   const [stats, setStats] = useState<{
@@ -46,44 +47,63 @@ export default function DashboardHomePage() {
 
   useEffect(() => {
     async function fetchData() {
-      if (session?.user?.tenantId) {
-        try {
-          const propertiesResponse = await fetch(apiUrl('/api/properties'));
-          if (propertiesResponse.ok) {
-            const response = await propertiesResponse.json();
-            const propertiesData = response.data || response;
-            const properties = Array.isArray(propertiesData) ? propertiesData : [];
-            setHasProperties(properties.length > 0);
-          }
+      if (sessionStatus === 'loading') {
+        return;
+      }
 
-          const statsResponse = await fetch(apiUrl('/api/dashboard/stats'));
-          if (statsResponse.ok) {
-            const response = await statsResponse.json();
-            const statsData = response.data || response;
-            setStats(statsData);
-          }
+      if (!session?.user?.tenantId) {
+        setLoading(false);
+        return;
+      }
 
-          const activityResponse = await fetch(apiUrl('/api/dashboard/activity?limit=3'));
-          if (activityResponse.ok) {
-            const activityData = await activityResponse.json();
-            setRecentActivity(Array.isArray(activityData) ? activityData : []);
-          }
-        } catch (error) {
-          securityLogger.error('Error fetching dashboard data:', error);
-        } finally {
-          setLoading(false);
+      try {
+        const propertiesResponse = await fetch(apiUrl('/api/properties'));
+        if (propertiesResponse.ok) {
+          const response = await propertiesResponse.json();
+          const propertiesData = response.data || response;
+          const properties = Array.isArray(propertiesData) ? propertiesData : [];
+          setHasProperties(properties.length > 0);
         }
+
+        const statsResponse = await fetch(apiUrl('/api/dashboard/stats'));
+        if (statsResponse.ok) {
+          const response = await statsResponse.json();
+          const statsData = response.data || response;
+          setStats(statsData);
+        }
+
+        const activityResponse = await fetch(apiUrl('/api/dashboard/activity?limit=3'));
+        if (activityResponse.ok) {
+          const activityData = await activityResponse.json();
+          setRecentActivity(Array.isArray(activityData) ? activityData : []);
+        }
+      } catch (error) {
+        securityLogger.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
       }
     }
-    fetchData();
-  }, [session?.user?.tenantId]);
+    void fetchData();
+  }, [session?.user?.tenantId, sessionStatus]);
 
   const userName = session?.user?.name?.split(' ')[0] || session?.user?.email?.split('@')[0] || 'there';
 
-  if (loading) {
+  if (loading || sessionStatus === 'loading') {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <LoadingSpinner size="lg" text="Loading dashboard..." />
+      </div>
+    );
+  }
+
+  if (!session?.user?.tenantId) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-12">
+        <ErrorDisplay
+          variant="full"
+          title="Property not linked"
+          error="Your account is not linked to a property yet. Contact your administrator to finish setup, or complete onboarding if you are setting up a new hotel."
+        />
       </div>
     );
   }

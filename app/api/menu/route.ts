@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/menu
+ * Location: /app/api/menu/route.ts
+ */
+
+/**
  * Menu API Route
  * 
  * Purpose: Manage menu items with system design principles

@@ -20,6 +20,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import PageHeader from '@/components/shared/PageHeader';
 import { Plus } from 'lucide-react';
 import { securityLogger } from '@/lib/utils/security-logger.client';
+import { Button } from '@/components/ui/Button';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,13 +49,12 @@ const PropertiesPage = async () => {
           title="Property"
           description="Manage your hotel's details, rooms, and services."
           actions={
-            <Link 
-              href="/properties/new" 
-              className="btn btn-primary gentle-lift min-h-[44px] shadow-nude-soft hover:shadow-nude-medium"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Edit Property
-            </Link>
+            <Button asChild className="gentle-lift shadow-nude-soft hover:shadow-nude-medium">
+              <Link href="/properties/new">
+                <Plus className="w-5 h-5 mr-2" />
+                Edit Property
+              </Link>
+            </Button>
           }
         />
 

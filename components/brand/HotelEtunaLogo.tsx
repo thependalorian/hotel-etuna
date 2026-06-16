@@ -26,9 +26,9 @@ const compactSizeMap: Record<
 };
 
 const lockupWidthMap: Record<HotelEtunaLogoSize, number> = {
-  sm: 128,
-  md: 168,
-  lg: 220,
+  sm: 160,
+  md: 220,
+  lg: 280,
 };
 
 export interface HotelEtunaLogoProps {
@@ -56,9 +56,10 @@ export function HotelEtunaLogo({
     const lockup = (
       <Image
         src={brand.assets.logoLockup}
-        alt={brand.name}
-        width={width}
-        height={width}
+        alt={`${brand.name} — ${brand.logoTagline}`}
+        width={1600}
+        height={1600}
+        sizes={`(max-width: 640px) ${lockupWidthMap.sm}px, (max-width: 1024px) ${lockupWidthMap.md}px, ${lockupWidthMap.lg}px`}
         className={cn('h-auto w-auto max-w-full', className)}
         style={{ width, height: 'auto' }}
         priority
@@ -95,7 +96,7 @@ export function HotelEtunaLogo({
           titleColor
         )}
       >
-        Hotel Etuna
+        {brand.name}
       </span>
     </span>
   );

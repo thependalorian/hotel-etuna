@@ -24,6 +24,10 @@ export async function verifyTurnstileToken(
   token: string | undefined | null,
   remoteIp?: string | null,
 ): Promise<boolean> {
+  if (process.env.E2E_TURNSTILE_BYPASS === '1') {
+    return true;
+  }
+
   const secret = process.env.TURNSTILE_SECRET_KEY?.trim();
   if (!secret) {
     return true;

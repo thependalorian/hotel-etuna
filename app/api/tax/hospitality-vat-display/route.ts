@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/tax/hospitality-vat-display
+ * Location: /app/api/tax/hospitality-vat-display/route.ts
+ */
+
+/**
  * Hospitality VAT breakdown for a single NAD amount (receipts, deposits).
  * GET /api/tax/hospitality-vat-display?amount=1150&currency=NAD
  *

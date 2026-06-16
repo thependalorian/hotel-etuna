@@ -6,6 +6,9 @@ import { fileURLToPath } from "node:url";
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
+  // Playwright uses http://127.0.0.1:3010; Next 16 blocks cross-origin dev requests without this.
+  allowedDevOrigins: ['127.0.0.1', 'localhost'],
+
   async rewrites() {
     // Public REST contract: /api/v1/* maps to existing route handlers under /api/*
     const apiPrefix = (process.env.NEXT_PUBLIC_API_PREFIX || '/api/v1').replace(/\/$/, '');

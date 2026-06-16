@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/admin/platform/intelligence-digest
+ * Location: /app/api/admin/platform/intelligence-digest/route.ts
+ */
+
+/**
  * Platform intelligence digest preview + test send (Buffr admin only).
  * GET ?cadence=daily|weekly|monthly — preview JSON
  * POST ?cadence=...&send=true — send test email to founder list

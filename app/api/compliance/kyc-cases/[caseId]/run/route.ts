@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/compliance/kyc-cases/[caseId]/run
+ * Location: /app/api/compliance/kyc-cases/[caseId]/run/route.ts
+ */
+
+/**
  * Run LangGraph validation workflow for a case
  *
  * Purpose: Re-evaluate profile + documents; set needs_info or pending_manual_review

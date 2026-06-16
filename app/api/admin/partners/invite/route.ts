@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/admin/partners/invite
+ * Location: /app/api/admin/partners/invite/route.ts
+ */
+
+/**
  * Partner Invite API
  *
  * Purpose: Hub admins invite referral partners.

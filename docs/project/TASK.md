@@ -1,14 +1,14 @@
 # Hotel Etuna — Task & Production Tracker
 
 **Status:** **Production Live** — core platform complete; RAG via Qdrant inference (`npm audit`: see `PROJECT_STATE.md`)  
-**Last Updated:** June 11, 2026 — production verification green; IMP-01 compensating controls; PostHog MCP snapshot  
+**Last Updated:** June 16, 2026 — migration `0065` on Neon; dead-code pass; `test:ci` green; Playwright gate in progress  
 **Production URL:** https://www.hoteletuna.com (canonical; apex `https://hoteletuna.com` should redirect — Vercel Domains)
 
 ---
 
 ## DRY/KISS audit tracker (June 2026)
 
-**Canonical log:** `docs/audit/CODEBASE_AUDIT_2026-06-10.md` (§9 execution log + §10 Archon workflow).
+**Canonical log:** `docs/audit/CODEBASE_AUDIT_2026-06-16.md` (E2E + dead code + `0065`); prior wave: `docs/audit/CODEBASE_AUDIT_2026-06-10.md` §9.
 
 | Archon project | `9ee6b16d-837d-444a-af2d-b49584ee19ec` (Hotel Etuna — Content & Brand OS) |
 |----------------|-------------------------------------------------------------------------------|
@@ -409,10 +409,24 @@ Docs: [Next.js library](https://posthog.com/docs/libraries/next-js) · [SPA page
 |------|--------|
 | Package | `@playwright/test` **^1.60.0** |
 | Viewport projects | `chromium`, `mobile-chrome` (Pixel 5), `tablet` (iPad gen 7) — `playwright.config.ts` |
-| Specs | **8** files under `e2e/` (incl. `responsive-layout.spec.ts`) |
+| Specs | **12** files under `e2e/` + `global-setup.ts`, helpers (`login`, `dismiss-cookie-consent`, `db-otp`) |
+| Config (2026-06-16) | `globalSetup` warms `/api/health` + `/`; per-test `timeout: 120s`; turbo `webServer` with `E2E_TURNSTILE_BYPASS=1`; `PLAYWRIGHT_REUSE_SERVER=1` to attach to existing `:3010`; kill stale `:3010` before full run |
+| Gate status | ⚠️ **291 tests** — fresh run started 2026-06-16; prior run failed ~94/291 when dev server crashed (`ERR_CONNECTION_REFUSED`) |
 | Scripts | `test:e2e`, `test:e2e:desktop`, `test:e2e:mobile`, `test:e2e:tablet`, `test:e2e:responsive`, `test:e2e:install:all` |
 
 `responsive-layout.spec.ts`: horizontal overflow on `/`, `/rooms`, `/dining`, `/contact`; mobile nav toggle (mobile project). Not part of `verify:production` — run manually before major UI releases.
+
+### Test run (2026-06-16 — audit completion)
+
+| Step | Command | Result |
+|------|---------|--------|
+| Typecheck | `npx tsc --noEmit` | ✅ 0 errors |
+| Migrations | `npm run test:db:migrations` | ✅ **55/55** — `0065_tenant_whatsapp_openwa` on Neon (`red-violet-85049608`) via MCP |
+| Unit + integration | `npm test` | ✅ **811** passed, **2** skipped |
+| Compliance smoke | `vitest run --config vitest.smoke.config.ts` | ✅ **6/6** |
+| Document wiring | `npm run validate:document-wiring` | ✅ (payments desk `#documents` link restored) |
+| Full CI gate | `npm run test:ci` | ✅ green |
+| Playwright E2E | `npx playwright test` | ⚠️ in progress — see Playwright table above |
 
 ### Test run (2026-06-11 — production verification)
 
@@ -420,7 +434,7 @@ Docs: [Next.js library](https://posthog.com/docs/libraries/next-js) · [SPA page
 |------|---------|--------|
 | Typecheck | `npx tsc --noEmit` | ✅ 0 errors |
 | DB health | `npm run test:db` | ✅ pass |
-| Migrations | `npm run test:db:migrations` | ✅ **54/54** through `0064` |
+| Migrations | `npm run test:db:migrations` | ✅ **55/55** through `0065` (Neon applied 2026-06-16) |
 | Unit + integration | `npm test` (`vitest run`) | ✅ **808** passed, **2** skipped (**107** files) |
 | Compliance smoke | `vitest run --config vitest.smoke.config.ts` | ✅ **6/6** |
 | Wave 6 gates | `npm run validate:audit-wave6` | ✅ **9 pass**, 1 warn (`enable:pgaudit`) |

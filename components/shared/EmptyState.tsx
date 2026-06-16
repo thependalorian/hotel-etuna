@@ -16,6 +16,7 @@ import React from 'react';
 import { cn } from '@/lib/utils/cn';
 import Link from 'next/link';
 import { Inbox } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 
 interface EmptyStateProps {
   /** Lucide component, or a pre-rendered icon element (merged with DS sizing). */
@@ -54,7 +55,7 @@ function renderEmptyIcon(
   return <Cmp className="w-12 h-12 text-nude-300" aria-hidden />;
 }
 
-export function EmptyState({
+function EmptyState({
   icon,
   title,
   description,
@@ -87,19 +88,13 @@ export function EmptyState({
       {action && (
         <div>
           {action.href ? (
-            <Link 
-              href={action.href} 
-              className="inline-flex items-center justify-center px-4 py-2.5 bg-nude-600 text-white font-medium text-sm rounded-lg hover:bg-nude-700 focus:outline-none focus:ring-2 focus:ring-nude-400 focus:ring-offset-2 transition-colors min-h-[44px]"
-            >
-              {action.label}
-            </Link>
+            <Button asChild size="sm">
+              <Link href={action.href}>{action.label}</Link>
+            </Button>
           ) : action.onClick ? (
-            <button 
-              onClick={action.onClick} 
-              className="inline-flex items-center justify-center px-4 py-2.5 bg-nude-600 text-white font-medium text-sm rounded-lg hover:bg-nude-700 focus:outline-none focus:ring-2 focus:ring-nude-400 focus:ring-offset-2 transition-colors min-h-[44px]"
-            >
+            <Button type="button" size="sm" onClick={action.onClick}>
               {action.label}
-            </button>
+            </Button>
           ) : null}
         </div>
       )}

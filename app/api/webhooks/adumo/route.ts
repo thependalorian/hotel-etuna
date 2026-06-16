@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/webhooks/adumo
+ * Location: /app/api/webhooks/adumo/route.ts
+ */
+
+/**
  * Adumo Online Virtual — server notification (notificationURL in JWT).
  * Location: app/api/webhooks/adumo/route.ts
  *

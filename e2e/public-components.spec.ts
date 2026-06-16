@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { dismissCookies } from './helpers/dismiss-cookie-consent';
 
 /**
  * E2E Test: Public homepage content
@@ -10,9 +11,14 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('Public Components', () => {
+  test.describe.configure({ timeout: 120_000 });
+
+  test.beforeEach(async ({ page }) => {
+    await dismissCookies(page);
+  });
+
   test('should render hero with correct content', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('load');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     
     // Check for hero heading
     const heroHeading = page.getByRole('heading', { level: 1, name: /he takes care of us|hotel etuna/i });
@@ -43,17 +49,22 @@ test.describe('Public Components', () => {
     expect(hasPhone || hasContact).toBe(true);
   });
 
-  test('should render navigation header with correct links', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('load');
-    
-    // Navigation should exist
-    const nav = page.getByRole('navigation', { name: 'Main navigation' });
-    await expect(nav).toBeVisible({ timeout: 60_000 });
-    
-    // Check key nav links
-    await expect(nav.getByRole('link', { name: 'Rooms' })).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'Dining' })).toBeVisible();
+  test('should render navigation header with correct links', async ({ page }, testInfo) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+
+    if (testInfo.project.name === 'mobile-chrome') {
+      await expect(page.getByRole('button', { name: /toggle mobile menu/i })).toBeVisible({
+        timeout: 30_000,
+      });
+      await page.getByRole('button', { name: /toggle mobile menu/i }).click();
+      await expect(page.locator('#mobile-menu').getByRole('link', { name: 'Rooms' })).toBeVisible();
+      await expect(page.locator('#mobile-menu').getByRole('link', { name: 'Dining' })).toBeVisible();
+    } else {
+      const nav = page.getByRole('navigation', { name: 'Main navigation' });
+      await expect(nav).toBeVisible({ timeout: 30_000 });
+      await expect(nav.getByRole('link', { name: 'Rooms' })).toBeVisible();
+      await expect(nav.getByRole('link', { name: 'Dining' })).toBeVisible();
+    }
   });
 
   test('should render about section on homepage', async ({ page }) => {

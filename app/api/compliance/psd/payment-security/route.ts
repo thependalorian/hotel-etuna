@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/compliance/psd/payment-security
+ * Location: /app/api/compliance/psd/payment-security/route.ts
+ */
+
+/**
  * Payment Security Validation API
  * 
  * Purpose: Comprehensive security checks before payment processing

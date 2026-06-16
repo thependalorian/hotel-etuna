@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/payroll/runs/[id]/approve
+ * Location: /app/api/payroll/runs/[id]/approve/route.ts
+ */
+
+/**
  * Payroll run approval API
  * POST /api/payroll/runs/[id]/approve — approve computed run and issue payslips
  *

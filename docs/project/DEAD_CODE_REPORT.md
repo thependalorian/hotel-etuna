@@ -104,6 +104,53 @@ attack surface.
 
 ---
 
+## Executed 2026-06-16
+
+**Context:** Audit completion pass — see `docs/audit/CODEBASE_AUDIT_2026-06-16.md`.
+
+### Removed (grep-verified)
+
+- `lib/ai/agent-registry.ts`
+- `lib/services/sofia/ConversationService.ts`
+- `lib/utils/etuna-scope.ts`
+- `lib/hooks/useTenant.ts`
+- `lib/payments/transaction-metadata.ts` (+ admin dashboard copy trim)
+- `lib/db/schema-types.ts`
+- `lib/services/openbanking/AccountInformationService.ts`
+- `app/guest/room/GuestRoomQrClient.tsx`
+- `scripts/verify-system-design.js`
+
+### Kept after re-check
+
+- `lib/utils/sanitize-html.ts` — compliance preflight path check (knip `ignoreFiles`)
+- `components/ui/Table.tsx` — design-system primitive (knip `ignoreFiles`)
+- `SofiaService.ts`, `JournalEntryService.ts`, `sofia-graph.ts` — test importers
+- `lib/services/qr/__tests__/canonical-namqr-encoder.test.ts` — vitest entry in `knip.json`
+
+### Removed in knip loop (2026-06-16, second pass)
+
+- MenuBook stack (8 files under `components/dining/`) + `lib/dining/menu-item-images.ts`
+- `components/features/property/RoomForm.tsx`, `components/features/restaurant/MenuItem.tsx`
+- `lib/auth/client.ts`, `lib/config/{constants,deepseek,hospitality-flags}.ts`
+- Compliance barrels/shims: `lib/compliance/namqr/index.ts`, `security-pack/index.ts`, `soc2/{index,control-catalog,run-all-soc2-agents}.ts`
+- `lib/copy/index.ts`, `lib/domain/accounting/index.ts`
+- `lib/services/fraud/FraudAlertNotificationService.ts`
+
+### package.json deps removed
+
+`@supabase/supabase-js`, `@zxing/browser`, `bcrypt`, `openai`, `@testing-library/*`, `@types/bcrypt`, `@types/dompurify`, `dompurify`, `@types/uuid` (moved `uuid` to `dependencies`).
+
+### knip config
+
+- `ignoreExportsUsedInFile: true`
+- `ignoreFiles`: `sanitize-html.ts`, `Table.tsx`
+- `ignoreIssues`: `lib/**`, `components/ui/**`, `components/providers/**`, `stack.ts`, `e2e/**` (exports/types)
+- Vitest entry: `lib/**/__tests__/**/*.{test,spec}.{ts,tsx}`
+
+**Status (2026-06-16):** `npx knip` exits **0** (configuration hints only).
+
+---
+
 ## How to wire knip into CI (after config tuning)
 
 `package.json` already has a `"knip": "knip"` script. Once §0 is addressed and

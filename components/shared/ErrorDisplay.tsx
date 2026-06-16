@@ -14,6 +14,7 @@
 import React from 'react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
+import { Button } from '@/components/ui/Button';
 
 interface ErrorDisplayProps {
   error: string | Error;
@@ -23,7 +24,7 @@ interface ErrorDisplayProps {
   variant?: 'default' | 'minimal' | 'full';
 }
 
-export function ErrorDisplay({
+function ErrorDisplay({
   error,
   title = 'Error',
   onRetry,
@@ -51,14 +52,10 @@ export function ErrorDisplay({
           <h3 className="text-xl font-bold font-display mb-2">{title}</h3>
           <p className="text-error font-medium mb-6">{errorMessage}</p>
           {onRetry && (
-            <button 
-              onClick={onRetry} 
-              className="btn btn-primary gentle-lift min-h-[44px]"
-              aria-label="Retry operation"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
+            <Button type="button" onClick={onRetry} aria-label="Retry operation">
+              <RefreshCw className="w-4 h-4" aria-hidden />
               Try Again
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -75,14 +72,10 @@ export function ErrorDisplay({
         <h3 className="text-lg font-bold font-display mb-2">{title}</h3>
         <p className="text-error font-medium mb-4">{errorMessage}</p>
         {onRetry && (
-          <button 
-            onClick={onRetry} 
-            className="btn btn-primary btn-sm gentle-lift min-h-[44px]"
-            aria-label="Retry operation"
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
+          <Button type="button" size="sm" onClick={onRetry} aria-label="Retry operation">
+            <RefreshCw className="w-4 h-4" aria-hidden />
             Try Again
-          </button>
+          </Button>
         )}
       </div>
     </div>

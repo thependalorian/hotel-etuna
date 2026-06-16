@@ -361,24 +361,33 @@ export const properties = pgTable('properties', {
 }));
 
 /**
- * Maps Meta WhatsApp Cloud API phone_number_id (per business number) to a Buffr tenant.
- * Used by /api/webhooks/whatsapp to route inbound messages to Sofia.
+ * Maps WhatsApp provider credentials (Meta Cloud API or OpenWA session) to a tenant.
+ * Used by /api/webhooks/whatsapp and /api/webhooks/openwa for Sofia routing.
  */
 export const tenantWhatsappSettings = pgTable('tenant_whatsapp_settings', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id')
     .references(() => tenants.id, { onDelete: 'cascade' })
     .notNull(),
-  phoneNumberId: varchar('phone_number_id', { length: 64 }).notNull().unique(),
+  /** meta | openwa — one active row per provider per tenant */
+  provider: varchar('provider', { length: 16 }).notNull().default('meta'),
+  /** Meta Cloud API phone_number_id (required when provider = meta) */
+  phoneNumberId: varchar('phone_number_id', { length: 64 }),
+  /** OpenWA session name/id (required when provider = openwa) */
+  openwaSessionId: varchar('openwa_session_id', { length: 128 }),
+  openwaWebhookSecret: text('openwa_webhook_secret'),
+  openwaApiBaseUrl: text('openwa_api_base_url'),
+  isActive: boolean('is_active').notNull().default(true),
   defaultPropertyId: uuid('default_property_id').references(() => properties.id, {
     onDelete: 'set null',
   }),
-  /** Optional; falls back to WHATSAPP_ACCESS_TOKEN env when null */
+  /** Optional; falls back to WHATSAPP_ACCESS_TOKEN env when null (Meta only) */
   accessToken: text('access_token'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (table) => ({
   tenantIdx: index('idx_tenant_whatsapp_settings_tenant_id').on(table.tenantId),
+  providerIdx: index('idx_tenant_whatsapp_provider').on(table.provider),
 }));
 
 export const propertySettings = pgTable('property_settings', {

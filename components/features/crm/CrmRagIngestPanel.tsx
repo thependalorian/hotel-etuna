@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { apiUrl } from '@/lib/utils/api-url';
 import { securityLogger } from '@/lib/utils/security-logger.client';
+import { Button } from '@/components/ui/Button';
 
 export type CrmRagIngestPropertyOption = { id: string; name: string };
 
@@ -192,21 +193,14 @@ export default function CrmRagIngestPanel({ properties }: { properties: CrmRagIn
         </div>
 
         <div className="card-actions justify-end">
-          <button
+          <Button
             type="button"
-            className="btn btn-primary min-h-[44px]"
             onClick={submit}
             disabled={!canIngest || submitting}
+            isLoading={submitting}
           >
-            {submitting ? (
-              <>
-                <span className="loading loading-spinner loading-sm" />
-                Ingesting…
-              </>
-            ) : (
-              'Ingest to Qdrant'
-            )}
-          </button>
+            Ingest to Qdrant
+          </Button>
         </div>
 
         <p className="text-xs text-base-content/60">

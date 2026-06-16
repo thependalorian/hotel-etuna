@@ -5,6 +5,7 @@
 
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { Button } from '@/components/ui/Button';
 import { StaffService } from '@/lib/services/staff/StaffService';
 import { getSessionWithTenantContext } from '@/lib/auth/tenant-context';
 
@@ -38,9 +39,9 @@ export default async function StaffProfilePage({ params }: StaffProfilePageProps
           <Link href={`/staff/${id}/schedule`} className="btn btn-outline rounded-full px-6">
             Schedule
           </Link>
-          <Link href={`/staff/${id}/edit`} className="btn btn-primary rounded-full px-6">
-            Edit
-          </Link>
+          <Button asChild>
+            <Link href={`/staff/${id}/edit`}>Edit</Link>
+          </Button>
         </div>
       </div>
 

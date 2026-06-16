@@ -416,6 +416,11 @@ async function main() {
       name: '0064 generated_documents table',
       ok: await tableExists(pool, 'generated_documents'),
     });
+
+    results.push({
+      name: '0065 tenant_whatsapp openwa_session_id',
+      ok: await columnExists(pool, 'tenant_whatsapp_settings', 'openwa_session_id'),
+    });
   } finally {
     await pool.end();
   }

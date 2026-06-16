@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/cms/pages
+ * Location: /app/api/cms/pages/route.ts
+ */
+
+/**
  * CMS Pages API — list and create tenant pages.
  * Location: /app/api/cms/pages/route.ts
  */

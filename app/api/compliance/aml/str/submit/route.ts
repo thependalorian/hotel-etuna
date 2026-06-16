@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/compliance/aml/str/submit
+ * Location: /app/api/compliance/aml/str/submit/route.ts
+ */
+
+/**
  * STR Submission API Endpoint
  * 
  * Purpose: Submit STRs to Financial Intelligence Centre

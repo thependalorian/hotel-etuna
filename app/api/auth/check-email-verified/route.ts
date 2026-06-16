@@ -1,3 +1,8 @@
+/**
+ * @fileoverview API route //api/auth/check-email-verified
+ * Location: /app/api/auth/check-email-verified/route.ts
+ */
+
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';

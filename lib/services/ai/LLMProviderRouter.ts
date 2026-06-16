@@ -1,4 +1,5 @@
 /**
+ * @fileoverview LLMProviderRouter — domain service module.
  * LLM provider router
  *
  * Purpose: Cost-conscious, resilient provider failover for Sofia AI calls.

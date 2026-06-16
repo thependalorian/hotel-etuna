@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/admin/platform/users
+ * Location: /app/api/admin/platform/users/route.ts
+ */
+
+/**
  * Platform Users API Route
  * 
  * Purpose: API endpoint for platform admin user management

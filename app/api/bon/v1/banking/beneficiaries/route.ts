@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/bon/v1/banking/beneficiaries
+ * Location: /app/api/bon/v1/banking/beneficiaries/route.ts
+ */
+
+/**
  * Namibia Open Banking — List Beneficiaries (PIS Use Case 2)
  *
  * Purpose: Return payees the account holder pays frequently (TPP presentation aid).

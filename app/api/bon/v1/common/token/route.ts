@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/bon/v1/common/token
+ * Location: /app/api/bon/v1/common/token/route.ts
+ */
+
+/**
  * OAuth 2.0 Token Endpoint
  * 
  * Purpose: Exchange authorization code for access/refresh tokens

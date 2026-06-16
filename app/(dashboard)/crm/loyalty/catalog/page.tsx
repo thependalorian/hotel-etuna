@@ -23,6 +23,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import PageHeader from '@/components/shared/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { apiUrl } from '@/lib/utils/api-url';
+import { Button } from '@/components/ui/Button';
 
 interface LoyaltyReward {
   id: string;
@@ -147,12 +148,9 @@ export default function LoyaltyCatalogPage() {
       />
 
       <div className="mb-6">
-        <button
-          onClick={() => setShowCreateForm(!showCreateForm)}
-          className="btn btn-primary min-h-[44px]"
-        >
+        <Button type="button" onClick={() => setShowCreateForm(!showCreateForm)}>
           {showCreateForm ? 'Cancel' : 'Create New Reward'}
-        </button>
+        </Button>
       </div>
 
       {showCreateForm && (
@@ -261,9 +259,7 @@ export default function LoyaltyCatalogPage() {
             </div>
 
             <div className="flex gap-4">
-              <button type="submit" className="btn btn-primary min-h-[44px]">
-                Create Reward
-              </button>
+              <Button type="submit">Create Reward</Button>
               <button
                 type="button"
                 onClick={() => setShowCreateForm(false)}

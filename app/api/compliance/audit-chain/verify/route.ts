@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/compliance/audit-chain/verify
+ * Location: /app/api/compliance/audit-chain/verify/route.ts
+ */
+
+/**
  * Audit hash chain verification API for hub operators.
  * GET /api/compliance/audit-chain/verify?fromId=&toId=
  * Location: app/api/compliance/audit-chain/verify/route.ts

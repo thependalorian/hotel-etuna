@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/admin/platform/support/tickets/[id]/linear
+ * Location: /app/api/admin/platform/support/tickets/[id]/linear/route.ts
+ */
+
+/**
  * Legacy path — maps internal escalation response to linear_* field names.
  */
 

@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/bookings/[id]/payment
+ * Location: /app/api/bookings/[id]/payment/route.ts
+ */
+
+/**
  * Cash Payment API Endpoint
  *
  * Purpose: Mark cash bookings as paid with amount tracking

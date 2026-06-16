@@ -8,9 +8,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 import { ManualPaymentForm } from '@/components/features/payments/ManualPaymentForm';
 import { NamQrDeskPanel } from '@/components/features/payments/NamQrDeskPanel';
 import { NamQrPendingQueue } from '@/components/features/payments/NamQrPendingQueue';
+import { PaymentsDeskBookingPicker } from '@/components/features/payments/PaymentsDeskBookingPicker';
 
 export default function PaymentsDeskPage() {
   const [bookingId, setBookingId] = useState('');
@@ -24,33 +26,19 @@ export default function PaymentsDeskPage() {
             NamQR v5.0 desk QR and off-platform payment recording (EFT, e-wallet, NamQR bank app).
           </p>
         </div>
-        <Link href="/payments/reconciliation" className="btn btn-ghost btn-sm">
-          Cash reconciliation →
-        </Link>
+        <Button asChild variant="ghost" size="sm">
+          <Link href="/payments/reconciliation">Payment reconciliation →</Link>
+        </Button>
       </div>
 
       <Card className="p-4 md:p-6">
-        <label className="label" htmlFor="desk-booking-id">
-          <span className="label-text font-medium">Booking ID</span>
-        </label>
-        <input
-          id="desk-booking-id"
-          type="text"
-          className="input input-bordered w-full font-mono text-sm"
-          placeholder="Paste booking UUID from /bookings"
-          value={bookingId}
-          onChange={(e) => setBookingId(e.target.value)}
-        />
-        <p className="mt-2 text-xs text-base-content/60">
-          Open a booking in Bookings, copy its ID, then record payment or tie NamQR to the stay.
-        </p>
-        {bookingId.trim() ? (
-          <Link
-            href={`/bookings/${bookingId.trim()}#documents`}
-            className="btn btn-outline btn-sm rounded-full mt-3"
-          >
-            Financial documents for this booking →
-          </Link>
+        <PaymentsDeskBookingPicker value={bookingId} onChange={(id) => setBookingId(id)} />
+        {bookingId ? (
+          <p className="mt-3 text-sm">
+            <Link href={`/bookings/${bookingId}#documents`} className="link link-primary">
+              Open booking documents
+            </Link>
+          </p>
         ) : null}
       </Card>
 
@@ -69,7 +57,7 @@ export default function PaymentsDeskPage() {
           {bookingId ? (
             <ManualPaymentForm bookingId={bookingId} />
           ) : (
-            <p className="text-sm text-warning">Enter a booking ID above to record a payment.</p>
+            <p className="text-sm text-warning">Find a booking above to record a payment.</p>
           )}
         </Card>
       </div>

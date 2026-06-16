@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/payroll/periods
+ * Location: /app/api/payroll/periods/route.ts
+ */
+
+/**
  * Payroll periods API
  * GET /api/payroll/periods — list periods (owner, manager, admin)
  * POST /api/payroll/periods — create period (owner, admin only)

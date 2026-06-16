@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/fnb/print-jobs
+ * Location: /app/api/fnb/print-jobs/route.ts
+ */
+
+/**
  * F&B Print Jobs API
  *
  * Purpose: List and create kitchen/bar print dispatch jobs for staff.

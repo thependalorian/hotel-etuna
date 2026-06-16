@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/cron/intelligence-digest
+ * Location: /app/api/cron/intelligence-digest/route.ts
+ */
+
+/**
  * Intelligence digest cron — daily / weekly / monthly founder digests; Monday partner weekly.
  * GET /api/cron/intelligence-digest?cadence=daily|weekly|monthly|partner-weekly
  * Security: Authorization: Bearer ${CRON_SECRET}

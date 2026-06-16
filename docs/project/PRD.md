@@ -182,7 +182,7 @@ Marketing personas in **§2.1** describe *who books and why*. The table below ma
 | **Staff & Dashboard** | Role‑based access for Hotel Etuna staff (owner, manager, front‑desk, housekeeping, kitchen). Staff CRUD at `/staff`, edit at `/staff/[id]/edit`, schedules at `/staff/[id]/schedule`. **Payroll (Namibia):** integrated PAYE + SSC at `/payroll` (founder/admin only); exports align with NamRA refs in `TAX_AND_NAMRA_COMPLIANCE.md` §6.1. Audit logging for all sensitive actions. |
 | **Deposits & commission** | Booking `deposit_percent` (default 30%) drives checkout partial amount; partner commission report at `/reports/commission`. |
 | **Open banking** | NamQR v5.0 primary rail; PIS via BON endpoints (`/api/bon/v1/banking/payments`) with PSD‑12 step‑up 2FA — see `mba-agent/regulatory/namibia/namibia_open_banking_standards.md`. |
-| **Communications** | Sofia AI voice/web chat, WhatsApp webhook, support tickets. Email automation (booking confirmations, check‑in reminders, post‑stay thank you). **Hub tenant only** — partners do not have Sofia AI or email automation. |
+| **Communications** | Sofia AI voice/web chat, WhatsApp (Meta Cloud API + OpenWA on Railway), `/communications` hub for front desk/support, support tickets. Email automation (booking confirmations, check‑in reminders, post‑stay thank you). **Hub tenant only** — partners do not have Sofia AI or email automation. OpenWA uses unofficial WhatsApp Web; Meta remains the production-grade provider. |
 | **Support** | Platform support tickets for hotel staff and partners. Integrated issue tracker for bug reports, feature requests. Hub admin can view all support tickets. |
 | **Compliance & Risk** | Consumer rights / cyber incident lifecycles; **KYC/KYB for Hotel Etuna and all partners**. Court‑admissible audit themes. All regulatory requirements (PSD‑12, PSD‑4, ETA 2019) apply platform‑wide. |
 | **AI (Sofia)** | **Hub‑exclusive AI concierge** with knowledge base for Hotel Etuna only. RAG over Hotel Etuna property documents, guest preferences, CRM memory. **Knowledge base contains 4 documents** (hotel facts, room descriptions, restaurant menu, local area info), **~27 semantic chunks**, **Qdrant Cloud Inference** (`intfloat/multilingual-e5-small`, **384d**), collection **`buffr_rag`**. Human escalation for low confidence or policy keywords. **Partners do not have access to Sofia AI or any AI features.** Sofia enforces gated content: will not disclose prices or availability to unauthenticated users, instead prompts sign‑up. **Ingestion:** `npm run rag:seed` — semantic chunking (~800 chars, 100-char overlap), Qdrant Inference upsert, tenant-scoped `buffr_rag`. **Conversations** persist in Neon (`ai_conversations` / `ai_messages`, tenant-scoped history). **Long-term guest memory:** Neon `crm_guest_memory_facts` + `crm_graph_edges` (auto-written after each turn via `SofiaGuestFactExtractor`); optional Mem0 mirror if `MEM0_API_KEY` set — **not** Ava-style `long_term_memory` in Qdrant. **Restaurant flow state:** `ai_conversations.context` JSONB + `dining_reservations`. |
@@ -1961,7 +1961,10 @@ Complete route inventory: `app/api/**/route.ts` (**136** handlers; verify: `find
 | `/api/sofia/email` | POST | Session | `sofia_email_logs`, `properties`, `users` | `sofia/email` |
 | `/api/sofia/voice/webhook` | POST | Webhook | `sofia_voice_sessions` | External provider |
 | `/api/ai/concierge` | POST, GET | Session | `ai_conversations`, `ai_messages`, `bookings`, `guests` | `ai/page` → `SofiaConciergeChat` |
-| `/api/webhooks/whatsapp` | GET, POST | Webhook | `tenant_whatsapp_settings`, `guests`, `ai_*` | Meta only |
+| `/api/webhooks/whatsapp` | GET, POST | Webhook | `tenant_whatsapp_settings`, `guests`, `ai_*` | Meta Cloud API |
+| `/api/webhooks/openwa` | POST | Webhook | `tenant_whatsapp_settings`, `guests`, `ai_*` | OpenWA (Railway sidecar) |
+| `/api/communications/threads` | GET | Hub staff | `ai_conversations`, `ai_messages` | `/communications` hub |
+| `/api/communications/threads/[sessionId]` | GET, POST, PATCH | Hub staff | `ai_*`, outbound Meta/OpenWA | Thread detail + staff reply |
 
 #### Payments
 

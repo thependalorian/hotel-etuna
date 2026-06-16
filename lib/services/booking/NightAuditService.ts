@@ -1,4 +1,5 @@
 /**
+ * @fileoverview NightAuditService — domain service module.
  * NightAuditService — automated end-of-day operations
  *
  * Purpose: Post room tariffs, process no-shows, advance stayovers, lock charges, generate revenue reports

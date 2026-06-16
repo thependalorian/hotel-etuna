@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/compliance/consumer-rights/[id]/status
+ * Location: /app/api/compliance/consumer-rights/[id]/status/route.ts
+ */
+
+/**
  * Consumer rights request status (ETA-oriented workflow)
  *
  * Purpose: Validated transitions for consumer_rights_requests

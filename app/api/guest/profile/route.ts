@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/guest/profile
+ * Location: /app/api/guest/profile/route.ts
+ */
+
+/**
  * Guest profile API — the signed-in guest's own contact details + stay preferences.
  *
  * GUEST SELF-SERVICE portal (singular `guest`) — the authenticated guest acts on

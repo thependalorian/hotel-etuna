@@ -1,3 +1,8 @@
+/**
+ * @fileoverview API route //api/analytics
+ * Location: /app/api/analytics/route.ts
+ */
+
 import { NextRequest } from 'next/server';
 import { AnalyticsService } from '@/lib/services/analytics/AnalyticsService';
 import {

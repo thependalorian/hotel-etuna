@@ -1,4 +1,5 @@
 /**
+ * @fileoverview HospitalityAccountingService — domain service module.
  * HospitalityAccountingService — Namibia bookkeeping from PMS folio + payments (Libby / RWJJ).
  * Location: lib/services/accounting/HospitalityAccountingService.ts
  *

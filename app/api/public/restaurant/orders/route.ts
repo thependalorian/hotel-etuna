@@ -1,3 +1,8 @@
+/**
+ * @fileoverview API route //api/public/restaurant/orders
+ * Location: /app/api/public/restaurant/orders/route.ts
+ */
+
 import { NextResponse, NextRequest } from 'next/server';
 import { OrderService } from '@/lib/services/restaurant/OrderService';
 import { PropertyService } from '@/lib/services/property/PropertyService';

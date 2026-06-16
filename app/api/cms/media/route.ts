@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/cms/media
+ * Location: /app/api/cms/media/route.ts
+ */
+
+/**
  * CMS Media API Route
  * 
  * Purpose: Manage CMS media (images, files) with system design principles

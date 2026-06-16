@@ -10,7 +10,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type {
   GuestLoyaltyHubSummary,
   GuestPastStaySummary,
@@ -53,7 +53,8 @@ export function normalizeHubPayload(json: { data?: unknown }): GuestHubData {
  *
  * @returns Hub data plus `loading` / `error` flags.
  */
-export function useGuestHub(): GuestHubState {
+export function useGuestHub(): GuestHubState & { reload: () => void } {
+  const [reloadKey, setReloadKey] = useState(0);
   const [state, setState] = useState<GuestHubState>({
     activeStays: [],
     paymentDue: [],
@@ -65,6 +66,7 @@ export function useGuestHub(): GuestHubState {
 
   useEffect(() => {
     let cancelled = false;
+    setState((prev) => ({ ...prev, loading: true, error: null }));
     (async () => {
       try {
         const res = await fetch('/api/guest/stays', { credentials: 'include' });
@@ -88,7 +90,9 @@ export function useGuestHub(): GuestHubState {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadKey]);
 
-  return state;
+  const reload = useCallback(() => setReloadKey((key) => key + 1), []);
+
+  return { ...state, reload };
 }

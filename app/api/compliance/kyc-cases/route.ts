@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/compliance/kyc-cases
+ * Location: /app/api/compliance/kyc-cases/route.ts
+ */
+
+/**
  * KYC/KYB compliance cases API
  *
  * Purpose: List and create verification cases (LangGraph workflow + manual review)

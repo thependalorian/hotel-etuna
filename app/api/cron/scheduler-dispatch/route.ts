@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/cron/scheduler-dispatch
+ * Location: /app/api/cron/scheduler-dispatch/route.ts
+ */
+
+/**
  * Durable scheduler dispatch cron — processes pending scheduler_jobs.
  *
  * GET /api/cron/scheduler-dispatch

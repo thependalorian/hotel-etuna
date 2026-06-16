@@ -12,12 +12,13 @@ export async function getVerificationOtpForEmail(email: string): Promise<string>
   const client = new pg.Client({ connectionString: databaseUrl });
   await client.connect();
   try {
+    const normalized = email.trim().toLowerCase();
     const res = await client.query<{ email_verification_otp: string | null }>(
-      `SELECT email_verification_otp FROM users WHERE email = $1 LIMIT 1`,
-      [email],
+      `SELECT email_verification_otp FROM users WHERE lower(email) = $1 LIMIT 1`,
+      [normalized],
     );
     const otp = res.rows[0]?.email_verification_otp;
-    if (!otp) throw new Error(`No email_verification_otp for ${email}`);
+    if (!otp) throw new Error(`No email_verification_otp for ${normalized}`);
     return otp;
   } finally {
     await client.end();

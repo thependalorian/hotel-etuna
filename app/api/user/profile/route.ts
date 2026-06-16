@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/user/profile
+ * Location: /app/api/user/profile/route.ts
+ */
+
+/**
  * User Profile API Route
  *
  * Purpose: Fetch user profile data

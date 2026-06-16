@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/compliance/kyc/upgrade-prompts
+ * Location: /app/api/compliance/kyc/upgrade-prompts/route.ts
+ */
+
+/**
  * KYC Upgrade Prompts API Endpoint
  * 
  * Purpose: Get and manage KYC upgrade prompts for guests

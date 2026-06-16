@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/inventory/alerts
+ * Location: /app/api/inventory/alerts/route.ts
+ */
+
+/**
  * GET /api/inventory/alerts?restaurantId=
  * Location: app/api/inventory/alerts/route.ts
  */

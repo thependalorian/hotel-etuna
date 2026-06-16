@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/cms/pages/[id]
+ * Location: /app/api/cms/pages/[id]/route.ts
+ */
+
+/**
  * CMS Page API — single page read/update.
  * Location: /app/api/cms/pages/[id]/route.ts
  */

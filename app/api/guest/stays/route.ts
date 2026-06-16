@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/guest/stays
+ * Location: /app/api/guest/stays/route.ts
+ */
+
+/**
  * Guest stays list API
  *
  * GUEST SELF-SERVICE portal (singular `guest`) — the authenticated guest views

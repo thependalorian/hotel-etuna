@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/compliance/kyc-cases/[caseId]/profile
+ * Location: /app/api/compliance/kyc-cases/[caseId]/profile/route.ts
+ */
+
+/**
  * Update case profile (e.g. after needs_info)
  *
  * Purpose: Merge JSON profile fields before re-running validation workflow

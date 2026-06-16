@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/compliance/kyc-cases/[caseId]/decision
+ * Location: /app/api/compliance/kyc-cases/[caseId]/decision/route.ts
+ */
+
+/**
  * Manual reviewer decision (human-in-the-loop) via LangGraph decision graph
  *
  * Purpose: Approve / reject / request more info; updates staff when subject is staff

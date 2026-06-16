@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/crm/loyalty/catalog/[id]
+ * Location: /app/api/crm/loyalty/catalog/[id]/route.ts
+ */
+
+/**
  * Single Reward API
  * 
  * GET   /api/crm/loyalty/catalog/[id] - Get reward details

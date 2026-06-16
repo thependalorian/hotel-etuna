@@ -27,18 +27,36 @@
   "ignore": [
     "**/*.d.ts",
     ".next/**",
-    "public/**"
+    "public/**",
+    ".claude/worktrees/**"
   ],
+  "ignoreExportsUsedInFile": true,
+  "ignoreFiles": [
+    "components/ui/Table.tsx",
+    "lib/utils/sanitize-html.ts"
+  ],
+  "ignoreIssues": {
+    "components/ui/**": ["exports", "types"],
+    "lib/**": ["exports", "types"],
+    "components/providers/**": ["exports", "types"],
+    "lib/db/index.ts": ["exports"],
+    "e2e/**": ["exports", "types"],
+    "stack.ts": ["exports", "types"]
+  },
   "ignoreBinaries": ["supabase", "vercel", "tree"],
   "ignoreDependencies": [
     "@tailwindcss/postcss",
     "tailwindcss",
-    "baseline-browser-mapping"
+    "baseline-browser-mapping",
+    "@types/bcryptjs"
   ],
   "workspaces": {
     ".": {
       "entry": [
         "scripts/**/*.{ts,mts,mjs}",
+        "scripts/compliance/**/*.ts",
+        "scripts/security/**/*.ts",
+        "scripts/db/**/*.ts",
         "tests/**/*.{test,spec}.{ts,tsx}",
         "tests/setup/**/*.ts",
         "tests/utils/**/*.ts",
@@ -49,7 +67,11 @@
   },
   "vitest": {
     "config": ["vitest.config.ts", "vitest.smoke.config.ts"],
-    "entry": ["tests/**/*.{test,spec}.{ts,tsx}", "tests/setup/**/*.ts"]
+    "entry": [
+      "tests/**/*.{test,spec}.{ts,tsx}",
+      "tests/setup/**/*.ts",
+      "lib/**/__tests__/**/*.{test,spec}.{ts,tsx}"
+    ]
   },
   "playwright": {
     "config": ["playwright.config.ts"],

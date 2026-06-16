@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/partners
+ * Location: /app/api/partners/route.ts
+ */
+
+/**
  * Partners List API Route
  *
  * Purpose: Fetch all active partner properties for directory page.

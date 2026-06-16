@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/guest/dsar
+ * Location: /app/api/guest/dsar/route.ts
+ */
+
+/**
  * Guest DSAR (Data Subject Access Request) API
  *
  * Purpose: Allow authenticated guests to submit data access, correction, or deletion requests

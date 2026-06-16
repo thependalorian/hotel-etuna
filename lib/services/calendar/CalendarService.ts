@@ -1,4 +1,5 @@
 /**
+ * @fileoverview CalendarService — domain service module.
  * CalendarService
  * 
  * Purpose: Reusable calendar and date/time management service for booking management,

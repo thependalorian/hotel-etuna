@@ -10,6 +10,7 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import ContentEditor from './ContentEditor';
 import MediaUploader from './MediaUploader';
 import { securityLogger } from '@/lib/utils/security-logger.client';
+import { Button } from '@/components/ui/Button';
 
 interface CmsDashboardProps {
   initialContent: CmsContent[];
@@ -60,9 +61,9 @@ export default function CmsDashboard({ initialContent, initialMedia, properties 
           </div>
           <h3 className="text-xl font-bold font-display mb-2">No properties found</h3>
           <p className="text-base-content/70 mb-6">Please add a property first to manage content.</p>
-          <Link href="/properties/new" className="btn btn-primary gentle-lift">
-            Add New Property
-          </Link>
+          <Button asChild className="gentle-lift">
+            <Link href="/properties/new">Add New Property</Link>
+          </Button>
         </div>
       </div>
     );
@@ -103,13 +104,15 @@ export default function CmsDashboard({ initialContent, initialMedia, properties 
             <div className="card-body">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="card-title text-xl font-display">Content Management</h3>
-                <button 
-                  onClick={() => setShowContentEditor(!showContentEditor)} 
-                  className="btn btn-primary btn-sm gentle-lift min-h-[44px]"
+                <Button
+                  type="button"
+                  size="sm"
+                  className="gentle-lift"
+                  onClick={() => setShowContentEditor(!showContentEditor)}
                   aria-label={showContentEditor ? 'Hide content editor' : 'Show content editor'}
                 >
                   {showContentEditor ? 'Hide Editor' : 'Add New Content'}
-                </button>
+                </Button>
               </div>
               {showContentEditor && (
                 <div className="animate-scale-in">
@@ -182,13 +185,15 @@ export default function CmsDashboard({ initialContent, initialMedia, properties 
             <div className="card-body">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="card-title text-xl font-display">Media Library</h3>
-                <button 
-                  onClick={() => setShowMediaUploader(!showMediaUploader)} 
-                  className="btn btn-primary btn-sm gentle-lift min-h-[44px]"
+                <Button
+                  type="button"
+                  size="sm"
+                  className="gentle-lift"
+                  onClick={() => setShowMediaUploader(!showMediaUploader)}
                   aria-label={showMediaUploader ? 'Hide media uploader' : 'Show media uploader'}
                 >
                   {showMediaUploader ? 'Hide Uploader' : 'Upload Media'}
-                </button>
+                </Button>
               </div>
               {showMediaUploader && (
                 <div className="animate-scale-in">

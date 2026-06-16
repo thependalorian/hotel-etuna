@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/introducers/[id]
+ * Location: /app/api/introducers/[id]/route.ts
+ */
+
+/**
  * Introducer Detail API Route
  * 
  * Purpose: Get, update, delete specific introducer

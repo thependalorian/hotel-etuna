@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/crm/reviews
+ * Location: /app/api/crm/reviews/route.ts
+ */
+
+/**
  * Guest Reviews API Endpoint
  *
  * Purpose: Fetch all guest reviews for admin management

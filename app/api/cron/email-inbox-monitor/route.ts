@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/cron/email-inbox-monitor
+ * Location: /app/api/cron/email-inbox-monitor/route.ts
+ */
+
+/**
  * Email Inbox Monitor API Endpoint
  *
  * Location: /app/api/cron/email-inbox-monitor/route.ts

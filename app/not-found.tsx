@@ -1,12 +1,13 @@
+import Link from 'next/link';
+import { FileQuestion } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+
 /**
  * Global 404 — marketing / auth / public routes (outside dashboard shell)
  *
  * Purpose: Next.js not-found UI for invalid URLs; DaisyUI + accessible actions.
  * Location: app/not-found.tsx
  */
-
-import Link from 'next/link';
-import { FileQuestion } from 'lucide-react';
 
 export default function NotFound() {
   return (
@@ -21,12 +22,12 @@ export default function NotFound() {
             The page you&apos;re looking for doesn&apos;t exist or was moved.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            <Link href="/" className="btn btn-primary min-h-[44px]">
-              Home
-            </Link>
-            <Link href="/login" className="btn btn-outline min-h-[44px]">
-              Sign in
-            </Link>
+            <Button asChild>
+              <Link href="/">Home</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/login">Sign in</Link>
+            </Button>
           </div>
         </div>
       </div>

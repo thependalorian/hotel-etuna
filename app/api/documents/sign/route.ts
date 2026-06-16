@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/documents/sign
+ * Location: /app/api/documents/sign/route.ts
+ */
+
+/**
  * Electronic Signature API
  * 
  * Purpose: Capture and verify electronic signatures on digital documents

@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/debug/auth
+ * Location: /app/api/debug/auth/route.ts
+ */
+
+/**
  * Debug Auth Endpoint
  * 
  * Purpose: Debug Stack Auth token verification (DEVELOPMENT ONLY)

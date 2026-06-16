@@ -1,3 +1,8 @@
+/**
+ * @fileoverview API route //api/sofia/email
+ * Location: /app/api/sofia/email/route.ts
+ */
+
 import { NextRequest } from 'next/server';
 import {
   withPlatformApiAuth,

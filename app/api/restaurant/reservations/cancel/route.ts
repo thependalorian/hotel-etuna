@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/restaurant/reservations/cancel
+ * Location: /app/api/restaurant/reservations/cancel/route.ts
+ */
+
+/**
  * Cancel dining reservation with booking code + OTP (Enish-style).
  * POST body: { bookingCode, otp }
  * Response: { data: { cancelled: true } } | error

@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/payments/namqr/pending/[id]/approve
+ * Location: /app/api/payments/namqr/pending/[id]/approve/route.ts
+ */
+
+/**
  * POST /api/payments/namqr/pending/[id]/approve — staff approves guest NamQR claim
  *
  * Body: { amountPaid?: number }

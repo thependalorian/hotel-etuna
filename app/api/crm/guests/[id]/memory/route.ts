@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/crm/guests/[id]/memory
+ * Location: /app/api/crm/guests/[id]/memory/route.ts
+ */
+
+/**
  * CRM guest memory bundle — graph edges, facts, optional Mem0 lines, marketing insights
  *
  * Purpose: Power guest CRM panel; POST adds a staff fact row (Sofia prompt augmentation).

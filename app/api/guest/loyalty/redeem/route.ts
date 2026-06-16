@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/guest/loyalty/redeem
+ * Location: /app/api/guest/loyalty/redeem/route.ts
+ */
+
+/**
  * Guest Loyalty Redemption API
  * 
  * POST /api/guest/loyalty/redeem - Redeem points for a reward

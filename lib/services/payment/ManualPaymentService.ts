@@ -1,4 +1,5 @@
 /**
+ * @fileoverview ManualPaymentService — domain service module.
  * ManualPaymentService — record off-platform payments (EFT, e-wallet, NamQR bank app).
  * Location: lib/services/payment/ManualPaymentService.ts
  */

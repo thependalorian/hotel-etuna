@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/platform/billing/invoices
+ * Location: /app/api/platform/billing/invoices/route.ts
+ */
+
+/**
  * Platform invoices — list and generate monthly draft.
  * Location: app/api/platform/billing/invoices/route.ts
  */

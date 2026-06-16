@@ -1,4 +1,5 @@
 /**
+ * @fileoverview AvailabilityService — domain service module.
  * AvailabilityService - Enhanced room availability ledger with double-booking prevention
  * 
  * Purpose: Track room availability using ledger pattern for transactional integrity

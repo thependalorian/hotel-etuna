@@ -609,6 +609,67 @@ export class BookingService {
   }
 
   /**
+   * Desk / payments lookup — reference, guest name, or booking id.
+   */
+  async searchBookingsForDesk(
+    tenantId: string,
+    query: string,
+    limit = 15
+  ): Promise<
+    Array<{
+      id: string;
+      bookingReference: string;
+      status: string;
+      checkInDate: string | null;
+      checkOutDate: string | null;
+      guestName: string;
+    }>
+  > {
+    const trimmed = query.trim();
+    if (!trimmed) return [];
+
+    try {
+      const like = `%${trimmed}%`;
+      const matchId = UUID_PATTERN.test(trimmed) ? trimmed : null;
+      const capped = Math.min(Math.max(limit, 1), 25);
+
+      const rows = await db.execute(sql`
+        SELECT
+          b.id,
+          b.booking_reference,
+          b.status,
+          b.check_in_date,
+          b.check_out_date,
+          g.first_name,
+          g.last_name
+        FROM bookings b
+        LEFT JOIN guests g ON g.id = b.guest_id AND g.tenant_id = b.tenant_id
+        WHERE b.tenant_id = ${tenantId}
+          AND (
+            (${matchId}::text IS NOT NULL AND b.id::text = ${matchId})
+            OR b.booking_reference ILIKE ${like}
+            OR g.first_name ILIKE ${like}
+            OR g.last_name ILIKE ${like}
+            OR CONCAT(COALESCE(g.first_name, ''), ' ', COALESCE(g.last_name, '')) ILIKE ${like}
+          )
+        ORDER BY b.check_in_date DESC
+        LIMIT ${capped}
+      `);
+
+      return (rows.rows as Array<Record<string, unknown>>).map((row) => ({
+        id: String(row.id),
+        bookingReference: String(row.booking_reference ?? ''),
+        status: String(row.status ?? '').toLowerCase(),
+        checkInDate: row.check_in_date ? String(row.check_in_date).slice(0, 10) : null,
+        checkOutDate: row.check_out_date ? String(row.check_out_date).slice(0, 10) : null,
+        guestName: [row.first_name, row.last_name].filter(Boolean).join(' ').trim() || 'Guest',
+      }));
+    } catch (error) {
+      throw handleServiceError(error, 'Error searching bookings');
+    }
+  }
+
+  /**
    * Get available rooms for a property within a date range.
    */
   async getAvailableRooms(propertyId: string, checkInDate: Date, checkOutDate: Date): Promise<Room[]> {

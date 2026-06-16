@@ -7,6 +7,7 @@
 
 import Link from 'next/link';
 import { FileQuestion } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 
 export default function DashboardSegmentNotFound() {
   return (
@@ -19,9 +20,9 @@ export default function DashboardSegmentNotFound() {
         The resource may have been removed, or the link is incorrect.
       </p>
       <div className="flex flex-wrap justify-center gap-3">
-        <Link href="/properties" className="btn btn-primary min-h-[44px]">
-          Properties
-        </Link>
+        <Button asChild>
+          <Link href="/properties">Properties</Link>
+        </Button>
         <Link href="/bookings" className="btn btn-outline min-h-[44px]">
           Bookings
         </Link>

@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/fraud/alerts
+ * Location: /app/api/fraud/alerts/route.ts
+ */
+
+/**
  * Fraud Alerts API Endpoint
  *
  * Purpose: Manage fraud alerts for the authenticated tenant.

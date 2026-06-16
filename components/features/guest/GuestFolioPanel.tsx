@@ -10,19 +10,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { AdumoVirtualPaymentForm } from '@/components/payments/AdumoVirtualPaymentForm';
-import { PaymentDisclosure } from '@/components/features/payments/PaymentDisclosure';
-import { GuestNamQrPayPanel } from '@/components/features/guest/GuestNamQrPayPanel';
-import { GuestOpenBankingPisPanel } from '@/components/features/guest/GuestOpenBankingPisPanel';
+import { GuestFolioPaymentSection } from '@/components/features/guest/GuestFolioPaymentSection';
 import { BookingDepositPayCard } from '@/components/payments/BookingDepositPayCard';
 import { FolioVatBreakdown } from '@/components/features/folio/FolioVatBreakdown';
 import { FolioBalanceStat } from '@/components/features/folio/FolioBalanceStat';
 import { FolioLinesTable } from '@/components/features/folio/FolioLinesTable';
-import { FolioPartialAmountField } from '@/components/features/folio/FolioPartialAmountField';
-import { FolioCashCardPayRow } from '@/components/features/folio/FolioCashCardPayRow';
 import { formatCurrencyNAD } from '@/lib/formatters';
 import { formatFolioAmount } from '@/lib/utils/money';
-import { resolveFolioPayAmount } from '@/lib/utils/folio-pay';
 import type { FolioSummary } from '@/lib/types/folio';
 import { guestCopy } from '@/lib/copy/guest';
 
@@ -67,7 +61,8 @@ export function GuestFolioPanel({
   const [busy, setBusy] = useState(false);
   const [cashAmount, setCashAmount] = useState('');
   const [loyaltyPoints, setLoyaltyPoints] = useState('100');
-  const [message, setMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [payWithCard, setPayWithCard] = useState(false);
 
   const canOrder = bookingStatus === 'checked_in';
@@ -125,7 +120,8 @@ export function GuestFolioPanel({
   const placeOrder = async () => {
     if (cartItems.length === 0) return;
     setBusy(true);
-    setMessage(null);
+    setSuccessMessage(null);
+    setActionError(null);
     try {
       const res = await fetch(`/api/guest/stays/${bookingId}/orders`, {
         method: 'POST',
@@ -143,10 +139,10 @@ export function GuestFolioPanel({
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error?.message || 'Order failed');
       setCart({});
-      setMessage(json.data?.message || 'Order placed');
+      setSuccessMessage(json.data?.message || 'Order placed');
       await load();
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : 'Order failed');
+      setActionError(e instanceof Error ? e.message : 'Order failed');
     } finally {
       setBusy(false);
     }
@@ -154,7 +150,8 @@ export function GuestFolioPanel({
 
   const settleCash = async () => {
     setBusy(true);
-    setMessage(null);
+    setSuccessMessage(null);
+    setActionError(null);
     try {
       const amountPaid = cashAmount ? Number.parseFloat(cashAmount) : undefined;
       const body = {
@@ -168,11 +165,11 @@ export function GuestFolioPanel({
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error?.message || 'Settlement failed');
-      setMessage(json.data?.message || 'Payment recorded');
+      setSuccessMessage(json.data?.message || 'Payment recorded');
       setCashAmount('');
       await load();
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : 'Settlement failed');
+      setActionError(e instanceof Error ? e.message : 'Settlement failed');
     } finally {
       setBusy(false);
     }
@@ -180,7 +177,8 @@ export function GuestFolioPanel({
 
   const redeemLoyalty = async () => {
     setBusy(true);
-    setMessage(null);
+    setSuccessMessage(null);
+    setActionError(null);
     try {
       const res = await fetch('/api/guest/loyalty/redeem', {
         method: 'POST',
@@ -192,17 +190,22 @@ export function GuestFolioPanel({
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error?.message || 'Redemption failed');
-      setMessage(json.data?.message || 'Points redeemed');
+      setSuccessMessage(json.data?.message || 'Points redeemed');
       await load();
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : 'Redemption failed');
+      setActionError(e instanceof Error ? e.message : 'Redemption failed');
     } finally {
       setBusy(false);
     }
   };
 
   if (loading) {
-    return <div className="skeleton h-48 w-full rounded-xl" aria-hidden />;
+    return (
+      <div aria-busy="true" role="status">
+        <p className="sr-only">Loading folio…</p>
+        <div className="skeleton h-48 w-full rounded-xl" aria-hidden />
+      </div>
+    );
   }
 
   if (error) {
@@ -263,9 +266,14 @@ export function GuestFolioPanel({
         />
       )}
 
-      {message && (
-        <div className="alert alert-info">
-          <span>{message}</span>
+      {actionError && (
+        <div className="alert alert-error" role="alert">
+          <span>{actionError}</span>
+        </div>
+      )}
+      {successMessage && (
+        <div className="alert alert-success" role="status">
+          <span>{successMessage}</span>
         </div>
       )}
 
@@ -336,51 +344,24 @@ export function GuestFolioPanel({
       {canOrder && folio && folio.balanceDue > 0 && !folio.folioClosedAt && (
         <Card variant="elevated" className="p-6 space-y-4">
           <h3 className="font-display text-lg font-semibold">Pay folio</h3>
-          <FolioPartialAmountField
-            label="Amount (leave empty for full balance)"
-            value={cashAmount}
-            onChange={setCashAmount}
-            balanceDue={folio.balanceDue}
-            currency={folio.currency}
-            id="guest-folio-partial-amount"
-          />
-          <FolioCashCardPayRow
+          <GuestFolioPaymentSection
+            bookingId={bookingId}
+            folio={folio}
             busy={busy}
+            cashAmount={cashAmount}
+            onCashAmountChange={setCashAmount}
             payWithCard={payWithCard}
-            onCash={() => void settleCash()}
             onStartCard={() => {
               setPayWithCard(true);
-              setMessage(null);
+              setSuccessMessage(null);
+              setActionError(null);
             }}
-            cashLabel="Pay cash"
-            cardLabel="Pay card (secure)"
-          />
-          {payWithCard && folio && (
-            <>
-              <PaymentDisclosure
-                amount={resolveFolioPayAmount(cashAmount, folio.balanceDue)}
-                currency={folio.currency}
-              />
-              <AdumoVirtualPaymentForm
-                bookingId={bookingId}
-                amount={resolveFolioPayAmount(cashAmount, folio.balanceDue)}
-                purpose="folio_settle"
-                onError={(err) => {
-                  setPayWithCard(false);
-                  setMessage(err);
-                }}
-              />
-            </>
-          )}
-          <GuestNamQrPayPanel
-            bookingId={bookingId}
-            balanceDue={folio.balanceDue}
-            onUpdated={() => void load()}
-          />
-          <GuestOpenBankingPisPanel
-            bookingId={bookingId}
-            balanceDue={folio.balanceDue}
-            onUpdated={() => void load()}
+            onCash={() => void settleCash()}
+            onCardError={(err) => {
+              setPayWithCard(false);
+              setActionError(err);
+            }}
+            onFolioUpdated={() => void load()}
           />
         </Card>
       )}

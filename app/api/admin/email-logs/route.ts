@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/admin/email-logs
+ * Location: /app/api/admin/email-logs/route.ts
+ */
+
+/**
  * Email Logs API Endpoint
  *
  * Purpose: Check email sending status and debug email delivery issues

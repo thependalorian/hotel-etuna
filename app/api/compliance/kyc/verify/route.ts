@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/compliance/kyc/verify
+ * Location: /app/api/compliance/kyc/verify/route.ts
+ */
+
+/**
  * KYC Verification API Endpoint
  * 
  * Purpose: Verify if a guest's transaction is allowed based on KYC tier

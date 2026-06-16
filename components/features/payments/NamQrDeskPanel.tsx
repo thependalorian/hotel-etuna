@@ -17,9 +17,15 @@ type NamQrDeskPanelProps = {
   /** When set (e.g. from booking folio), enables confirm-on-folio without re-entering ID */
   bookingId?: string;
   suggestedAmount?: number;
+  /** Called after payment is confirmed on the folio (staff booking view). */
+  onConfirmed?: () => void;
 };
 
-export function NamQrDeskPanel({ bookingId: bookingIdProp, suggestedAmount }: NamQrDeskPanelProps = {}) {
+export function NamQrDeskPanel({
+  bookingId: bookingIdProp,
+  suggestedAmount,
+  onConfirmed,
+}: NamQrDeskPanelProps = {}) {
   const [amount, setAmount] = useState(
     suggestedAmount != null ? String(suggestedAmount) : ''
   );
@@ -103,6 +109,8 @@ export function NamQrDeskPanel({ bookingId: bookingIdProp, suggestedAmount }: Na
       setSuccess(
         `Recorded ${formatCurrencyNAD(json.data.amountSettled)}. Balance remaining: ${formatCurrencyNAD(json.data.balanceRemaining)}`
       );
+      setBankReference('');
+      onConfirmed?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Confirm failed');
     } finally {
@@ -134,7 +142,7 @@ export function NamQrDeskPanel({ bookingId: bookingIdProp, suggestedAmount }: Na
           />
         </div>
       )}
-      {error && <div className="alert alert-error text-sm">{error}</div>}
+      {error && <div className="alert alert-error text-sm" role="alert"><span>{error}</span></div>}
       <Button type="button" variant="primary" isLoading={isLoading} onClick={generateQr}>
         Generate NamQR
       </Button>
@@ -162,12 +170,16 @@ export function NamQrDeskPanel({ bookingId: bookingIdProp, suggestedAmount }: Na
             disabled={!bankReference.trim() || !confirmAmount}
             onClick={confirmPayment}
           >
-            Confirm on folio
+            Post to folio
           </Button>
         </div>
       )}
 
-      {success && <p className="text-sm text-success">{success}</p>}
+      {success && (
+        <div className="alert alert-success text-sm" role="status">
+          <span>{success}</span>
+        </div>
+      )}
     </div>
   );
 }

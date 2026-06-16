@@ -6,6 +6,7 @@
  */
 
 import type { GuestCrmMemoryFact } from '@/components/features/crm/guestCrmPanelTypes';
+import { Button } from '@/components/ui/Button';
 
 type Props = {
   facts: GuestCrmMemoryFact[];
@@ -39,14 +40,16 @@ export default function GuestCrmFactsSection({
           value={factText}
           onChange={(e) => onFactTextChange(e.target.value)}
         />
-        <button
+        <Button
           type="button"
-          className="btn btn-primary btn-sm min-h-[44px] w-fit"
+          size="sm"
+          className="w-fit"
           disabled={savingFact || !factText.trim()}
           onClick={onAddFact}
+          isLoading={savingFact}
         >
-          {savingFact ? 'Saving…' : 'Add fact'}
-        </button>
+          Add fact
+        </Button>
       </div>
     </div>
   );

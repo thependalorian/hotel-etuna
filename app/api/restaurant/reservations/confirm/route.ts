@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/restaurant/reservations/confirm
+ * Location: /app/api/restaurant/reservations/confirm/route.ts
+ */
+
+/**
  * Staff manual confirm for dining reservation (primary path is Adumo redirect/webhook).
  * POST body: { bookingCode, adumoTransactionIndex? }
  * Response: { data: { confirmed: true } }

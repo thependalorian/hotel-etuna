@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/public/sofia/chat
+ * Location: /app/api/public/sofia/chat/route.ts
+ */
+
+/**
  * Public Sofia Chat API Route
  * Location: /app/api/public/sofia/chat/route.ts
  */

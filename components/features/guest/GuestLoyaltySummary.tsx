@@ -242,21 +242,9 @@ export function GuestLoyaltySummary({ loyalty, activeStays = [] }: GuestLoyaltyS
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary rounded-full px-6"
-                  disabled={isRedeeming}
-                  aria-busy={isRedeeming}
-                >
-                  {isRedeeming ? (
-                    <>
-                      <span className="loading loading-spinner loading-sm" aria-hidden />
-                      Applying…
-                    </>
-                  ) : (
-                    'Apply points'
-                  )}
-                </button>
+                <Button type="submit" isLoading={isRedeeming}>
+                  Apply points
+                </Button>
               </div>
             </form>
           </div>

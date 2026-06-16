@@ -16,6 +16,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { apiUrl } from '@/lib/utils/api-url';
+import { Button } from '@/components/ui/Button';
 import { 
   Building2, 
   Users, 
@@ -224,9 +225,9 @@ export default function PlatformDashboardOverview({
             >
               Reporting pack (JSON)
             </a>
-            <Link href="/admin/platform/soc2" className="btn btn-primary btn-sm min-h-[44px]">
-              SOC 2 audit
-            </Link>
+            <Button asChild size="sm">
+              <Link href="/admin/platform/soc2">SOC 2 audit</Link>
+            </Button>
           </div>
           {paymentRails && (
             <div className="mt-4 p-3 rounded-lg bg-base-200 text-sm">
@@ -238,9 +239,8 @@ export default function PlatformDashboardOverview({
                 Intended acceptance: {paymentRails.rails.map((r) => r.label).join(' · ')}.
               </p>
               <p className="text-xs text-base-content/60">
-                Persist <code className="text-xs">metadata.rail</code>,{' '}
-                <code className="text-xs">payment_gateway</code> via{' '}
-                <code className="text-xs">lib/payments/transaction-metadata.ts</code>.
+                Persist <code className="text-xs">metadata.rail</code> and{' '}
+                <code className="text-xs">payment_gateway</code> on payment session rows at initiation time.
               </p>
             </div>
           )}

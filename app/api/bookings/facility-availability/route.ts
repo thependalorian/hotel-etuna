@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/bookings/facility-availability
+ * Location: /app/api/bookings/facility-availability/route.ts
+ */
+
+/**
  * Facility availability — conference session dates and campsite ranges.
  * GET /api/bookings/facility-availability?propertyId=&kind=conference|campsite&from=YYYY-MM-DD&to=YYYY-MM-DD
  */

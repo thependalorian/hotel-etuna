@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/crm/guests
+ * Location: /app/api/crm/guests/route.ts
+ */
+
+/**
  * CRM Guests API Route
  * 
  * Purpose: Manage guest/CRM operations with system design principles

@@ -6,6 +6,7 @@ export const metadata: Metadata = {
 };
 
 import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
 
 export default function OfflinePage() {
   return (
@@ -15,12 +16,9 @@ export default function OfflinePage() {
         <p className="text-terracotta-800 mb-6">
           Cached pages are still available. New bookings will be queued and synced when you reconnect.
         </p>
-        <Link
-          href="/"
-          className="btn btn-primary min-h-[44px] inline-flex items-center justify-center px-6"
-        >
-          Back to home
-        </Link>
+        <Button asChild>
+          <Link href="/">Back to home</Link>
+        </Button>
       </div>
     </main>
   );

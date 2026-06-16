@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { getSessionWithTenantContext } from '@/lib/auth/tenant-context';
 import { ComplianceVerificationService } from '@/lib/services/compliance/ComplianceVerificationService';
 import PageHeader from '@/components/shared/PageHeader';
+import { Button } from '@/components/ui/Button';
 import { formatDateTime } from '@/lib/formatters';
 
 export const dynamic = 'force-dynamic';
@@ -46,9 +47,9 @@ export default async function ComplianceKycPage() {
             <Link href="/compliance/soc2" className="btn btn-outline min-h-[44px]">
               SOC 2 readiness
             </Link>
-            <Link href="/compliance/kyc/new" className="btn btn-primary min-h-[44px]">
-              New case
-            </Link>
+            <Button asChild>
+              <Link href="/compliance/kyc/new">New case</Link>
+            </Button>
           </>
         }
       />

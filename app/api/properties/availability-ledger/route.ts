@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/properties/availability-ledger
+ * Location: /app/api/properties/availability-ledger/route.ts
+ */
+
+/**
  * Availability ledger API — daily room inventory buckets (OSS W6)
  *
  * GET  /api/properties/availability-ledger?propertyId=&startDate=&endDate=

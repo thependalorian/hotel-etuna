@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/introducers/public
+ * Location: /app/api/introducers/public/route.ts
+ */
+
+/**
  * Public Introducers Directory API
  * 
  * Purpose: Public endpoint to list introducers who opted into directory

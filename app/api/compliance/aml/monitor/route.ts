@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/compliance/aml/monitor
+ * Location: /app/api/compliance/aml/monitor/route.ts
+ */
+
+/**
  * AML Transaction Monitoring API Endpoint
  * 
  * Purpose: Real-time transaction monitoring for AML/CFT compliance

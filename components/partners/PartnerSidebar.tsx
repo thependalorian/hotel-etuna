@@ -36,7 +36,7 @@ const partnerNavItems: NavItem[] = [
   { href: '/partner/rates', label: 'Rates', icon: BadgeDollarSign },
   { href: '/partner/bookings', label: 'Bookings', icon: Calendar },
   { href: '/partner/settings', label: 'Settings', icon: Settings },
-  { href: '/profile', label: 'Profile', icon: User },
+  { href: '/partner/profile', label: 'Profile', icon: User },
 ];
 
 interface PartnerSidebarProps {
@@ -156,5 +156,3 @@ export function PartnerSidebar({ isMobileOpen = false, onMobileClose }: PartnerS
     </>
   );
 }
-
-export default PartnerSidebar;

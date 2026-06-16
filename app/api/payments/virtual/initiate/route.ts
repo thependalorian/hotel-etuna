@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/payments/virtual/initiate
+ * Location: /app/api/payments/virtual/initiate/route.ts
+ */
+
+/**
  * Adumo Virtual — start hosted payment page (form POST fields for browser).
  * Location: app/api/payments/virtual/initiate/route.ts
  *

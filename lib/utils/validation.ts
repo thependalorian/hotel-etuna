@@ -219,9 +219,6 @@ export const processAiMessageSchema = z.object({
   channel: z.enum(['WEB', 'EMAIL', 'WHATSAPP', 'PHONE']).optional(),
 });
 
-/** Alias for dashboard / legacy route names */
-export const sofiaConciergeChatSchema = processAiMessageSchema;
-
 export const createCustomReportSchema = z.object({
   metrics: z.array(z.string()).min(1),
   filters: z.object({

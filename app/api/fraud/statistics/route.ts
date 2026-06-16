@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/fraud/statistics
+ * Location: /app/api/fraud/statistics/route.ts
+ */
+
+/**
  * Fraud Statistics API Endpoint
  *
  * Purpose: Provide fraud detection statistics and metrics for the authenticated tenant.

@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/admin/platform/support/tickets/[id]
+ * Location: /app/api/admin/platform/support/tickets/[id]/route.ts
+ */
+
+/**
  * Platform support ticket — update status
  * PATCH /api/admin/platform/support/tickets/[id]
  * Body: { status: string }

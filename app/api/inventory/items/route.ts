@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/inventory/items
+ * Location: /app/api/inventory/items/route.ts
+ */
+
+/**
  * GET /api/inventory/items?restaurantId=
  * PATCH /api/inventory/items — manual stock adjustment
  * Location: app/api/inventory/items/route.ts

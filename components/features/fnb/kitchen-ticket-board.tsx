@@ -10,6 +10,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import EmptyState from '@/components/shared/EmptyState';
+import { Button } from '@/components/ui/Button';
 import ErrorDisplay from '@/components/shared/ErrorDisplay';
 import { apiUrl } from '@/lib/utils/api-url';
 
@@ -202,14 +203,14 @@ export default function KitchenTicketBoard({
                           ) : null}
                           <div className="card-actions mt-2 justify-end gap-2">
                             {column.key === 'pending' ? (
-                              <button
+                              <Button
                                 type="button"
-                                className="btn btn-primary btn-sm"
+                                size="sm"
                                 disabled={updatingId === ticket.id}
                                 onClick={() => updateStatus(ticket.id, 'printing')}
                               >
                                 Start
-                              </button>
+                              </Button>
                             ) : null}
                             {column.key === 'printing' ? (
                               <button

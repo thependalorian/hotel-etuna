@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/reports/property-vat
+ * Location: /app/api/reports/property-vat/route.ts
+ */
+
+/**
  * Property hospitality VAT period report (Hotel Etuna guest supplies).
  * GET /api/reports/property-vat?from=ISO&to=ISO
  *

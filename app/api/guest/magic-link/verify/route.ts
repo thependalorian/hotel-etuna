@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/guest/magic-link/verify
+ * Location: /app/api/guest/magic-link/verify/route.ts
+ */
+
+/**
  * POST /api/guest/magic-link/verify — consume pre-arrival token, return stay redirect.
  * Location: app/api/guest/magic-link/verify/route.ts
  *

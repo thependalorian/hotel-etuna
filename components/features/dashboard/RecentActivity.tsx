@@ -24,6 +24,7 @@
 
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 
 interface Activity {
   id: string;
@@ -64,13 +65,12 @@ export default function RecentActivity({ activities }: RecentActivityProps) {
           ))}
         </div>
         <div className="card-actions justify-end mt-4">
-          <Link 
-            href="/analytics" 
-            className="btn btn-primary btn-sm gentle-lift min-h-[44px]"
-          >
-            View All Activity
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Link>
+          <Button asChild size="sm" className="gentle-lift">
+            <Link href="/analytics">
+              View All Activity
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Link>
+          </Button>
         </div>
       </div>
     </div>

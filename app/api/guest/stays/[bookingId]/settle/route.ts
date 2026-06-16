@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/guest/stays/[bookingId]/settle
+ * Location: /app/api/guest/stays/[bookingId]/settle/route.ts
+ */
+
+/**
  * Guest folio settlement API
  *
  * Purpose: Pay open folio balance (F&B/incidentals) during stay or before checkout.

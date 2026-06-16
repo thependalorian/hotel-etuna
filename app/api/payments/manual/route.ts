@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/payments/manual
+ * Location: /app/api/payments/manual/route.ts
+ */
+
+/**
  * POST /api/payments/manual — record EFT / e-wallet / NamQR bank-app payment
  * Location: app/api/payments/manual/route.ts
  *

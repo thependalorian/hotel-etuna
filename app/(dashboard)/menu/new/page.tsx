@@ -33,6 +33,7 @@ import BasicInfoForm from '@/components/features/menu/forms/BasicInfoForm';
 import AllergensSelector from '@/components/features/menu/forms/AllergensSelector';
 import MenuItemPreview from '@/components/features/menu/forms/MenuItemPreview';
 import { apiUrl } from '@/lib/utils/api-url';
+import { Button } from '@/components/ui/Button';
 
 export default function NewMenuItemPage() {
   const router = useRouter();
@@ -144,24 +145,14 @@ export default function NewMenuItemPage() {
                   Cancel
                 </button>
               </Link>
-              <button 
-                type="submit" 
-                className="btn btn-primary min-h-[44px]" 
-                disabled={loading}
+              <Button
+                type="submit"
+                isLoading={loading}
                 aria-label={loading ? 'Creating menu item...' : 'Create menu item'}
               >
-                {loading ? (
-                  <>
-                    <LoadingSpinner size="sm" />
-                    Creating...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Create Menu Item
-                  </>
-                )}
-              </button>
+                <Save className="w-4 h-4 mr-2" />
+                Create Menu Item
+              </Button>
             </div>
           </form>
         </div>

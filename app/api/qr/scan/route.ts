@@ -1,3 +1,8 @@
+/**
+ * @fileoverview API route //api/qr/scan
+ * Location: /app/api/qr/scan/route.ts
+ */
+
 import { NextResponse, NextRequest } from 'next/server';
 import { NamQrService } from '@/lib/services/qr/NAMQRService';
 import { securityLogger } from '@/lib/utils/security-logger';

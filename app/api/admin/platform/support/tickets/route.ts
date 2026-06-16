@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/admin/platform/support/tickets
+ * Location: /app/api/admin/platform/support/tickets/route.ts
+ */
+
+/**
  * Platform support tickets — list (platform admin only)
  * GET /api/admin/platform/support/tickets?status=&priority=
  * Response: { data: { tickets: SupportTicketListItem[] } }

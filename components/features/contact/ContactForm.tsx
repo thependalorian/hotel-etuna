@@ -120,7 +120,9 @@ export function ContactForm() {
       </div>
 
       {error && (
-        <div className="alert alert-error text-sm">{error}</div>
+        <div className="alert alert-error text-sm" role="alert">
+          <span>{error}</span>
+        </div>
       )}
 
       <Button type="submit" size="lg" className="w-full" disabled={submitting}>

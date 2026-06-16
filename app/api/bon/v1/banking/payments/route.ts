@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/bon/v1/banking/payments
+ * Location: /app/api/bon/v1/banking/payments/route.ts
+ */
+
+/**
  * Namibia Open Banking — Make Payment (PIS)
  *
  * Purpose: TPP-initiated payment per Namibian Open Banking Standards v1.0 §9.2.5 Use Case 1.

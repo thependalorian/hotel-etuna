@@ -23,7 +23,7 @@ interface LoadingSpinnerProps {
   center?: boolean;
 }
 
-export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
+const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
   size = 'md', 
   className,
   text,

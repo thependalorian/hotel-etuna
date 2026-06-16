@@ -1,4 +1,9 @@
 /**
+ * @fileoverview API route //api/admin/email-config-check
+ * Location: /app/api/admin/email-config-check/route.ts
+ */
+
+/**
  * Email Configuration Check API Endpoint
  *
  * Purpose: Check if email SMTP configuration is properly set up
