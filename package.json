@@ -104,7 +104,7 @@
     "mailparser": "^3.9.1",
     "next": "^16.0.0",
     "next-auth": "^4.24.13",
-    "nodemailer": "^7.0.11",
+    "nodemailer": "^9.0.1",
     "pg": "^8.16.3",
     "posthog-js": "^1.373.5",
     "qrcode": "^1.5.4",
