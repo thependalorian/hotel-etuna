@@ -76,7 +76,7 @@
     "supabase:status": "supabase status"
   },
   "dependencies": {
-    "@hookform/resolvers": "^3.9.1",
+    "@hookform/resolvers": "^5.4.0",
     "@langchain/core": "^0.3.40",
     "@langchain/langgraph": "^0.2.74",
     "@neondatabase/serverless": "^1.0.2",
