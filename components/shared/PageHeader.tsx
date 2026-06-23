@@ -41,12 +41,12 @@ function PageHeader({
   className = '',
 }: PageHeaderProps) {
   return (
-    <div className={cn('bg-gradient-to-b from-nude-50 to-surface-elevated rounded-xl border-b border-nude-200', className)}>
+    <div className={cn('bg-gradient-to-b from-nude-50 to-surface-elevated rounded-etuna-card border-b border-nude-200', className)}>
       <div className="py-6 px-4 md:py-8 md:px-6">
         <div className="flex flex-col gap-4">
           {/* Breadcrumbs */}
           {breadcrumbs && breadcrumbs.length > 0 && (
-            <nav className="flex items-center gap-2 text-sm text-nude-600" aria-label="Breadcrumb">
+            <nav className="flex items-center gap-2 text-sm text-ink-600" aria-label="Breadcrumb">
               {breadcrumbs.map((crumb, index) => (
                 <React.Fragment key={index}>
                   {index > 0 && (
@@ -55,12 +55,12 @@ function PageHeader({
                   {crumb.href ? (
                     <Link 
                       href={crumb.href}
-                      className="hover:text-nude-800 transition-colors"
+                      className="hover:text-ink-800 transition-colors"
                     >
                       {crumb.label}
                     </Link>
                   ) : (
-                    <span className="text-nude-800 font-medium">
+                    <span className="text-ink-800 font-medium">
                       {crumb.label}
                     </span>
                   )}
@@ -75,11 +75,11 @@ function PageHeader({
               {eyebrow ? (
                 <p className="etuna-eyebrow mb-2">{eyebrow}</p>
               ) : null}
-              <h1 className="font-display text-3xl md:text-4xl font-bold text-nude-900 mb-2">
+              <h1 className="font-display text-3xl md:text-4xl font-bold text-ink-900 mb-2">
                 {title}
               </h1>
               {description && (
-                <p className="text-nude-600 text-base md:text-lg max-w-prose leading-relaxed">
+                <p className="text-ink-600 text-base md:text-lg max-w-prose leading-relaxed">
                   {description}
                 </p>
               )}

@@ -71,7 +71,7 @@ const BookingsPage = async ({
               </Link>
               <Button
                 asChild
-                className="gentle-lift shadow-nude-soft hover:shadow-nude-medium"
+                className="gentle-lift"
                 aria-label="Create new room stay booking"
               >
                 <Link href="/bookings/new">
@@ -102,7 +102,7 @@ const BookingsPage = async ({
           </>
         ) : (
           <Card variant="elevated" className="text-center py-12">
-            <p className="text-nude-600">
+            <p className="text-ink-600">
               {session?.user?.tenantId
                 ? 'No hub property found. Open a property or set DEFAULT_PROPERTY_ID.'
                 : 'Please log in to view bookings.'}

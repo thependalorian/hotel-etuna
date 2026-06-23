@@ -4,6 +4,9 @@
  */
 
 import type { HubRoom } from '@/lib/data/rooms';
+import {
+  ETUNA_PROPERTY_IMAGES,
+} from '@/lib/rooms/property-images';
 
 export type RoomTourStop = {
   id: string;
@@ -19,14 +22,14 @@ export type PublicRoomDisplay = {
   displayOccupancy: number;
 };
 
-const FALLBACK_IMAGE = '/images/hospitality/hotel_room.jpeg';
+const FALLBACK_IMAGE = ETUNA_PROPERTY_IMAGES.roomDoubleRondavel;
 
 const DEFAULT_HERO: Record<string, string> = {
-  'standard-room-type-a': '/images/hospitality/hotel_room.jpeg',
-  'standard-room-type-b': '/images/hospitality/hotel_room.jpeg',
-  'standard-room-type-c': '/images/hospitality/hotel_room.jpeg',
-  'executive-room': '/images/hospitality/hero_hotel_lobby.jpeg',
-  'premiere-room': '/images/hospitality/guest_house.jpeg',
+  'standard-room-type-a': ETUNA_PROPERTY_IMAGES.roomDoubleRondavel,
+  'standard-room-type-b': ETUNA_PROPERTY_IMAGES.roomTwin,
+  'standard-room-type-c': ETUNA_PROPERTY_IMAGES.roomTwin,
+  'executive-room': ETUNA_PROPERTY_IMAGES.roomTwin,
+  'premiere-room': ETUNA_PROPERTY_IMAGES.roomPremiere,
 };
 
 type TourStopTemplate = {
@@ -49,13 +52,13 @@ const ROOM_TOUR_TEMPLATES: Record<string, TourStopTemplate[]> = {
       id: 'bath',
       label: 'Bathroom',
       caption: 'Private en-suite bathroom with shower and daily housekeeping.',
-      imageIndex: 1,
+      image: ETUNA_PROPERTY_IMAGES.bathroomModern,
     },
     {
       id: 'desk',
       label: 'Work space',
       caption: 'Desk area with free WiFi throughout the room.',
-      image: '/images/hospitality/hero_hotel_lobby.jpeg',
+      image: ETUNA_PROPERTY_IMAGES.hallway,
     },
   ],
   'standard-room-type-b': [
@@ -69,13 +72,13 @@ const ROOM_TOUR_TEMPLATES: Record<string, TourStopTemplate[]> = {
       id: 'bath',
       label: 'Bathroom',
       caption: 'Private bathroom with shower and essentials.',
-      imageIndex: 1,
+      image: ETUNA_PROPERTY_IMAGES.bathroomModern,
     },
     {
       id: 'desk',
       label: 'Work space',
       caption: 'Desk and WiFi for light work during your stay.',
-      image: '/images/hospitality/hero_hotel_lobby.jpeg',
+      image: ETUNA_PROPERTY_IMAGES.hallway,
     },
   ],
   'standard-room-type-c': [
@@ -89,13 +92,13 @@ const ROOM_TOUR_TEMPLATES: Record<string, TourStopTemplate[]> = {
       id: 'bath',
       label: 'Bathroom',
       caption: 'Practical bathroom layout for up to three guests.',
-      imageIndex: 1,
+      image: ETUNA_PROPERTY_IMAGES.bathroomModern,
     },
     {
       id: 'desk',
       label: 'Work space',
       caption: 'Desk area and free WiFi.',
-      image: '/images/hospitality/hero_hotel_lobby.jpeg',
+      image: ETUNA_PROPERTY_IMAGES.hallway,
     },
   ],
   'executive-room': [
@@ -115,13 +118,13 @@ const ROOM_TOUR_TEMPLATES: Record<string, TourStopTemplate[]> = {
       id: 'bath',
       label: 'Bathroom',
       caption: 'VIP toiletries and a refreshed private bathroom.',
-      image: '/images/hospitality/guest_house.jpeg',
+      image: ETUNA_PROPERTY_IMAGES.bathroomModern,
     },
     {
       id: 'lounge',
       label: 'Lounge access',
       caption: 'Executive guests enjoy lounge access on property.',
-      image: '/images/hospitality/restaurant_bar.jpeg',
+      image: ETUNA_PROPERTY_IMAGES.restaurantBar,
     },
   ],
   'premiere-room': [
@@ -130,37 +133,37 @@ const ROOM_TOUR_TEMPLATES: Record<string, TourStopTemplate[]> = {
       label: 'Overview',
       caption:
         'Premiere Room — our flagship stay with private lounge, master bedroom, and twin room. Sleeps up to 4 guests.',
-      image: '/images/hospitality/guest_house.jpeg',
+      image: ETUNA_PROPERTY_IMAGES.roomPremiere,
     },
     {
       id: 'lounge',
       label: 'Lounge',
       caption: 'Private lounge with seating between the bedrooms.',
-      image: '/images/hospitality/restaurant_dining.jpeg',
+      image: ETUNA_PROPERTY_IMAGES.outdoorDining,
     },
     {
       id: 'master',
       label: 'Master bedroom',
       caption: 'Master bedroom with en-suite comfort and premium bedding.',
-      image: '/images/hospitality/guest_house.jpeg',
+      image: ETUNA_PROPERTY_IMAGES.roomPremiere,
     },
     {
       id: 'twins',
       label: 'Twin room',
       caption: 'Second bedroom with twin beds for children or colleagues.',
-      image: '/images/hospitality/hotel_room.jpeg',
+      image: ETUNA_PROPERTY_IMAGES.roomTwin,
     },
     {
       id: 'bath',
       label: 'Bathroom',
       caption: 'Private bathroom facilities for your group.',
-      image: '/images/hospitality/hero_hotel_lobby.jpeg',
+      image: ETUNA_PROPERTY_IMAGES.bathroomRustic,
     },
     {
       id: 'balcony',
       label: 'Balcony',
       caption: 'Step outside from the premiere level when you want fresh air.',
-      image: '/images/hospitality/resort_exterior.jpeg',
+      image: ETUNA_PROPERTY_IMAGES.exteriorRondavels,
     },
   ],
 };

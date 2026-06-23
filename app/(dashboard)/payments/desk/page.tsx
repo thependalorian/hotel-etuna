@@ -1,5 +1,5 @@
 /**
- * Payments desk — NamQR generation + manual EFT / e-wallet recording.
+ * Payments desk — manual EFT / e-wallet / bank deposit recording.
  * Location: app/(dashboard)/payments/desk/page.tsx
  */
 
@@ -10,8 +10,6 @@ import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { ManualPaymentForm } from '@/components/features/payments/ManualPaymentForm';
-import { NamQrDeskPanel } from '@/components/features/payments/NamQrDeskPanel';
-import { NamQrPendingQueue } from '@/components/features/payments/NamQrPendingQueue';
 import { PaymentsDeskBookingPicker } from '@/components/features/payments/PaymentsDeskBookingPicker';
 
 export default function PaymentsDeskPage() {
@@ -23,7 +21,7 @@ export default function PaymentsDeskPage() {
         <div>
           <h1 className="text-2xl font-bold">Payments desk</h1>
           <p className="text-sm text-base-content/70">
-            NamQR v5.0 desk QR and off-platform payment recording (EFT, e-wallet, NamQR bank app).
+            Off-platform payment recording (EFT, e-wallet, bank deposit).
           </p>
         </div>
         <Button asChild variant="ghost" size="sm">
@@ -43,24 +41,13 @@ export default function PaymentsDeskPage() {
       </Card>
 
       <Card className="p-4 md:p-6">
-        <h2 className="mb-4 text-lg font-semibold">Guest NamQR — awaiting approval</h2>
-        <NamQrPendingQueue />
+        <h2 className="mb-4 text-lg font-semibold">Record bank / wallet payment</h2>
+        {bookingId ? (
+          <ManualPaymentForm bookingId={bookingId} />
+        ) : (
+          <p className="text-sm text-warning">Find a booking above to record a payment.</p>
+        )}
       </Card>
-
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
-        <Card className="p-4 md:p-6">
-          <h2 className="mb-4 text-lg font-semibold">Generate NamQR</h2>
-          <NamQrDeskPanel bookingId={bookingId || undefined} />
-        </Card>
-        <Card className="p-4 md:p-6">
-          <h2 className="mb-4 text-lg font-semibold">Record bank / wallet payment</h2>
-          {bookingId ? (
-            <ManualPaymentForm bookingId={bookingId} />
-          ) : (
-            <p className="text-sm text-warning">Find a booking above to record a payment.</p>
-          )}
-        </Card>
-      </div>
     </div>
   );
 }

@@ -352,6 +352,16 @@ const MIGRATIONS: Migration[] = [
     label: 'Tenant WhatsApp OpenWA dual provider',
     skip: async (p) => columnExists(p, 'tenant_whatsapp_settings', 'openwa_session_id'),
   },
+  {
+    file: '0066_table_order_payments.sql',
+    label: 'Table ordering payment method/status + placed-by tracking',
+    skip: async (p) => columnExists(p, 'restaurant_orders', 'payment_method'),
+  },
+  {
+    file: '0067_intelligence_recommendations.sql',
+    label: 'Intelligent OS — approval-gated rate + reorder recommendations',
+    skip: async (p) => tableExists(p, 'rate_recommendations'),
+  },
 ];
 
 async function main() {

@@ -4,6 +4,7 @@
  */
 
 import { publicCopy } from '@/lib/copy/public';
+import { ETUNA_PROPERTY_IMAGES } from '@/lib/rooms/property-images';
 
 export type PublicMenuItem = {
   id: string;
@@ -33,21 +34,21 @@ export type PublicMenuPayload = {
 };
 
 const CATEGORY_IMAGES: Record<string, string> = {
-  'light meal': '/images/hospitality/guest_house.jpeg',
-  'main course': '/images/hospitality/restaurant_dining.jpeg',
-  'traditional cuisine': '/images/hospitality/restaurant_dining.jpeg',
-  pizza: '/images/hospitality/restaurant_dining.jpeg',
-  platters: '/images/hospitality/restaurant_dining.jpeg',
-  desserts: '/images/hospitality/guest_house.jpeg',
-  'hot beverages': '/images/hospitality/guest_house.jpeg',
-  'soft drinks': '/images/hospitality/restaurant_bar.jpeg',
-  cocktails: '/images/hospitality/restaurant_bar.jpeg',
-  'beer & cider': '/images/hospitality/restaurant_bar.jpeg',
-  'spirits & liqueur': '/images/hospitality/restaurant_bar.jpeg',
-  wine: '/images/hospitality/restaurant_bar.jpeg',
+  'light meal': ETUNA_PROPERTY_IMAGES.outdoorDining,
+  'main course': ETUNA_PROPERTY_IMAGES.outdoorDining,
+  'traditional cuisine': ETUNA_PROPERTY_IMAGES.outdoorDining,
+  pizza: ETUNA_PROPERTY_IMAGES.outdoorDining,
+  platters: ETUNA_PROPERTY_IMAGES.outdoorDining,
+  desserts: ETUNA_PROPERTY_IMAGES.outdoorDining,
+  'hot beverages': ETUNA_PROPERTY_IMAGES.outdoorDining,
+  'soft drinks': ETUNA_PROPERTY_IMAGES.restaurantBar,
+  cocktails: ETUNA_PROPERTY_IMAGES.restaurantBar,
+  'beer & cider': ETUNA_PROPERTY_IMAGES.restaurantBar,
+  'spirits & liqueur': ETUNA_PROPERTY_IMAGES.restaurantBar,
+  wine: ETUNA_PROPERTY_IMAGES.restaurantBar,
 };
 
-const DEFAULT_CATEGORY_IMAGE = '/images/hospitality/restaurant_dining.jpeg';
+const DEFAULT_CATEGORY_IMAGE = ETUNA_PROPERTY_IMAGES.outdoorDining;
 
 export function getCategoryImageSrc(categoryName: string): string {
   return CATEGORY_IMAGES[categoryName.toLowerCase()] ?? DEFAULT_CATEGORY_IMAGE;

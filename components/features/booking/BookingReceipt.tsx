@@ -77,68 +77,68 @@ export function BookingReceipt({ booking, guest, property, rooms = [] }: Booking
         </Button>
       </div>
 
-      <div className="bg-white border-2 border-gray-300 rounded-lg p-8 print:border-0">
+      <div className="bg-white border-2 border-nude-300 rounded-etuna-input p-8 print:border-0">
         <div className="text-center mb-8 border-b-2 border-nude-200 pb-6">
-          <h1 className="text-3xl font-bold text-terracotta-900 mb-2">{property.name}</h1>
-          {property.address && <p className="text-sm text-nude-600">{property.address}</p>}
-          <div className="flex justify-center gap-4 text-sm text-nude-600 mt-2">
+          <h1 className="text-3xl font-bold text-ci-secondary-chocolate mb-2">{property.name}</h1>
+          {property.address && <p className="text-sm text-ink-600">{property.address}</p>}
+          <div className="flex justify-center gap-4 text-sm text-ink-600 mt-2">
             {property.phone && <span>Tel: {property.phone}</span>}
             {property.email && <span>Email: {property.email}</span>}
           </div>
         </div>
 
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-nude-900 mb-1">PAYMENT RECEIPT</h2>
-          <p className="text-sm text-nude-500">Issued: {formatDateTime(booking.createdAt)}</p>
+          <h2 className="text-2xl font-bold text-ink-900 mb-1">PAYMENT RECEIPT</h2>
+          <p className="text-sm text-ink-500">Issued: {formatDateTime(booking.createdAt)}</p>
         </div>
 
-        <div className="bg-gray-50 border border-nude-200 rounded-lg p-4 mb-6">
+        <div className="bg-nude-50 border border-nude-200 rounded-etuna-input p-4 mb-6">
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-nude-600">Receipt Number:</span>
-            <span className="text-lg font-mono font-bold text-nude-900">{booking.receiptNumber}</span>
+            <span className="text-sm font-medium text-ink-600">Receipt Number:</span>
+            <span className="text-lg font-mono font-bold text-ink-900">{booking.receiptNumber}</span>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 text-sm">
           <div>
-            <p className="text-nude-600 font-medium mb-1">Booking Reference:</p>
-            <p className="text-nude-900 font-semibold">{booking.bookingReference}</p>
+            <p className="text-ink-600 font-medium mb-1">Booking Reference:</p>
+            <p className="text-ink-900 font-semibold">{booking.bookingReference}</p>
           </div>
           <div>
-            <p className="text-nude-600 font-medium mb-1">Payment Method:</p>
-            <p className="text-nude-900 font-semibold capitalize">{booking.paymentMethod}</p>
+            <p className="text-ink-600 font-medium mb-1">Payment Method:</p>
+            <p className="text-ink-900 font-semibold capitalize">{booking.paymentMethod}</p>
           </div>
           <div>
-            <p className="text-nude-600 font-medium mb-1">Check-In:</p>
-            <p className="text-nude-900">{formatDate(booking.checkInDate)}</p>
+            <p className="text-ink-600 font-medium mb-1">Check-In:</p>
+            <p className="text-ink-900">{formatDate(booking.checkInDate)}</p>
           </div>
           <div>
-            <p className="text-nude-600 font-medium mb-1">Check-Out:</p>
-            <p className="text-nude-900">{formatDate(booking.checkOutDate)}</p>
+            <p className="text-ink-600 font-medium mb-1">Check-Out:</p>
+            <p className="text-ink-900">{formatDate(booking.checkOutDate)}</p>
           </div>
         </div>
 
         <div className="border-t border-nude-200 pt-4 mb-6">
-          <h3 className="text-sm font-bold text-nude-700 mb-3">GUEST INFORMATION</h3>
+          <h3 className="text-sm font-bold text-ink-700 mb-3">GUEST INFORMATION</h3>
           <div className="text-sm">
-            <p className="text-nude-900 font-semibold mb-1">
+            <p className="text-ink-900 font-semibold mb-1">
               {guest.firstName} {guest.lastName}
             </p>
-            {guest.email && <p className="text-nude-600">Email: {guest.email}</p>}
-            {guest.phone && <p className="text-nude-600">Phone: {guest.phone}</p>}
+            {guest.email && <p className="text-ink-600">Email: {guest.email}</p>}
+            {guest.phone && <p className="text-ink-600">Phone: {guest.phone}</p>}
           </div>
         </div>
 
         {rooms.length > 0 && (
           <div className="border-t border-nude-200 pt-4 mb-6">
-            <h3 className="text-sm font-bold text-nude-700 mb-3">ROOM DETAILS</h3>
+            <h3 className="text-sm font-bold text-ink-700 mb-3">ROOM DETAILS</h3>
             <div className="space-y-2">
               {rooms.map((room, index) => (
                 <div key={index} className="flex justify-between text-sm">
-                  <span className="text-nude-700">
+                  <span className="text-ink-700">
                     {room.roomNumber ? `Room ${room.roomNumber}` : room.roomType || 'Room'}
                   </span>
-                  <span className="text-nude-900 font-semibold">
+                  <span className="text-ink-900 font-semibold">
                     {booking.currency} {Number.parseFloat(room.rateAmount).toFixed(2)}
                   </span>
                 </div>
@@ -147,23 +147,23 @@ export function BookingReceipt({ booking, guest, property, rooms = [] }: Booking
           </div>
         )}
 
-        <div className="border-t-2 border-gray-300 pt-4 mb-6">
-          <h3 className="text-sm font-bold text-nude-700 mb-3">PAYMENT SUMMARY</h3>
+        <div className="border-t-2 border-nude-300 pt-4 mb-6">
+          <h3 className="text-sm font-bold text-ink-700 mb-3">PAYMENT SUMMARY</h3>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-nude-700">Total Amount:</span>
-              <span className="text-nude-900 font-semibold">
+              <span className="text-ink-700">Total Amount:</span>
+              <span className="text-ink-900 font-semibold">
                 {booking.currency} {Number.parseFloat(booking.totalAmount).toFixed(2)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-nude-700">Amount Tendered:</span>
-              <span className="text-nude-900 font-semibold">
+              <span className="text-ink-700">Amount Tendered:</span>
+              <span className="text-ink-900 font-semibold">
                 {booking.currency} {Number.parseFloat(booking.amountTendered).toFixed(2)}
               </span>
             </div>
             <div className="flex justify-between pt-2 border-t border-nude-200">
-              <span className="text-nude-700 font-bold">Change Given:</span>
+              <span className="text-ink-700 font-bold">Change Given:</span>
               <span className="text-green-700 font-bold text-lg">
                 {booking.currency} {Number.parseFloat(booking.changeGiven).toFixed(2)}
               </span>

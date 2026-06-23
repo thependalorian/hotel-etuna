@@ -44,7 +44,7 @@ export default function DashboardFocusStrip() {
   return (
     <section
       aria-label="Operational priorities"
-      className="rounded-2xl border border-base-300/70 bg-base-100/85 p-4 shadow-md backdrop-blur-md md:p-5"
+      className="rounded-etuna-card border border-base-300/70 bg-base-100/85 p-4 backdrop-blur-md md:p-5"
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
         <div className="min-w-0">
@@ -66,8 +66,8 @@ export default function DashboardFocusStrip() {
               variant={variant === 'primary' ? 'primary' : 'outline'}
               className={
                 variant === 'primary'
-                  ? 'min-h-[44px] gap-2 rounded-xl px-4 shadow-md transition-transform duration-200 hover:-translate-y-0.5'
-                  : 'min-h-[44px] gap-2 rounded-xl border-base-300 bg-white/70 px-4 hover:border-brand-400 hover:bg-white'
+                  ? 'min-h-[44px] gap-2 rounded-etuna-card px-4 transition-transform duration-200 hover:-translate-y-0.5'
+                  : 'min-h-[44px] gap-2 rounded-etuna-card border-base-300 bg-white/70 px-4 hover:border-brand-400 hover:bg-white'
               }
             >
               <Link href={href}>

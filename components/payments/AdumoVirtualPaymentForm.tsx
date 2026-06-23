@@ -101,7 +101,7 @@ export function AdumoVirtualPaymentForm({
   return (
     <div className="space-y-2" aria-busy={redirecting} aria-live="polite">
       {redirecting && (
-        <div className="flex items-center gap-2 text-sm text-terracotta-800" role="status">
+        <div className="flex items-center gap-2 text-sm text-ink-600" role="status">
           <span className="loading loading-spinner loading-sm" aria-hidden />
           Redirecting to secure card payment…
         </div>

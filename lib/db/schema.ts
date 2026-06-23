@@ -5,8 +5,13 @@
  * database/drizzle/
  * 
  * Technology: Drizzle ORM with Neon PostgreSQL
- * Features: Hub-and-spoke multi-tenancy, Partner network, Sofia AI (hub only), PSD-12 compliance
- * 
+ *
+ * Architecture: Single-hotel operating system for Hotel Etuna — NOT a multi-property /
+ * multi-hotel hub. Hotel Etuna is the one and only `hub` tenant. The `tenant` model and
+ * RLS exist solely to wall the hub off from `partner` tenants in the B2B partner network
+ * (external accommodation / introducer partners — the "spokes"). Sofia AI is hub-only.
+ * PSD-12 compliance applies to the hub's payment rails.
+ *
  * @version 2.0.0
  * @since April 28, 2026
  * @forked-from Buffr Host v1.0.0
@@ -199,6 +204,11 @@ export const documentTypeEnum = pgEnum('document_type_enum', [
 // CORE TABLES (Multi-Tenancy & Auth)
 // ============================================================================
 
+/**
+ * Tenants. Hotel Etuna is the single `hub` tenant; every other row is a `partner` tenant
+ * in the B2B network (a spoke), never a second hotel. `parentTenantId` points partners back
+ * at the hub. There is exactly one hub in production.
+ */
 export const tenants = pgTable('tenants', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: varchar('name', { length: 255 }).notNull(),
@@ -361,21 +371,23 @@ export const properties = pgTable('properties', {
 }));
 
 /**
- * Maps WhatsApp provider credentials (Meta Cloud API or OpenWA session) to a tenant.
- * Used by /api/webhooks/whatsapp and /api/webhooks/openwa for Sofia routing.
+ * Maps WhatsApp provider credentials (Meta Cloud API) to a tenant.
+ * Used by /api/webhooks/whatsapp for Sofia routing.
  */
 export const tenantWhatsappSettings = pgTable('tenant_whatsapp_settings', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id')
     .references(() => tenants.id, { onDelete: 'cascade' })
     .notNull(),
-  /** meta | openwa — one active row per provider per tenant */
+  /** meta — one active row per tenant (Meta Cloud API) */
   provider: varchar('provider', { length: 16 }).notNull().default('meta'),
   /** Meta Cloud API phone_number_id (required when provider = meta) */
   phoneNumberId: varchar('phone_number_id', { length: 64 }),
-  /** OpenWA session name/id (required when provider = openwa) */
+  // deprecated: OpenWA removed — columns retained in DB (migration 0065) but unused by code.
   openwaSessionId: varchar('openwa_session_id', { length: 128 }),
+  // deprecated: OpenWA removed
   openwaWebhookSecret: text('openwa_webhook_secret'),
+  // deprecated: OpenWA removed
   openwaApiBaseUrl: text('openwa_api_base_url'),
   isActive: boolean('is_active').notNull().default(true),
   defaultPropertyId: uuid('default_property_id').references(() => properties.id, {
@@ -1259,6 +1271,13 @@ export const restaurantOrders = pgTable('restaurant_orders', {
   roomNumber: varchar('room_number', { length: 50 }),
   status: varchar('status', { length: 50 }).default('pending'),
   specialInstructions: text('special_instructions'),
+  // Table ordering (QR dine-in) — see migration 0066.
+  paymentMethod: varchar('payment_method', { length: 20 }).default('add_to_bill'), // adumo | add_to_bill | cash | swipe
+  paymentStatus: varchar('payment_status', { length: 20 }).default('unpaid'), // unpaid | pending | paid
+  placedByUserId: uuid('placed_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+  customerName: varchar('customer_name', { length: 255 }),
+  totalAmount: decimal('total_amount', { precision: 10, scale: 2 }).default('0'),
+  currency: varchar('currency', { length: 3 }).default('NAD'),
   orderedAt: timestamp('ordered_at', { withTimezone: true }).defaultNow(),
   estimatedReadyAt: timestamp('estimated_ready_at', { withTimezone: true }),
   servedAt: timestamp('served_at', { withTimezone: true }),
@@ -1267,6 +1286,8 @@ export const restaurantOrders = pgTable('restaurant_orders', {
 }, (table) => ({
   restaurantIdx: index('idx_restaurant_orders_restaurant_id').on(table.restaurantId),
   statusIdx: index('idx_restaurant_orders_status').on(table.status),
+  placedByIdx: index('idx_restaurant_orders_placed_by').on(table.placedByUserId),
+  paymentStatusIdx: index('idx_restaurant_orders_payment_status').on(table.paymentStatus),
 }));
 
 export type RestaurantOrder = typeof restaurantOrders.$inferSelect;
@@ -1387,6 +1408,76 @@ export type NewInventoryItem = typeof inventoryItems.$inferInsert;
 export type MenuItemInventoryLink = typeof menuItemInventoryLinks.$inferSelect;
 export type StockMovement = typeof stockMovements.$inferSelect;
 export type StockAlert = typeof stockAlerts.$inferSelect;
+
+// ============================================================================
+// INTELLIGENT OS — approval-gated recommendations (migration 0067)
+// Forecasting produces SUGGESTIONS; an admin/front-desk user must approve before
+// a room base_rate changes or a reorder is authorised. Nothing is auto-applied.
+// ============================================================================
+
+export const rateRecommendations = pgTable(
+  'rate_recommendations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .references(() => tenants.id, { onDelete: 'cascade' })
+      .notNull(),
+    propertyId: uuid('property_id').references(() => properties.id, { onDelete: 'cascade' }),
+    roomType: varchar('room_type', { length: 100 }).notNull(),
+    currentRate: decimal('current_rate', { precision: 10, scale: 2 }).default('0').notNull(),
+    recommendedRate: decimal('recommended_rate', { precision: 10, scale: 2 }).default('0').notNull(),
+    currency: varchar('currency', { length: 3 }).default('NAD').notNull(),
+    forecastOccupancy: decimal('forecast_occupancy', { precision: 5, scale: 2 }),
+    horizonDays: integer('horizon_days').default(30).notNull(),
+    signals: jsonb('signals').default({}).notNull(),
+    rationale: text('rationale'),
+    status: varchar('status', { length: 20 }).default('pending').notNull(), // pending | approved | rejected | superseded
+    generatedAt: timestamp('generated_at', { withTimezone: true }).defaultNow(),
+    decidedAt: timestamp('decided_at', { withTimezone: true }),
+    decidedBy: uuid('decided_by').references(() => users.id, { onDelete: 'set null' }),
+    decisionNote: text('decision_note'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  },
+  (table) => ({
+    tenantStatusIdx: index('idx_rate_recommendations_tenant_status').on(table.tenantId, table.status),
+    propertyIdx: index('idx_rate_recommendations_property').on(table.propertyId),
+  }),
+);
+
+export const reorderRecommendations = pgTable(
+  'reorder_recommendations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .references(() => tenants.id, { onDelete: 'cascade' })
+      .notNull(),
+    inventoryItemId: uuid('inventory_item_id')
+      .references(() => inventoryItems.id, { onDelete: 'cascade' })
+      .notNull(),
+    restaurantId: uuid('restaurant_id').references(() => restaurants.id, { onDelete: 'set null' }),
+    quantityOnHand: decimal('quantity_on_hand', { precision: 12, scale: 3 }).default('0').notNull(),
+    reorderPoint: decimal('reorder_point', { precision: 12, scale: 3 }).default('0').notNull(),
+    recommendedQuantity: decimal('recommended_quantity', { precision: 12, scale: 3 }).default('0').notNull(),
+    rationale: text('rationale'),
+    status: varchar('status', { length: 20 }).default('pending').notNull(), // pending | approved | rejected | superseded
+    generatedAt: timestamp('generated_at', { withTimezone: true }).defaultNow(),
+    decidedAt: timestamp('decided_at', { withTimezone: true }),
+    decidedBy: uuid('decided_by').references(() => users.id, { onDelete: 'set null' }),
+    decisionNote: text('decision_note'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  },
+  (table) => ({
+    tenantStatusIdx: index('idx_reorder_recommendations_tenant_status').on(table.tenantId, table.status),
+    itemPendingIdx: uniqueIndex('idx_reorder_recommendations_item_pending')
+      .on(table.inventoryItemId)
+      .where(sql`status = 'pending'`),
+  }),
+);
+
+export type RateRecommendation = typeof rateRecommendations.$inferSelect;
+export type NewRateRecommendation = typeof rateRecommendations.$inferInsert;
+export type ReorderRecommendation = typeof reorderRecommendations.$inferSelect;
+export type NewReorderRecommendation = typeof reorderRecommendations.$inferInsert;
 
 // ============================================================================
 // CRM SYSTEM
@@ -2150,7 +2241,8 @@ export const trustAccountsPsd3 = pgTable('trust_accounts_psd3', {
   statusIdx: index('idx_trust_accounts_psd3_status').on(table.status),
 }));
 
-// NamQR Codes Table (NamQR v5.0)
+// deprecated: NamQR removed (2026-06-23). Table retained for forward-idempotent
+// migration history (0020/0000). No application code reads/writes it.
 export const namqrCodes = pgTable('namqr_codes', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }),
@@ -2181,7 +2273,8 @@ export const namqrCodes = pgTable('namqr_codes', {
   activeIdx: index('idx_namqr_codes_is_active').on(table.isActive),
 }));
 
-/** Guest bank-app payment claims awaiting staff NamQR confirm (Option B). */
+// deprecated: NamQR removed (2026-06-23). Table retained for forward-idempotent
+// migration history (0020). No application code reads/writes it.
 export const namqrPendingConfirmations = pgTable('namqr_pending_confirmations', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id')

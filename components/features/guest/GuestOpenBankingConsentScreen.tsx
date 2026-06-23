@@ -59,14 +59,14 @@ export function GuestOpenBankingConsentScreen({
 
   return (
     <div className="max-w-md mx-auto py-12 px-4">
-      <div className="card bg-base-100 shadow-xl">
+      <div className="card bg-base-100">
         <div className="card-body gap-4">
-          <h1 className="font-display text-xl font-bold text-nude-900">Approve bank payment</h1>
-          <p className="text-sm text-nude-600">
+          <h1 className="font-display text-xl font-bold text-ink-900">Approve bank payment</h1>
+          <p className="text-sm text-ink-600">
             Hotel Etuna is requesting <strong>NAD {amount}</strong> from your linked account. This
             simulates your Namibian banking app consent screen (Open Banking PIS).
           </p>
-          <div className="rounded-lg bg-nude-50 border border-nude-200 p-3 text-sm text-nude-700">
+          <div className="rounded-etuna-input bg-nude-50 border border-nude-200 p-3 text-sm text-ink-700">
             <p>Booking: {bookingId.slice(0, 8)}…</p>
             <p>Scope: {scope}</p>
           </div>
@@ -96,10 +96,10 @@ export function GuestOpenBankingConsentScreen({
 export function GuestOpenBankingConsentInvalid() {
   return (
     <div className="max-w-lg mx-auto py-16 px-4 text-center space-y-4">
-      <h1 className="font-display text-2xl font-bold text-nude-900">Bank link expired</h1>
-      <p className="text-nude-600">
+      <h1 className="font-display text-2xl font-bold text-ink-900">Bank link expired</h1>
+      <p className="text-ink-600">
         This payment authorization link is missing or has expired. Open your stay and try bank payment
-        again, or use NamQR or card.
+        again, or use card.
       </p>
       <Button asChild>
         <a href="/guest">Back to guest hub</a>

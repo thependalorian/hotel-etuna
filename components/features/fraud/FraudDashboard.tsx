@@ -168,7 +168,7 @@ export function FraudDashboard({ tenantId }: FraudDashboardProps) {
       <FraudAlertsTable tenantId={tenantId} />
 
       {/* Status Indicator */}
-      <div className="flex items-center justify-between p-4 bg-base-200 rounded-lg">
+      <div className="flex items-center justify-between p-4 bg-base-200 rounded-etuna-input">
         <div className="flex items-center gap-3">
           <div className="indicator">
             <span className="indicator-item badge badge-success badge-xs"></span>

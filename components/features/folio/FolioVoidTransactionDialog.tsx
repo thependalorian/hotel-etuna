@@ -71,16 +71,16 @@ export function FolioVoidTransactionDialog({
   return (
     <dialog open className="modal modal-open" aria-labelledby="folio-void-title">
       <div className="modal-box max-w-md">
-        <h3 id="folio-void-title" className="font-bold text-lg text-nude-900">
+        <h3 id="folio-void-title" className="font-bold text-lg text-ink-900">
           Void folio charge
         </h3>
-        <p className="py-2 text-sm text-nude-600">
+        <p className="py-2 text-sm text-ink-600">
           Creates a reversal line; the original charge is marked voided for audit.
         </p>
 
-        <div className="rounded-lg bg-nude-50 border border-nude-200 p-3 mb-4">
-          <p className="font-medium text-nude-900">{charge.description}</p>
-          <p className="text-sm font-mono text-nude-700">
+        <div className="rounded-etuna-input bg-nude-50 border border-nude-200 p-3 mb-4">
+          <p className="font-medium text-ink-900">{charge.description}</p>
+          <p className="text-sm font-mono text-ink-700">
             {charge.currency} {charge.amount.toFixed(2)}
           </p>
         </div>

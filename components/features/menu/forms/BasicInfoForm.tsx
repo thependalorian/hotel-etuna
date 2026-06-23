@@ -34,7 +34,7 @@ export default function BasicInfoForm({
   const isEdit = variant === 'edit';
 
   return (
-    <div className="card bg-base-100 shadow-lg">
+    <div className="card bg-base-100">
       <div className="card-header">
         <h2 className="card-title">Basic Information</h2>
       </div>
@@ -100,7 +100,7 @@ export default function BasicInfoForm({
             </span>
           </label>
           {formData.imageUrl ? (
-            <div className="relative mt-2 aspect-4/3 max-w-xs overflow-hidden rounded-lg border border-nude-200">
+            <div className="relative mt-2 aspect-4/3 max-w-xs overflow-hidden rounded-etuna-input border border-nude-200">
               <Image src={formData.imageUrl} alt="" fill className="object-cover" sizes="320px" />
             </div>
           ) : null}

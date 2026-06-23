@@ -2,7 +2,7 @@
  * Hotel Etuna — HTML and plain-text email signatures (staff + transactional footers).
  * Location: lib/email/hotel-etuna-email-signature.ts
  *
- * Logo burgundy #7b161e + cream #f1e6d2; body copy uses terracotta/khaki/nude PRD palette.
+ * Logo CI Rustic Red + cream; body copy uses official CI secondary/accent palette.
  * Address: 5544 Valley Street (not Valley of the Leopard). Tours omitted from marketing copy.
  */
 
@@ -10,14 +10,14 @@ import { brand } from '@/lib/copy/brand';
 
 /** Brand tokens for email clients that ignore class names */
 export const EMAIL_SIGNATURE_COLORS = {
-  logoBurgundy: brand.colors.burgundy,
+  logoRustic: brand.colors.rusticRed,
   logoCream: brand.colors.cream,
-  terracotta800: '#8b4a2e',
-  khaki600: '#b8955a',
-  nude800: '#7d452e',
-  nude50: '#fef7f0',
-  nude200: '#f8dcc0',
-  muted: '#b09a7a',
+  terracotta800: brand.colors.secondary.chocolate,
+  khaki600: brand.colors.accent.ochre,
+  nude800: brand.colors.secondary.chocolate,
+  nude50: brand.colors.accent.offWhite,
+  nude200: brand.colors.cream,
+  muted: brand.colors.secondary.taupe,
 } as const;
 
 const LEGAL_LINE =
@@ -67,7 +67,7 @@ export function getHotelEtunaEmailSignatureHtml(
     options.staffName != null && options.staffName.length > 0
       ? `
         <tr>
-          <td style="padding-bottom: 8px; font-size: 15px; font-weight: 600; color: ${c.logoBurgundy};">
+          <td style="padding-bottom: 8px; font-size: 15px; font-weight: 600; color: ${c.logoRustic};">
             ${escapeHtml(options.staffName)}${options.staffTitle ? `<span style="font-weight: 400; color: ${c.nude800};"> · ${escapeHtml(options.staffTitle)}</span>` : ''}
           </td>
         </tr>`
@@ -117,7 +117,7 @@ export function getHotelEtunaEmailSignatureHtml(
         <tr>
           ${logoCell}
           <td style="vertical-align: top;">
-            <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 26px; font-weight: 700; color: ${c.logoBurgundy}; letter-spacing: 0.5px;">
+            <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 26px; font-weight: 700; color: ${c.logoRustic}; letter-spacing: 0.5px;">
               ${brand.name}
             </div>
             <div style="font-size: 14px; font-style: italic; color: ${c.khaki600}; padding-top: 4px;">

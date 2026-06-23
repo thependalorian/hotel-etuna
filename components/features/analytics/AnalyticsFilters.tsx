@@ -19,21 +19,21 @@ export default function AnalyticsFilters({ selectedProperty, dateRange, onProper
     <div className="dashboard-card p-4">
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2">
-          <Filter className="w-5 h-5 text-nude-600" />
-          <span className="text-sm font-medium text-nude-800">Filters:</span>
+          <Filter className="w-5 h-5 text-ink-600" />
+          <span className="text-sm font-medium text-ink-800">Filters:</span>
         </div>
         <input
           type="date"
-          className="input input-bordered min-h-[44px] rounded-full border-nude-200 bg-white text-nude-800"
+          className="input input-bordered min-h-[44px] rounded-full border-nude-200 bg-white text-ink-800"
           value={dateRange.from.toISOString().split('T')[0]}
           onChange={(e) => {
             onDateRangeChange('from', new Date(e.target.value));
           }}
         />
-        <span className="text-nude-600">to</span>
+        <span className="text-ink-600">to</span>
         <input
           type="date"
-          className="input input-bordered min-h-[44px] rounded-full border-nude-200 bg-white text-nude-800"
+          className="input input-bordered min-h-[44px] rounded-full border-nude-200 bg-white text-ink-800"
           value={dateRange.to.toISOString().split('T')[0]}
           onChange={(e) => {
             onDateRangeChange('to', new Date(e.target.value));

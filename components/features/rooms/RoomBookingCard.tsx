@@ -28,17 +28,17 @@ export default function RoomBookingCard({ display, slug, rateLabel }: RoomBookin
   }
 
   return (
-    <div className="rounded-2xl bg-white p-5 shadow-card sm:p-6 lg:sticky lg:top-24">
-      <div className="mb-4 flex items-center gap-2 text-sm text-terracotta-800">
-        <Refrigerator className="h-4 w-4 text-khaki-600" aria-hidden />
+    <div className="rounded-etuna-card bg-white p-5 shadow-etuna-elevated sm:p-6 lg:sticky lg:top-24">
+      <div className="mb-4 flex items-center gap-2 text-sm text-ink-600">
+        <Refrigerator className="h-4 w-4 text-ci-primary" aria-hidden />
         Mini fridge in every room
       </div>
 
       <div className="mb-6">
-        <div className="mb-1 font-display text-2xl font-bold text-khaki-600 sm:text-3xl lg:text-4xl">
+        <div className="mb-1 font-display text-2xl font-bold text-ci-primary sm:text-3xl lg:text-4xl">
           {rateLabel}
         </div>
-        <p className="text-terracotta-800">per night · up to {display.displayOccupancy} guests</p>
+        <p className="text-ink-600">per night · up to {display.displayOccupancy} guests</p>
       </div>
 
       <Button asChild size="lg" className="mb-3 w-full min-h-11">

@@ -170,19 +170,19 @@ export default function TenantManagement({ tenants: initialTenants, userRole }: 
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="stat bg-base-100 rounded-lg shadow">
+        <div className="stat bg-base-100 rounded-etuna-input shadow">
           <div className="stat-title">Total Tenants</div>
           <div className="stat-value text-primary">{tenantStats.total}</div>
         </div>
-        <div className="stat bg-base-100 rounded-lg shadow">
+        <div className="stat bg-base-100 rounded-etuna-input shadow">
           <div className="stat-title">Active</div>
           <div className="stat-value text-success">{tenantStats.active}</div>
         </div>
-        <div className="stat bg-base-100 rounded-lg shadow">
+        <div className="stat bg-base-100 rounded-etuna-input shadow">
           <div className="stat-title">Suspended</div>
           <div className="stat-value text-warning">{tenantStats.suspended}</div>
         </div>
-        <div className="stat bg-base-100 rounded-lg shadow">
+        <div className="stat bg-base-100 rounded-etuna-input shadow">
           <div className="stat-title">With Restaurant</div>
           <div className="stat-value text-info">{tenantStats.withRestaurant}</div>
         </div>
@@ -256,7 +256,7 @@ export default function TenantManagement({ tenants: initialTenants, userRole }: 
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTenants.map((tenant) => (
-            <div key={tenant.id} className="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow">
+            <div key={tenant.id} className="card bg-base-100 transition-shadow">
               <div className="card-body">
                 <div className="flex items-start justify-between">
                   <div>

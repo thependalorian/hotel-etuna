@@ -33,27 +33,27 @@ interface PerformanceMetricsProps {
 
 export default function PerformanceMetrics({ performance }: PerformanceMetricsProps) {
   return (
-    <div className="card bg-base-100 shadow-lg card-hover animate-slide-up" style={{ animationDelay: '200ms' }}>
+    <div className="card bg-base-100 card-hover animate-slide-up" style={{ animationDelay: '200ms' }}>
       <div className="card-header">
         <h2 className="card-title text-xl font-display">Performance Metrics</h2>
       </div>
       <div className="card-body">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center p-6 bg-base-200 rounded-lg">
+          <div className="text-center p-6 bg-base-200 rounded-etuna-input">
             <div className="text-4xl font-bold text-primary mb-2">
               {performance.bookingConversionRate.toFixed(1)}%
             </div>
             <div className="text-sm font-medium text-base-content/70">Booking Conversion Rate</div>
           </div>
           
-          <div className="text-center p-6 bg-base-200 rounded-lg">
+          <div className="text-center p-6 bg-base-200 rounded-etuna-input">
             <div className="text-4xl font-bold text-secondary mb-2">
               N${performance.revenuePerAvailableRoom.toFixed(2)}
             </div>
             <div className="text-sm font-medium text-base-content/70">Revenue Per Available Room</div>
           </div>
           
-          <div className="text-center p-6 bg-base-200 rounded-lg">
+          <div className="text-center p-6 bg-base-200 rounded-etuna-input">
             <div className="text-4xl font-bold text-accent mb-2">
               N${performance.customerLifetimeValue.toLocaleString()}
             </div>

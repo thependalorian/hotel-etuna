@@ -76,7 +76,7 @@ export default function PropertyMediaGallery({
     return (
       <div className={`grid grid-cols-2 md:grid-cols-3 gap-4 ${className}`}>
         {[...Array(limit)].map((_, i) => (
-          <div key={i} className="aspect-video bg-base-200 rounded-lg animate-pulse" />
+          <div key={i} className="aspect-video bg-base-200 rounded-etuna-input animate-pulse" />
         ))}
       </div>
     );
@@ -108,7 +108,7 @@ export default function PropertyMediaGallery({
         const altText = item.alt_text || item.altText || item.file_name || item.fileName || 'Property image';
         
         return (
-          <div key={item.id} className="relative aspect-video rounded-lg overflow-hidden bg-base-200 group cursor-pointer">
+          <div key={item.id} className="relative aspect-video rounded-etuna-input overflow-hidden bg-base-200 group cursor-pointer">
             <ImagePlaceholder
               src={imageUrl}
               alt={altText}

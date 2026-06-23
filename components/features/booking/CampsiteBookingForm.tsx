@@ -108,7 +108,7 @@ export function CampsiteBookingForm({ roomId, redirectTo }: CampsiteBookingFormP
           onChange={(e) => setNonNamibianGuests(Number(e.target.value) || 0)}
         />
       </label>
-      <p className="text-lg font-semibold text-terracotta-900">
+      <p className="text-lg font-semibold text-ci-secondary-chocolate">
         Estimated total: N${previewTotal.toFixed(2)}
       </p>
       <Button type="submit" variant="primary" className="rounded-full px-8" disabled={loading} aria-busy={loading}>

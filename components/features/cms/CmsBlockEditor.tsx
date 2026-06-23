@@ -233,7 +233,7 @@ export default function CmsBlockEditor({ page, initialBlocks }: Props) {
 
         <div className="space-y-4">
           {blocks.map((block, index) => (
-            <div key={block.id} className="card bg-base-200 shadow-lg">
+            <div key={block.id} className="card bg-base-200">
               <div className="card-body">
                 <div className="flex justify-between items-start mb-4">
                   <span className="badge badge-primary">
@@ -284,7 +284,7 @@ export default function CmsBlockEditor({ page, initialBlocks }: Props) {
               + Add Block
             </button>
             {showAddBlockMenu && (
-              <div className="absolute z-10 mt-2 w-full card bg-base-100 shadow-xl">
+              <div className="absolute z-10 mt-2 w-full card bg-base-100 shadow-etuna-elevated">
                 <div className="card-body">
                   <div className="grid grid-cols-2 gap-2">
                     {BLOCK_TYPES.map((type) => (

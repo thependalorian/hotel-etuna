@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     if (!authorizationUrl) {
       return errorResponse(
-        'Bank payment redirect is not configured for this environment. Use NamQR or card instead.',
+        'Bank payment redirect is not configured for this environment. Use card instead.',
         503,
         'OPEN_BANKING_NOT_CONFIGURED',
       );

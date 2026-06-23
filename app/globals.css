@@ -2,23 +2,75 @@
 @config "../tailwind.config.ts";
 
 /**
- * Hotel Etuna — global styles (Design System)
- * Design tokens: ../tailwind.config.ts (single source of truth).
+ * Hotel Etuna — global styles (Design System v1.1.0)
+ * Design tokens: ../tailwind.config.ts (single source of truth) + :root mirror below.
+ * Colour source of truth: docs/brand/Hotel-Etuna-CI-Guide-Extract.pdf.
+ * Full reference: docs/brand/DESIGN_SYSTEM.md.
  */
 
 @layer base {
   :root {
     color-scheme: light;
-    --radius-card: 1rem;
+
+    /* ── CI palette (source of truth: docs/brand/Hotel-Etuna-CI-Guide-Extract.pdf) ── */
+    /* Primary — logo lockup; Rustic Red is dominant */
+    --ci-primary: #790c19; /* Rustic Red */
+    --ci-cream: #f3e8d7;
+    /* Secondary — blend with primary, never in isolation */
+    --ci-tan: #dabc92;
+    --ci-taupe: #a58b72; /* CI-corrected (page 3) */
+    --ci-chocolate: #4b3428;
+    --ci-gold: #d4af37;
+    --ci-crimson: #ba082c;
+    /* Accent — dimension, data-viz, icons */
+    --ci-ochre: #9a7d43;
+    --ci-accent-gold: #c6a46a;
+    --ci-offwhite: #faf6f0;
+    --ci-forest: #5e6651;
+    --ci-sage: #9bae8a;
+    --ci-terracotta: #6d3722;
+    --ci-rose: #c89b95;
+
+    /* ── Surfaces (warm light ladder) ── */
+    --surface-canvas: #faf6f0; /* page background */
+    --surface-muted: #f3e8d7; /* cream — secondary fills */
+    --surface-card: #ffffff; /* cards, headers, inputs */
+    --surface-placeholder: #f8dcc0; /* image placeholder */
+    --surface-skeleton: #f2c49f; /* loading pulse */
+    --surface-scrim: rgba(42, 29, 21, 0.55); /* text-over-photography */
+
+    /* ── Ink (text) — CI-chocolate-anchored, WCAG-AA verified ── */
+    --ink-900: #4b3428; /* body, headings */
+    --ink-800: #5a4133;
+    --ink-700: #6e5343; /* secondary text */
+    --ink-600: #785b49; /* muted text */
+    --ink-500: #927862; /* tertiary / large / UI only */
+
+    /* ── Radius vocabulary (locked) ── */
+    --radius-badge: 4px;
+    --radius-button: 8px;
+    --radius-input: 14px;
+    --radius-card: 20px;
+    --radius-pill: 32px;
+
+    /* ── Elevation (floating UI only — flat browse/ops cards use none) ── */
+    --shadow-elevated: 0 0 0 1px rgba(0, 0, 0, 0.02), 0 2px 6px 0 rgba(0, 0, 0, 0.04),
+      0 4px 8px 0 rgba(0, 0, 0, 0.1);
+    --shadow-control: 0 0 0 1px rgba(0, 0, 0, 0.02), 0 2px 4px 0 rgba(0, 0, 0, 0.16);
+
+    /* ── Type families ── */
+    --font-display: var(--font-playfair-display), "Playfair Display", ui-serif, Georgia, serif;
+    --font-body: var(--font-inter), Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-signature: var(--font-dancing-script), "Dancing Script", cursive;
   }
 
   * {
     @apply border-nude-200;
   }
 
-  /* Prevent horizontal overflow on mobile */
   body {
-    @apply overflow-x-hidden;
+    @apply overflow-x-hidden bg-surface-background text-ink-900 antialiased;
+    font-feature-settings: "salt";
   }
 
   h1,
@@ -27,22 +79,22 @@
   h4,
   h5,
   h6 {
-    @apply font-display text-nude-900 tracking-tight;
+    @apply font-display text-ink-900 tracking-tight;
   }
 
   ::selection {
-    @apply bg-nude-200 text-nude-900;
+    @apply bg-nude-200 text-ink-900;
   }
 
   :focus-visible {
-    @apply outline outline-2 outline-offset-2 outline-nude-500;
+    @apply outline outline-2 outline-offset-2 outline-ci-primary;
   }
 }
 
 @layer components {
   /* Keyboard skip link — visible on focus only (Part 9.9 / UX-PUBLIC-08) */
   .buffr-skip-link {
-    @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:min-h-touch-mobile focus:rounded-full focus:bg-primary focus:px-6 focus:py-3 focus:text-primary-content focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-nude-500 focus:ring-offset-2;
+    @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:min-h-touch-mobile focus:rounded-full focus:bg-primary focus:px-6 focus:py-3 focus:text-primary-content focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-ci-primary focus:ring-offset-2;
   }
 
   /* WCAG 2.1 AA Touch Target (44x44px minimum on mobile) */
@@ -56,11 +108,12 @@
   }
 
   .dashboard-surface {
-    @apply rounded-2xl border border-nude-200 bg-surface-elevated/95 shadow-nude-medium;
+    @apply rounded-etuna-card border border-nude-200 bg-surface-elevated;
   }
 
+  /** Flat ops card — use etuna-panel for elevated shells, etuna-listing-card for browse tiles */
   .dashboard-card {
-    @apply rounded-2xl border border-nude-200 bg-surface-card shadow-nude-medium transition-all duration-normal;
+    @apply rounded-etuna-card border border-nude-200 bg-surface-card transition-all duration-normal;
   }
 
   .dashboard-card-hover {
@@ -68,7 +121,7 @@
   }
 
   .dashboard-card-hover:hover {
-    @apply -translate-y-0.5 border-nude-300 shadow-card-hover;
+    @apply border-nude-300;
   }
 
   .btn {
@@ -87,7 +140,7 @@
   .input:focus,
   .select:focus,
   .textarea:focus {
-    @apply ring-2 ring-nude-500 ring-offset-2 ring-offset-surface-background;
+    @apply ring-2 ring-ci-primary ring-offset-2 ring-offset-surface-background;
   }
 
   .gentle-lift {
@@ -105,11 +158,11 @@
 
   .card-hover:hover,
   .card-interactive:hover {
-    @apply -translate-y-0.5 shadow-card-hover;
+    @apply border-nude-300;
   }
 
   .ops-pill {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-nude-200 bg-surface-elevated/80 px-2.5 py-1.5 text-xs font-bold text-nude-700;
+    @apply inline-flex items-center gap-1.5 rounded-full border border-nude-200 bg-surface-elevated/80 px-2.5 py-1.5 text-xs font-bold text-ink-700;
   }
 
   /* --- Dashboard layout --- */
@@ -217,7 +270,7 @@
   }
 
   .etuna-page-title {
-    @apply font-display text-3xl font-bold leading-tight tracking-tight text-nude-900 md:text-4xl;
+    @apply font-display text-3xl font-bold leading-tight tracking-tight text-ink-900 md:text-4xl;
   }
 
   .etuna-page-title--emphasis {
@@ -225,7 +278,7 @@
   }
 
   .etuna-page-title--hero {
-    @apply font-display text-4xl font-bold leading-tight tracking-tight text-nude-900 md:text-5xl;
+    @apply font-display text-4xl font-bold leading-tight tracking-tight text-ink-900 md:text-5xl;
   }
 
   .etuna-page-title--fluid {
@@ -233,29 +286,29 @@
   }
 
   .etuna-page-title--compact {
-    @apply font-display text-xl font-bold leading-tight tracking-tight text-nude-900 md:text-2xl;
+    @apply font-display text-xl font-bold leading-tight tracking-tight text-ink-900 md:text-2xl;
   }
 
   .etuna-heading-display {
-    @apply font-display text-2xl font-bold leading-tight tracking-tight text-nude-900 md:text-3xl;
+    @apply font-display text-2xl font-bold leading-tight tracking-tight text-ink-900 md:text-3xl;
   }
 
   .etuna-page-desc {
-    @apply max-w-2xl text-base leading-relaxed text-nude-700;
+    @apply max-w-2xl text-base leading-relaxed text-ink-700;
   }
 
   .etuna-eyebrow {
-    @apply text-xs font-bold uppercase tracking-widest text-nude-500;
+    @apply text-xs font-bold uppercase tracking-widest text-ink-500;
   }
 
   .etuna-link {
-    @apply font-semibold text-nude-700 underline-offset-4 transition-colors duration-fast hover:text-nude-900 hover:underline;
+    @apply font-semibold text-ink-700 underline-offset-4 transition-colors duration-fast hover:text-ink-900 hover:underline;
   }
 
   /* --- Panels --- */
 
   .etuna-panel {
-    @apply rounded-2xl border border-nude-200 bg-nude-50 shadow-nude-medium;
+    @apply rounded-etuna-card border border-nude-200 bg-surface-card;
   }
 
   .etuna-panel-hover {
@@ -263,25 +316,120 @@
   }
 
   .etuna-panel-hover:hover {
-    @apply -translate-y-px border-nude-300 shadow-card-hover;
+    @apply border-nude-300;
+  }
+
+  /* --- Airy marketing / browse patterns --- */
+
+  .etuna-listing-card {
+    @apply overflow-hidden rounded-etuna-card bg-white;
+  }
+
+  .etuna-listing-card-image {
+    @apply aspect-square w-full bg-nude-200 object-cover;
+  }
+
+  .etuna-listing-card-body {
+    @apply space-y-1 p-3;
+  }
+
+  .etuna-listing-card-title {
+    @apply text-heading-sm font-semibold text-ink-900;
+  }
+
+  .etuna-listing-card-meta {
+    @apply text-body text-ink-600;
+  }
+
+  .etuna-listing-card-price {
+    @apply text-body font-semibold text-ink-900;
+  }
+
+  .etuna-featured-badge {
+    @apply absolute left-2 top-2 rounded-etuna-badge bg-white px-2.5 py-1.5 text-caption font-semibold text-ink-900 shadow-etuna-control;
+  }
+
+  /* Text-over-photography — scrim so copy never sits on raw image (espresso, not pure black) */
+  .etuna-card-media {
+    @apply relative overflow-hidden rounded-etuna-card;
+  }
+
+  .etuna-card-media > img,
+  .etuna-card-media > video {
+    @apply h-full w-full object-cover;
+  }
+
+  .etuna-card-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      var(--surface-scrim) 0%,
+      rgba(42, 29, 21, 0.15) 45%,
+      transparent 75%
+    );
+  }
+
+  .etuna-on-image {
+    @apply relative z-10 text-white;
+  }
+
+  .etuna-section-header {
+    @apply mb-3 flex items-baseline gap-2;
+  }
+
+  .etuna-section-header-title {
+    @apply text-heading font-semibold tracking-tight text-ink-900;
+  }
+
+  .etuna-section-header-link {
+    @apply text-body font-medium text-ink-900 hover:underline;
+  }
+
+  .etuna-filter-pill {
+    @apply rounded-etuna-button border border-nude-900 bg-transparent px-4 py-2.5 text-body font-medium text-ink-900 transition hover:bg-nude-50;
+  }
+
+  .etuna-filter-pill-active {
+    @apply border-nude-900 bg-nude-900 text-white;
+  }
+
+  .etuna-icon-btn {
+    @apply flex h-10 w-10 items-center justify-center rounded-full bg-white text-ink-900 shadow-etuna-control transition hover:bg-nude-50;
+  }
+
+  .etuna-icon-btn-disabled {
+    @apply cursor-not-allowed bg-nude-50 text-nude-300 shadow-none;
+  }
+
+  .etuna-carousel-row {
+    @apply flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin md:snap-none;
+  }
+
+  .etuna-nav-link {
+    @apply text-body font-semibold text-ci-secondary-chocolate transition hover:text-ci-accent-ochre;
+  }
+
+  .etuna-nav-link-active {
+    @apply border-b-2 border-nude-900 pb-0.5;
   }
 
   /* --- Legal content --- */
 
   .etuna-legal-content {
-    @apply max-w-none text-nude-800;
+    @apply max-w-none text-ink-800;
   }
 
   .etuna-legal-content h1 {
-    @apply mb-8 font-display text-4xl font-bold tracking-tight text-nude-900;
+    @apply mb-8 font-display text-4xl font-bold tracking-tight text-ink-900;
   }
 
   .etuna-legal-content h2 {
-    @apply mb-4 mt-10 text-2xl font-semibold text-nude-900;
+    @apply mb-4 mt-10 text-2xl font-semibold text-ink-900;
   }
 
   .etuna-legal-content h3 {
-    @apply mb-3 mt-6 text-lg font-semibold text-nude-900;
+    @apply mb-3 mt-6 text-lg font-semibold text-ink-900;
   }
 
   .etuna-legal-content p {
@@ -309,15 +457,15 @@
   }
 
   .etuna-legal-content a {
-    @apply font-semibold text-nude-700 underline-offset-2 hover:text-nude-900 hover:underline;
+    @apply font-semibold text-ink-700 underline-offset-2 hover:text-ink-900 hover:underline;
   }
 
   .etuna-legal-content img {
-    @apply my-4 h-auto max-w-full rounded-xl;
+    @apply my-4 h-auto max-w-full rounded-etuna-card;
   }
 
   .etuna-legal-meta {
-    @apply mb-8 text-sm text-nude-600;
+    @apply mb-8 text-sm text-ink-600;
   }
 
   /* --- Sections --- */
@@ -327,15 +475,15 @@
   }
 
   .etuna-container-marketing {
-    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+    @apply mx-auto w-full max-w-etuna-page px-4 sm:px-6 lg:px-8;
   }
 
   .etuna-hero-band {
-    @apply relative overflow-hidden rounded-2xl border border-nude-200 bg-gradient-to-br from-surface-elevated via-nude-50 to-nude-100 shadow-nude-soft;
+    @apply relative overflow-hidden rounded-etuna-card border border-nude-200 bg-gradient-to-br from-surface-elevated via-nude-50 to-nude-100 shadow-nude-soft;
   }
 
   .etuna-card-nude {
-    @apply rounded-2xl border border-nude-200 bg-surface-elevated/95 p-6 shadow-nude-soft md:p-8;
+    @apply rounded-etuna-card border border-nude-200 bg-surface-elevated/95 p-6 md:p-8;
   }
 
   /* --- Shine effect --- */

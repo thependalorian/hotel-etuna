@@ -65,9 +65,9 @@ export function BookingCashPaymentSection({
     Boolean(booking.receipt_number?.toString().trim());
 
   return (
-    <div className="rounded-lg bg-nude-50 border border-nude-200 p-4 space-y-4">
+    <div className="rounded-etuna-input bg-nude-50 border border-nude-200 p-4 space-y-4">
       <div>
-        <h3 className="font-display text-lg font-semibold text-nude-900 mb-2">Payments</h3>
+        <h3 className="font-display text-lg font-semibold text-ink-900 mb-2">Payments</h3>
         <div className="flex flex-wrap gap-2 text-sm">
           <span className="badge badge-outline">
             Method: {(booking.payment_method as string)?.toUpperCase() || '—'}
@@ -77,7 +77,7 @@ export function BookingCashPaymentSection({
           </span>
         </div>
         {pm === 'cash' && ps === 'paid' && booking.receipt_number && (
-          <p className="text-sm text-nude-700 mt-2 font-mono">
+          <p className="text-sm text-ink-700 mt-2 font-mono">
             Receipt: {String(booking.receipt_number)}
           </p>
         )}

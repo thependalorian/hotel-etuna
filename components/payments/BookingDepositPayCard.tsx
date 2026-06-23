@@ -38,10 +38,10 @@ export function BookingDepositPayCard({
   }
 
   return (
-    <div className="rounded-lg border border-khaki-600/30 bg-khaki-50 p-4 space-y-3">
+    <div className="rounded-etuna-input border border-ci-primary/30 bg-ci-cream p-4 space-y-3">
       <div>
-        <h4 className="font-display font-semibold text-terracotta-900">Pay booking deposit</h4>
-        <p className="text-sm text-terracotta-800 mt-1">
+        <h4 className="font-display font-semibold text-ci-secondary-chocolate">Pay booking deposit</h4>
+        <p className="text-sm text-ink-600 mt-1">
           Ref {bookingReference} · {currency} {amount.toFixed(2)} due. You will complete payment on
           Adumo&apos;s secure page.
         </p>

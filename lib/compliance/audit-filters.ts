@@ -9,7 +9,6 @@ export const RESOURCE_TYPE_FILTER_OPTIONS: { value: string; label: string }[] = 
   { value: 'all', label: 'All resource types' },
   { value: 'support_ticket', label: 'Support ticket' },
   { value: 'consumer_rights_request', label: 'Consumer rights (ETA)' },
-  { value: 'namqr', label: 'NamQR' },
   { value: 'open_banking', label: 'Open banking / consent' },
   { value: 'payment', label: 'Payment / transaction' },
   { value: 'security', label: 'Security' },

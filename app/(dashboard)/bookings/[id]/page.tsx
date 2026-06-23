@@ -106,7 +106,7 @@ const BookingDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
             <Card variant="elevated">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
-                  <h2 className="font-display text-2xl font-bold text-nude-900 mb-2">
+                  <h2 className="font-display text-2xl font-bold text-ink-900 mb-2">
                     Booking #{booking.booking_reference}
                   </h2>
                   <div className="flex flex-wrap gap-2">
@@ -118,38 +118,38 @@ const BookingDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
                     </div>
                   </div>
                   {roomType ? (
-                    <p className="text-sm text-nude-600 mt-2">{roomType}</p>
+                    <p className="text-sm text-ink-600 mt-2">{roomType}</p>
                   ) : null}
                 </div>
                 <div className="text-left sm:text-right">
-                  <p className="text-xs font-bold uppercase tracking-wider text-nude-600">Total</p>
-                  <p className="font-display text-2xl font-bold text-nude-900">
+                  <p className="text-xs font-bold uppercase tracking-wider text-ink-600">Total</p>
+                  <p className="font-display text-2xl font-bold text-ink-900">
                     {formatFolioAmount(booking.currency ?? 'NAD', total)}
                   </p>
-                  <p className="text-sm text-nude-600">Payment: {booking.payment_status ?? 'pending'}</p>
+                  <p className="text-sm text-ink-600">Payment: {booking.payment_status ?? 'pending'}</p>
                 </div>
               </div>
 
               {/* Dates Section */}
               <div className="mb-6">
-                <h3 className="font-display text-lg font-semibold mb-3 text-nude-900">
+                <h3 className="font-display text-lg font-semibold mb-3 text-ink-900">
                   {isStay ? 'Stay dates' : 'Booking dates'}
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-nude-50 rounded-lg border border-nude-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-nude-50 rounded-etuna-input border border-nude-200">
                   <div className="flex items-start gap-3">
-                    <Calendar className="w-5 h-5 text-nude-600 mt-0.5" aria-hidden="true" />
+                    <Calendar className="w-5 h-5 text-ink-600 mt-0.5" aria-hidden="true" />
                     <div>
-                      <p className="text-xs text-nude-600 mb-1">{checkInDateLabel(bookingKind)}</p>
-                      <p className="font-semibold text-nude-900">
+                      <p className="text-xs text-ink-600 mb-1">{checkInDateLabel(bookingKind)}</p>
+                      <p className="font-semibold text-ink-900">
                         {formatDateLong(booking.check_in_date)}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <Calendar className="w-5 h-5 text-nude-600 mt-0.5" aria-hidden="true" />
+                    <Calendar className="w-5 h-5 text-ink-600 mt-0.5" aria-hidden="true" />
                     <div>
-                      <p className="text-xs text-nude-600 mb-1">{checkOutDateLabel(bookingKind)}</p>
-                      <p className="font-semibold text-nude-900">
+                      <p className="text-xs text-ink-600 mb-1">{checkOutDateLabel(bookingKind)}</p>
+                      <p className="font-semibold text-ink-900">
                         {formatDateLong(booking.check_out_date)}
                       </p>
                     </div>
@@ -159,28 +159,28 @@ const BookingDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
 
               {/* Guest Information */}
               <div className="mb-6">
-                <h3 className="font-display text-lg font-semibold mb-3 text-nude-900">Guest Information</h3>
+                <h3 className="font-display text-lg font-semibold mb-3 text-ink-900">Guest Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-center gap-3">
-                    <User className="w-5 h-5 text-nude-600" aria-hidden="true" />
+                    <User className="w-5 h-5 text-ink-600" aria-hidden="true" />
                     <div>
-                      <p className="text-sm text-nude-600">Full Name</p>
-                      <p className="font-semibold text-nude-900">{guestName}</p>
+                      <p className="text-sm text-ink-600">Full Name</p>
+                      <p className="font-semibold text-ink-900">{guestName}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Mail className="w-5 h-5 text-nude-600" aria-hidden="true" />
+                    <Mail className="w-5 h-5 text-ink-600" aria-hidden="true" />
                     <div>
-                      <p className="text-sm text-nude-600">Email</p>
-                      <p className="font-semibold text-nude-900">{readText(guest, 'email') || 'No email'}</p>
+                      <p className="text-sm text-ink-600">Email</p>
+                      <p className="font-semibold text-ink-900">{readText(guest, 'email') || 'No email'}</p>
                     </div>
                   </div>
                   {readText(guest, 'phone') && (
                     <div className="flex items-center gap-3">
-                      <Phone className="w-5 h-5 text-nude-600" aria-hidden="true" />
+                      <Phone className="w-5 h-5 text-ink-600" aria-hidden="true" />
                       <div>
-                        <p className="text-sm text-nude-600">Phone</p>
-                        <p className="font-semibold text-nude-900">{readText(guest, 'phone')}</p>
+                        <p className="text-sm text-ink-600">Phone</p>
+                        <p className="font-semibold text-ink-900">{readText(guest, 'phone')}</p>
                       </div>
                     </div>
                   )}
@@ -189,18 +189,18 @@ const BookingDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
 
               {/* Property Information */}
               <div className="mb-6">
-                <h3 className="font-display text-lg font-semibold mb-3 text-nude-900">Property Information</h3>
+                <h3 className="font-display text-lg font-semibold mb-3 text-ink-900">Property Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-nude-600 mb-1">Property Name</p>
-                    <p className="font-semibold text-nude-900 text-lg">{readText(property, 'name') || 'Property not attached'}</p>
+                    <p className="text-sm text-ink-600 mb-1">Property Name</p>
+                    <p className="font-semibold text-ink-900 text-lg">{readText(property, 'name') || 'Property not attached'}</p>
                   </div>
                   {readText(property, 'address') && (
                     <div className="flex items-start gap-3">
-                      <MapPin className="w-5 h-5 text-nude-600 mt-0.5" aria-hidden="true" />
+                      <MapPin className="w-5 h-5 text-ink-600 mt-0.5" aria-hidden="true" />
                       <div>
-                        <p className="text-sm text-nude-600 mb-1">Address</p>
-                        <p className="font-semibold text-nude-900">{readText(property, 'address')}</p>
+                        <p className="text-sm text-ink-600 mb-1">Address</p>
+                        <p className="font-semibold text-ink-900">{readText(property, 'address')}</p>
                       </div>
                     </div>
                   )}
@@ -216,9 +216,9 @@ const BookingDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
 
               {booking.special_requests && (
                 <div>
-                  <h3 className="font-display text-lg font-semibold mb-3 text-nude-900">Special Requests</h3>
-                  <div className="rounded-lg bg-nude-50 border border-nude-200 p-4">
-                    <p className="text-nude-800">{booking.special_requests}</p>
+                  <h3 className="font-display text-lg font-semibold mb-3 text-ink-900">Special Requests</h3>
+                  <div className="rounded-etuna-input bg-nude-50 border border-nude-200 p-4">
+                    <p className="text-ink-800">{booking.special_requests}</p>
                   </div>
                 </div>
               )}
@@ -228,8 +228,8 @@ const BookingDetailsPage = async ({ params }: { params: Promise<{ id: string }> 
           {/* Sidebar - Actions */}
           <div className="lg:col-span-1 space-y-6">
             <Card variant="elevated" className="sticky top-6">
-              <h3 className="font-display text-lg font-semibold mb-4 text-nude-900">Status Actions</h3>
-              <p className="text-sm text-nude-600 mb-4">
+              <h3 className="font-display text-lg font-semibold mb-4 text-ink-900">Status Actions</h3>
+              <p className="text-sm text-ink-600 mb-4">
                 {isStay
                   ? 'Change booking status using validated PMS workflows'
                   : 'Update facility booking status (room housekeeping not affected)'}

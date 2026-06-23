@@ -35,7 +35,7 @@ export default function RoomPhotoTour({ roomName, stops }: RoomPhotoTourProps) {
 
   return (
     <section id="tour" className="space-y-4" aria-label={`${roomName} photo tour`}>
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-nude-100 shadow-card sm:aspect-[16/10]">
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-etuna-card bg-nude-100 sm:aspect-[16/10]">
         <Image
           key={active.imageSrc}
           src={active.imageSrc}
@@ -45,7 +45,7 @@ export default function RoomPhotoTour({ roomName, stops }: RoomPhotoTourProps) {
           sizes="(max-width: 768px) 100vw, 66vw"
           priority={activeIndex === 0}
         />
-        <div className="absolute inset-0 bg-linear-to-t from-terracotta-950/50 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-ci-secondary-chocolate/50 via-transparent to-transparent" />
 
         <button
           type="button"
@@ -64,7 +64,7 @@ export default function RoomPhotoTour({ roomName, stops }: RoomPhotoTourProps) {
           <ChevronRight className="h-5 w-5" aria-hidden />
         </button>
 
-        <p className="absolute bottom-3 left-3 rounded-full bg-terracotta-950/75 px-3 py-1 text-xs font-medium text-white">
+        <p className="absolute bottom-3 left-3 rounded-full bg-ci-secondary-chocolate/75 px-3 py-1 text-xs font-medium text-white">
           {activeIndex + 1} / {safeStops.length} · {active.label}
         </p>
       </div>
@@ -82,10 +82,10 @@ export default function RoomPhotoTour({ roomName, stops }: RoomPhotoTourProps) {
             aria-selected={index === activeIndex}
             onClick={() => setActiveIndex(index)}
             className={cn(
-              'shrink-0 rounded-lg border px-3 py-2 text-left text-sm transition-colors min-h-11',
+              'shrink-0 rounded-etuna-input border px-3 py-2 text-left text-sm transition-colors min-h-11',
               index === activeIndex
-                ? 'border-khaki-600 bg-khaki-600 text-white'
-                : 'border-nude-200 bg-white text-terracotta-800 hover:border-khaki-400',
+                ? 'border-ci-primary bg-ci-primary text-ci-cream'
+                : 'border-nude-200 bg-white text-ci-accent-terracotta hover:border-ci-secondary-taupe',
             )}
           >
             {stop.label}
@@ -93,7 +93,7 @@ export default function RoomPhotoTour({ roomName, stops }: RoomPhotoTourProps) {
         ))}
       </div>
 
-      <p className="text-sm leading-relaxed text-terracotta-800">{active.caption}</p>
+      <p className="text-sm leading-relaxed text-ink-700">{active.caption}</p>
     </section>
   );
 }

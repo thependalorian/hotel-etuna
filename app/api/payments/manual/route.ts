@@ -4,7 +4,7 @@
  */
 
 /**
- * POST /api/payments/manual — record EFT / e-wallet / NamQR bank-app payment
+ * POST /api/payments/manual — record EFT / e-wallet / bank-deposit payment
  * Location: app/api/payments/manual/route.ts
  *
  * Body: { bookingId, amount, rail, bankReference, payerName?, notes?, applyToFolio? }
@@ -19,7 +19,7 @@ import { manualPaymentService } from '@/lib/services/payment/ManualPaymentServic
 const bodySchema = z.object({
   bookingId: z.string().uuid(),
   amount: z.number().positive(),
-  rail: z.enum(['eft', 'ewallet', 'namqr', 'bank_deposit']),
+  rail: z.enum(['eft', 'ewallet', 'bank_deposit']),
   bankReference: z.string().min(3).max(100),
   payerName: z.string().max(100).optional(),
   notes: z.string().max(500).optional(),

@@ -36,10 +36,10 @@ export function PropertySwitcher() {
   if (properties.length === 1) {
     return (
       <div
-        className="hidden md:flex items-center gap-2 px-3 py-2 rounded-full bg-nude-50 border border-nude-200 text-sm text-nude-800 min-h-[44px]"
+        className="hidden md:flex items-center gap-2 px-3 py-2 rounded-full bg-nude-50 border border-nude-200 text-sm text-ink-800 min-h-[44px]"
         title={activeProperty?.name}
       >
-        <Building2 className="w-4 h-4 text-nude-600 shrink-0" aria-hidden="true" />
+        <Building2 className="w-4 h-4 text-ink-600 shrink-0" aria-hidden="true" />
         <span className="font-medium truncate max-w-[12rem]">{activeProperty?.name}</span>
       </div>
     );
@@ -52,14 +52,14 @@ export function PropertySwitcher() {
       </label>
       <div className="relative">
         <Building2
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-nude-600 pointer-events-none"
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-600 pointer-events-none"
           aria-hidden="true"
         />
         <select
           id="property-switcher"
           className={cn(
             'select select-bordered select-sm rounded-full pl-9 pr-8 min-h-[44px]',
-            'bg-nude-50 border-nude-200 text-sm font-medium text-nude-800 max-w-[14rem]'
+            'bg-nude-50 border-nude-200 text-sm font-medium text-ink-800 max-w-[14rem]'
           )}
           value={activePropertyId ?? ''}
           onChange={(e) => setActivePropertyId(e.target.value)}
@@ -72,7 +72,7 @@ export function PropertySwitcher() {
           ))}
         </select>
         <ChevronDown
-          className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-nude-600 pointer-events-none"
+          className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-600 pointer-events-none"
           aria-hidden="true"
         />
       </div>

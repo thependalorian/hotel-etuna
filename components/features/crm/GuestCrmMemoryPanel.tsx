@@ -150,7 +150,7 @@ export default function GuestCrmMemoryPanel({ guestId }: { guestId: string }) {
 
   if (loading && !bundle) {
     return (
-      <div className="rounded-lg border border-nude-200 bg-surface-elevated shadow-nude-medium">
+      <div className="rounded-etuna-input border border-nude-200 bg-surface-elevated">
         <div className="p-12 flex flex-col items-center justify-center">
           <LoadingSpinner size="md" text="Loading CRM memory…" />
         </div>
@@ -162,14 +162,14 @@ export default function GuestCrmMemoryPanel({ guestId }: { guestId: string }) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border border-luxury-charlotte/30 bg-gradient-to-br from-luxury-champagne/20 to-white shadow-luxury-soft">
+      <div className="rounded-etuna-input border border-luxury-charlotte/30 bg-gradient-to-br from-luxury-champagne/20 to-white shadow-luxury-soft">
         <div className="p-6 space-y-6">
-          <h3 className="font-display text-2xl font-bold text-nude-900 flex items-center gap-2">
+          <h3 className="font-display text-2xl font-bold text-ink-900 flex items-center gap-2">
             <span className="w-1.5 h-8 bg-luxury-charlotte rounded-full" />
             CRM Memory & Outreach
           </h3>
           {error && (
-            <div className="flex items-start gap-3 p-4 bg-semantic-error-light text-semantic-error-dark rounded-lg border border-semantic-error/20" role="alert">
+            <div className="flex items-start gap-3 p-4 bg-semantic-error-light text-semantic-error-dark rounded-etuna-input border border-semantic-error/20" role="alert">
               <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>

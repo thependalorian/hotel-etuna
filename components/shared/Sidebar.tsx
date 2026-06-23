@@ -1,7 +1,9 @@
 /**
- * Sidebar — main app navigation (Design System v1.0.0)
+ * Sidebar — main app navigation (Design System v1.2.0 — dark chocolate rail)
  *
  * Purpose: Tenant-aware nav with clear hierarchy and ≥44px touch targets on mobile.
+ * Visual: premium deep-chocolate rail (CI chocolate #2A1D15) with cream text and a gold
+ * active accent, for a luxe contrast against the off-white content canvas.
  * Location: components/shared/Sidebar.tsx
  */
 
@@ -36,6 +38,8 @@ import {
   CreditCard,
   FileBarChart,
   PanelLeft,
+  Lightbulb,
+  Gauge,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { HotelEtunaLogo } from '@/components/brand/HotelEtunaLogo';
@@ -61,6 +65,7 @@ const EXPERIENCE_GROUPS = [
 
 const navItems: NavItem[] = [
   { href: "/dashboard", label: dashboardCopy.nav.today, icon: LayoutDashboard, section: "Operations" },
+  { href: "/command-centre", label: "Command centre", icon: Gauge, section: "Operations" },
   { href: "/properties", label: dashboardCopy.nav.property, icon: Building2, section: "Operations" },
   { href: "/bookings", label: "Bookings", icon: Calendar, section: "Operations" },
   { href: "/housekeeping", label: "Housekeeping", icon: Sparkles, section: "Operations" },
@@ -80,6 +85,7 @@ const navItems: NavItem[] = [
   { href: "/sofia/email", label: "Sofia email", icon: Mail, section: "Experience", experienceGroup: "sofia" },
   { href: "/staff", label: "Staff", icon: ClipboardCheck, section: "Operations" },
   { href: "/analytics", label: "Analytics", icon: BarChart3, section: "Admin" },
+  { href: "/intelligence", label: "Intelligence", icon: Lightbulb, section: "Admin" },
   { href: "/reports/accounting", label: "Accounting", icon: FileBarChart, section: "Admin" },
   { href: "/reports/property-vat", label: "VAT report", icon: FileBarChart, section: "Admin" },
   {
@@ -129,23 +135,31 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose }: SidebarProps) => {
       <li key={item.href}>
         <Link
           href={item.href}
+          aria-current={isActive ? "page" : undefined}
           className={cn(
-            "flex min-h-touch-mobile items-center gap-3 rounded-lg px-4 py-3 font-medium transition-all duration-normal md:min-h-touch-desktop",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nude-500 focus-visible:ring-offset-2",
+            "group relative flex min-h-touch-mobile items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-normal md:min-h-touch-desktop",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#2A1D15]",
             isActive
-              ? "border border-nude-200 bg-surface-elevated text-nude-900 shadow-nude-soft"
-              : "text-nude-700 hover:border-nude-200/80 hover:bg-nude-50/90 hover:text-nude-900",
-            !isActive && "hover:-translate-y-px"
+              ? "bg-white/10 text-white shadow-sm"
+              : "text-[#E9DDCD]/75 hover:bg-white/5 hover:text-white"
           )}
         >
+          {/* Gold active accent bar */}
+          <span
+            className={cn(
+              "absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-[#D4AF37] transition-opacity",
+              isActive ? "opacity-100" : "opacity-0"
+            )}
+            aria-hidden
+          />
           <Icon
-            className={cn("h-5 w-5 shrink-0", isActive ? "text-nude-600" : "text-nude-500")}
+            className={cn(
+              "h-5 w-5 shrink-0 transition-colors",
+              isActive ? "text-[#D4AF37]" : "text-[#E9DDCD]/55 group-hover:text-[#E9DDCD]"
+            )}
             aria-hidden
           />
           <span>{item.label}</span>
-          {isActive ? (
-            <span className="ml-auto h-2 w-2 shrink-0 rounded-full bg-nude-500" aria-hidden />
-          ) : null}
         </Link>
       </li>
     );
@@ -201,20 +215,25 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose }: SidebarProps) => {
       <aside
         ref={asideRef}
         className={cn(
-          "flex h-full w-64 flex-col border-r border-nude-200 bg-surface-sidebar text-nude-900 shadow-nude-soft",
+          "flex h-full w-64 flex-col border-r border-white/5 bg-gradient-to-b from-[#2A1D15] to-[#1B120C] text-[#E9DDCD]",
           "fixed left-0 top-0 z-40 transition-transform duration-slow ease-out-expo lg:sticky",
           isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        <div className="flex items-center justify-between border-b border-nude-200 p-4 md:p-6">
-          <div className="group flex flex-1 flex-col gap-1">
-            <HotelEtunaLogo size="sm" href="/dashboard" />
-            <p className="text-xs font-medium text-terracotta-800 pl-1">Ongwediva, Namibia</p>
+        <div className="flex items-center justify-between border-b border-white/10 p-4 md:p-6">
+          <div className="flex flex-1 flex-col gap-2">
+            <span className="inline-flex w-fit rounded-xl bg-[#F3E8D7] px-3 py-2 shadow-sm ring-1 ring-black/5">
+              <HotelEtunaLogo size="sm" variant="compact" href="/dashboard" />
+            </span>
+            <p className="flex items-center gap-1.5 pl-1 text-xs font-medium text-[#C6A46A]">
+              <span className="h-1 w-1 rounded-full bg-[#C6A46A]" aria-hidden />
+              Ongwediva, Namibia
+            </p>
           </div>
           <button
             type="button"
             onClick={() => onMobileClose?.()}
-            className="flex min-h-touch-mobile min-w-touch-mobile items-center justify-center rounded-lg text-nude-700 transition-colors hover:bg-nude-200/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nude-500 focus-visible:ring-offset-2 lg:hidden"
+            className="flex min-h-touch-mobile min-w-touch-mobile items-center justify-center rounded-xl text-[#E9DDCD]/70 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] lg:hidden"
             aria-label="Close menu"
           >
             <X className="h-5 w-5" aria-hidden />
@@ -226,8 +245,8 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose }: SidebarProps) => {
             const sectionItems = visibleNavItems.filter((item) => item.section === section);
             if (sectionItems.length === 0) return null;
             return (
-            <div key={section} className="mb-5 last:mb-0">
-              <p className="px-4 pb-2 text-[0.68rem] font-bold uppercase tracking-widest text-nude-500">
+            <div key={section} className="mb-6 last:mb-0">
+              <p className="px-4 pb-2 text-[0.66rem] font-bold uppercase tracking-[0.18em] text-[#C6A46A]/80">
                 {section}
               </p>
               {section === "Experience" ? (
@@ -240,13 +259,13 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose }: SidebarProps) => {
                     );
                     return (
                       <details key={key} className="group px-1" open={groupActive}>
-                        <summary className="flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wide text-nude-600 hover:bg-nude-50/90 [&::-webkit-details-marker]:hidden">
+                        <summary className="flex cursor-pointer list-none items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold uppercase tracking-wide text-[#E9DDCD]/65 transition-colors hover:bg-white/5 hover:text-[#E9DDCD] [&::-webkit-details-marker]:hidden">
                           {label}
-                          <span className="text-nude-400 transition-transform group-open:rotate-180" aria-hidden>
+                          <span className="text-[#C6A46A]/70 transition-transform group-open:rotate-180" aria-hidden>
                             ▾
                           </span>
                         </summary>
-                        <ul className="mt-1 space-y-1 border-l border-nude-200/80 ml-4 pl-1">
+                        <ul className="ml-4 mt-1 space-y-1 border-l border-white/10 pl-1">
                           {groupItems.map((item) => renderNavLink(item))}
                         </ul>
                       </details>
@@ -261,10 +280,16 @@ const Sidebar = ({ isMobileOpen = false, onMobileClose }: SidebarProps) => {
           })}
         </nav>
 
-        <div className="border-t border-nude-200 p-4">
-          <div className="rounded-xl border border-nude-200 bg-nude-50/90 p-3 text-xs text-nude-700 shadow-inner">
-            <p className="font-semibold text-nude-900">Sofia AI online</p>
-            <p>Tenant-aware operations assistant</p>
+        <div className="border-t border-white/10 p-4">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-[#E9DDCD]/70">
+            <p className="flex items-center gap-2 font-semibold text-white">
+              <span className="relative flex h-2 w-2" aria-hidden>
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/70" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+              </span>
+              Sofia AI online
+            </p>
+            <p className="mt-1 pl-4">Tenant-aware operations assistant</p>
           </div>
         </div>
       </aside>

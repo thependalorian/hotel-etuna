@@ -54,8 +54,8 @@ export function NightAuditPanel({ propertyId }: NightAuditPanelProps) {
 
   return (
     <Card variant="elevated" className="p-6">
-      <h2 className="font-display text-xl font-semibold text-nude-900 mb-1">Night audit</h2>
-      <p className="text-sm text-nude-600 mb-4">
+      <h2 className="font-display text-xl font-semibold text-ink-900 mb-1">Night audit</h2>
+      <p className="text-sm text-ink-600 mb-4">
         Post room tariffs, process no-shows, advance stayovers, and generate revenue KPIs for the
         business date.
       </p>
@@ -113,20 +113,20 @@ export function NightAuditPanel({ propertyId }: NightAuditPanelProps) {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-            <div className="rounded-lg border border-nude-200 p-3">
-              <p className="text-nude-600">Tariffs posted</p>
+            <div className="rounded-etuna-input border border-nude-200 p-3">
+              <p className="text-ink-600">Tariffs posted</p>
               <p className="font-semibold">{result.tariffResult.count}</p>
             </div>
-            <div className="rounded-lg border border-nude-200 p-3">
-              <p className="text-nude-600">No-shows</p>
+            <div className="rounded-etuna-input border border-nude-200 p-3">
+              <p className="text-ink-600">No-shows</p>
               <p className="font-semibold">{result.noShowResult.count}</p>
             </div>
-            <div className="rounded-lg border border-nude-200 p-3">
-              <p className="text-nude-600">Stayovers</p>
+            <div className="rounded-etuna-input border border-nude-200 p-3">
+              <p className="text-ink-600">Stayovers</p>
               <p className="font-semibold">{result.stayoverResult.advanced}</p>
             </div>
-            <div className="rounded-lg border border-nude-200 p-3">
-              <p className="text-nude-600">Due-outs</p>
+            <div className="rounded-etuna-input border border-nude-200 p-3">
+              <p className="text-ink-600">Due-outs</p>
               <p className="font-semibold">{result.dueOutResult.markedDueOut}</p>
             </div>
           </div>

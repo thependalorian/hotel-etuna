@@ -11,7 +11,6 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { AdumoVirtualPaymentForm } from '@/components/payments/AdumoVirtualPaymentForm';
-import { NamQrDeskPanel } from '@/components/features/payments/NamQrDeskPanel';
 import { FolioVatBreakdown } from '@/components/features/folio/FolioVatBreakdown';
 import {
   FolioVoidTransactionDialog,
@@ -99,14 +98,14 @@ export function BookingFolioSection({ bookingId, bookingStatus }: BookingFolioSe
     const isTerminal = bookingStatus === 'cancelled' || bookingStatus === 'no_show';
     return (
       <Card variant="elevated" className="p-6">
-        <h3 className="font-display text-lg font-semibold text-nude-900 mb-2">Stay folio</h3>
+        <h3 className="font-display text-lg font-semibold text-ink-900 mb-2">Stay folio</h3>
         {isTerminal ? (
-          <p className="text-sm text-nude-600">
+          <p className="text-sm text-ink-600">
             This booking is {bookingStatus.replace('_', ' ')}. There is no active folio to view.
           </p>
         ) : (
           <div className="space-y-3">
-            <p className="text-sm text-nude-600">
+            <p className="text-sm text-ink-600">
               Folio opens at check-in. Room charges, F&amp;B, and incidentals will appear here once the
               guest is in-house.
             </p>
@@ -129,12 +128,12 @@ export function BookingFolioSection({ bookingId, bookingStatus }: BookingFolioSe
 
   return (
     <Card variant="elevated" className="p-6">
-      <h3 className="font-display text-lg font-semibold text-nude-900 mb-2">Stay folio</h3>
-      <p className="text-sm text-nude-600 mb-4">
+      <h3 className="font-display text-lg font-semibold text-ink-900 mb-2">Stay folio</h3>
+      <p className="text-sm text-ink-600 mb-4">
         Room rate, F&amp;B, and incidentals on this booking. Settle before check-out when balance is open.
       </p>
 
-      {loading && <div className="skeleton h-24 w-full rounded-lg" aria-hidden />}
+      {loading && <div className="skeleton h-24 w-full rounded-etuna-input" aria-hidden />}
 
       {error && <p className="text-sm text-error mb-3">{error}</p>}
 
@@ -148,7 +147,7 @@ export function BookingFolioSection({ bookingId, bookingStatus }: BookingFolioSe
             <FolioBalanceStat
               label="Folio status"
               value={folio.folioClosedAt ? 'Closed' : 'Open'}
-              valueClassName="text-sm font-semibold capitalize text-nude-900"
+              valueClassName="text-sm font-semibold capitalize text-ink-900"
             />
           </div>
 
@@ -193,11 +192,6 @@ export function BookingFolioSection({ bookingId, bookingStatus }: BookingFolioSe
                   }}
                 />
               )}
-              <NamQrDeskPanel
-                bookingId={bookingId}
-                suggestedAmount={resolveFolioPayAmount(amount, folio.balanceDue)}
-                onConfirmed={() => void load()}
-              />
             </div>
           )}
         </>

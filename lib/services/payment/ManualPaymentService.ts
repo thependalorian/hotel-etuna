@@ -1,6 +1,6 @@
 /**
  * @fileoverview ManualPaymentService — domain service module.
- * ManualPaymentService — record off-platform payments (EFT, e-wallet, NamQR bank app).
+ * ManualPaymentService — record off-platform payments (EFT, e-wallet, bank deposit, cash).
  * Location: lib/services/payment/ManualPaymentService.ts
  */
 
@@ -9,17 +9,15 @@ import { bookings, transactions } from '@/lib/db/schema';
 import { PaymentGatewayLabel, PaymentMethodType } from '@/lib/payments/namibia-payment-rails';
 import { recordAuditTrail } from '@/lib/compliance/record-audit';
 import { schedulePaymentReceiptEmail } from '@/lib/services/booking/bookingLifecycleSideEffects';
-import { NAMQR_RECEIPT_PAYMENT_METHOD } from '@/lib/services/payment/HospitalityNamQrPaymentService';
 import { settleOffPlatformFolio } from '@/lib/services/payment/settleOffPlatformFolio';
 import { eq } from 'drizzle-orm';
 import { AppError, handleServiceError } from '@/lib/utils/errors';
 
-export type ManualPaymentRail = 'eft' | 'ewallet' | 'namqr' | 'bank_deposit' | 'cash';
+export type ManualPaymentRail = 'eft' | 'ewallet' | 'bank_deposit' | 'cash';
 
 const RAIL_TO_GATEWAY: Record<ManualPaymentRail, string> = {
   eft: PaymentGatewayLabel.BANK_EFT,
   ewallet: PaymentGatewayLabel.EWALLET_AGGREGATOR,
-  namqr: PaymentGatewayLabel.NAMQR,
   bank_deposit: PaymentGatewayLabel.BANK_EFT,
   cash: PaymentGatewayLabel.CASH_MANUAL,
 };
@@ -27,7 +25,6 @@ const RAIL_TO_GATEWAY: Record<ManualPaymentRail, string> = {
 const RAIL_TO_METHOD_TYPE: Record<ManualPaymentRail, string> = {
   eft: PaymentMethodType.EFT,
   ewallet: PaymentMethodType.EWALLET,
-  namqr: PaymentMethodType.NAMQR,
   bank_deposit: PaymentMethodType.BANK_DEPOSIT,
   cash: PaymentMethodType.CASH,
 };
@@ -108,10 +105,7 @@ export class ManualPaymentService {
             propertyId: booking.propertyId,
             amount: input.amount,
             currency: booking.currency ?? 'NAD',
-            paymentMethod:
-              input.rail === 'namqr'
-                ? NAMQR_RECEIPT_PAYMENT_METHOD
-                : input.rail.toUpperCase(),
+            paymentMethod: input.rail.toUpperCase(),
             bookingReference: booking.bookingReference ?? undefined,
             transactionId: settlement.transactionId,
           });

@@ -46,7 +46,7 @@ function BookingPageContent() {
               </span>
             </div>
 
-            <div className="card bg-base-100 shadow-xl">
+            <div className="card bg-base-100">
               <div className="card-body p-8">
                 <BookingForm />
               </div>

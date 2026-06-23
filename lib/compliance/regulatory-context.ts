@@ -12,11 +12,10 @@
  * | Consumer rights | `consumer_rights_requests`                          | Track requests, deadlines, resolution
  * | Incidents       | `cybersecurity_incidents` (PSD-12-style fields)      | Severity, detection, BoN reporting timestamps
  * | Payments / OB   | Open banking + trust account tables in schema        | Separate from support; keep scoped APIs
- * | NamQR           | `namqr_codes`                                         | QR issuance; follow Namibia QR standard in your pack
  * | Fraud ops       | Observe failed txs + OB API errors + NPS fraud intel | Monitoring; not a substitute for bank fraud systems
  *
  * **Your local pack** (Downloads): align implementation reviews with PDFs there — BoN PSD (PSD-1, PSD-3,
- * PSD-12, …), ETA 2019, NamQR, Namibia Open Banking, NPS Fraud Trend Report, PSMA, etc.
+ * PSD-12, …), ETA 2019, Namibia Open Banking, NPS Fraud Trend Report, PSMA, etc.
  * This file does not interpret law; it ties schema/features to those materials for engineering.
  *
  * Implementation must stay minimal in logs (no full PII in `new_values` for replies).
@@ -56,12 +55,6 @@ export const REGULATORY_MATERIALS_INDEX = [
     engineeringFocus: 'Incidents, availability, recovery; use `cybersecurity_incidents` + audit trail.',
   },
   {
-    key: 'namqr',
-    label: 'Namibia QR Code Standards',
-    file: 'Namibia QR Code Standards.pdf',
-    engineeringFocus: 'NamQR payloads, display; pair with `namqr_codes` + `NamQrService`.',
-  },
-  {
     key: 'open_banking_na',
     label: 'Namibia Open Banking Standards',
     file: 'Namibia Open Banking Standards.pdf',
@@ -93,7 +86,6 @@ export const AuditResourceTypes = {
   SUPPORT_TICKET: 'support_ticket',
   COMPLIANCE: 'compliance',
   CONSUMER_RIGHTS_REQUEST: 'consumer_rights_request',
-  NAMQR: 'namqr',
   OPEN_BANKING: 'open_banking',
   PAYMENT: 'payment',
   SECURITY: 'security',

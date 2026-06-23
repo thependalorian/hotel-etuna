@@ -203,7 +203,7 @@ export function GuestFolioPanel({
     return (
       <div aria-busy="true" role="status">
         <p className="sr-only">Loading folio…</p>
-        <div className="skeleton h-48 w-full rounded-xl" aria-hidden />
+        <div className="skeleton h-48 w-full rounded-etuna-card" aria-hidden />
       </div>
     );
   }
@@ -221,17 +221,17 @@ export function GuestFolioPanel({
     <div className="space-y-6">
       {isPastStay && (
         <div
-          className="rounded-xl border border-khaki-300 bg-khaki-50 px-4 py-3 text-sm text-nude-800"
+          className="rounded-etuna-card border border-ci-secondary-tan bg-ci-cream px-4 py-3 text-sm text-ink-800"
           role="status"
         >
           {guestCopy.folio.pastStayBanner}
         </div>
       )}
       <Card variant="elevated" className="p-6">
-        <h2 className="font-display text-2xl font-bold text-nude-900 mb-2">
+        <h2 className="font-display text-2xl font-bold text-ink-900 mb-2">
           Stay folio · {bookingReference}
         </h2>
-        <p className="text-sm text-nude-600 mb-4">
+        <p className="text-sm text-ink-600 mb-4">
           Status: <span className="badge badge-outline capitalize">{bookingStatus}</span>
           {roomNumbers.length > 0 && (
             <span className="ml-2">Room {roomNumbers.join(', ')}</span>
@@ -242,12 +242,12 @@ export function GuestFolioPanel({
             <FolioBalanceStat
               label="Balance due"
               value={formatFolioAmount(folio.currency, folio.balanceDue)}
-              valueClassName="text-2xl font-bold text-nude-900"
+              valueClassName="text-2xl font-bold text-ink-900"
             />
             <FolioBalanceStat
               label="Open charges"
               value={formatFolioAmount(folio.currency, folio.openChargesTotal)}
-              valueClassName="text-2xl font-bold text-nude-900"
+              valueClassName="text-2xl font-bold text-ink-900"
             />
           </div>
         )}
@@ -285,19 +285,19 @@ export function GuestFolioPanel({
             if (items.length === 0) return null;
             return (
               <div key={cat.id} className="mb-6">
-                <h4 className="font-semibold text-terracotta-900 mb-2">{cat.name}</h4>
+                <h4 className="font-semibold text-ci-secondary-chocolate mb-2">{cat.name}</h4>
                 <ul className="space-y-2">
                   {items
                     .filter((i) => i.isAvailable !== false)
                     .map((item) => (
                       <li
                         key={item.id}
-                        className="flex flex-wrap items-center justify-between gap-2 border border-nude-200 rounded-lg p-3"
+                        className="flex flex-wrap items-center justify-between gap-2 border border-nude-200 rounded-etuna-input p-3"
                       >
                         <div>
                           <p className="font-medium">{item.name}</p>
                           {item.description && (
-                            <p className="text-xs text-nude-600">{item.description}</p>
+                            <p className="text-xs text-ink-600">{item.description}</p>
                           )}
                           <p className="text-sm font-semibold">
                             {formatFolioAmount(item.currency ?? 'NAD', Number(item.price))}
@@ -369,7 +369,7 @@ export function GuestFolioPanel({
       {canOrder && (
         <Card variant="elevated" className="p-6">
           <h3 className="font-display text-lg font-semibold mb-2">Loyalty</h3>
-          <p className="text-sm text-nude-600 mb-3">
+          <p className="text-sm text-ink-600 mb-3">
             Redeem points (min 100). 100 points = N$50 off this stay folio.
           </p>
           <div className="flex gap-2">
@@ -387,7 +387,7 @@ export function GuestFolioPanel({
       )}
 
       {!canOrder && !isPastStay && (
-        <p className="text-sm text-nude-600">
+        <p className="text-sm text-ink-600">
           Room service and folio payment are available once you are checked in.
         </p>
       )}

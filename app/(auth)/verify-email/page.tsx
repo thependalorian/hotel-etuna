@@ -88,8 +88,8 @@ function VerifyEmailForm() {
         {/* Logo/Brand */}
         <div className="flex justify-center mb-8">
           <div className="relative group">
-            <div className="absolute inset-0 bg-gradient-to-r from-nude-600 via-nude-500 to-nude-400 rounded-2xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
-            <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-nude-600 to-nude-500 flex items-center justify-center shadow-2xl transform group-hover:scale-110 transition-transform duration-300">
+            <div className="absolute inset-0 bg-gradient-to-r from-nude-600 via-nude-500 to-nude-400 rounded-etuna-card blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
+            <div className="relative w-20 h-20 rounded-etuna-card bg-gradient-to-br from-nude-600 to-nude-500 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
               <span className="text-3xl font-bold text-white">H</span>
             </div>
           </div>
@@ -107,7 +107,7 @@ function VerifyEmailForm() {
       </div>
 
       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-md animate-slide-up">
-        <div className="card bg-base-100 shadow-xl card-hover">
+        <div className="card bg-base-100 card-hover">
           <div className="card-body p-8 md:p-10">
             {success ? (
               <div className="text-center space-y-4">

@@ -88,7 +88,7 @@ export function CommunicationsHubList() {
       {!loading && !error && threads.length === 0 && (
         <div className="text-center py-12 text-base-content/70">
           <p className="font-medium">No WhatsApp threads yet</p>
-          <p className="text-sm mt-2">Guest messages via Meta or OpenWA will appear here.</p>
+          <p className="text-sm mt-2">Guest messages via WhatsApp will appear here.</p>
         </div>
       )}
 

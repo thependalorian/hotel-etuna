@@ -494,7 +494,7 @@ Also on Neon: `manager@hoteletuna.com` (`owner`); **19 CI `@example.com` `admin`
 
 | Surface | Shipped | Gap / improvement |
 |---------|---------|-------------------|
-| Guest `/guest` | Stays, folio, room service, loyalty, profile, DSAR, room QR | Phase 8: magic-link pre-arrival, document vault, digital key, messaging, agentic nudges; nav lacks dedicated “Stays” tab |
+| Guest `/guest` | Stays, folio, room service, loyalty, profile, DSAR, room QR | Phase 8: magic-link pre-arrival, document vault, messaging, agentic nudges; nav lacks dedicated “Stays” tab |
 | Partner `/partner` | 7-item portal + property CRUD | Dual path: partners also reach trimmed hub `Sidebar` on `/dashboard` — decide single canonical UX |
 | Staff dashboard | Full sidebar for all hub roles | Sidebar not trimmed per **team inbox** (frontdesk vs marketing vs support vs founder/admin) |
 | Introducer CRM | Staff `/crm/introducers/*` | Public `/introducers-directory` now public (proxy fix) |
@@ -593,10 +593,10 @@ Forward‑looking architecture for the product vision in **PRD §1.1** (core pro
 
 | Phase | Focus | New surfaces / where it lands |
 |-------|-------|-------------------------------|
-| **8** | Guest command centre | `app/guest/*` expansion; digital check‑in + digital key (QR/NFC; pluggable lock provider behind an adapter in `lib/integrations/`); service/maintenance requests → staff tasks; folio widget reuses `FolioService`. New tables via next migration numbers (claim in `docs/MIGRATION_MASTER.md`). |
+| **8** | Guest command centre | `app/guest/*` expansion; digital check‑in; service/maintenance requests → staff tasks; folio widget reuses `FolioService`. New tables via next migration numbers (claim in `docs/MIGRATION_MASTER.md`). |
 | **9** | Staff intelligence layer | `app/(dashboard)/*` real‑time alerts (poll/SSE); voice commands (Sofia tool calls); predictive housekeeping/maintenance routing in `lib/services/*`; PWA push (existing service worker, § Offline/PWA Strategy). |
 | **10** | Sofia co‑pilot | Extend Sofia pipeline (§ OSS pattern porting W7 LangGraph tool graph); layered memory in Neon (`crm_guest_memory_facts` + `crm_graph_edges`, optional Mem0 mirror); sentiment + handover; multi‑channel context unification; language auto‑detect. Hub‑exclusive boundary unchanged. |
-| **11** | Intelligent OS | Dynamic pricing + forecasting services (`lib/services/*`); read‑only OTA rate ingest (manual/scrape, no two‑way OTA); inventory auto‑reorder on `InventoryService`; predictive maintenance from complaint history; POPIA anonymisation jobs (`lib/cron/`). |
+| **11** | Intelligent OS | Forecasting services (`lib/services/*`) producing **rate recommendations only** — suggestions are written to a review queue and an admin/front‑desk approval is required before any `rooms.base_rate` change; nothing is auto‑applied. Forecasting methodology follows Hyndman & Athanasopoulos *Forecasting: Principles and Practice* (FPP3) — explore series first, then ETS/ARIMA on occupancy/ADR/RevPAR with lead‑time/event signals. inventory **reorder recommendations** on `InventoryService` (suggested → admin/front‑desk approves; never auto‑ordered); predictive maintenance from complaint history; POPIA anonymisation jobs (`lib/cron/`). No OTA/channel‑manager sync (no Booking.com/Expedia integration). |
 | **12** | UX polish | Design‑system audit against § Frontend design system; skeletons everywhere; offline queue (IndexedDB); WCAG 2.1 AA; keyboard shortcuts for staff dashboard. |
 
 **Out of scope (unchanged):** two‑way OTA sync; RealPay/Stripe; Sofia/AI for partners; net‑settling Buffr invoices from guest card proceeds without consent + audit.
@@ -1125,15 +1125,28 @@ pages live under `app/(public|auth|guest)` and `lib/data/*`.
 route allowlist in `proxy.ts`. Migration numbering: Drizzle `_journal.json` ends at
 `0002`; `0003`+ are idempotent forward SQL applied via `scripts/db/apply-all-missing-migrations.ts`.
 
-### Frontend design system (production-verified 2026-06-07)
+### Frontend design system (production-verified 2026-06-07; airy pass 2026-06-18)
 
 Guest brand is **Hotel Etuna only**; the platform console is `@buffr.ai` operator-only.
 All buttons inherit `rounded-full` from `.btn` in `globals.css` (no per-button class
 needed). Tokens live in `tailwind.config.ts`; brand copy in `lib/copy/{brand,public}.ts`.
 State primitives: `LoadingSpinner`, `ErrorDisplay`, `EmptyState` (used across pages).
 PWA: `public/sw.js` (cache v3 + IndexedDB offline queue), `public/manifest.json`,
-`/offline`. Accessibility: WCAG 2.1 AA, ≥44px touch targets, semantic HTML, focus rings.
-Open frontend gaps are tracked in `TASK.md` § Production gaps.
+`/offline`. Accessibility: WCAG 2.1 AA, ≥44px touch targets, semantic HTML, focus rings
+(`ring-khaki-600`). Open frontend gaps are tracked in `TASK.md` § Production gaps.
+
+**Airy / photography-first tokens (Etuna vocabulary — never third-party naming):**
+| Token / class | Role |
+|---------------|------|
+| `surface.background` / `nude-50` | Page canvas |
+| `surface.elevated` / white | Cards, headers |
+| `shadow-etuna-elevated` | Search, modals, sticky booking only |
+| `rounded-etuna-card` | Listing/browse tiles (20px) |
+| `.etuna-listing-card` | No shadow browse shell |
+| `.etuna-filter-pill` | Category chips (8px radius; CTAs stay `rounded-full`) |
+| `components/features/marketing/*` | `EtunaListingCard`, `EtunaCarouselRow`, etc. |
+
+Dashboard/partner/platform shells use flat `.dashboard-card` / `Card variant="flat"` (border `nude-200`, no lift). Legacy `shadow-nude-*` retained only on `.etuna-hero-band` VIP bands until redesigned.
 
 ---
 
@@ -1354,6 +1367,31 @@ Code inspection and commands run against the repo (not agent reports alone). Det
 - **PRD:** `docs/project/PRD.md` - Product requirements and features
 - **Planning:** `docs/project/PLANNING.md` (this file) - Architecture and strategy
 - **Tasks:** `docs/project/TASK.md` - Implementation checklist
+
+---
+
+## E2E journey resolution (2026-06-19)
+
+**Runner:** `scripts/e2e-journey-runner.ts` (Playwright fallback; `agent-browser` daemon unavailable).
+
+| Issue | Resolution |
+|-------|------------|
+| J5/J6 compile latency | `--only j5,j6` + `warmStaffPartnerRoutes()` pre-login compile |
+| Pre-hydration login GET leak | `LoginForm` `method="post"` |
+| Staff password mismatch | `ADMIN_PASSWORD` from `.env.local` in runner + `e2e/helpers/login.ts` |
+| J7 platform admin | `npm run provision:platform-admin` → `scripts/provision-platform-admin.ts` |
+| J3 Adumo | Skip in automation; manual Adumo staging |
+| Folio refresh on booking | `BookingFolioSection` already wires `onConfirmed={() => load()}` |
+
+**Database core (hub-and-spoke):** `tenants` → `users` / `properties` / `rooms` → `bookings` → `booking_charges` (folio) + `payment_sessions` (Adumo/NamQR). Schema: `lib/db/schema.ts`; migrations: `database/drizzle/*.sql`.
+
+**Re-run staff/partner only:**
+
+```bash
+NEXTAUTH_URL=http://127.0.0.1:3010 E2E_BASE_URL=http://127.0.0.1:3010 E2E_TURNSTILE_BYPASS=1 npm run test:e2e:j56
+```
+
+Report: `e2e-test-report.md` · Screenshots: `e2e-screenshots/`
 
 ---
 

@@ -33,7 +33,7 @@ interface BookingTrendsProps {
 
 export default function BookingTrends({ bookingTrends }: BookingTrendsProps) {
   return (
-    <div className="card bg-base-100 shadow-lg card-hover animate-slide-up" style={{ animationDelay: '100ms' }}>
+    <div className="card bg-base-100 card-hover animate-slide-up" style={{ animationDelay: '100ms' }}>
       <div className="card-header">
         <h2 className="card-title text-xl font-display">Booking Trends</h2>
       </div>
@@ -42,7 +42,7 @@ export default function BookingTrends({ bookingTrends }: BookingTrendsProps) {
           {bookingTrends.slice(0, 7).map((trend, index) => (
             <div 
               key={index} 
-              className="flex items-center justify-between p-3 bg-base-200 rounded-lg hover:bg-base-300 transition-colors duration-200 animate-fade-in"
+              className="flex items-center justify-between p-3 bg-base-200 rounded-etuna-input hover:bg-base-300 transition-colors duration-200 animate-fade-in"
               style={{ animationDelay: `${index * 50}ms` }}
             >
               <div>

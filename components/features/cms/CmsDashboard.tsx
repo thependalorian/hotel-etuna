@@ -52,7 +52,7 @@ export default function CmsDashboard({ initialContent, initialMedia, properties 
 
   if (properties.length === 0) {
     return (
-      <div className="card bg-base-100 shadow-lg">
+      <div className="card bg-base-100">
         <div className="card-body text-center py-16">
           <div className="w-20 h-20 rounded-full bg-base-200 flex items-center justify-center mx-auto mb-6">
             <svg className="w-10 h-10 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,7 +77,7 @@ export default function CmsDashboard({ initialContent, initialMedia, properties 
         <p className="text-base-content/70">Manage content and media for your properties</p>
       </div>
 
-      <div className="card bg-base-100 shadow-lg card-hover">
+      <div className="card bg-base-100 card-hover">
         <div className="card-body">
           <label htmlFor="propertySelect" className="label">
             <span className="label-text font-medium">Select Property:</span>
@@ -100,7 +100,7 @@ export default function CmsDashboard({ initialContent, initialMedia, properties 
       {selectedPropertyId ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Content Management Section */}
-          <div className="card bg-base-100 shadow-lg card-hover animate-slide-up">
+          <div className="card bg-base-100 card-hover animate-slide-up">
             <div className="card-body">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="card-title text-xl font-display">Content Management</h3>
@@ -181,7 +181,7 @@ export default function CmsDashboard({ initialContent, initialMedia, properties 
           </div>
 
           {/* Media Library Section */}
-          <div className="card bg-base-100 shadow-lg card-hover animate-slide-up" style={{ animationDelay: '100ms' }}>
+          <div className="card bg-base-100 card-hover animate-slide-up" style={{ animationDelay: '100ms' }}>
             <div className="card-body">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="card-title text-xl font-display">Media Library</h3>
@@ -214,7 +214,7 @@ export default function CmsDashboard({ initialContent, initialMedia, properties 
                   {media.map((item, index) => (
                     <div 
                       key={item.id} 
-                      className="card card-compact bg-base-200 shadow-md hover:shadow-lg transition-shadow duration-200 animate-fade-in"
+                      className="card card-compact bg-base-200 transition-shadow duration-200 animate-fade-in"
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
                       <figure className="relative h-24 w-full overflow-hidden bg-base-300">
@@ -258,7 +258,7 @@ export default function CmsDashboard({ initialContent, initialMedia, properties 
           </div>
         </div>
       ) : (
-        <div className="card bg-base-100 shadow-lg">
+        <div className="card bg-base-100">
           <div className="card-body text-center py-12">
             <p className="text-base-content/70">Select a property to manage its content and media.</p>
           </div>

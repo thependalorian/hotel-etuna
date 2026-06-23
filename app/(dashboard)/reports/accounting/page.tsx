@@ -15,8 +15,8 @@ export default function HospitalityAccountingPage() {
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-nude-900">Bookkeeping & accounts</h1>
-          <p className="text-nude-600 mt-1">
+          <h1 className="text-3xl font-bold text-ink-900">Bookkeeping & accounts</h1>
+          <p className="text-ink-600 mt-1">
             {brand.name} — income statement, trial balance, and cash summary (NAD / NamRA)
           </p>
         </div>

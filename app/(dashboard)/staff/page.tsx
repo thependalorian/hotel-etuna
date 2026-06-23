@@ -91,7 +91,7 @@ const StaffPage = async ({ searchParams }: { searchParams: { [key: string]: stri
             return (
               <div 
                 key={stat.label}
-                className="card bg-base-100 shadow-lg card-hover animate-slide-up"
+                className="card bg-base-100 card-hover animate-slide-up"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div className="card-body">
@@ -103,7 +103,7 @@ const StaffPage = async ({ searchParams }: { searchParams: { [key: string]: stri
                         <p className="text-xs text-base-content/50">{stat.desc}</p>
                       )}
                     </div>
-                    <div className={`w-14 h-14 rounded-xl ${stat.bg} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                    <div className={`w-14 h-14 rounded-etuna-card ${stat.bg} flex items-center justify-center flex-shrink-0`}>
                       <Icon className={`w-7 h-7 ${stat.color}`} />
                     </div>
                   </div>

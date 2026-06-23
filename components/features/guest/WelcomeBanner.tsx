@@ -19,7 +19,7 @@ export interface WelcomeBannerProps {
  */
 export function WelcomeBanner({ firstName, loyaltyTier }: WelcomeBannerProps) {
   return (
-    <div className="rounded-2xl bg-gradient-to-r from-terracotta-900 to-khaki-700 p-6 text-white shadow-card sm:p-8">
+    <div className="rounded-etuna-card bg-gradient-to-r from-ci-secondary-chocolate to-ci-primary p-6 text-white sm:p-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="font-display text-2xl font-bold sm:text-3xl">Moro, {firstName} 👋</p>

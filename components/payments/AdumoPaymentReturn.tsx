@@ -91,10 +91,10 @@ export function AdumoPaymentReturn({ mode }: AdumoPaymentReturnProps) {
 
   return (
     <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4 py-8 text-center sm:gap-6">
-      <h1 className="font-display text-xl text-terracotta-900 sm:text-2xl">
+      <h1 className="font-display text-xl text-ci-secondary-chocolate sm:text-2xl">
         {mode === 'success' ? 'Payment' : 'Payment issue'}
       </h1>
-      <p className="max-w-md text-sm text-terracotta-800 sm:text-base">{message}</p>
+      <p className="max-w-md text-sm text-ink-700 sm:text-base">{message}</p>
       <div className="flex w-full max-w-xs flex-col gap-2 sm:max-w-sm sm:flex-row sm:justify-center">
         {diningRetryHref ? (
           <Button asChild className="w-full sm:w-auto min-h-11">

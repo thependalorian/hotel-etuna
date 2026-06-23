@@ -16,7 +16,7 @@ export default function CommissionReportPage() {
           Commission totals by lodging partner and check-in date range.
         </p>
       </div>
-      <div className="card bg-base-100 shadow-lg">
+      <div className="card bg-base-100">
         <div className="card-body">
           <CommissionReportTable />
         </div>

@@ -134,7 +134,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
         <div className="mb-12">
           <h2 className="text-2xl md:text-3xl font-bold font-display mb-6">Our Rooms</h2>
           {rooms.length === 0 ? (
-            <div className="card bg-base-100 shadow-md">
+            <div className="card bg-base-100">
               <div className="card-body text-center py-12">
                 <p className="text-base-content/70 text-lg">No rooms available at this time. Please check back later.</p>
               </div>
@@ -210,7 +210,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
         {property.type === 'RESTAURANT' && (
           <div className="mb-12">
             <h2 className="text-2xl md:text-3xl font-bold font-display mb-6">Our Menu</h2>
-            <div className="card bg-base-100 shadow-md">
+            <div className="card bg-base-100">
               <div className="card-body text-center py-12">
                 <p className="text-base-content/70 text-lg mb-6">Explore our full menu and place your order.</p>
                 <Link href={`/public-properties/${slug}/menu`}>

@@ -13,7 +13,7 @@ export default function CommunicationsPage() {
         title="Communications"
         description="WhatsApp guest threads — Sofia AI and human handoff for front desk and support"
       />
-      <div className="card bg-base-100 shadow-lg">
+      <div className="card bg-base-100">
         <div className="card-body">
           <CommunicationsHubList />
         </div>

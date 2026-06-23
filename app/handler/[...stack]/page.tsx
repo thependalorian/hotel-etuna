@@ -18,11 +18,11 @@ export default function HandlerPage(props: {
   if (!stackServerApp || !isStackAuthServerConfigured()) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-surface-background px-4">
-        <div className="max-w-md rounded-2xl border border-nude-200 bg-white p-8 text-center shadow-card">
-          <h1 className="font-display text-xl font-bold text-terracotta-900">
+        <div className="max-w-md rounded-etuna-card border border-nude-200 bg-white p-8 text-center">
+          <h1 className="font-display text-xl font-bold text-ci-secondary-chocolate">
             Sign-in unavailable
           </h1>
-          <p className="mt-3 text-sm text-terracotta-800">
+          <p className="mt-3 text-sm text-ink-600">
             Stack Auth is not configured on this environment. Use email sign-in instead.
           </p>
           <Button asChild className="mt-6">

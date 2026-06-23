@@ -81,9 +81,9 @@ export function GuestDashboard() {
       >
         {hubState.loading ? (
           <>
-            <div className="skeleton h-28 rounded-2xl" aria-hidden />
-            <div className="skeleton h-28 rounded-2xl" aria-hidden />
-            <div className="skeleton h-28 rounded-2xl" aria-hidden />
+            <div className="skeleton h-28 rounded-etuna-card" aria-hidden />
+            <div className="skeleton h-28 rounded-etuna-card" aria-hidden />
+            <div className="skeleton h-28 rounded-etuna-card" aria-hidden />
             <p className="sr-only">Loading your stay insights…</p>
           </>
         ) : (
@@ -114,16 +114,16 @@ export function GuestDashboard() {
 
       {/* Quick actions */}
       <div>
-        <h2 className="mb-3 font-display text-lg font-bold text-terracotta-900">Quick actions</h2>
+        <h2 className="mb-3 font-display text-lg font-bold text-ci-secondary-chocolate">Quick actions</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {quickActions.map((action) => (
             <Link
               key={action.href + action.label}
               href={action.href}
-              className="flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-2xl border border-nude-200 bg-white p-4 text-center shadow-card transition hover:border-khaki-600/40 hover:shadow-card-hover"
+              className="flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-etuna-card border border-nude-200 bg-white p-4 text-center transition hover:border-ci-primary/40"
             >
-              <action.icon className="h-6 w-6 text-khaki-600" aria-hidden />
-              <span className="text-sm font-medium text-terracotta-900">{action.label}</span>
+              <action.icon className="h-6 w-6 text-ci-primary" aria-hidden />
+              <span className="text-sm font-medium text-ci-secondary-chocolate">{action.label}</span>
             </Link>
           ))}
         </div>

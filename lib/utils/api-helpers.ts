@@ -21,7 +21,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { getTenantContext as getTenantContextFromValidation } from './tenant-validation';
 import { checkRateLimit, shouldRateLimit } from './rate-limit';
-import { logUnauthorizedAccess, logRateLimitExceeded } from './security-logger';
+import { logUnauthorizedAccess, logRateLimitExceeded } from './security-logger.server';
 import { runWithTenantContext } from '@/lib/auth/tenant-context';
 import { stackServerApp } from '@/stack';
 import { isStackAuthServerConfigured } from '@/lib/auth/stack-env';

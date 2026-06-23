@@ -30,10 +30,10 @@ export default async function DiningReservationPayPage({ searchParams }: PagePro
   if (!code?.trim()) {
     return (
       <PayShell>
-        <h1 className="font-display text-xl font-semibold text-terracotta-900 sm:text-2xl">
+        <h1 className="font-display text-xl font-semibold text-ci-secondary-chocolate sm:text-2xl">
           Pay reservation deposit
         </h1>
-        <p className="mt-4 text-sm text-terracotta-800 sm:text-base">
+        <p className="mt-4 text-sm text-ink-600 sm:text-base">
           Missing booking code. Use the link from your confirmation email.
         </p>
       </PayShell>
@@ -44,10 +44,10 @@ export default async function DiningReservationPayPage({ searchParams }: PagePro
 
   return (
     <PayShell>
-      <h1 className="font-display text-xl font-semibold text-terracotta-900 sm:text-2xl">
+      <h1 className="font-display text-xl font-semibold text-ci-secondary-chocolate sm:text-2xl">
         Pay reservation deposit
       </h1>
-      <p className="mt-2 text-sm text-terracotta-800 sm:text-base">
+      <p className="mt-2 text-sm text-ink-600 sm:text-base">
         Booking code{' '}
         <strong className="break-all font-mono">{bookingCode}</strong> — you will be redirected to
         Adumo&apos;s secure card page (Namibia).

@@ -141,7 +141,7 @@ export function HospitalityAccountingPanel() {
   return (
     <div className="space-y-6">
       <Card className="p-6 space-y-4">
-        <p className="text-sm text-nude-600">
+        <p className="text-sm text-ink-600">
           Bookkeeping pack for <strong>{report?.entity.legalName ?? 'Hotel Etuna'}</strong> (BIPA{' '}
           {report?.entity.ccNumber ?? 'CC/2011/3890'}). Revenue on <strong>settled folio</strong>{' '}
           lines; VAT for NamRA; separate from{' '}
@@ -152,7 +152,7 @@ export function HospitalityAccountingPanel() {
         </p>
         <div className="flex flex-wrap gap-4 items-end">
           <label className="form-control w-full max-w-xs">
-            <span className="label-text text-nude-700">From</span>
+            <span className="label-text text-ink-700">From</span>
             <input
               type="date"
               className="input input-bordered w-full"
@@ -161,7 +161,7 @@ export function HospitalityAccountingPanel() {
             />
           </label>
           <label className="form-control w-full max-w-xs">
-            <span className="label-text text-nude-700">To</span>
+            <span className="label-text text-ink-700">To</span>
             <input
               type="date"
               className="input input-bordered w-full"
@@ -189,14 +189,14 @@ export function HospitalityAccountingPanel() {
       )}
 
       {loading && !report && (
-        <Card className="p-8 text-center text-nude-600">Loading bookkeeping report…</Card>
+        <Card className="p-8 text-center text-ink-600">Loading bookkeeping report…</Card>
       )}
 
       {report && is && (
         <>
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="p-6">
-              <h2 className="text-lg font-semibold text-nude-900 mb-3">Income statement (P&L)</h2>
+              <h2 className="text-lg font-semibold text-ink-900 mb-3">Income statement (P&L)</h2>
               <dl className="space-y-1 text-sm">
                 <div className="flex justify-between gap-4">
                   <dt>Room revenue (ex VAT)</dt>
@@ -250,7 +250,7 @@ export function HospitalityAccountingPanel() {
                     {c} {is.netIncomeBeforeTax.toFixed(2)}
                   </dd>
                 </div>
-                <div className="flex justify-between gap-4 text-nude-600">
+                <div className="flex justify-between gap-4 text-ink-600">
                   <dt>Est. income tax @ 30%</dt>
                   <dd className="font-mono">
                     ({c} {is.estimatedIncomeTaxProvision.toFixed(2)})
@@ -266,8 +266,8 @@ export function HospitalityAccountingPanel() {
             </Card>
 
             <Card className="p-6">
-              <h2 className="text-lg font-semibold text-nude-900 mb-3">Operating cash (simplified)</h2>
-              <p className="text-xs text-nude-500 mb-3">RWJJ Ch.6 — guest collections vs platform fees</p>
+              <h2 className="text-lg font-semibold text-ink-900 mb-3">Operating cash (simplified)</h2>
+              <p className="text-xs text-ink-500 mb-3">RWJJ Ch.6 — guest collections vs platform fees</p>
               <dl className="space-y-2 text-sm">
                 <div className="flex justify-between gap-4">
                   <dt>Cash from guests</dt>
@@ -288,7 +288,7 @@ export function HospitalityAccountingPanel() {
                   </dd>
                 </div>
               </dl>
-              <p className="text-xs text-nude-500 mt-4">
+              <p className="text-xs text-ink-500 mt-4">
                 {report.journalLineCount} journal lines · ITX {report.entity.incomeTaxReference ?? '—'}{' '}
                 · VAT {report.entity.vatNumber ?? '—'}
               </p>
@@ -333,7 +333,7 @@ export function HospitalityAccountingPanel() {
             </Card>
           )}
 
-          <p className="text-xs text-nude-500">{report.disclaimer}</p>
+          <p className="text-xs text-ink-500">{report.disclaimer}</p>
         </>
       )}
     </div>

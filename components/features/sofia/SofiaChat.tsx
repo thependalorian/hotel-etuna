@@ -77,8 +77,8 @@ export function SofiaChat() {
             <div className="absolute inset-0 rounded-full animate-ai-pulse" />
           </div>
           <div className="flex-1">
-            <CardTitle className="font-display text-2xl font-bold text-nude-900">Sofia AI Concierge</CardTitle>
-            <p className="text-sm text-nude-600 mt-1 flex items-center gap-2">
+            <CardTitle className="font-display text-2xl font-bold text-ink-900">Sofia AI Concierge</CardTitle>
+            <p className="text-sm text-ink-600 mt-1 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-semantic-success animate-pulse-soft" />
               Online and ready to assist
             </p>

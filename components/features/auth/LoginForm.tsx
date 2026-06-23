@@ -58,7 +58,7 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <form method="post" action="#" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       {error && (
         <Alert variant="destructive" role="alert" aria-live="assertive">
           <AlertTriangle className="h-4 w-4" />
@@ -84,12 +84,12 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
         <div>
             <div className="flex items-center justify-between mb-1">
                 <label htmlFor="password"
-                    className="block text-sm font-medium text-nude-700">
+                    className="block text-sm font-medium text-ink-700">
                     Password
                 </label>
                 <div className="text-sm">
                     <Link href="/forgot-password"
-                        className="font-medium text-nude-600 hover:text-nude-700">
+                        className="font-medium text-ink-600 hover:text-ink-700">
                         Forgot password?
                     </Link>
                 </div>

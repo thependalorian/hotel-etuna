@@ -1,7 +1,7 @@
 /**
  * HotelEtunaMarkIcon
  *
- * Purpose: Official burgundy "he" monogram mark (square) for nav, sidebar, and favicons.
+ * Purpose: Official Rustic Red "he" monogram mark (square) for nav, sidebar, and favicons.
  * Location: /components/brand/HotelEtunaMarkIcon.tsx
  *
  * Asset: public/brand/hotel-etuna-mark.png (cropped from approved logo lockup).

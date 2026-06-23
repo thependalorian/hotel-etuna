@@ -9,10 +9,10 @@ type FolioBalanceStatProps = {
   valueClassName?: string;
 };
 
-export function FolioBalanceStat({ label, value, valueClassName = 'text-xl font-bold text-nude-900' }: FolioBalanceStatProps) {
+export function FolioBalanceStat({ label, value, valueClassName = 'text-xl font-bold text-ink-900' }: FolioBalanceStatProps) {
   return (
-    <div className="rounded-lg bg-nude-50 border border-nude-200 p-3 sm:p-4">
-      <p className="text-xs text-nude-600 uppercase">{label}</p>
+    <div className="rounded-etuna-input bg-nude-50 border border-nude-200 p-3 sm:p-4">
+      <p className="text-xs text-ink-600 uppercase">{label}</p>
       <p className={valueClassName}>{value}</p>
     </div>
   );

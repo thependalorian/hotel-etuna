@@ -21,7 +21,7 @@ test.describe('Public Components', () => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     
     // Check for hero heading
-    const heroHeading = page.getByRole('heading', { level: 1, name: /he takes care of us|hotel etuna/i });
+    const heroHeading = page.getByRole('heading', { level: 1, name: /hotel etuna/i });
     await expect(heroHeading).toBeVisible({ timeout: 10_000 });
     
     // Hero should have CTA

@@ -39,8 +39,8 @@ export function GuestSubNav() {
             className={cn(
               'inline-flex min-h-11 items-center rounded-full px-4 text-sm font-medium transition-colors',
               active
-                ? 'bg-khaki-600/10 text-terracotta-900 font-semibold'
-                : 'text-nude-600 hover:bg-nude-100 hover:text-terracotta-800'
+                ? 'bg-ci-primary/10 text-ci-secondary-chocolate font-semibold'
+                : 'text-ink-600 hover:bg-nude-100 hover:text-ci-accent-terracotta'
             )}
           >
             {item.label}

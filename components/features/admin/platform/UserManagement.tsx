@@ -158,19 +158,19 @@ export default function UserManagement({ users: initialUsers, userRole }: UserMa
     <div className="space-y-6">
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="stat bg-base-100 rounded-lg shadow">
+        <div className="stat bg-base-100 rounded-etuna-input shadow">
           <div className="stat-title">Total Users</div>
           <div className="stat-value text-primary">{userCounts.total}</div>
         </div>
-        <div className="stat bg-base-100 rounded-lg shadow">
+        <div className="stat bg-base-100 rounded-etuna-input shadow">
           <div className="stat-title">Active</div>
           <div className="stat-value text-success">{userCounts.active}</div>
         </div>
-        <div className="stat bg-base-100 rounded-lg shadow">
+        <div className="stat bg-base-100 rounded-etuna-input shadow">
           <div className="stat-title">Suspended</div>
           <div className="stat-value text-warning">{userCounts.suspended}</div>
         </div>
-        <div className="stat bg-base-100 rounded-lg shadow">
+        <div className="stat bg-base-100 rounded-etuna-input shadow">
           <div className="stat-title">Verified Email</div>
           <div className="stat-value text-info">{userCounts.verified}</div>
         </div>
@@ -240,7 +240,7 @@ export default function UserManagement({ users: initialUsers, userRole }: UserMa
           />
         )
       ) : (
-        <div className="overflow-x-auto bg-base-100 rounded-lg shadow">
+        <div className="overflow-x-auto bg-base-100 rounded-etuna-input shadow">
           <table className="table">
             <thead>
               <tr>

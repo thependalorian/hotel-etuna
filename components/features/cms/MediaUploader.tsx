@@ -80,7 +80,7 @@ export default function MediaUploader({ propertyId, onMediaUploaded }: MediaUplo
   };
 
   return (
-    <div className="card bg-base-100 shadow-xl p-6">
+    <div className="card bg-base-100 p-6">
       <h3 className="text-xl font-bold mb-4">Upload New Media</h3>
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <div className="alert alert-error">{error}</div>}

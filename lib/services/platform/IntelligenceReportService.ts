@@ -9,7 +9,6 @@ import {
   tenants,
   users,
   guestReviews,
-  namqrPendingConfirmations,
   supportTickets,
   eq,
   and,
@@ -81,11 +80,6 @@ export class IntelligenceReportService {
     const ai = await new AiObservabilityService().getSummary(Math.min(days, 30));
     const compliance = await getComplianceSnapshot();
 
-    const [namqrRow] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(namqrPendingConfirmations)
-      .where(eq(namqrPendingConfirmations.status, 'pending'));
-
     const [lowReviewRow] = await db
       .select({ count: sql<number>`count(*)::int` })
       .from(guestReviews)
@@ -101,7 +95,6 @@ export class IntelligenceReportService {
         ),
       );
 
-    const namqrPending = namqrRow?.count ?? 0;
     const openSupport = compliance.openSupportTickets;
     const lowReviews = lowReviewRow?.count ?? 0;
     const escalatedTickets = escalatedSupport?.count ?? 0;
@@ -112,7 +105,6 @@ export class IntelligenceReportService {
         bullets: [
           `${arrivals?.count ?? 0} arrivals (confirmed)`,
           `${departures?.count ?? 0} departures`,
-          `${namqrPending} NamQR payments awaiting desk approval`,
           `${lowReviews} guest reviews ≤3★ in the last 24h`,
         ],
       });
@@ -243,13 +235,6 @@ export class IntelligenceReportService {
         ),
       );
 
-    const [namqrPending] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(namqrPendingConfirmations)
-      .where(
-        and(eq(namqrPendingConfirmations.tenantId, tenantId), eq(namqrPendingConfirmations.status, 'pending')),
-      );
-
     return {
       cadence: 'weekly',
       generatedAt: new Date().toISOString(),
@@ -259,7 +244,6 @@ export class IntelligenceReportService {
           title: 'Weekly operations',
           bullets: [
             `${newBookings?.count ?? 0} new bookings`,
-            `${namqrPending?.count ?? 0} NamQR payments pending desk approval`,
             `${lowReviews?.count ?? 0} guest reviews ≤3★`,
             'Review CRM outreach and housekeeping tasks in the dashboard',
           ],

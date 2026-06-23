@@ -55,7 +55,7 @@ export default async function PartnerBookingsPage() {
       <p className="text-base-content/60 text-sm">{rows.length} reservation{rows.length !== 1 ? 's' : ''}</p>
 
       {rows.length === 0 ? (
-        <div className="rounded-xl border border-base-300 bg-base-200 p-8 text-center text-base-content/60">
+        <div className="rounded-etuna-card border border-base-300 bg-base-200 p-8 text-center text-base-content/60">
           No bookings yet. Your reservations will appear here once guests book through hoteletuna.com.
         </div>
       ) : (

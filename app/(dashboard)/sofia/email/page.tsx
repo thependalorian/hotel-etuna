@@ -8,7 +8,7 @@ export default function SofiaEmailPage() {
         title="Sofia Concierge Email Sender"
         description="Send professional emails to guests using Sofia AI"
       />
-      <div className="card bg-base-100 shadow-lg card-hover">
+      <div className="card bg-base-100 card-hover">
         <div className="card-body">
           <EmailSenderForm />
         </div>

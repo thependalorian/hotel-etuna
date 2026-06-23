@@ -143,7 +143,7 @@ export default function SofiaConciergeChat({
     return (
       <button
         onClick={onToggle}
-        className="fixed bottom-6 right-6 bg-primary text-white rounded-full p-4 shadow-lg hover:bg-primary-focus transition-all duration-200 z-50"
+        className="fixed bottom-6 right-6 bg-primary text-white rounded-full p-4 shadow-etuna-elevated hover:bg-primary-focus transition-all duration-200 z-50"
       >
         <MessageCircle className="w-6 h-6" />
       </button>
@@ -151,7 +151,7 @@ export default function SofiaConciergeChat({
   }
 
   return (
-    <div className={`fixed bottom-6 right-6 bg-base-100 rounded-lg shadow-2xl z-50 transition-all duration-300 ${
+    <div className={`fixed bottom-6 right-6 bg-base-100 rounded-etuna-input shadow-etuna-elevated z-50 transition-all duration-300 ${
       isMinimized ? 'w-16 h-16' : isExpanded ? 'w-96 h-[600px]' : 'w-80 h-[500px]'
     }`}>
       {/* Header */}

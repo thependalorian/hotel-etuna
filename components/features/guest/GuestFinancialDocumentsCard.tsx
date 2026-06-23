@@ -62,10 +62,10 @@ export function GuestFinancialDocumentsCard({ bookingId }: GuestFinancialDocumen
   return (
     <section id="financial-documents">
     <Card variant="elevated">
-      <h3 className="font-display text-lg font-semibold text-nude-900 mb-2">
+      <h3 className="font-display text-lg font-semibold text-ink-900 mb-2">
         Financial documents
       </h3>
-      <p className="text-sm text-nude-600 mb-4">
+      <p className="text-sm text-ink-600 mb-4">
         Download quotations, receipts, and tax invoices. This is separate from travel ID uploads in
         your document vault.
       </p>
@@ -75,16 +75,16 @@ export function GuestFinancialDocumentsCard({ bookingId }: GuestFinancialDocumen
 
       <ul className="space-y-2 mb-4">
         {documents.length === 0 ? (
-          <li className="text-sm text-nude-600">No PDFs issued yet for this stay.</li>
+          <li className="text-sm text-ink-600">No PDFs issued yet for this stay.</li>
         ) : (
           documents.map((doc) => (
             <li
               key={doc.id}
-              className="flex flex-wrap items-center justify-between gap-2 border border-nude-200 rounded-lg p-3"
+              className="flex flex-wrap items-center justify-between gap-2 border border-nude-200 rounded-etuna-input p-3"
             >
               <div>
-                <p className="font-medium text-nude-900">{doc.referenceNumber}</p>
-                <p className="text-xs text-nude-600 capitalize">
+                <p className="font-medium text-ink-900">{doc.referenceNumber}</p>
+                <p className="text-xs text-ink-600 capitalize">
                   {doc.documentType.replace('_', ' ')} ·{' '}
                   {new Date(doc.generatedAt).toLocaleDateString()}
                 </p>

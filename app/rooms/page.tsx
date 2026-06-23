@@ -52,7 +52,7 @@ export default async function RoomsPage() {
         <RoomsIncludedStrip />
         <RoomsFilmstrip rooms={roomRows} isAuthenticated={isAuthenticated} />
 
-        <section className="py-12 sm:py-16 bg-linear-to-br from-terracotta-800 to-terracotta-900 text-white">
+        <section className="py-12 sm:py-16 bg-linear-to-br from-ci-accent-terracotta to-ci-secondary-chocolate text-white">
           <div className="container mx-auto px-4 sm:px-6 text-center">
             <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
               Ready to book your stay?
@@ -60,7 +60,7 @@ export default async function RoomsPage() {
             <p className="text-base sm:text-xl text-white/90 mb-8 max-w-2xl mx-auto px-2">
               Experience authentic Namibian hospitality at Hotel Etuna
             </p>
-            <Button asChild size="xl" className="bg-white text-terracotta-900 hover:bg-nude-100">
+            <Button asChild size="xl" className="bg-white text-ci-secondary-chocolate hover:bg-nude-100">
               <Link
                 href={
                   isAuthenticated

@@ -112,7 +112,7 @@ export function FraudRiskHeatmap({ tenantId }: FraudRiskHeatmapProps) {
   };
 
   return (
-    <div className="card bg-base-100 shadow-xl">
+    <div className="card bg-base-100">
       <div className="card-body">
         <h3 className="card-title text-lg">Risk Distribution by Type</h3>
         

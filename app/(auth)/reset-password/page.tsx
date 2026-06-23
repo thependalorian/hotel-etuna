@@ -104,8 +104,8 @@ function ResetPasswordForm() {
         {/* Logo/Brand (Halo Effect - Beauty = Trust) */}
         <div className="flex justify-center mb-8">
           <div className="relative group">
-            <div className="absolute inset-0 bg-gradient-to-r from-nude-600 via-nude-500 to-nude-400 rounded-2xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
-            <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-nude-600 to-nude-500 flex items-center justify-center shadow-2xl transform group-hover:scale-110 transition-transform duration-300">
+            <div className="absolute inset-0 bg-gradient-to-r from-nude-600 via-nude-500 to-nude-400 rounded-etuna-card blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
+            <div className="relative w-20 h-20 rounded-etuna-card bg-gradient-to-br from-nude-600 to-nude-500 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
               <span className="text-3xl font-bold text-white">H</span>
             </div>
           </div>
@@ -179,7 +179,7 @@ function ResetPasswordForm() {
               variant="primary"
               size="lg"
               disabled={loading || !password || !confirmPassword}
-              className="w-full min-h-[56px] text-lg font-semibold shadow-nude-primary hover:shadow-nude-strong"
+              className="w-full min-h-[56px] text-lg font-semibold shadow-nude-primary "
             >
               {loading ? 'Resetting...' : 'Reset Password'}
             </Button>

@@ -71,7 +71,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         {label && (
           <label
             htmlFor={textareaId}
-            className="mb-2 block text-sm font-semibold text-nude-800"
+            className="mb-2 block text-sm font-semibold text-ink-800"
           >
             {label}
             {props.required && (
@@ -84,10 +84,10 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         <textarea
           id={textareaId}
           className={cn(
-            "flex min-h-[120px] w-full rounded-xl border border-nude-200 bg-surface-input px-4 py-3 font-sans text-base text-nude-900 transition-all duration-200",
+            "flex min-h-[120px] w-full rounded-etuna-input border border-nude-200 bg-surface-input px-4 py-3 font-sans text-base text-ink-900 transition-all duration-200",
             "placeholder:text-nude-400",
             "hover:border-nude-300",
-            "focus:border-nude-500 focus:outline-none focus:ring-2 focus:ring-nude-500 focus:ring-offset-2",
+            "focus:border-nude-500 focus:outline-none focus:ring-2 focus:ring-ci-primary focus:ring-offset-2",
             "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-nude-50",
             "resize-vertical",
             hasError && "border-semantic-error focus:border-semantic-error focus:ring-semantic-error",

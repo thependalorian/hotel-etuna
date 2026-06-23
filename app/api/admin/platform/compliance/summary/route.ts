@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       },
       meta: {
         regulatoryNotes:
-          'KPIs map to Drizzle tables: support, consumer_rights_requests (ETA-oriented), cybersecurity_incidents (PSD-12 style), audit_trail, namqr_codes, ob_api_transactions, transactions. Cross-check PDFs in your compliance pack — not legal advice.',
+          'KPIs map to Drizzle tables: support, consumer_rights_requests (ETA-oriented), cybersecurity_incidents (PSD-12 style), audit_trail, ob_api_transactions, transactions. Cross-check PDFs in your compliance pack — not legal advice.',
         regulatoryPackFolder: REGULATORY_PACK_FOLDER,
       },
     });

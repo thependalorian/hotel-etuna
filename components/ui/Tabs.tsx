@@ -45,7 +45,7 @@ export function Tabs({ tabs, defaultTab = 0, variant = 'default', onTabChange }:
         role="tablist"
         className={cn(
           'flex gap-2 border-b border-base-300',
-          variant === 'pills' && 'gap-1 p-1 bg-base-200 rounded-lg border-0',
+          variant === 'pills' && 'gap-1 p-1 bg-base-200 rounded-etuna-input border-0',
           variant === 'underline' && 'gap-6'
         )}
       >
@@ -64,7 +64,7 @@ export function Tabs({ tabs, defaultTab = 0, variant = 'default', onTabChange }:
               className={cn(
                 // Base styles (Fitt's Law - 44px minimum, Doherty Threshold - <400ms)
                 'relative px-4 py-3 text-sm font-medium transition-all duration-200 ease-out',
-                'min-h-[44px] flex items-center gap-2 rounded-lg',
+                'min-h-[44px] flex items-center gap-2 rounded-etuna-input',
                 'focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2',
                 'active:scale-[0.98]', // Tactile feedback
                 // Variants
@@ -74,7 +74,7 @@ export function Tabs({ tabs, defaultTab = 0, variant = 'default', onTabChange }:
                   !isActive && 'text-base-content/70 hover:text-base-content hover:border-base-400'
                 ),
                 variant === 'pills' && cn(
-                  'rounded-lg',
+                  'rounded-etuna-input',
                   isActive && 'bg-primary text-primary-content shadow-md shadow-nude-primary',
                   !isActive && 'text-base-content/70 hover:bg-base-300 hover:text-base-content hover:-translate-y-0.5'
                 ),

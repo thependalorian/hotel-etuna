@@ -30,7 +30,7 @@ export default async function StaffEditPage({ params }: StaffEditPageProps) {
           {member.firstName} {member.lastName}
         </p>
       </div>
-      <div className="card bg-base-100 shadow-lg">
+      <div className="card bg-base-100">
         <div className="card-body">
           <StaffEditForm staff={member} />
         </div>

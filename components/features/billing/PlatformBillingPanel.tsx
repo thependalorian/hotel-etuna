@@ -129,29 +129,29 @@ export function PlatformBillingPanel() {
   };
 
   if (loading) {
-    return <div className="skeleton h-48 w-full rounded-xl" aria-hidden />;
+    return <div className="skeleton h-48 w-full rounded-etuna-card" aria-hidden />;
   }
 
   return (
     <div className="space-y-6">
       <Card variant="elevated" className="p-6">
-        <h2 className="font-display text-xl font-bold text-nude-900 mb-2">
+        <h2 className="font-display text-xl font-bold text-ink-900 mb-2">
           Settlement accounts
         </h2>
-        <p className="text-sm text-nude-600 mb-4">
+        <p className="text-sm text-ink-600 mb-4">
           {dashboardCopy.billing.platformFeesDesc}
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {profiles.map((p) => (
             <div
               key={p.profileKey}
-              className="rounded-lg border border-nude-200 bg-nude-50 p-4 text-sm"
+              className="rounded-etuna-input border border-nude-200 bg-nude-50 p-4 text-sm"
             >
-              <p className="font-semibold text-nude-900 capitalize">{p.party} account</p>
-              <p className="text-nude-700 mt-1">{p.legalName}</p>
-              <p className="text-nude-600">{p.bankName}</p>
+              <p className="font-semibold text-ink-900 capitalize">{p.party} account</p>
+              <p className="text-ink-700 mt-1">{p.legalName}</p>
+              <p className="text-ink-600">{p.bankName}</p>
               <p className="font-mono mt-2">{p.accountNumber}</p>
-              <p className="text-nude-500">
+              <p className="text-ink-500">
                 Branch {p.branchCode} · {p.swiftCode}
               </p>
             </div>
@@ -161,10 +161,10 @@ export function PlatformBillingPanel() {
 
       {billing && (
         <Card variant="elevated" className="p-6">
-          <h2 className="font-display text-xl font-bold text-nude-900 mb-2">
+          <h2 className="font-display text-xl font-bold text-ink-900 mb-2">
             Fee schedule &amp; accruals
           </h2>
-          <ul className="text-sm text-nude-700 space-y-1 mb-4">
+          <ul className="text-sm text-ink-700 space-y-1 mb-4">
             <li>
               Card processing: {billing.schedule.cardProcessingPercent}% + NAD{' '}
               {billing.schedule.cardProcessingFixedNad.toFixed(2)} per transaction
@@ -194,16 +194,16 @@ export function PlatformBillingPanel() {
             </Button>
           </div>
 
-          <h3 className="font-semibold text-nude-900 mb-2">Invoices</h3>
+          <h3 className="font-semibold text-ink-900 mb-2">Invoices</h3>
           {billing.invoices.length === 0 ? (
-            <p className="text-sm text-nude-600">No platform invoices yet.</p>
+            <p className="text-sm text-ink-600">No platform invoices yet.</p>
           ) : (
             <ul className="divide-y divide-nude-200 text-sm">
               {billing.invoices.map((inv) => (
                 <li key={inv.id} className="py-3 flex flex-wrap justify-between gap-2 items-center">
                   <div>
                     <p className="font-mono font-medium">{inv.invoiceNumber}</p>
-                    <p className="text-nude-600">
+                    <p className="text-ink-600">
                       {inv.periodStart} → {inv.periodEnd} ·{' '}
                       <span className="badge badge-outline capitalize">{inv.status}</span>
                       {inv.documentType === 'tax_invoice' && (
@@ -211,7 +211,7 @@ export function PlatformBillingPanel() {
                       )}
                     </p>
                     {Number(inv.vatAmount ?? 0) > 0 && (
-                      <p className="text-xs text-nude-500 mt-1">
+                      <p className="text-xs text-ink-500 mt-1">
                         Ex VAT {inv.currency} {Number(inv.subtotal).toFixed(2)} + VAT{' '}
                         {inv.vatRatePercent}% = {inv.currency}{' '}
                         {Number(inv.vatAmount).toFixed(2)}

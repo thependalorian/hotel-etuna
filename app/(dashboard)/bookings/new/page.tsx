@@ -20,7 +20,7 @@ export default async function NewBookingPage() {
           Guest room stays, conference hall sessions, or whole-site campsite hires
         </p>
       </div>
-      <div className="card bg-base-100 shadow-lg card-hover">
+      <div className="card bg-base-100 card-hover">
         <div className="card-body p-4 sm:p-6 md:p-8">
           <NewBookingTabs
             conferenceRoomId={conference?.id}

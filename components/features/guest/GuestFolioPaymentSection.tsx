@@ -1,7 +1,7 @@
 /**
  * GuestFolioPaymentSection
  *
- * Purpose: Tabbed folio payment rails (card, NamQR, open banking, cash) to reduce choice overload.
+ * Purpose: Tabbed folio payment rails (card, open banking, cash) to reduce choice overload.
  * Location: /components/features/guest/GuestFolioPaymentSection.tsx
  */
 
@@ -11,13 +11,12 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { AdumoVirtualPaymentForm } from '@/components/payments/AdumoVirtualPaymentForm';
 import { PaymentDisclosure } from '@/components/features/payments/PaymentDisclosure';
-import { GuestNamQrPayPanel } from '@/components/features/guest/GuestNamQrPayPanel';
 import { GuestOpenBankingPisPanel } from '@/components/features/guest/GuestOpenBankingPisPanel';
 import { FolioPartialAmountField } from '@/components/features/folio/FolioPartialAmountField';
 import { resolveFolioPayAmount } from '@/lib/utils/folio-pay';
 import type { FolioSummary } from '@/lib/types/folio';
 
-type PayMethod = 'card' | 'namqr' | 'bank' | 'cash';
+type PayMethod = 'card' | 'bank' | 'cash';
 
 type GuestFolioPaymentSectionProps = {
   bookingId: string;
@@ -58,7 +57,6 @@ export function GuestFolioPaymentSection({
         {(
           [
             ['card', 'Card'],
-            ['namqr', 'NamQR'],
             ['bank', 'Bank app'],
             ['cash', 'Cash'],
           ] as const
@@ -111,22 +109,12 @@ export function GuestFolioPaymentSection({
 
       {method === 'cash' && (
         <div role="tabpanel" className="space-y-3">
-          <p className="text-sm text-nude-600">
+          <p className="text-sm text-ink-600">
             Pay at reception. Staff will record cash against your folio.
           </p>
           <Button size="sm" disabled={busy} onClick={onCash}>
             Record cash payment
           </Button>
-        </div>
-      )}
-
-      {method === 'namqr' && (
-        <div role="tabpanel" className="-mt-4">
-          <GuestNamQrPayPanel
-            bookingId={bookingId}
-            balanceDue={folio.balanceDue}
-            onUpdated={onFolioUpdated}
-          />
         </div>
       )}
 

@@ -2,7 +2,7 @@
  * Pre-arrival welcome email — magic link to guest hub (Phase 8).
  * Location: lib/email/templates/pre-arrival-welcome.ts
  *
- * Voice: local, warm, Oshiwambo spirit ("He takes care of us") — not luxury-chain tone.
+ * Voice: local, warm, CI script tagline — not luxury-chain tone.
  */
 
 import { brand } from '@/lib/copy/brand';
@@ -41,7 +41,7 @@ export function buildPreArrivalWelcomeEmail(params: PreArrivalWelcomeParams): {
   const body = `<p>Ongwediva, ${guestName} — we are getting your room ready.</p>
 <p>Your stay at <strong>${propertyName}</strong> begins <strong>${checkIn}</strong>${ref}. Tap below to open your guest hub: view your booking, upload travel documents, and message our team if you need anything before you arrive.</p>
 ${financialLink}
-<p><em>${brand.tagline || 'He takes care of us.'}</em></p>
+<p><em>${brand.logoTagline}</em></p>
 ${checkInOutFactsHtml()}
 ${propertyContactBlockHtml()}`;
 

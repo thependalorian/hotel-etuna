@@ -98,7 +98,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           role="alert"
           aria-live="assertive"
         >
-          <div className="card w-full max-w-lg bg-base-100 shadow-xl">
+          <div className="card w-full max-w-lg bg-base-100">
             <div className="card-body gap-4">
               <div className="alert alert-error">
                 <AlertCircle className="h-6 w-6 shrink-0" aria-hidden />
@@ -110,7 +110,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 </div>
               </div>
               {showDetails && err?.message ? (
-                <pre className="max-h-32 overflow-auto rounded-lg bg-base-200 p-3 text-xs whitespace-pre-wrap break-words">
+                <pre className="max-h-32 overflow-auto rounded-etuna-input bg-base-200 p-3 text-xs whitespace-pre-wrap break-words">
                   {err.message}
                 </pre>
               ) : null}

@@ -71,7 +71,7 @@ export default function BlockImage({ content, onUpdate }: Props) {
             <img
               src={content.src}
               alt={content.alt || 'Image'}
-              className="rounded-lg max-h-[400px] object-cover"
+              className="rounded-etuna-input max-h-[400px] object-cover"
             />
           </div>
           {content.caption && (
@@ -79,7 +79,7 @@ export default function BlockImage({ content, onUpdate }: Props) {
           )}
         </div>
       ) : (
-        <div className="flex items-center justify-center h-48 bg-base-300 rounded-lg">
+        <div className="flex items-center justify-center h-48 bg-base-300 rounded-etuna-input">
           <p className="text-base-content/50">No image URL provided</p>
         </div>
       )}

@@ -106,10 +106,10 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
           <div className="lg:col-span-2">
             {/* Description */}
             <section className="mb-12">
-              <h2 className="font-display text-3xl text-terracotta-800 mb-4">
+              <h2 className="font-display text-3xl text-ci-accent-terracotta mb-4">
                 About This Property
               </h2>
-              <p className="text-lg text-nude-700 leading-relaxed">
+              <p className="text-lg text-ink-700 leading-relaxed">
                 {property.description || 'Partner accommodation.'}
               </p>
             </section>
@@ -117,14 +117,14 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
             {/* Amenities */}
             {property.amenities && property.amenities.length > 0 && (
               <section className="mb-12">
-                <h2 className="font-display text-3xl text-terracotta-800 mb-6">
+                <h2 className="font-display text-3xl text-ci-accent-terracotta mb-6">
                   Amenities
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {property.amenities.map((amenity, index) => (
                     <div key={index} className="flex items-center gap-2">
-                      <Check className="w-5 h-5 text-khaki-600 shrink-0" />
-                      <span className="text-nude-700">{amenity}</span>
+                      <Check className="w-5 h-5 text-ci-primary shrink-0" />
+                      <span className="text-ink-700">{amenity}</span>
                     </div>
                   ))}
                 </div>
@@ -133,11 +133,11 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
 
             {/* Available Rooms */}
             <section className="mb-12">
-              <h2 className="font-display text-3xl text-terracotta-800 mb-6">
+              <h2 className="font-display text-3xl text-ci-accent-terracotta mb-6">
                 Available Rooms
               </h2>
               {mappedRooms.length === 0 ? (
-                <p className="text-nude-600">
+                <p className="text-ink-600">
                   No rooms currently listed. Please contact the property directly.
                 </p>
               ) : (
@@ -145,25 +145,25 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
                   {mappedRooms.map((room) => (
                     <div
                       key={room.id}
-                      className="border border-gray-200 rounded-xl p-6 hover:border-khaki-600 transition-colors"
+                      className="border border-nude-200 rounded-etuna-card p-6 hover:border-ci-primary transition-colors"
                     >
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div className="flex-1">
-                          <h3 className="font-display text-xl text-terracotta-800 mb-2">
+                          <h3 className="font-display text-xl text-ci-accent-terracotta mb-2">
                             {room.type}
                           </h3>
-                          <p className="text-nude-600 mb-3">{room.description}</p>
+                          <p className="text-ink-600 mb-3">{room.description}</p>
                           <div className="flex flex-wrap gap-2 mb-3">
                             {room.amenities.map((amenity, idx) => (
                               <span
                                 key={idx}
-                                className="px-3 py-1 bg-khaki-sand/20 text-terracotta-800 rounded-full text-sm"
+                                className="px-3 py-1 bg-ci-secondary-tan/20 text-ci-accent-terracotta rounded-full text-sm"
                               >
                                 {amenity}
                               </span>
                             ))}
                           </div>
-                          <div className="flex items-center gap-4 text-sm text-nude-600">
+                          <div className="flex items-center gap-4 text-sm text-ink-600">
                             <span>Max {room.capacity} guests</span>
                             {room.available ? (
                               <span className="text-green-600 font-medium">Available</span>
@@ -174,12 +174,12 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
                         </div>
                         <div className="flex flex-col items-end gap-2">
                           <div className="text-right">
-                            <div className="text-3xl font-bold text-terracotta-800">
+                            <div className="text-3xl font-bold text-ci-accent-terracotta">
                               {isAuthenticated
                                 ? `${room.currency} ${room.pricePerNight}`
                                 : publicCopy.gated.viewRates}
                             </div>
-                            <div className="text-sm text-nude-600">per night</div>
+                            <div className="text-sm text-ink-600">per night</div>
                           </div>
                           <Button asChild variant="primary" size="md">
                             <Link
@@ -205,8 +205,8 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
             {isAuthenticated ? (
               <PartnerAvailabilityWidget propertyId={property.id} />
             ) : (
-              <div className="rounded-xl border border-khaki-600/30 bg-khaki-600/10 p-6 text-center">
-                <p className="text-terracotta-900 font-semibold mb-3">
+              <div className="rounded-etuna-card border border-ci-primary/30 bg-ci-primary/10 p-6 text-center">
+                <p className="text-ci-secondary-chocolate font-semibold mb-3">
                   {publicCopy.gated.viewPartnerRatesAndBook}
                 </p>
                 <Button asChild>
@@ -216,40 +216,40 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
             )}
 
             {/* Contact Form */}
-            <section className="bg-nude-50 rounded-xl p-8">
-              <h2 className="font-display text-2xl text-terracotta-800 mb-6">
+            <section className="bg-nude-50 rounded-etuna-card p-8">
+              <h2 className="font-display text-2xl text-ci-accent-terracotta mb-6">
                 Contact Property
               </h2>
               <form className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-nude-700 mb-2">
+                    <label className="block text-sm font-medium text-ink-700 mb-2">
                       Your Name
                     </label>
                     <input
                       type="text"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-khaki-600 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-nude-300 rounded-etuna-input focus:ring-2 focus:ring-ci-primary focus:border-transparent"
                       placeholder="John Doe"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-nude-700 mb-2">
+                    <label className="block text-sm font-medium text-ink-700 mb-2">
                       Email
                     </label>
                     <input
                       type="email"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-khaki-600 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-nude-300 rounded-etuna-input focus:ring-2 focus:ring-ci-primary focus:border-transparent"
                       placeholder="john@example.com"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-nude-700 mb-2">
+                  <label className="block text-sm font-medium text-ink-700 mb-2">
                     Message
                   </label>
                   <textarea
                     rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-khaki-600 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-nude-300 rounded-etuna-input focus:ring-2 focus:ring-ci-primary focus:border-transparent"
                     placeholder="I'm interested in booking..."
                   ></textarea>
                 </div>
@@ -263,27 +263,27 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
           {/* Sidebar */}
           <div className="lg:col-span-1">
             {/* Quick Info Card */}
-            <div className="sticky top-24 bg-white border border-gray-200 rounded-xl p-6 shadow-lg">
-              <h3 className="font-display text-xl text-terracotta-800 mb-6">
+            <div className="sticky top-24 bg-white border border-nude-200 rounded-etuna-card p-6 shadow-etuna-elevated">
+              <h3 className="font-display text-xl text-ci-accent-terracotta mb-6">
                 Property Information
               </h3>
 
               {/* Check-in/Check-out */}
-              <div className="space-y-4 mb-6 pb-6 border-b border-gray-200">
+              <div className="space-y-4 mb-6 pb-6 border-b border-nude-200">
                 <div className="flex items-start gap-3">
-                  <Calendar className="w-5 h-5 text-khaki-600 mt-1" />
+                  <Calendar className="w-5 h-5 text-ci-primary mt-1" />
                   <div>
-                    <div className="text-sm text-nude-600">Check-in</div>
-                    <div className="font-medium text-nude-900">
+                    <div className="text-sm text-ink-600">Check-in</div>
+                    <div className="font-medium text-ink-900">
                       {formatCheckTime(property.checkInTime)}
                     </div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <Calendar className="w-5 h-5 text-khaki-600 mt-1" />
+                  <Calendar className="w-5 h-5 text-ci-primary mt-1" />
                   <div>
-                    <div className="text-sm text-nude-600">Check-out</div>
-                    <div className="font-medium text-nude-900">
+                    <div className="text-sm text-ink-600">Check-out</div>
+                    <div className="font-medium text-ink-900">
                       {formatCheckTime(property.checkOutTime)}
                     </div>
                   </div>
@@ -294,10 +294,10 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
 
               {/* Location */}
               <div className="space-y-2">
-                <h4 className="font-semibold text-nude-900">Location</h4>
+                <h4 className="font-semibold text-ink-900">Location</h4>
                 <div className="flex items-start gap-2">
-                  <MapPin className="w-4 h-4 text-khaki-600 mt-1 shrink-0" />
-                  <address className="text-sm text-nude-700 not-italic">
+                  <MapPin className="w-4 h-4 text-ci-primary mt-1 shrink-0" />
+                  <address className="text-sm text-ink-700 not-italic">
                     {addressStreet && (
                       <>
                         {addressStreet}
@@ -312,9 +312,9 @@ export default async function PartnerPropertyPage({ params }: PageProps) {
               </div>
 
               {/* Partner Badge */}
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <div className="flex items-center gap-2 text-sm text-nude-600">
-                  <BadgeCheck className="w-5 h-5 text-khaki-600" />
+              <div className="mt-6 pt-6 border-t border-nude-200">
+                <div className="flex items-center gap-2 text-sm text-ink-600">
+                  <BadgeCheck className="w-5 h-5 text-ci-primary" />
                   <span>Verified Hotel Etuna Partner</span>
                 </div>
               </div>

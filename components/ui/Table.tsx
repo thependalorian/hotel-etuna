@@ -22,11 +22,11 @@ export interface TableProps extends React.HTMLAttributes<HTMLTableElement> {
 export const Table = React.forwardRef<HTMLTableElement, TableProps>(
   ({ className, variant = 'default', ...props }, ref) => {
     return (
-      <div className="w-full overflow-x-auto scrollbar-thin -mx-4 sm:mx-0 px-4 sm:px-0 rounded-2xl">
+      <div className="w-full overflow-x-auto scrollbar-thin -mx-4 sm:mx-0 px-4 sm:px-0 rounded-etuna-card">
         <table
           ref={ref}
           className={cn(
-            'w-full min-w-[640px] sm:min-w-0 border-separate border-spacing-0 rounded-2xl bg-white/90',
+            'w-full min-w-[640px] sm:min-w-0 border-separate border-spacing-0 rounded-etuna-card bg-white/90',
             variant === 'striped' && 'table-zebra',
             variant === 'bordered' && 'table-bordered',
             className
@@ -86,7 +86,7 @@ export const TableRow = React.forwardRef<HTMLTableRowElement, TableRowProps>(
           'transition-all duration-200 border-b border-base-200/80',
           interactive && cn(
             'cursor-pointer hover:bg-brand-50/70 focus-within:bg-brand-50/70',
-            'hover:shadow-xs focus-within:shadow-xs',
+            'focus-within:shadow-xs',
             'min-h-[44px]' // Fitt's Law
           ),
           className

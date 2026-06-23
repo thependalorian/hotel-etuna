@@ -13,8 +13,7 @@
  * 
  * Design System:
  * - Uses semantic tokens: text-base-content, bg-base-100
- * - Card shadows: shadow-lg with hover:shadow-xl
- * - Button sizes: min-h-[44px] for buttons
+ * - Card shadows: shadow-lg with  * - Button sizes: min-h-[44px] for buttons
  * 
  * Accessibility:
  * - Semantic HTML structure
@@ -55,7 +54,7 @@ interface MenuItemCardProps {
 export default function MenuItemCard({ item, index, onToggleAvailability, onDelete }: MenuItemCardProps) {
   return (
     <div 
-      className="rounded-lg border border-nude-200 bg-surface-elevated shadow-nude-soft hover:shadow-nude-medium hover:-translate-y-0.5 transition-all duration-200 animate-slide-up overflow-hidden"
+      className="rounded-etuna-input border border-nude-200 bg-surface-elevated hover:-translate-y-0.5 transition-all duration-200 animate-slide-up overflow-hidden"
       style={{ animationDelay: `${index * 50}ms` }}
     >
       {/* Image placeholder with aspect ratio 4:3 */}
@@ -84,19 +83,19 @@ export default function MenuItemCard({ item, index, onToggleAvailability, onDele
       <div className="p-5">
         {/* Item Header */}
         <div className="mb-4">
-          <h2 className="font-display text-base font-semibold text-nude-900 mb-2">
+          <h2 className="font-display text-base font-semibold text-ink-900 mb-2">
             {item.name}
           </h2>
           {item.description && (
-            <p className="text-sm text-nude-600 line-clamp-2 leading-relaxed">
+            <p className="text-sm text-ink-600 line-clamp-2 leading-relaxed">
               {item.description}
             </p>
           )}
         </div>
 
         {/* Price and Category */}
-        <div className="flex items-center justify-between p-3 bg-nude-50 rounded-lg border border-nude-200 mb-4">
-          <span className="font-display text-lg font-bold text-nude-900">
+        <div className="flex items-center justify-between p-3 bg-nude-50 rounded-etuna-input border border-nude-200 mb-4">
+          <span className="font-display text-lg font-bold text-ink-900">
             N${item.price.toFixed(2)}
           </span>
           <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-nude-600 text-white">
@@ -108,10 +107,10 @@ export default function MenuItemCard({ item, index, onToggleAvailability, onDele
         <div className="space-y-3 mb-4">
           {item.dietary && (
             <div>
-              <p className="text-xs font-semibold text-nude-700 mb-1.5">Dietary:</p>
+              <p className="text-xs font-semibold text-ink-700 mb-1.5">Dietary:</p>
               <div className="flex flex-wrap gap-1.5">
                 {item.dietary.split(',').map((diet, idx) => (
-                  <span key={idx} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-nude-200 text-nude-800 border border-nude-300">
+                  <span key={idx} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-nude-200 text-ink-800 border border-nude-300">
                     {diet.trim()}
                   </span>
                 ))}
@@ -121,7 +120,7 @@ export default function MenuItemCard({ item, index, onToggleAvailability, onDele
 
           {item.allergens.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-nude-700 mb-1.5">Allergens:</p>
+              <p className="text-xs font-semibold text-ink-700 mb-1.5">Allergens:</p>
               <div className="flex flex-wrap gap-1.5">
                 {item.allergens.map((allergen, idx) => (
                   <span key={idx} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-semantic-error-light text-semantic-error-dark border border-semantic-error/30">
@@ -137,7 +136,7 @@ export default function MenuItemCard({ item, index, onToggleAvailability, onDele
         <div className="flex items-center justify-between pt-4 border-t border-nude-200 gap-2">
           <div className="flex items-center gap-2">
             <button
-              className="inline-flex items-center px-3 py-2 text-sm font-medium text-nude-700 hover:bg-nude-50 rounded-lg border border-nude-300 transition-colors duration-200 min-h-[44px]"
+              className="inline-flex items-center px-3 py-2 text-sm font-medium text-ink-700 hover:bg-nude-50 rounded-etuna-input border border-nude-300 transition-colors duration-200 min-h-[44px]"
               onClick={() => onToggleAvailability(item.id, item.isAvailable)}
               aria-label={`${item.isAvailable ? 'Hide' : 'Show'} ${item.name}`}
             >
@@ -145,14 +144,14 @@ export default function MenuItemCard({ item, index, onToggleAvailability, onDele
             </button>
             <Link
               href={`/menu/${item.id}/edit`}
-              className="inline-flex items-center justify-center w-10 h-10 text-nude-700 hover:bg-nude-50 rounded-lg border border-nude-300 transition-colors duration-200 min-h-[44px]"
+              className="inline-flex items-center justify-center w-10 h-10 text-ink-700 hover:bg-nude-50 rounded-etuna-input border border-nude-300 transition-colors duration-200 min-h-[44px]"
               aria-label={`Edit ${item.name}`}
             >
               <Edit className="w-4 h-4" />
             </Link>
           </div>
           <button
-            className="inline-flex items-center justify-center w-10 h-10 text-semantic-error hover:bg-semantic-error-light rounded-lg border border-semantic-error/30 transition-colors duration-200 min-h-[44px]"
+            className="inline-flex items-center justify-center w-10 h-10 text-semantic-error hover:bg-semantic-error-light rounded-etuna-input border border-semantic-error/30 transition-colors duration-200 min-h-[44px]"
             onClick={() => onDelete(item.id)}
             aria-label={`Delete ${item.name}`}
           >

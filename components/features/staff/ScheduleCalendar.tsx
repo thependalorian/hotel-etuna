@@ -198,7 +198,7 @@ export default function ScheduleCalendar({
   return (
     <div className={cn('space-y-6', className)}>
       {/* Calendar */}
-      <div className="card bg-base-100 shadow-lg">
+      <div className="card bg-base-100">
         <div className="card-body">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
@@ -279,7 +279,7 @@ export default function ScheduleCalendar({
 
       {/* Selected Day Details */}
       {selectedDay && (
-        <div className="card bg-base-100 shadow-lg">
+        <div className="card bg-base-100">
           <div className="card-body">
             <h4 className="text-lg font-bold font-display mb-4">
               {calendarService.formatDate(selectedDay)} - Schedule
@@ -292,7 +292,7 @@ export default function ScheduleCalendar({
                 {selectedDayShifts.map((shift) => (
                   <div
                     key={shift.id}
-                    className="flex items-center justify-between p-3 bg-base-200 rounded-lg cursor-pointer hover:bg-base-300 transition-colors"
+                    className="flex items-center justify-between p-3 bg-base-200 rounded-etuna-input cursor-pointer hover:bg-base-300 transition-colors"
                     onClick={() => onShiftSelect?.(shift)}
                   >
                     <div className="flex items-center gap-3">

@@ -32,7 +32,7 @@ export default async function PartnerMyPropertyPage() {
     return (
       <div className="space-y-4">
         <h2 className="text-2xl font-semibold text-base-content">My Property</h2>
-        <div className="rounded-xl border border-base-300 bg-base-200 p-8 text-center text-base-content/60">
+        <div className="rounded-etuna-card border border-base-300 bg-base-200 p-8 text-center text-base-content/60">
           No property found for your account. Contact{' '}
           <a href="mailto:admin@hoteletuna.com" className="link link-primary">admin@hoteletuna.com</a>.
         </div>
@@ -64,7 +64,7 @@ export default async function PartnerMyPropertyPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Location */}
-        <div className="rounded-xl border border-base-300 bg-base-100 p-5 space-y-3">
+        <div className="rounded-etuna-card border border-base-300 bg-base-100 p-5 space-y-3">
           <h3 className="font-semibold text-base-content flex items-center gap-2">
             <MapPin className="w-4 h-4 text-primary" /> Location
           </h3>
@@ -82,7 +82,7 @@ export default async function PartnerMyPropertyPage() {
         </div>
 
         {/* Property details */}
-        <div className="rounded-xl border border-base-300 bg-base-100 p-5 space-y-3">
+        <div className="rounded-etuna-card border border-base-300 bg-base-100 p-5 space-y-3">
           <h3 className="font-semibold text-base-content flex items-center gap-2">
             <Home className="w-4 h-4 text-primary" /> Details
           </h3>
@@ -109,7 +109,7 @@ export default async function PartnerMyPropertyPage() {
 
       {/* Description */}
       {property.description && (
-        <div className="rounded-xl border border-base-300 bg-base-100 p-5">
+        <div className="rounded-etuna-card border border-base-300 bg-base-100 p-5">
           <h3 className="font-semibold text-base-content flex items-center gap-2 mb-3">
             <Info className="w-4 h-4 text-primary" /> Description
           </h3>
@@ -118,7 +118,7 @@ export default async function PartnerMyPropertyPage() {
       )}
 
       {/* Update note */}
-      <div className="rounded-xl border border-warning/30 bg-warning/5 p-4 text-sm text-base-content/70">
+      <div className="rounded-etuna-card border border-warning/30 bg-warning/5 p-4 text-sm text-base-content/70">
         <strong>Need to update your listing?</strong> Email{' '}
         <a href="mailto:admin@hoteletuna.com" className="link">admin@hoteletuna.com</a>{' '}
         with your requested changes. Partner self-service editing is coming in the next release.

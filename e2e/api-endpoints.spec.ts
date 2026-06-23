@@ -64,11 +64,6 @@ test.describe('API Endpoints - Critical Paths', () => {
       });
       expect(response.status()).toBe(401);
     });
-
-    test('GET /api/payments/namqr/pending should return 401 without auth', async ({ request }) => {
-      const response = await request.get('/api/payments/namqr/pending');
-      expect(response.status()).toBe(401);
-    });
   });
 
   // ===========================================

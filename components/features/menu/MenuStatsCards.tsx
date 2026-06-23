@@ -11,8 +11,7 @@
  * 
  * Design System:
  * - Uses semantic tokens: text-base-content, bg-base-100
- * - Card shadows: shadow-lg with hover:shadow-xl
- * 
+ * - Card shadows: shadow-lg with  * 
  * Accessibility:
  * - Semantic HTML structure
  * 
@@ -72,7 +71,7 @@ export default function MenuStatsCards({ stats }: MenuStatsCardsProps) {
       {statCards.map((stat, index) => (
         <div 
           key={stat.label}
-          className="card bg-base-100 shadow-lg card-hover animate-slide-up"
+          className="card bg-base-100 card-hover animate-slide-up"
           style={{ animationDelay: `${index * 100}ms` }}
         >
           <div className="card-body">
@@ -84,7 +83,7 @@ export default function MenuStatsCards({ stats }: MenuStatsCardsProps) {
                   <p className="text-xs text-base-content/50">{stat.desc}</p>
                 )}
               </div>
-              <div className={`w-14 h-14 rounded-xl ${stat.bg} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+              <div className={`w-14 h-14 rounded-etuna-card ${stat.bg} flex items-center justify-center flex-shrink-0`}>
                 <stat.icon className={`w-6 h-6 ${stat.color}`} />
               </div>
             </div>

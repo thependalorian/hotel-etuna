@@ -96,7 +96,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Profile Card */}
-      <div className="card bg-base-100 shadow-lg card-hover">
+      <div className="card bg-base-100 card-hover">
         <div className="card-body">
           <div className="flex items-center gap-4 mb-6">
             <div className="avatar placeholder">
@@ -177,28 +177,28 @@ export default function ProfilePage() {
           <div className="divider"></div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="card bg-base-200 shadow-sm animate-slide-up">
+            <div className="card bg-base-200 animate-slide-up">
               <div className="card-body">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <p className="text-sm font-medium text-base-content/60 mb-1">Tenant</p>
                     <p className="text-2xl font-bold text-primary">{userData.tenantName}</p>
                   </div>
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 rounded-etuna-card bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <Building className="w-6 h-6 text-primary" />
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="card bg-base-200 shadow-sm animate-slide-up" style={{ animationDelay: '100ms' }}>
+            <div className="card bg-base-200 animate-slide-up" style={{ animationDelay: '100ms' }}>
               <div className="card-body">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <p className="text-sm font-medium text-base-content/60 mb-1">Member Since</p>
                     <p className="text-2xl font-bold text-secondary">{userData.memberSince}</p>
                   </div>
-                  <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 rounded-etuna-card bg-secondary/10 flex items-center justify-center flex-shrink-0">
                     <Calendar className="w-6 h-6 text-secondary" />
                   </div>
                 </div>

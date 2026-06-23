@@ -179,7 +179,7 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <div className="card bg-base-100 shadow-lg card-hover">
+      <div className="card bg-base-100 card-hover">
         <div className="card-body">
           <SettingsTabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 

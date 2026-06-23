@@ -98,7 +98,7 @@ export default function NewComplianceCasePage() {
         }
       />
 
-      <form onSubmit={onSubmit} className="card bg-base-100 shadow-sm border border-base-200">
+      <form onSubmit={onSubmit} className="card bg-base-100 border border-base-200">
         <div className="card-body gap-4">
           {error && (
             <div className="alert alert-error text-sm" role="alert">

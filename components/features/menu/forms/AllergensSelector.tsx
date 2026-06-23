@@ -31,7 +31,7 @@ interface AllergensSelectorProps {
 
 export default function AllergensSelector({ allergens, commonAllergens, onToggle }: AllergensSelectorProps) {
   return (
-    <div className="card bg-base-100 shadow-lg">
+    <div className="card bg-base-100">
       <div className="card-header">
         <h2 className="card-title">Allergens</h2>
       </div>

@@ -143,7 +143,7 @@ export function GuestProfileForm() {
 
   if (!form) {
     return (
-      <div className="rounded-2xl border border-nude-200 bg-white p-8 text-center">
+      <div className="rounded-etuna-card border border-nude-200 bg-white p-8 text-center">
         <p className="text-semantic-error-dark">{error ?? 'No profile available.'}</p>
       </div>
     );
@@ -151,25 +151,25 @@ export function GuestProfileForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-8">
-      <section className="rounded-2xl border border-nude-200 bg-white p-6 shadow-card">
-        <h2 className="mb-4 font-display text-lg font-bold text-terracotta-900">Contact details</h2>
+      <section className="rounded-etuna-card border border-nude-200 bg-white p-6">
+        <h2 className="mb-4 font-display text-lg font-bold text-ci-secondary-chocolate">Contact details</h2>
         <div className="mb-4">
-          <label className="mb-1 block text-sm font-medium text-nude-700">Email</label>
+          <label className="mb-1 block text-sm font-medium text-ink-700">Email</label>
           <input
             type="email"
             value={email}
             readOnly
-            className="input input-bordered w-full bg-nude-50 text-nude-500"
+            className="input input-bordered w-full bg-nude-50 text-ink-500"
             aria-describedby="email-hint"
           />
-          <p id="email-hint" className="mt-1 text-xs text-nude-500">
+          <p id="email-hint" className="mt-1 text-xs text-ink-500">
             Email is your sign-in identity and can&apos;t be changed here.
           </p>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {TEXT_FIELDS.map((field) => (
             <div key={field.key}>
-              <label className="mb-1 block text-sm font-medium text-nude-700">{field.label}</label>
+              <label className="mb-1 block text-sm font-medium text-ink-700">{field.label}</label>
               <input
                 type={field.type ?? 'text'}
                 value={form[field.key] as string}
@@ -181,11 +181,11 @@ export function GuestProfileForm() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-nude-200 bg-white p-6 shadow-card">
-        <h2 className="mb-4 font-display text-lg font-bold text-terracotta-900">Stay preferences</h2>
+      <section className="rounded-etuna-card border border-nude-200 bg-white p-6">
+        <h2 className="mb-4 font-display text-lg font-bold text-ci-secondary-chocolate">Stay preferences</h2>
         <div className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-nude-700">Preferred room type</label>
+            <label className="mb-1 block text-sm font-medium text-ink-700">Preferred room type</label>
             <input
               type="text"
               value={form.preferredRoomType}
@@ -195,7 +195,7 @@ export function GuestProfileForm() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-nude-700">
+            <label className="mb-1 block text-sm font-medium text-ink-700">
               Dietary restrictions <span className="text-nude-400">(comma separated)</span>
             </label>
             <input
@@ -207,7 +207,7 @@ export function GuestProfileForm() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-nude-700">
+            <label className="mb-1 block text-sm font-medium text-ink-700">
               Accessibility needs <span className="text-nude-400">(comma separated)</span>
             </label>
             <input
@@ -218,7 +218,7 @@ export function GuestProfileForm() {
               className="input input-bordered w-full"
             />
           </div>
-          <label className="flex items-center gap-3 text-sm text-nude-700">
+          <label className="flex items-center gap-3 text-sm text-ink-700">
             <input
               type="checkbox"
               checked={form.marketingConsent}

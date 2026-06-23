@@ -77,7 +77,7 @@ export default async function PartnerRatesPage() {
       </div>
 
       {byRoom.size === 0 ? (
-        <div className="rounded-xl border border-base-300 bg-base-200 p-8 text-center text-base-content/60">
+        <div className="rounded-etuna-card border border-base-300 bg-base-200 p-8 text-center text-base-content/60">
           No rate schedules on file. Contact{' '}
           <a href="mailto:admin@hoteletuna.com" className="link link-primary">admin@hoteletuna.com</a>.
         </div>
@@ -87,7 +87,7 @@ export default async function PartnerRatesPage() {
             const first = rows[0];
             const rates = rows.filter((r) => r.rateId);
             return (
-              <div key={first.roomId} className="rounded-xl border border-base-300 bg-base-100 p-5">
+              <div key={first.roomId} className="rounded-etuna-card border border-base-300 bg-base-100 p-5">
                 <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                   <div>
                     <h3 className="font-semibold text-base-content">

@@ -11,8 +11,7 @@
  * 
  * Design System:
  * - Uses semantic tokens: text-base-content, bg-base-100
- * - Card shadows: shadow-lg with hover:shadow-xl
- * 
+ * - Card shadows: shadow-lg with  * 
  * Accessibility:
  * - Semantic HTML structure
  * - Proper heading hierarchy (h4)
@@ -53,7 +52,7 @@ interface MenuCategoryCardProps {
 export default function MenuCategoryCard({ category, catIndex, menuItemImages }: MenuCategoryCardProps) {
   return (
     <div 
-      className="card bg-base-100 shadow-lg card-hover animate-slide-up"
+      className="card bg-base-100 card-hover animate-slide-up"
       style={{ animationDelay: `${catIndex * 100}ms` }}
     >
       <div className="card-body">

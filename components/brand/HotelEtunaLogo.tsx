@@ -1,11 +1,8 @@
 /**
  * HotelEtunaLogo
  *
- * Purpose: Official Hotel Etuna branding — full lockup image or compact mark + wordmark.
+ * Purpose: Official Hotel Etuna branding — CI logo variants per docs/brand/Hotel-Etuna-CI-Guide-Extract.pdf
  * Location: /components/brand/HotelEtunaLogo.tsx
- *
- * Lockup (showTagline): public/brand/hotel-etuna-logo.png — mark + HOTEL ETUNA + script tagline.
- * Compact: mark PNG + serif wordmark for nav, sidebar, and dark footers.
  */
 
 import Image from 'next/image';
@@ -16,6 +13,16 @@ import { HotelEtunaMarkIcon } from '@/components/brand/HotelEtunaMarkIcon';
 
 export type HotelEtunaLogoSize = 'sm' | 'md' | 'lg';
 
+export type LogoVariant =
+  | 'primary'
+  | 'horizontal'
+  | 'horizontal-compact'
+  | 'stacked'
+  | 'stacked-compact'
+  | 'wordmark'
+  | 'monogram'
+  | 'compact';
+
 const compactSizeMap: Record<
   HotelEtunaLogoSize,
   { mark: number; title: string }
@@ -25,89 +32,131 @@ const compactSizeMap: Record<
   lg: { mark: 44, title: 'text-xl' },
 };
 
-const lockupWidthMap: Record<HotelEtunaLogoSize, number> = {
-  sm: 160,
-  md: 220,
-  lg: 280,
+const imageVariantMap: Record<
+  Exclude<LogoVariant, 'monogram' | 'compact'>,
+  { src: string; width: Record<HotelEtunaLogoSize, number> }
+> = {
+  primary: {
+    src: brand.assets.logoPrimary,
+    width: { sm: 160, md: 220, lg: 280 },
+  },
+  horizontal: {
+    src: brand.assets.logoHorizontal,
+    width: { sm: 180, md: 260, lg: 320 },
+  },
+  'horizontal-compact': {
+    src: brand.assets.logoHorizontalCompact,
+    width: { sm: 160, md: 220, lg: 280 },
+  },
+  stacked: {
+    src: brand.assets.logoStacked,
+    width: { sm: 140, md: 200, lg: 260 },
+  },
+  'stacked-compact': {
+    src: brand.assets.logoStackedCompact,
+    width: { sm: 120, md: 180, lg: 220 },
+  },
+  wordmark: {
+    src: brand.assets.logoWordmark,
+    width: { sm: 150, md: 210, lg: 270 },
+  },
 };
 
 export interface HotelEtunaLogoProps {
   size?: HotelEtunaLogoSize;
-  /** Renders the full official lockup (mark + HOTEL ETUNA + script tagline). */
+  /** CI logo variant — defaults to horizontal-compact for nav-friendly layouts. */
+  variant?: LogoVariant;
+  /** @deprecated Use variant="primary" */
   showTagline?: boolean;
   href?: string;
   className?: string;
-  /** Light wordmark on dark backgrounds (compact mode only). */
+  /** Light wordmark on dark backgrounds (monogram + text compact mode only). */
   onDark?: boolean;
 }
 
 export function HotelEtunaLogo({
   size = 'md',
+  variant: variantProp,
   showTagline = false,
   href = '/',
   className,
   onDark = false,
 }: HotelEtunaLogoProps) {
-  const linkClass =
-    'inline-block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-khaki-600 focus-visible:ring-offset-2 rounded-lg';
+  const variant: LogoVariant =
+    variantProp ?? (showTagline ? 'primary' : 'horizontal-compact');
 
-  if (showTagline) {
-    const width = lockupWidthMap[size];
-    const lockup = (
-      <Image
-        src={brand.assets.logoLockup}
-        alt={`${brand.name} — ${brand.logoTagline}`}
-        width={1600}
-        height={1600}
-        sizes={`(max-width: 640px) ${lockupWidthMap.sm}px, (max-width: 1024px) ${lockupWidthMap.md}px, ${lockupWidthMap.lg}px`}
-        className={cn('h-auto w-auto max-w-full', className)}
-        style={{ width, height: 'auto' }}
-        priority
-      />
+  const linkClass =
+    'inline-block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ci-primary focus-visible:ring-offset-2 rounded-etuna-input';
+
+  if (variant === 'monogram' || variant === 'compact') {
+    const dims = compactSizeMap[size];
+    const titleColor =
+      variant === 'compact'
+        ? onDark
+          ? 'text-ci-cream'
+          : 'text-ci-primary'
+        : undefined;
+
+    const mark = (
+      <span
+        className={cn(
+          'inline-flex items-center gap-2.5 group',
+          variant === 'compact' && className
+        )}
+        aria-label={brand.name}
+      >
+        <HotelEtunaMarkIcon
+          size={dims.mark}
+          className="shrink-0 transition-transform duration-200 group-hover:scale-105"
+        />
+        {variant === 'compact' ? (
+          <span
+            className={cn(
+              'font-display font-bold uppercase tracking-[0.12em] leading-none',
+              dims.title,
+              titleColor
+            )}
+          >
+            {brand.name}
+          </span>
+        ) : null}
+      </span>
     );
 
     if (!href) {
-      return lockup;
+      return mark;
     }
 
     return (
       <Link href={href} className={linkClass} aria-label={brand.name}>
-        {lockup}
+        {mark}
       </Link>
     );
   }
 
-  const dims = compactSizeMap[size];
-  const titleColor = onDark ? 'text-nude-50' : 'text-terracotta-900';
+  const config = imageVariantMap[variant];
+  const width = config.width[size];
 
-  const content = (
-    <span
-      className={cn('inline-flex items-center gap-2.5 group', className)}
-      aria-label={brand.name}
-    >
-      <HotelEtunaMarkIcon
-        size={dims.mark}
-        className="transition-transform duration-200 group-hover:scale-105"
-      />
-      <span
-        className={cn(
-          'font-display font-bold uppercase tracking-[0.12em] leading-none',
-          dims.title,
-          titleColor
-        )}
-      >
-        {brand.name}
-      </span>
-    </span>
+  const image = (
+    <Image
+      src={config.src}
+      alt={`${brand.name}${variant === 'primary' || variant === 'wordmark' ? ` — ${brand.logoTagline}` : ''}`}
+      width={1600}
+      height={600}
+      sizes={`(max-width: 640px) ${config.width.sm}px, (max-width: 1024px) ${config.width.md}px, ${config.width.lg}px`}
+      className={cn('h-auto w-auto max-w-full', className)}
+      style={{ width, height: 'auto' }}
+      priority={variant === 'primary'}
+    />
   );
 
   if (!href) {
-    return content;
+    return image;
   }
 
   return (
-    <Link href={href} className={linkClass}>
-      {content}
+    <Link href={href} className={linkClass} aria-label={brand.name}>
+      {image}
     </Link>
   );
 }

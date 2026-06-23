@@ -45,7 +45,7 @@ export default async function StaffProfilePage({ params }: StaffProfilePageProps
         </div>
       </div>
 
-      <div className="card bg-base-100 shadow-lg">
+      <div className="card bg-base-100">
         <div className="card-body grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <p className="text-sm text-base-content/60">Employee #</p>

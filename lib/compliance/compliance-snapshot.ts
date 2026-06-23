@@ -14,7 +14,6 @@ import {
   auditTrail,
   consumerRightsRequests,
   cybersecurityIncidents,
-  namqrCodes,
   obApiTransactions,
   transactions,
 } from '@/lib/db';
@@ -26,8 +25,6 @@ export interface ComplianceSnapshot {
   pendingConsumerRights: number;
   openCyberIncidents: number;
   auditEvents24h: number;
-  /** Active NamQR records (`namqr_codes.is_active`) — align with Namibia QR standard in compliance pack */
-  activeNamqrCodes: number;
   /** Open banking API calls in last 24h with HTTP ≥400 or `error_code` set — fraud/ops signal */
   openBankingApiErrors24h: number;
   /** Transactions marked failed in last 24h — reconciliation / fraud follow-up */
@@ -78,14 +75,6 @@ export async function getComplianceSnapshot(): Promise<ComplianceSnapshot> {
     return Number(row?.n ?? 0);
   });
 
-  const activeNamqrCodes = await safeCount('namqr_codes', async () => {
-    const [row] = await db
-      .select({ n: count() })
-      .from(namqrCodes)
-      .where(eq(namqrCodes.isActive, true));
-    return Number(row?.n ?? 0);
-  });
-
   const openBankingApiErrors24h = await safeCount('ob_api_transactions', async () => {
     const [row] = await db
       .select({ n: count() })
@@ -117,7 +106,6 @@ export async function getComplianceSnapshot(): Promise<ComplianceSnapshot> {
     pendingConsumerRights,
     openCyberIncidents,
     auditEvents24h,
-    activeNamqrCodes,
     openBankingApiErrors24h,
     failedTransactions24h,
   };

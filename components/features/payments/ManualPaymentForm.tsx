@@ -1,6 +1,5 @@
 /**
  * ManualPaymentForm — record off-platform EFT / e-wallet / bank deposit (folio).
- * NamQR bank-app payments: use NamQrDeskPanel (generate + confirm) on this page.
  * Location: components/features/payments/ManualPaymentForm.tsx
  */
 
@@ -75,10 +74,6 @@ export function ManualPaymentForm({
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
-      <p className="text-xs text-base-content/70">
-        For NamQR (guest paid via banking app after desk QR), use <strong>Generate NamQR</strong>{' '}
-        on the left, then <strong>Confirm on folio</strong> — not this form.
-      </p>
       <div className="form-control">
         <label className="label" htmlFor="manual-amount">
           <span className="label-text">Amount (NAD)</span>

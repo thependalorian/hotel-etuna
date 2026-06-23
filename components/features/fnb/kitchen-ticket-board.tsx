@@ -190,7 +190,7 @@ export default function KitchenTicketBoard({
                     <p className="text-sm text-base-content/60">No tickets</p>
                   ) : (
                     columnTickets.map((ticket) => (
-                      <article key={ticket.id} className="card bg-base-200 shadow-sm">
+                      <article key={ticket.id} className="card bg-base-200">
                         <div className="card-body gap-2 p-4">
                           <h4 className="card-title text-base">{ticketTitle(ticket)}</h4>
                           <ul className="text-sm text-base-content/80">

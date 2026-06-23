@@ -107,7 +107,7 @@ export default function CrmRagIngestPanel({ properties }: { properties: CrmRagIn
   }
 
   return (
-    <div className="card bg-base-100 shadow-lg border border-base-300">
+    <div className="card bg-base-100 border border-base-300">
       <div className="card-body gap-4">
         <div>
           <h2 className="card-title text-xl font-display">Knowledge base (RAG)</h2>

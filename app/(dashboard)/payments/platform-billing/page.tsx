@@ -16,11 +16,11 @@ export const metadata: Metadata = {
 export default function PlatformBillingPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 sm:p-6">
-      <h1 className="font-display text-3xl font-bold text-nude-900 mb-2">
+      <h1 className="font-display text-3xl font-bold text-ink-900 mb-2">
         {dashboardCopy.billing.platformFeesTitle}
       </h1>
-      <p className="text-nude-600 mb-4">{dashboardCopy.billing.platformFeesDesc}</p>
-      <p className="text-sm text-nude-600 mb-8">
+      <p className="text-ink-600 mb-4">{dashboardCopy.billing.platformFeesDesc}</p>
+      <p className="text-sm text-ink-600 mb-8">
         <a href="/reports/property-vat" className="link link-primary">
           Property VAT report
         </a>{' '}

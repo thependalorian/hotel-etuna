@@ -48,7 +48,7 @@ interface TableFormProps {
 
 export default function TableForm({ formData, onChange, onSubmit, loading, error, onCancel }: TableFormProps) {
   return (
-    <div className="card bg-base-100 shadow-xl mb-6 animate-scale-in">
+    <div className="card bg-base-100 mb-6 animate-scale-in">
       <div className="card-body">
         <h4 className="text-lg font-bold font-display mb-4">Add New Table</h4>
         <form onSubmit={onSubmit} className="space-y-4">

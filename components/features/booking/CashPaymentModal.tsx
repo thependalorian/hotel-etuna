@@ -90,26 +90,26 @@ export function CashPaymentModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 sm:mx-auto overflow-hidden">
-        <div className="bg-terracotta-600 text-white px-6 py-4">
+      <div className="bg-white rounded-etuna-card w-full max-w-lg mx-4 sm:mx-auto overflow-hidden">
+        <div className="bg-ci-accent-terracotta text-white px-6 py-4">
           <h2 className="text-xl font-semibold">Mark Cash Payment as Paid</h2>
-          <p className="text-terracotta-100 text-sm mt-1">Booking: {bookingReference}</p>
+          <p className="text-ci-cream text-sm mt-1">Booking: {bookingReference}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="bg-khaki-50 border-2 border-khaki-200 rounded-lg p-4">
-            <div className="text-sm text-khaki-700 font-medium mb-1">Total Amount Due</div>
-            <div className="text-3xl font-bold text-terracotta-900">
+          <div className="bg-ci-cream border-2 border-ci-secondary-tan rounded-etuna-input p-4">
+            <div className="text-sm text-ci-accent-ochre font-medium mb-1">Total Amount Due</div>
+            <div className="text-3xl font-bold text-ci-secondary-chocolate">
               {currency} {totalAmount.toFixed(2)}
             </div>
           </div>
 
           <div>
-            <label htmlFor="amountTendered" className="block text-sm font-medium text-nude-700 mb-2">
+            <label htmlFor="amountTendered" className="block text-sm font-medium text-ink-700 mb-2">
               Amount Tendered <span className="text-red-600">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-nude-500">{currency}</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-500">{currency}</span>
               <input
                 id="amountTendered"
                 type="number"
@@ -117,8 +117,8 @@ export function CashPaymentModal({
                 min="0"
                 value={amountTendered}
                 onChange={(e) => setAmountTendered(e.target.value)}
-                className={`w-full pl-16 pr-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 ${
-                  insufficientAmount ? 'border-red-300 bg-red-50' : 'border-gray-200'
+                className={`w-full pl-16 pr-4 py-3 border-2 rounded-etuna-input focus:outline-none focus:ring-2 focus:ring-ci-primary ${
+                  insufficientAmount ? 'border-red-300 bg-red-50' : 'border-nude-200'
                 }`}
                 placeholder="0.00"
                 required
@@ -134,11 +134,11 @@ export function CashPaymentModal({
           </div>
 
           <div
-            className={`border-2 rounded-lg p-4 ${
-              changeGiven > 0 ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
+            className={`border-2 rounded-etuna-input p-4 ${
+              changeGiven > 0 ? 'bg-green-50 border-green-200' : 'bg-nude-50 border-nude-200'
             }`}
           >
-            <div className="text-sm font-medium text-nude-700 mb-1">Change to Give</div>
+            <div className="text-sm font-medium text-ink-700 mb-1">Change to Give</div>
             <div
               className={`text-2xl font-bold ${
                 changeGiven > 0 ? 'text-green-700' : 'text-nude-400'
@@ -149,14 +149,14 @@ export function CashPaymentModal({
           </div>
 
           <div>
-            <label htmlFor="notes" className="block text-sm font-medium text-nude-700 mb-2">
+            <label htmlFor="notes" className="block text-sm font-medium text-ink-700 mb-2">
               Notes (Optional)
             </label>
             <textarea
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta-500 resize-none"
+              className="w-full px-4 py-3 border-2 border-nude-200 rounded-etuna-input focus:outline-none focus:ring-2 focus:ring-ci-primary resize-none"
               placeholder="Add any notes about this payment..."
               rows={3}
               disabled={isSubmitting}
@@ -164,7 +164,7 @@ export function CashPaymentModal({
           </div>
 
           {error && (
-            <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
+            <div className="bg-red-50 border-2 border-red-200 rounded-etuna-input p-3">
               <p className="text-red-700 text-sm font-medium">{error}</p>
             </div>
           )}

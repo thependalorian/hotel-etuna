@@ -31,7 +31,7 @@ export function AccountingDocumentsWidget({ from, to }: { from: string; to: stri
 
   return (
     <div className="dashboard-card p-4">
-      <h3 className="font-display font-semibold text-nude-900 mb-2">Financial PDFs issued</h3>
+      <h3 className="font-display font-semibold text-ink-900 mb-2">Financial PDFs issued</h3>
       <div className="stats stats-vertical sm:stats-horizontal shadow">
         {entries.map(([type, count]) => (
           <div key={type} className="stat">

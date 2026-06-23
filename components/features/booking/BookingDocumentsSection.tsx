@@ -89,8 +89,8 @@ export function BookingDocumentsSection({ bookingId }: BookingDocumentsSectionPr
 
   return (
     <Card variant="elevated" id="documents">
-      <h3 className="font-display text-lg font-semibold mb-3 text-nude-900">Financial documents</h3>
-      <p className="text-sm text-nude-600 mb-4">
+      <h3 className="font-display text-lg font-semibold mb-3 text-ink-900">Financial documents</h3>
+      <p className="text-sm text-ink-600 mb-4">
         Quotations, invoices, receipts, and payment notifications (NamRA-aligned PDFs).
       </p>
 
@@ -156,7 +156,7 @@ export function BookingDocumentsSection({ bookingId }: BookingDocumentsSectionPr
           <tbody>
             {documents.length === 0 ? (
               <tr>
-                <td colSpan={4} className="text-center text-nude-600">
+                <td colSpan={4} className="text-center text-ink-600">
                   No documents yet
                 </td>
               </tr>

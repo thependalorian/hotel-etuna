@@ -76,7 +76,7 @@ export const PropertyAvatar: React.FC<PropertyAvatarProps> = ({
   return (
     <div className={cn('relative inline-flex', className)}>
       <div className={cn(
-        'relative rounded-lg overflow-hidden bg-primary/10 flex items-center justify-center',
+        'relative rounded-etuna-input overflow-hidden bg-primary/10 flex items-center justify-center',
         'border-2 border-base-300',
         sizeClass
       )}>

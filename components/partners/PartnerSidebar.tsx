@@ -89,20 +89,20 @@ export function PartnerSidebar({ isMobileOpen = false, onMobileClose }: PartnerS
       <aside
         ref={asideRef}
         className={cn(
-          'flex h-full w-64 flex-col border-r border-nude-200 bg-surface-sidebar text-nude-900 shadow-nude-soft',
+          'flex h-full w-64 flex-col border-r border-nude-200 bg-surface-sidebar text-ink-900',
           'fixed left-0 top-0 z-40 transition-transform duration-slow ease-out-expo lg:sticky',
           isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
       >
         <div className="flex items-center justify-between border-b border-nude-200 p-4 md:p-6">
           <div className="group flex flex-1 flex-col gap-1">
-            <HotelEtunaLogo size="sm" href="/partner/dashboard" />
-            <p className="text-xs font-medium text-terracotta-800 pl-1">Partner Portal</p>
+            <HotelEtunaLogo size="sm" variant="compact" href="/partner/dashboard" />
+            <p className="text-xs font-medium text-ci-accent-terracotta pl-1">Partner Portal</p>
           </div>
           <button
             type="button"
             onClick={() => onMobileClose?.()}
-            className="flex min-h-touch-mobile min-w-touch-mobile items-center justify-center rounded-lg text-nude-700 transition-colors hover:bg-nude-200/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nude-500 focus-visible:ring-offset-2 lg:hidden"
+            className="flex min-h-touch-mobile min-w-touch-mobile items-center justify-center rounded-etuna-input text-ink-700 transition-colors hover:bg-nude-200/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ci-primary focus-visible:ring-offset-2 lg:hidden"
             aria-label="Close menu"
           >
             <X className="h-5 w-5" aria-hidden />
@@ -120,18 +120,18 @@ export function PartnerSidebar({ isMobileOpen = false, onMobileClose }: PartnerS
                   <Link
                     href={item.href}
                     className={cn(
-                      'flex min-h-touch-mobile items-center gap-3 rounded-lg px-4 py-3 font-medium transition-all duration-normal md:min-h-touch-desktop',
-                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nude-500 focus-visible:ring-offset-2',
+                      'flex min-h-touch-mobile items-center gap-3 rounded-etuna-input px-4 py-3 font-medium transition-all duration-normal md:min-h-touch-desktop',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ci-primary focus-visible:ring-offset-2',
                       isActive
-                        ? 'border border-nude-200 bg-surface-elevated text-nude-900 shadow-nude-soft'
-                        : 'text-nude-700 hover:border-nude-200/80 hover:bg-nude-50/90 hover:text-nude-900',
+                        ? 'border border-nude-200 bg-surface-elevated text-ink-900'
+                        : 'text-ink-700 hover:border-nude-200/80 hover:bg-nude-50/90 hover:text-ink-900',
                       !isActive && 'hover:-translate-y-px'
                     )}
                   >
                     <Icon
                       className={cn(
                         'h-5 w-5 shrink-0',
-                        isActive ? 'text-nude-600' : 'text-nude-500'
+                        isActive ? 'text-ink-600' : 'text-ink-500'
                       )}
                       aria-hidden
                     />
@@ -147,8 +147,8 @@ export function PartnerSidebar({ isMobileOpen = false, onMobileClose }: PartnerS
         </nav>
 
         <div className="border-t border-nude-200 p-4">
-          <div className="rounded-xl border border-nude-200 bg-nude-50/90 p-3 text-xs text-nude-700 shadow-inner">
-            <p className="font-semibold text-nude-900">Partner access</p>
+          <div className="rounded-etuna-card border border-nude-200 bg-nude-50/90 p-3 text-xs text-ink-700 shadow-inner">
+            <p className="font-semibold text-ink-900">Partner access</p>
             <p>Manage your property and bookings</p>
           </div>
         </div>

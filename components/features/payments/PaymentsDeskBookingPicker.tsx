@@ -113,7 +113,7 @@ export function PaymentsDeskBookingPicker({ value, onChange }: PaymentsDeskBooki
       </label>
 
       {selected ? (
-        <div className="rounded-lg border border-base-300 bg-base-200/50 p-4 space-y-2">
+        <div className="rounded-etuna-input border border-base-300 bg-base-200/50 p-4 space-y-2">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
               <p className="font-semibold">{selected.bookingReference || selected.id.slice(0, 8)}</p>
@@ -153,7 +153,7 @@ export function PaymentsDeskBookingPicker({ value, onChange }: PaymentsDeskBooki
             </div>
           )}
           {results.length > 0 && (
-            <ul className="menu menu-sm bg-base-100 border border-base-300 rounded-lg max-h-56 overflow-y-auto">
+            <ul className="menu menu-sm bg-base-100 border border-base-300 rounded-etuna-input max-h-56 overflow-y-auto">
               {results.map((item) => (
                 <li key={item.id}>
                   <button type="button" onClick={() => pick(item)}>

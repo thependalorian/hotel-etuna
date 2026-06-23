@@ -32,7 +32,7 @@ test.describe('Design System', () => {
       .toMatch(/inter|geist|system-ui|ui-sans|apple|segoe|helvetica/i);
   });
 
-  test('primary CTA should use khaki-600 family (not nude-600)', async ({ page }) => {
+  test('primary CTA should use CI Rustic Red (not khaki-600)', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     const cta = page.getByRole('link', { name: /book your stay/i }).first();
@@ -48,6 +48,8 @@ test.describe('Design System', () => {
     });
     expect(styles.borderRadius).not.toBe('0px');
     expect(styles.backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
+    // ci-primary #790C19 → rgb(121, 12, 25)
+    expect(styles.backgroundColor).toMatch(/121,\s*12,\s*25|rgb\(121 12 25\)/i);
   });
 
   test('should use defined body colors', async ({ page }) => {
@@ -62,6 +64,24 @@ test.describe('Design System', () => {
         return Boolean(styles.color && styles.backgroundColor);
       }, { timeout: 20_000 })
       .toBe(true);
+  });
+
+  test('body canvas should be warm CI off-white (not pure white)', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+
+    const bg = await page.evaluate(() => window.getComputedStyle(document.body).backgroundColor);
+    // ci.accent.offWhite #FAF6F0 → rgb(250, 246, 240)
+    expect(bg).toMatch(/250,\s*246,\s*240|rgb\(250 246 240\)/i);
+  });
+
+  test('room listing cards on /rooms should have no box shadow on shell', async ({ page }) => {
+    await page.goto('/rooms', { waitUntil: 'domcontentloaded' });
+
+    const card = page.locator('.etuna-listing-card').first();
+    await expect(card).toBeVisible({ timeout: 20_000 });
+
+    const boxShadow = await card.evaluate((el) => window.getComputedStyle(el).boxShadow);
+    expect(boxShadow === 'none' || boxShadow === '').toBe(true);
   });
 
   test('should have padded content inside main landmark', async ({ page }) => {

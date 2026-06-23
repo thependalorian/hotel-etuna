@@ -36,10 +36,10 @@ export default async function BookingDepositPage({ searchParams }: PageProps) {
   if (!bookingId) {
     return (
       <div className="max-w-lg mx-auto text-center py-16 px-4">
-        <h1 className="font-display text-2xl font-bold text-nude-900 mb-4">
+        <h1 className="font-display text-2xl font-bold text-ink-900 mb-4">
           Missing booking reference
         </h1>
-        <p className="text-nude-600 mb-8">
+        <p className="text-ink-600 mb-8">
           We could not find the booking you want to pay for. Please return to your booking.
         </p>
         <Button asChild>
@@ -73,7 +73,7 @@ export default async function BookingDepositPage({ searchParams }: PageProps) {
           </p>
         </div>
 
-        <div className="card bg-base-100 shadow-xl">
+        <div className="card bg-base-100">
           <div className="card-body p-8">
             {loadError ? (
               <div className="alert alert-error" role="alert">

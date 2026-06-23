@@ -95,8 +95,8 @@ export function GlPeriodCloseCard({ propertyId, periodEnd, onClosed }: GlPeriodC
   return (
     <Card className="p-6 space-y-4">
       <div>
-        <h2 className="text-lg font-semibold text-nude-900">GL period close</h2>
-        <p className="text-sm text-nude-600 mt-1">
+        <h2 className="text-lg font-semibold text-ink-900">GL period close</h2>
+        <p className="text-sm text-ink-600 mt-1">
           Lock the general ledger through <strong>{periodEnd}</strong> after all folio charges are
           settled. Open folio lines block close (draft-entry guard).
         </p>
@@ -108,7 +108,7 @@ export function GlPeriodCloseCard({ propertyId, periodEnd, onClosed }: GlPeriodC
         </div>
       )}
 
-      {loading && <p className="text-sm text-nude-500">Checking period status…</p>}
+      {loading && <p className="text-sm text-ink-500">Checking period status…</p>}
 
       {draftCount > 0 && (
         <div className="alert alert-warning" role="status">

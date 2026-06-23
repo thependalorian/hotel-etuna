@@ -41,7 +41,7 @@ export function FraudStatisticsCard({ statistics, periodType }: FraudStatisticsC
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {/* Total Transactions */}
-      <div className="card bg-base-100 shadow-xl">
+      <div className="card bg-base-100">
         <div className="card-body">
           <div className="flex items-center justify-between">
             <div>
@@ -73,7 +73,7 @@ export function FraudStatisticsCard({ statistics, periodType }: FraudStatisticsC
       </div>
 
       {/* Flagged Transactions */}
-      <div className="card bg-base-100 shadow-xl">
+      <div className="card bg-base-100">
         <div className="card-body">
           <div className="flex items-center justify-between">
             <div>
@@ -108,7 +108,7 @@ export function FraudStatisticsCard({ statistics, periodType }: FraudStatisticsC
       </div>
 
       {/* Declined Transactions */}
-      <div className="card bg-base-100 shadow-xl">
+      <div className="card bg-base-100">
         <div className="card-body">
           <div className="flex items-center justify-between">
             <div>
@@ -143,7 +143,7 @@ export function FraudStatisticsCard({ statistics, periodType }: FraudStatisticsC
       </div>
 
       {/* Fraud Rate & Risk Score */}
-      <div className="card bg-base-100 shadow-xl">
+      <div className="card bg-base-100">
         <div className="card-body">
           <div className="space-y-4">
             <div>
@@ -174,7 +174,7 @@ export function FraudStatisticsCard({ statistics, periodType }: FraudStatisticsC
 
       {/* Top Fraud Types */}
       {statistics.topFraudTypes.length > 0 && (
-        <div className="card bg-base-100 shadow-xl col-span-full lg:col-span-2">
+        <div className="card bg-base-100 col-span-full lg:col-span-2">
           <div className="card-body">
             <h3 className="card-title text-lg">Top Fraud Types</h3>
             <div className="space-y-3 mt-4">

@@ -26,7 +26,7 @@ export default function TenantDetails({ tenant, propertyCount, userCount }: Tena
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="card bg-base-100 shadow-lg">
+        <div className="card bg-base-100">
           <div className="card-body">
             <div className="flex items-center justify-between">
               <div>
@@ -37,7 +37,7 @@ export default function TenantDetails({ tenant, propertyCount, userCount }: Tena
             </div>
           </div>
         </div>
-        <div className="card bg-base-100 shadow-lg">
+        <div className="card bg-base-100">
           <div className="card-body">
             <div className="flex items-center justify-between">
               <div>
@@ -48,7 +48,7 @@ export default function TenantDetails({ tenant, propertyCount, userCount }: Tena
             </div>
           </div>
         </div>
-        <div className="card bg-base-100 shadow-lg">
+        <div className="card bg-base-100">
           <div className="card-body">
             <p className="text-sm text-base-content/70 mb-1">Status</p>
             <span
@@ -66,7 +66,7 @@ export default function TenantDetails({ tenant, propertyCount, userCount }: Tena
         </div>
       </div>
 
-      <div className="card bg-base-100 shadow-lg">
+      <div className="card bg-base-100">
         <div className="card-body">
           <h2 className="card-title text-xl mb-4">Tenant Info</h2>
           <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">

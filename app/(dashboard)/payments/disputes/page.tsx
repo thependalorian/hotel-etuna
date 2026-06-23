@@ -96,8 +96,8 @@ export default function PaymentDisputesPage() {
     <div className="space-y-6 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-nude-900">Payment Disputes</h1>
-          <p className="text-sm text-nude-600">
+          <h1 className="text-2xl font-bold text-ink-900">Payment Disputes</h1>
+          <p className="text-sm text-ink-600">
             Card chargebacks, refunds and reversals. Opening a dispute reverses the folio.
           </p>
         </div>
@@ -121,15 +121,15 @@ export default function PaymentDisputesPage() {
       </div>
 
       {error && (
-        <div className="alert alert-error rounded-2xl">
+        <div className="alert alert-error rounded-etuna-card">
           <span>{error}</span>
         </div>
       )}
 
       {loading ? (
-        <Card className="p-10 text-center text-nude-500">Loading disputes…</Card>
+        <Card className="p-10 text-center text-ink-500">Loading disputes…</Card>
       ) : disputes.length === 0 ? (
-        <Card className="p-10 text-center text-nude-500">
+        <Card className="p-10 text-center text-ink-500">
           No disputes{statusFilter ? ` with status “${statusFilter}”` : ''}. Chargebacks reported by
           Adumo or your bank will appear here.
         </Card>

@@ -50,9 +50,9 @@ export function LoyaltyRedeemModal({ isOpen, onClose, activeStayId, loyaltyPoint
         const errorData = await res.json();
         setError(errorData.message || 'Failed to redeem points.');
       }
-    } catch (err) {
+    } catch {
+      // Reason: surfaced to the guest via setError; no console noise in production.
       setError('An unexpected error occurred.');
-      console.error('Loyalty redemption error:', err);
     } finally {
       setIsSubmitting(false);
     }

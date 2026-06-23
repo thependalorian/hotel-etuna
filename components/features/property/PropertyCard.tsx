@@ -56,7 +56,7 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
   }, [property.id]);
 
   return (
-    <div className="rounded-lg border border-nude-200 bg-surface-elevated shadow-nude-soft hover:shadow-nude-medium hover:-translate-y-1 transition-all duration-300 animate-slide-up group overflow-hidden">
+    <div className="rounded-etuna-input border border-nude-200 bg-surface-elevated hover:-translate-y-1 transition-all duration-300 animate-slide-up group overflow-hidden">
       {/* Property Image from CMS */}
       <figure className="relative h-56 w-full overflow-hidden bg-nude-100">
         <ImagePlaceholder
@@ -73,7 +73,7 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
               Active
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-nude-100 text-nude-800 border border-nude-300">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-nude-100 text-ink-800 border border-nude-300">
               <span className="w-2 h-2 rounded-full bg-nude-400" />
               Inactive
             </span>
@@ -84,27 +84,27 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
       <div className="p-6">
         {/* Header */}
         <div className="mb-4">
-          <h2 className="font-display text-xl font-semibold text-nude-900 mb-2 group-hover:text-nude-700 transition-colors duration-200">
+          <h2 className="font-display text-xl font-semibold text-ink-900 mb-2 group-hover:text-ink-700 transition-colors duration-200">
             {property.name}
           </h2>
-          <p className="text-sm text-nude-600 line-clamp-2 leading-relaxed">
+          <p className="text-sm text-ink-600 line-clamp-2 leading-relaxed">
             {propertyDescription || property.description || 'No description provided.'}
           </p>
         </div>
         
         {/* Stats Row */}
-        <div className="flex justify-between items-center mb-6 p-4 bg-gradient-to-r from-nude-50 to-nude-100 rounded-lg border border-nude-200">
+        <div className="flex justify-between items-center mb-6 p-4 bg-gradient-to-r from-nude-50 to-nude-100 rounded-etuna-input border border-nude-200">
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-nude-600 text-white border border-nude-700">
               {property.type?.toUpperCase() || 'PROPERTY'}
             </span>
           </div>
           <div className="text-right">
-            <p className="font-display text-2xl font-bold text-nude-900 flex items-center gap-1">
+            <p className="font-display text-2xl font-bold text-ink-900 flex items-center gap-1">
               {property._count?.rooms || 0}
-              <span className="text-xs font-sans font-normal text-nude-600">rooms</span>
+              <span className="text-xs font-sans font-normal text-ink-600">rooms</span>
             </p>
-            <p className="text-xs text-nude-500 mt-0.5">
+            <p className="text-xs text-ink-500 mt-0.5">
               {property._count?.bookings || 0} bookings
             </p>
           </div>
@@ -114,7 +114,7 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
         <div className="flex justify-end pt-4 border-t border-nude-200">
           <Link 
             href={`/properties/${property.id}`} 
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-nude-600 text-white rounded-lg font-semibold text-sm hover:bg-nude-700 shadow-nude-soft hover:shadow-nude-medium transition-all duration-200 min-h-[44px]"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-nude-600 text-white rounded-etuna-input font-semibold text-sm hover:bg-nude-700 shadow-nude-soft transition-all duration-200 min-h-[44px]"
           >
             View Details
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

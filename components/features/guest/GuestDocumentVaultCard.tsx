@@ -102,11 +102,11 @@ export function GuestDocumentVaultCard({ bookingId }: GuestDocumentVaultCardProp
   }
 
   return (
-    <Card className="dashboard-card">
+    <Card variant="flat">
       <div className="card-body gap-4">
         <div>
-          <h2 className="card-title font-display text-nude-900">Travel documents</h2>
-          <p className="text-sm text-nude-600">
+          <h2 className="card-title font-display text-ink-900">Travel documents</h2>
+          <p className="text-sm text-ink-600">
             Upload your ID or passport before arrival so check-in is smooth. Files are encrypted
             and only used for your stay. Quotations, receipts, and tax invoices are under{' '}
             <strong>Financial documents</strong> — not this vault.
@@ -158,10 +158,10 @@ export function GuestDocumentVaultCard({ bookingId }: GuestDocumentVaultCardProp
         )}
 
         {documents.length > 0 && (
-          <ul className="divide-y divide-nude-200 rounded-lg border border-nude-200">
+          <ul className="divide-y divide-nude-200 rounded-etuna-input border border-nude-200">
             {documents.map((doc) => (
               <li key={doc.id} className="flex justify-between gap-2 px-4 py-3 text-sm">
-                <span className="font-medium text-nude-800">{doc.fileName}</span>
+                <span className="font-medium text-ink-800">{doc.fileName}</span>
                 <span className="badge badge-ghost badge-sm">{doc.docType.replace('_', ' ')}</span>
               </li>
             ))}

@@ -63,7 +63,7 @@ export default function StaffList({ initialStaff, properties }: StaffListProps) 
   return (
     <div className="space-y-6">
       {/* Filters */}
-      <div className="card bg-base-100 shadow-lg card-hover">
+      <div className="card bg-base-100 card-hover">
         <div className="card-body">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
@@ -114,7 +114,7 @@ export default function StaffList({ initialStaff, properties }: StaffListProps) 
         {staff.map((member, index) => (
           <div 
             key={member.id} 
-            className="card bg-base-100 shadow-lg card-hover animate-slide-up"
+            className="card bg-base-100 card-hover animate-slide-up"
             style={{ animationDelay: `${index * 50}ms` }}
           >
             <div className="card-body">
@@ -143,7 +143,7 @@ export default function StaffList({ initialStaff, properties }: StaffListProps) 
                   </div>
                 )}
 
-                <div className="flex items-center justify-between p-2 bg-base-200 rounded-lg">
+                <div className="flex items-center justify-between p-2 bg-base-200 rounded-etuna-input">
                   <span className="badge badge-outline">{member.department}</span>
                   <span className="text-xs text-base-content/60">
                     Hired {new Date(member.hireDate).toLocaleDateString()}
@@ -183,7 +183,7 @@ export default function StaffList({ initialStaff, properties }: StaffListProps) 
       </div>
 
       {staff.length === 0 && (
-        <div className="card bg-base-100 shadow-lg">
+        <div className="card bg-base-100">
           <div className="card-body text-center py-16">
             <div className="w-20 h-20 rounded-full bg-base-200 flex items-center justify-center mx-auto mb-6">
               <Users className="w-10 h-10 text-base-content/40" />

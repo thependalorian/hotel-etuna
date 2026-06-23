@@ -13,4 +13,4 @@ type FooterProps = {
 
 const Footer = ({ className = '' }: FooterProps) => <PublicFooter className={className} />;
 
-export default PublicFooter;
+export default Footer;

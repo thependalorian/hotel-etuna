@@ -17,14 +17,6 @@ export type SecurityEventType =
   | 'api_error'
   | 'suspicious_activity';
 
-export {
-  logSecurityEvent,
-  logUnauthorizedAccess,
-  logRateLimitExceeded,
-  logInvalidCredentials,
-  logTenantAccessDenied,
-} from '@/lib/utils/security-logger.server';
-
 const clientNoOpLogger = {
   info: (_message: string, _details?: unknown) => {},
   warn: (_message: string, _details?: unknown) => {},

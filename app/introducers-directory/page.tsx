@@ -74,7 +74,7 @@ export default async function IntroducersDirectoryPage() {
           <div className="container mx-auto px-4">
             {partners.length === 0 ? (
               <div className="text-center py-16">
-                <p className="text-xl text-nude-600">No travel partners are currently listed.</p>
+                <p className="text-xl text-ink-600">No travel partners are currently listed.</p>
                 <Button asChild variant="primary" size="lg" className="mt-6">
                   <Link href="/">Book Direct at Hotel Etuna</Link>
                 </Button>
@@ -84,7 +84,7 @@ export default async function IntroducersDirectoryPage() {
                 {partners.map((partner) => (
                   <div
                     key={partner.id}
-                    className="bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 p-6"
+                    className="bg-white rounded-etuna-card overflow-hidden transition-all duration-300 p-6"
                   >
                     {partner.logo_url && (
                       <div className="mb-4">
@@ -96,7 +96,7 @@ export default async function IntroducersDirectoryPage() {
                       </div>
                     )}
                     
-                    <h3 className="font-display text-2xl font-bold text-terracotta-900 mb-2">
+                    <h3 className="font-display text-2xl font-bold text-ci-secondary-chocolate mb-2">
                       {partner.name}
                     </h3>
                     
@@ -105,14 +105,14 @@ export default async function IntroducersDirectoryPage() {
                     </div>
 
                     {partner.bio && (
-                      <p className="text-terracotta-800 mb-4 leading-relaxed line-clamp-3">
+                      <p className="text-ink-700 mb-4 leading-relaxed line-clamp-3">
                         {partner.bio}
                       </p>
                     )}
 
                     {partner.total_bookings > 0 && (
-                      <div className="flex items-center gap-2 text-sm text-terracotta-700 mb-4">
-                        <TrendingUp className="w-4 h-4 text-khaki-600" />
+                      <div className="flex items-center gap-2 text-sm text-ink-600 mb-4">
+                        <TrendingUp className="w-4 h-4 text-ci-primary" />
                         <span>{partner.total_bookings} successful bookings</span>
                       </div>
                     )}
@@ -155,10 +155,10 @@ export default async function IntroducersDirectoryPage() {
 
         <section className="py-16 bg-nude-50">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="font-display text-3xl md:text-4xl text-terracotta-900 mb-4">
+            <h2 className="font-display text-3xl md:text-4xl text-ci-secondary-chocolate mb-4">
               Are you a travel professional?
             </h2>
-            <p className="text-lg text-terracotta-800 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg text-ink-700 mb-8 max-w-2xl mx-auto">
               Join our referral partner program and earn commission on every booking you refer to Hotel Etuna.
             </p>
             <Button asChild variant="primary" size="lg">

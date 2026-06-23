@@ -18,8 +18,8 @@ const actions = [
 export default function QuickActions() {
   return (
     <div className="dashboard-card p-6 animate-slide-up">
-      <h2 className="font-display text-xl font-bold text-nude-900 mb-1">Quick actions</h2>
-      <p className="mb-4 text-sm text-nude-600">
+      <h2 className="font-display text-xl font-bold text-ink-900 mb-1">Quick actions</h2>
+      <p className="mb-4 text-sm text-ink-600">
         Common tasks for your property.
       </p>
       <div className="grid grid-cols-1 gap-3">
@@ -31,8 +31,8 @@ export default function QuickActions() {
               href={action.href} 
               className={
                 action.emphasis
-                  ? 'inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-khaki-600 text-white font-bold hover:bg-khaki-700 transition-colors min-h-[44px]'
-                  : 'inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-nude-200 text-nude-800 font-medium hover:bg-nude-50 transition-colors min-h-[44px]'
+                  ? 'inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-ci-primary text-ci-cream font-bold hover:bg-ci-primary/90 transition-colors min-h-[44px]'
+                  : 'inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-nude-200 text-ink-800 font-medium hover:bg-nude-50 transition-colors min-h-[44px]'
               }
               aria-label={action.label}
             >

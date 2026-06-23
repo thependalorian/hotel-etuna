@@ -104,7 +104,7 @@ export function TurnstileWidget({ onToken, onExpire }: TurnstileWidgetProps) {
   return (
     <div
       ref={containerRef}
-      className={ready ? 'min-h-[65px]' : 'min-h-[65px] skeleton rounded-lg'}
+      className={ready ? 'min-h-[65px]' : 'min-h-[65px] skeleton rounded-etuna-input'}
       aria-label="Security check"
     />
   );

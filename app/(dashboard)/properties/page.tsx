@@ -49,7 +49,7 @@ const PropertiesPage = async () => {
           title="Property"
           description="Manage your hotel's details, rooms, and services."
           actions={
-            <Button asChild className="gentle-lift shadow-nude-soft hover:shadow-nude-medium">
+            <Button asChild className="gentle-lift">
               <Link href="/properties/new">
                 <Plus className="w-5 h-5 mr-2" />
                 Edit Property

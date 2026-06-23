@@ -31,7 +31,7 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   return (
-    <header className="h-16 bg-surface-elevated/95 backdrop-blur-md border-b border-nude-200 shadow-sm sticky top-0 z-30">
+    <header className="h-16 bg-surface-elevated/95 backdrop-blur-md border-b border-nude-200 shadow-etuna-elevated sticky top-0 z-30">
       <div className="h-full px-4 md:px-6 flex items-center justify-between gap-4">
         {/* Left Section */}
         <div className="flex items-center gap-4 flex-1">
@@ -39,15 +39,15 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
           <button
             type="button"
             onClick={() => onMobileMenuToggle?.()}
-            className="lg:hidden p-2 rounded-lg hover:bg-nude-100 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="lg:hidden p-2 rounded-etuna-input hover:bg-nude-100 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
             aria-label="Toggle menu"
           >
-            <Menu className="w-5 h-5 text-nude-800" aria-hidden="true" />
+            <Menu className="w-5 h-5 text-ink-800" aria-hidden="true" />
           </button>
 
           {/* Breadcrumbs - Desktop Only */}
           <div className="hidden md:flex items-center gap-2 text-sm">
-            <Link href="/dashboard" className="text-nude-600 hover:text-nude-800 transition-colors">
+            <Link href="/dashboard" className="text-ink-600 hover:text-ink-800 transition-colors">
               {dashboardCopy.breadcrumbToday}
             </Link>
           </div>
@@ -61,14 +61,14 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
             className="hidden md:flex relative opacity-60"
             title="Global search coming soon"
           >
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-nude-600 pointer-events-none" aria-hidden="true" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-600 pointer-events-none" aria-hidden="true" />
             <input
               type="search"
               placeholder="Search (coming soon)"
               aria-label="Search bookings, properties, and guests"
               disabled
               aria-disabled="true"
-              className="w-64 h-10 pl-10 pr-4 rounded-full bg-nude-50 border border-nude-200 text-sm text-nude-800 placeholder:text-nude-600 cursor-not-allowed"
+              className="w-64 h-10 pl-10 pr-4 rounded-full bg-nude-50 border border-nude-200 text-sm text-ink-800 placeholder:text-ink-600 cursor-not-allowed"
             />
           </div>
 
@@ -79,12 +79,12 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
             aria-disabled="true"
             title="Notifications coming soon"
             className={cn(
-              'relative p-2 rounded-lg transition-colors opacity-60 cursor-not-allowed',
+              'relative p-2 rounded-etuna-input transition-colors opacity-60 cursor-not-allowed',
               'min-w-[44px] min-h-[44px] flex items-center justify-center'
             )}
             aria-label="Notifications (coming soon)"
           >
-            <Bell className="w-5 h-5 text-nude-600" aria-hidden="true" />
+            <Bell className="w-5 h-5 text-ink-600" aria-hidden="true" />
           </button>
 
           {/* User Menu */}
@@ -92,27 +92,27 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
               className={cn(
-                'flex items-center gap-2 md:gap-3 rounded-full md:rounded-lg bg-nude-50 px-2 md:px-3 py-2 transition-colors',
-                'hover:bg-nude-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nude-400',
+                'flex items-center gap-2 md:gap-3 rounded-full md:rounded-etuna-input bg-nude-50 px-2 md:px-3 py-2 transition-colors',
+                'hover:bg-nude-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ci-primary',
                 'min-h-[44px]'
               )}
               aria-label="User menu"
               aria-expanded={showUserMenu}
             >
               <div className="w-8 h-8 rounded-full bg-nude-300 flex items-center justify-center">
-                <User className="w-4 h-4 text-nude-800" aria-hidden="true" />
+                <User className="w-4 h-4 text-ink-800" aria-hidden="true" />
               </div>
               <div className="hidden md:block text-left">
-                <div className="text-sm font-medium text-nude-800">
+                <div className="text-sm font-medium text-ink-800">
                   {session?.user?.name?.split(' ')[0] || 'User'}
                 </div>
-                <div className="text-xs text-nude-600">
+                <div className="text-xs text-ink-600">
                   {session?.user?.email?.split('@')[0]}
                 </div>
               </div>
               <ChevronDown 
                 className={cn(
-                  'hidden md:block w-4 h-4 text-nude-600 transition-transform duration-200',
+                  'hidden md:block w-4 h-4 text-ink-600 transition-transform duration-200',
                   showUserMenu && 'rotate-180'
                 )} 
                 aria-hidden="true" 
@@ -126,12 +126,12 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
                   className="fixed inset-0 z-40"
                   onClick={() => setShowUserMenu(false)}
                 />
-                <div className="absolute right-0 mt-2 w-56 rounded-xl border border-nude-200 bg-white shadow-lg animate-scale-in z-50 overflow-hidden">
+                <div className="absolute right-0 mt-2 w-56 rounded-etuna-card border border-nude-200 bg-white shadow-etuna-elevated animate-scale-in z-50 overflow-hidden">
                   <div className="px-4 py-3 border-b border-nude-200">
-                    <p className="text-sm font-semibold text-nude-800">
+                    <p className="text-sm font-semibold text-ink-800">
                       {session?.user?.name || 'User'}
                     </p>
-                    <p className="text-xs text-nude-600 truncate">
+                    <p className="text-xs text-ink-600 truncate">
                       {session?.user?.email}
                     </p>
                   </div>
@@ -141,16 +141,16 @@ const Header = ({ onMobileMenuToggle }: HeaderProps) => {
                       className="flex items-center gap-3 px-4 py-2.5 hover:bg-nude-50 transition-colors"
                       onClick={() => setShowUserMenu(false)}
                     >
-                      <User className="w-4 h-4 text-nude-600" aria-hidden="true" />
-                      <span className="text-sm font-medium text-nude-800">Profile</span>
+                      <User className="w-4 h-4 text-ink-600" aria-hidden="true" />
+                      <span className="text-sm font-medium text-ink-800">Profile</span>
                     </Link>
                     <Link
                       href="/settings"
                       className="flex items-center gap-3 px-4 py-2.5 hover:bg-nude-50 transition-colors"
                       onClick={() => setShowUserMenu(false)}
                     >
-                      <Settings className="w-4 h-4 text-nude-600" aria-hidden="true" />
-                      <span className="text-sm font-medium text-nude-800">Settings</span>
+                      <Settings className="w-4 h-4 text-ink-600" aria-hidden="true" />
+                      <span className="text-sm font-medium text-ink-800">Settings</span>
                     </Link>
                   </div>
                   <div className="border-t border-nude-200">

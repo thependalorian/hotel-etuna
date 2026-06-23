@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/Button';
 export default function NotFound() {
   return (
     <div className="flex min-h-[70vh] items-center justify-center bg-base-200 p-6">
-      <div className="card w-full max-w-lg bg-base-100 shadow-xl">
+      <div className="card w-full max-w-lg bg-base-100">
         <div className="card-body items-center text-center">
           <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-base-200">
             <FileQuestion className="h-10 w-10 text-base-content/60" aria-hidden />

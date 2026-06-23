@@ -37,11 +37,11 @@ export function FolioLinesTable({
             <table className="table table-zebra table-pin-rows w-full text-sm">
               <thead>
                 <tr>
-                  <th className="bg-nude-100 text-nude-700 font-semibold">Description</th>
-                  <th className="bg-nude-100 text-nude-700 font-semibold">Type</th>
-                  <th className="bg-nude-100 text-nude-700 font-semibold text-right">Amount</th>
+                  <th className="bg-nude-100 text-ink-700 font-semibold">Description</th>
+                  <th className="bg-nude-100 text-ink-700 font-semibold">Type</th>
+                  <th className="bg-nude-100 text-ink-700 font-semibold text-right">Amount</th>
                   {canVoidCharges && (
-                    <th className="bg-nude-100 text-nude-700 font-semibold text-right">Actions</th>
+                    <th className="bg-nude-100 text-ink-700 font-semibold text-right">Actions</th>
                   )}
                 </tr>
               </thead>
@@ -49,7 +49,7 @@ export function FolioLinesTable({
                 {lines.map((line) => (
                   <tr key={line.id}>
                     <td className="font-medium">{line.description}</td>
-                    <td className="text-nude-600 capitalize">{line.chargeType}</td>
+                    <td className="text-ink-600 capitalize">{line.chargeType}</td>
                     <td className="text-right font-mono font-semibold">
                       {formatFolioAmount(line.currency, line.amount)}
                     </td>
@@ -84,15 +84,15 @@ export function FolioLinesTable({
           {lines.map((line) => (
             <div
               key={line.id}
-              className="rounded-lg border border-nude-200 bg-nude-50 p-3 space-y-1"
+              className="rounded-etuna-input border border-nude-200 bg-nude-50 p-3 space-y-1"
             >
               <div className="flex items-start justify-between gap-2">
-                <p className="font-medium text-nude-900 flex-1">{line.description}</p>
-                <p className="font-mono font-bold text-nude-900 shrink-0">
+                <p className="font-medium text-ink-900 flex-1">{line.description}</p>
+                <p className="font-mono font-bold text-ink-900 shrink-0">
                   {formatFolioAmount(line.currency, line.amount)}
                 </p>
               </div>
-              <p className="text-xs text-nude-600 capitalize">{line.chargeType}</p>
+              <p className="text-xs text-ink-600 capitalize">{line.chargeType}</p>
             </div>
           ))}
         </div>
@@ -117,7 +117,7 @@ export function FolioLinesTable({
               <td>{line.createdAt ? formatDate(line.createdAt) : 'N/A'}</td>
               <td>
                 {line.description}{' '}
-                <span className="text-nude-500">({line.chargeType})</span>
+                <span className="text-ink-500">({line.chargeType})</span>
               </td>
               <td className="text-right font-mono">{formatFolioAmount(line.currency, line.amount)}</td>
               <td>

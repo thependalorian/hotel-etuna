@@ -29,6 +29,7 @@ import {
 } from '@/lib/services/booking/FacilityBookingPricing';
 import { isFacilityBookingKind, type BookingKind } from '@/lib/bookings/booking-kind';
 import { DEFAULT_BOOKING_DEPOSIT_PERCENT, withDepositPricingDetails } from '@/lib/bookings/deposit';
+import { nightsBetween, quoteStay } from '@/lib/services/booking/stay-pricing';
 
 // A DTO for creating a booking
 export interface CreateBookingDTO {
@@ -208,14 +209,21 @@ export class BookingService {
   async createBooking(data: CreateBookingDTO): Promise<Booking> {
     try {
       const roomRows = await db.execute(sql`
-        SELECT r.id, r.property_id, r.max_occupancy, r.inventory_kind, p.tenant_id
+        SELECT r.id, r.property_id, r.max_occupancy, r.inventory_kind, r.base_rate, p.tenant_id
         FROM rooms r
         JOIN properties p ON p.id = r.property_id
         WHERE r.id = ${data.roomId}
         LIMIT 1
       `);
       const room = roomRows.rows[0] as
-        | { id: string; property_id: string; max_occupancy: number; inventory_kind: string; tenant_id: string }
+        | {
+            id: string;
+            property_id: string;
+            max_occupancy: number;
+            inventory_kind: string;
+            base_rate: string | null;
+            tenant_id: string;
+          }
         | undefined;
       if (!room) {
         throw new AppError(404, 'Room not found.');
@@ -249,6 +257,9 @@ export class BookingService {
 
       const checkInStr = data.checkInDate.toISOString().slice(0, 10);
       const checkOutStr = data.checkOutDate.toISOString().slice(0, 10);
+      // Price the stay from the room's nightly base rate (matches knowledge-base room rates).
+      const ratePerNight = Number(room.base_rate ?? 0);
+      const { total: stayTotal } = quoteStay(ratePerNight, nightsBetween(checkInStr, checkOutStr));
       const newBooking = await db.transaction(async (tx) => {
         const bookingResult = await tx.execute(sql`
           INSERT INTO bookings (
@@ -266,7 +277,7 @@ export class BookingService {
             1,
             ${data.numGuests},
             0,
-            0,
+            ${stayTotal.toFixed(2)},
             'NAD',
             'pending',
             'accommodation',
@@ -280,7 +291,7 @@ export class BookingService {
 
         await tx.execute(sql`
           INSERT INTO booking_rooms (id, booking_id, room_id, guest_count, rate_amount, currency, created_at)
-          VALUES (gen_random_uuid(), ${newBooking.id}, ${data.roomId}, ${data.numGuests}, 0, 'NAD', NOW())
+          VALUES (gen_random_uuid(), ${newBooking.id}, ${data.roomId}, ${data.numGuests}, ${ratePerNight.toFixed(2)}, 'NAD', NOW())
         `);
 
         return newBooking;

@@ -73,11 +73,11 @@ export function GuestLoyaltySummary({ loyalty, activeStays = [] }: GuestLoyaltyS
   if (!loyalty || loyalty.loyaltyPoints <= 0) {
     return (
       <Card variant="elevated" className="p-6">
-        <h2 className="font-display text-lg font-bold text-nude-900 mb-2">
+        <h2 className="font-display text-lg font-bold text-ink-900 mb-2">
           {guestCopy.loyalty.title}
         </h2>
-        <p className="text-sm text-nude-600">{guestCopy.loyalty.empty}</p>
-        <p className="text-xs text-nude-500 mt-2">{guestCopy.hub.loyaltyHint}</p>
+        <p className="text-sm text-ink-600">{guestCopy.loyalty.empty}</p>
+        <p className="text-xs text-ink-500 mt-2">{guestCopy.hub.loyaltyHint}</p>
       </Card>
     );
   }
@@ -133,12 +133,12 @@ export function GuestLoyaltySummary({ loyalty, activeStays = [] }: GuestLoyaltyS
       <Card variant="elevated" className="p-6 space-y-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
-            <h2 className="font-display text-lg font-bold text-nude-900 mb-1">
+            <h2 className="font-display text-lg font-bold text-ink-900 mb-1">
               {guestCopy.loyalty.title}
             </h2>
-            <p className="text-3xl font-bold text-terracotta-900 tabular-nums">
+            <p className="text-3xl font-bold text-ci-secondary-chocolate tabular-nums">
               {loyalty.loyaltyPoints.toLocaleString()}{' '}
-              <span className="text-base font-medium text-nude-600">points</span>
+              <span className="text-base font-medium text-ink-600">points</span>
             </p>
           </div>
           <span
@@ -151,7 +151,7 @@ export function GuestLoyaltySummary({ loyalty, activeStays = [] }: GuestLoyaltyS
 
         {progress.percent < 100 && (
           <div>
-            <p className="text-xs text-nude-600 mb-2">
+            <p className="text-xs text-ink-600 mb-2">
               {progress.next - loyalty.loyaltyPoints} points to {TIER_NAMES[Object.keys(TIER_THRESHOLDS).find(k => TIER_THRESHOLDS[k as keyof typeof TIER_THRESHOLDS] === progress.next) || '']}
             </p>
             <progress
@@ -174,7 +174,7 @@ export function GuestLoyaltySummary({ loyalty, activeStays = [] }: GuestLoyaltyS
         )}
 
         {!canRedeem && activeStays.length === 0 && (
-          <p className="text-xs text-nude-500">{guestCopy.hub.loyaltyHint}</p>
+          <p className="text-xs text-ink-500">{guestCopy.hub.loyaltyHint}</p>
         )}
       </Card>
 
@@ -182,7 +182,7 @@ export function GuestLoyaltySummary({ loyalty, activeStays = [] }: GuestLoyaltyS
       {isRedeemModalOpen && (
         <dialog open className="modal modal-open" aria-labelledby="redeem-modal-title">
           <div className="modal-box max-w-md">
-            <h3 id="redeem-modal-title" className="font-bold text-lg text-nude-900 mb-4">
+            <h3 id="redeem-modal-title" className="font-bold text-lg text-ink-900 mb-4">
               Redeem loyalty points
             </h3>
             <form onSubmit={handleRedeemSubmit} className="space-y-4">
@@ -202,7 +202,7 @@ export function GuestLoyaltySummary({ loyalty, activeStays = [] }: GuestLoyaltyS
                   required
                   aria-describedby="points-hint"
                 />
-                <p id="points-hint" className="text-xs text-nude-600 mt-1">
+                <p id="points-hint" className="text-xs text-ink-600 mt-1">
                   1 point = N$1 off your folio balance
                 </p>
               </div>

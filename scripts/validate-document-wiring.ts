@@ -76,7 +76,6 @@ mustInclude('lib/services/sofia/EmailService.ts', 'attachments', 'EmailService: 
 const receiptEmailPaths = [
   'app/api/bookings/[id]/payment/route.ts',
   'lib/services/payment/ManualPaymentService.ts',
-  'lib/services/payment/HospitalityNamQrPaymentService.ts',
   'lib/services/payment/paymentOutbox.ts',
 ];
 for (const p of receiptEmailPaths) {

@@ -110,7 +110,7 @@ export function FraudAlertsTable({ tenantId }: FraudAlertsTableProps) {
   };
 
   return (
-    <div className="card bg-base-100 shadow-xl">
+    <div className="card bg-base-100">
       <div className="card-body">
         <div className="flex items-center justify-between mb-6">
           <h2 className="card-title text-xl">Active Fraud Alerts</h2>

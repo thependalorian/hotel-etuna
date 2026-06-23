@@ -13,7 +13,7 @@ interface DashboardWelcomeProps {
 
 export default function DashboardWelcome({ userName }: DashboardWelcomeProps) {
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-terracotta-800 via-terracotta-900 to-nude-900 p-8 text-white shadow-xl md:p-10">
+    <div className="relative overflow-hidden rounded-etuna-card bg-gradient-to-br from-ci-accent-terracotta via-ci-secondary-chocolate to-nude-900 p-8 text-white md:p-10">
       <div className="pointer-events-none absolute inset-0 opacity-[0.12]">
         <div
           className="absolute inset-0"

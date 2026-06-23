@@ -60,10 +60,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
   }
 
   const preferred =
-    body.preferredProvider ??
-    (thread.whatsappProvider === 'meta' || thread.whatsappProvider === 'openwa'
-      ? thread.whatsappProvider
-      : undefined);
+    body.preferredProvider ?? (thread.whatsappProvider === 'meta' ? 'meta' : undefined);
 
   const sendResult = await sendWhatsappOutbound({
     tenantId: user.tenantId,

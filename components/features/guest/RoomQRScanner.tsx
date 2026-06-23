@@ -111,7 +111,7 @@ export function RoomQRScanner() {
   return (
     <Card variant="elevated" className="p-6 max-w-md mx-auto">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-display text-xl font-bold text-nude-900">Scan room QR code</h2>
+        <h2 className="font-display text-xl font-bold text-ink-900">Scan room QR code</h2>
         {cameraAvailable && (
           <div className="flex gap-2">
             <button
@@ -128,7 +128,7 @@ export function RoomQRScanner() {
 
       {mode === 'camera' && cameraAvailable ? (
         <div className="space-y-4">
-          <div className="relative aspect-video bg-nude-900 rounded-xl overflow-hidden">
+          <div className="relative aspect-video bg-nude-900 rounded-etuna-card overflow-hidden">
             <video
               ref={videoRef}
               autoPlay
@@ -139,13 +139,13 @@ export function RoomQRScanner() {
             />
             {/* Scan guide overlay */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-48 h-48 border-4 border-dashed border-white/60 rounded-lg" aria-hidden />
+              <div className="w-48 h-48 border-4 border-dashed border-white/60 rounded-etuna-input" aria-hidden />
             </div>
           </div>
-          <p className="text-sm text-nude-600 text-center">
+          <p className="text-sm text-ink-600 text-center">
             Position the QR code from your room door within the frame. Scanning will happen automatically once detected.
           </p>
-          <p className="text-xs text-nude-500 text-center">
+          <p className="text-xs text-ink-500 text-center">
             Note: Automatic QR detection requires a browser extension or native app. Use manual entry for now.
           </p>
         </div>
@@ -166,7 +166,7 @@ export function RoomQRScanner() {
               autoFocus
               aria-describedby="code-hint"
             />
-            <p id="code-hint" className="text-xs text-nude-600 mt-1">
+            <p id="code-hint" className="text-xs text-ink-600 mt-1">
               The code is printed on the QR code label in your room
             </p>
           </div>
@@ -190,7 +190,7 @@ export function RoomQRScanner() {
       )}
 
       <div className="mt-6 pt-4 border-t border-nude-200">
-        <p className="text-xs text-nude-500 text-center">
+        <p className="text-xs text-ink-500 text-center">
           Scanning your room QR code will open your stay folio, where you can order room service, view charges, and settle your bill.
         </p>
       </div>

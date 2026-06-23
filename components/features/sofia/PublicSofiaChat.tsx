@@ -143,7 +143,7 @@ export function PublicSofiaChat({ propertySlug, className }: PublicSofiaChatProp
         onClick={() => setIsOpen(true)}
         className={cn(
           'fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-primary text-primary-content',
-          'shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110',
+          'shadow-lg transition-all duration-300 hover:scale-110',
           'flex items-center justify-center',
           className
         )}
@@ -207,7 +207,7 @@ export function PublicSofiaChat({ propertySlug, className }: PublicSofiaChatProp
               <div className="space-y-3 w-full">
                 {/* Email input (shown when needed) */}
                 {needsEmail && !userEmail && (
-                  <div className="p-3 bg-base-200 rounded-lg">
+                  <div className="p-3 bg-base-200 rounded-etuna-input">
                     <label className="text-sm font-medium mb-2 block text-base-content">
                       Email Address
                     </label>

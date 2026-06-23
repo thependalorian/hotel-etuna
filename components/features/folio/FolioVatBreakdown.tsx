@@ -23,44 +23,44 @@ export function FolioVatBreakdown({ vat, className = '' }: FolioVatBreakdownProp
 
   return (
     <div
-      className={`rounded-lg border border-nude-200 bg-nude-50/80 p-4 text-sm ${className}`}
+      className={`rounded-etuna-input border border-nude-200 bg-nude-50/80 p-4 text-sm ${className}`}
       role="region"
       aria-label="VAT breakdown"
     >
-      <p className="text-xs font-semibold uppercase tracking-wide text-nude-600 mb-2">
+      <p className="text-xs font-semibold uppercase tracking-wide text-ink-600 mb-2">
         VAT ({vat.supplierLegalName})
       </p>
-      <p className="text-xs text-nude-600 mb-2 space-y-0.5">
+      <p className="text-xs text-ink-600 mb-2 space-y-0.5">
         {vat.supplierCcNumber && <span className="block">CC {vat.supplierCcNumber}</span>}
         {vat.supplierVatNumber && <span className="block">VAT no. {vat.supplierVatNumber}</span>}
       </p>
       <dl className="space-y-1">
         <div className="flex justify-between gap-4">
-          <dt className="text-nude-600">Taxable supplies (open)</dt>
-          <dd className="font-mono text-nude-900">
+          <dt className="text-ink-600">Taxable supplies (open)</dt>
+          <dd className="font-mono text-ink-900">
             {formatFolioAmount(vat.currency, vat.taxableGross)}
           </dd>
         </div>
         <div className="flex justify-between gap-4">
-          <dt className="text-nude-600">Amount ex VAT</dt>
-          <dd className="font-mono text-nude-900">
+          <dt className="text-ink-600">Amount ex VAT</dt>
+          <dd className="font-mono text-ink-900">
             {formatFolioAmount(vat.currency, vat.amountExVat)}
           </dd>
         </div>
         <div className="flex justify-between gap-4">
-          <dt className="text-nude-600">VAT @ {vat.vatRatePercent}%</dt>
-          <dd className="font-mono text-nude-900">
+          <dt className="text-ink-600">VAT @ {vat.vatRatePercent}%</dt>
+          <dd className="font-mono text-ink-900">
             {formatFolioAmount(vat.currency, vat.vatAmount)}
           </dd>
         </div>
         <div className="flex justify-between gap-4 border-t border-nude-200 pt-2 font-semibold">
-          <dt className="text-nude-800">Total incl. VAT</dt>
-          <dd className="font-mono text-nude-900">
+          <dt className="text-ink-800">Total incl. VAT</dt>
+          <dd className="font-mono text-ink-900">
             {formatFolioAmount(vat.currency, vat.totalInclVat)}
           </dd>
         </div>
       </dl>
-      <p className="text-xs text-nude-500 mt-2">{inclusiveNote}</p>
+      <p className="text-xs text-ink-500 mt-2">{inclusiveNote}</p>
     </div>
   );
 }

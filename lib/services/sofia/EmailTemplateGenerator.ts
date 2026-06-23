@@ -79,12 +79,12 @@ export class SofiaEmailTemplateGenerator {
           <style>
               body { font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: ${c.nude800}; margin: 0; padding: 0; background-color: #f5f0eb; }
               .container { max-width: 600px; margin: 20px auto; padding: 0; border: 1px solid ${c.nude200}; border-radius: 8px; overflow: hidden; background-color: #ffffff; }
-              .header { background-color: ${c.terracotta800}; color: #ffffff; padding: 16px 20px; text-align: center; }
+              .header { background-color: ${c.logoRustic}; color: ${c.logoCream}; padding: 16px 20px; text-align: center; }
               .header h1 { margin: 0 0 4px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 22px; font-weight: 700; letter-spacing: 0.5px; }
               .header .tagline { margin: 0; font-size: 13px; font-style: italic; opacity: 0.95; }
               .content { padding: 24px 20px; color: ${c.nude800}; font-size: 15px; }
               .content p { margin: 0 0 14px 0; }
-              .button { display: inline-block; background-color: ${c.khaki600}; color: #ffffff !important; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; margin-top: 8px; }
+              .button { display: inline-block; background-color: ${c.logoRustic}; color: ${c.logoCream} !important; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; margin-top: 8px; }
               .sign-off { margin-top: 20px; color: ${c.nude800}; }
           </style>
       </head>

@@ -1,6 +1,6 @@
 # Hotel Etuna
 
-**"He Takes Care of Us"** — A luxury hospitality platform for Hotel Etuna in Ongwediva, Namibia.
+**Hotel Etuna** — A luxury hospitality platform for Hotel Etuna in Ongwediva, Namibia.
 
 [![Status](https://img.shields.io/badge/Status-In%20Production-green)](https://hoteletuna.com)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
@@ -32,7 +32,7 @@ Built as one hub property on shared infrastructure — not a multi-tenant Buffr 
 | Feature | Description |
 |---------|-------------|
 | **Sofia AI Concierge** | Multilingual AI assistant (English, Afrikaans, Oshiwambo) with email automation, booking support, and knowledge base integration |
-| **Property Management** | Rooms, bookings, availability calendars, dynamic pricing |
+| **Property Management** | Rooms, bookings, availability calendars, staff‑approved rate recommendations |
 | **Restaurant** | Menu management, orders, table reservations |
 | **Guest CRM** | Profiles, preferences, loyalty tiers, marketing consent (PSD-4 compliant) |
 | **Guest services** | Airport shuttle, pool, on-site restaurant |
@@ -44,7 +44,7 @@ Built as one hub property on shared infrastructure — not a multi-tenant Buffr 
 | **CMS** | Block editor for pages; menu item management |
 | **Introducer Partners** | Referral tracking, commission, public directory |
 | **Platform Billing** | Buffr ↔ Hotel Etuna invoicing, fee accruals, VAT |
-| **NamQR Payments** | Namibia QR v5 desk + guest confirmation flows |
+| **Payments** | Adumo Virtual (hosted card), cash, manual EFT/e-wallet desk record |
 | **Fraud Detection** | Rule engine, alerts, velocity checks (PSD-12) |
 | **Compliance** | PSD-12, PSD-4, ETA 2019, AML/FICA, SOC 2 (in progress) |
 
@@ -224,7 +224,7 @@ hotel-etuna/
 │   │   ├── ai/concierge/    # Sofia AI (hub only)
 │   │   ├── crm/             # CRM + loyalty (hub only)
 │   │   ├── bookings/        # Booking management
-│   │   ├── payments/        # Adumo, NamQR, cash, manual
+│   │   ├── payments/        # Adumo, cash, manual EFT/e-wallet
 │   │   ├── housekeeping/    # Task CRUD
 │   │   ├── introducers/     # Referral partner management
 │   │   └── compliance/      # KYC, AML, PSD, SOC2
@@ -247,8 +247,8 @@ hotel-etuna/
 │   │   ├── loyalty/         # Loyalty tiers + transactions
 │   │   ├── fraud/           # Fraud detection + notifications
 │   │   ├── compliance/      # AML, KYC, SOC2, STR
-│   │   └── payment/         # Adumo, NamQR, manual payments
-│   ├── compliance/          # NamQR, SOC2 agents, security pack
+│   │   └── payment/         # Adumo, manual EFT/e-wallet payments
+│   ├── compliance/          # SOC2 agents, security pack
 │   └── auth/                # NextAuth config + middleware
 ├── middleware.ts             # Tenant routing + security gate
 ├── database/drizzle/         # SQL migration files (0000–0054)

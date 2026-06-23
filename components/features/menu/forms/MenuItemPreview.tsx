@@ -35,12 +35,12 @@ interface MenuItemPreviewProps {
 
 export default function MenuItemPreview({ formData }: MenuItemPreviewProps) {
   return (
-    <div className="card bg-base-100 shadow-lg">
+    <div className="card bg-base-100">
       <div className="card-header">
         <h2 className="card-title">Preview</h2>
       </div>
       <div className="card-body">
-        <div className="border rounded-lg p-4">
+        <div className="border rounded-etuna-input p-4">
           <div className="flex items-start justify-between mb-2">
             <h3 className="font-semibold">
               {formData.name || 'Item Name'}

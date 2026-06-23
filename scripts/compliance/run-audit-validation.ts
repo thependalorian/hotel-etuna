@@ -67,8 +67,8 @@ run('pgAudit verify', 'npm run verify:pgaudit', true);
 run('CSP unit tests', 'npx vitest run tests/unit/content-security-policy.test.ts');
 run('Sofia intent + email', 'npx vitest run tests/unit/sofia-intent-resolve.test.ts tests/sofia/sofia-email.test.ts');
 run(
-  'NamQR + accounting + SOC2',
-  'npx vitest run tests/unit/namqr-v5.test.ts tests/unit/namqr-payment-flow.test.ts tests/unit/namibia-hospitality-accounting.test.ts tests/unit/namqr-settlement-recheck.test.ts tests/unit/soc2-audit.test.ts',
+  'Accounting + SOC2',
+  'npx vitest run tests/unit/namibia-hospitality-accounting.test.ts tests/unit/soc2-audit.test.ts',
 );
 
 writeReport();

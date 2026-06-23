@@ -70,25 +70,25 @@ export function PartnerAvailabilityWidget({ propertyId }: PartnerAvailabilityWid
   };
 
   return (
-    <section className="bg-nude-50 rounded-xl p-8 mb-10">
-      <h2 className="font-display text-2xl text-terracotta-800 mb-6">Check Availability</h2>
+    <section className="bg-nude-50 rounded-etuna-card p-8 mb-10">
+      <h2 className="font-display text-2xl text-ci-accent-terracotta mb-6">Check Availability</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div>
-          <label className="block text-sm font-medium text-nude-700 mb-2">Check-in</label>
+          <label className="block text-sm font-medium text-ink-700 mb-2">Check-in</label>
           <input
             type="date"
             value={checkInDate}
             onChange={(event) => setCheckInDate(event.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            className="w-full px-4 py-2 border border-nude-300 rounded-etuna-input"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-nude-700 mb-2">Check-out</label>
+          <label className="block text-sm font-medium text-ink-700 mb-2">Check-out</label>
           <input
             type="date"
             value={checkOutDate}
             onChange={(event) => setCheckOutDate(event.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            className="w-full px-4 py-2 border border-nude-300 rounded-etuna-input"
           />
         </div>
       </div>
@@ -101,13 +101,13 @@ export function PartnerAvailabilityWidget({ propertyId }: PartnerAvailabilityWid
 
       {results.length > 0 ? (
         <div className="mt-6 space-y-3">
-          <h3 className="font-semibold text-terracotta-800">Available Rooms</h3>
+          <h3 className="font-semibold text-ci-accent-terracotta">Available Rooms</h3>
           {results.map((room) => (
-            <div key={room.id} className="bg-white border border-gray-200 rounded-lg p-4">
-              <p className="font-medium text-nude-900">
+            <div key={room.id} className="bg-white border border-nude-200 rounded-etuna-input p-4">
+              <p className="font-medium text-ink-900">
                 {room.roomType} ({room.roomNumber})
               </p>
-              <p className="text-sm text-nude-600">
+              <p className="text-sm text-ink-600">
                 Max guests: {room.maxOccupancy} · Rate: NAD {room.baseRate ?? 'N/A'}
               </p>
             </div>

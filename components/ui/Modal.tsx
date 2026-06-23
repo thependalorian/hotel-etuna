@@ -23,10 +23,11 @@
  * - ModalClose: Close button component
  * 
  * Design System:
- * - Shadow: luxury-strong
+ * - Shadow: etuna-elevated (floating UI per DS §7)
  * - Border: nude-200
  * - Background: surface-elevated
- * - Rounded: 3xl
+ * - Rounded: etuna-card (20px) per DS §6
+ * - Focus ring: ci-primary
  * - Animations: scale-in on open, fade-out on close
  * 
  * Accessibility:
@@ -95,7 +96,7 @@ const ModalContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 bg-surface-elevated p-8 shadow-luxury-strong rounded-3xl border border-nude-200",
+        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 bg-surface-elevated p-8 shadow-etuna-elevated rounded-etuna-card border border-nude-200",
         "data-[state=open]:animate-scale-in data-[state=closed]:animate-fade-out",
         "duration-200",
         className
@@ -106,7 +107,7 @@ const ModalContent = React.forwardRef<
       <DialogPrimitive.Close
         className={cn(
           "absolute right-4 top-4 rounded-full opacity-70 ring-offset-white transition-opacity hover:opacity-100",
-          "focus:outline-none focus:ring-2 focus:ring-nude-500 focus:ring-offset-2",
+          "focus:outline-none focus:ring-2 focus:ring-ci-primary focus:ring-offset-2",
           "disabled:pointer-events-none data-[state=open]:bg-nude-100",
           "h-10 w-10 flex items-center justify-center hover:bg-nude-50"
         )}
@@ -155,7 +156,7 @@ const ModalTitle = React.forwardRef<
   <DialogPrimitive.Title
     ref={ref}
     className={cn(
-      "font-display text-2xl font-semibold leading-none tracking-tight text-nude-900",
+      "font-display text-2xl font-semibold leading-none tracking-tight text-ink-900",
       className
     )}
     {...props}
@@ -169,7 +170,7 @@ const ModalDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn("text-base text-nude-600", className)}
+    className={cn("text-base text-ink-600", className)}
     {...props}
   />
 ));

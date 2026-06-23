@@ -81,7 +81,7 @@ export default function ContentDisplay({
     return (
       <div className={`space-y-4 ${className}`}>
         {[...Array(limit)].map((_, i) => (
-          <div key={i} className="h-24 bg-base-200 rounded-lg animate-pulse" />
+          <div key={i} className="h-24 bg-base-200 rounded-etuna-input animate-pulse" />
         ))}
       </div>
     );
@@ -113,7 +113,7 @@ export default function ContentDisplay({
         const isPublished = item.status === 'published';
         
         return (
-          <div key={item.id} className="card bg-base-100 shadow-md hover:shadow-lg transition-shadow">
+          <div key={item.id} className="card bg-base-100 transition-shadow">
             <div className="card-body p-4">
               <div className="flex justify-between items-start gap-4">
                 <div className="flex-1">

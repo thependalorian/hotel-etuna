@@ -24,7 +24,7 @@ export default async function PlatformAnalyticsPage() {
           Platform-wide metrics and usage analytics
         </p>
       </div>
-      <div className="card bg-base-100 shadow-lg">
+      <div className="card bg-base-100">
         <div className="card-body items-center justify-center min-h-[320px]">
           <BarChart3 className="w-16 h-16 text-base-content/30" />
           <p className="text-base-content/70">Analytics dashboard coming soon.</p>

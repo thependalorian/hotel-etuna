@@ -10,7 +10,7 @@ test.describe('Payments desk', () => {
     await page.waitForLoadState('load');
 
     await page.getByLabel(/email/i).fill('manager@hoteletuna.com');
-    await page.getByLabel(/password/i).fill('Test1234!');
+    await page.getByLabel(/password/i).fill(process.env.ADMIN_PASSWORD ?? process.env.PASSWORD ?? 'Test1234!');
     await page.getByRole('button', { name: /sign in/i }).click();
     await page.waitForTimeout(1500);
 

@@ -8,19 +8,14 @@ import { RestaurantTable, NewRestaurantTable } from '@/lib/db/schema';
 import { AppError, handleServiceError } from '@/lib/utils/errors';
 import { v4 as uuidv4 } from 'uuid';
 import { and, eq, asc } from 'drizzle-orm';
-import { NamQrService } from '@/lib/services/qr/NAMQRService';
+import { buildTableScanUrl, buildTableQrImageDataUrl } from '@/lib/services/restaurant/table-qr';
 
 export class TableService {
-  private namQr: NamQrService;
-
-  constructor() {
-    this.namQr = new NamQrService();
-  }
-
   async createTable(tenantId: string, data: TableData): Promise<RestaurantTable> {
     try {
       const qrLookupCode = uuidv4();
-      const { qrCodeUrl, qrCodeImageUrl } = this.namQr.buildRestaurantTableQrUrls(qrLookupCode);
+      const qrCodeUrl = buildTableScanUrl(qrLookupCode);
+      const qrCodeImageUrl = await buildTableQrImageDataUrl(qrLookupCode);
 
       const newTableData: NewRestaurantTable = {
         restaurantId: data.restaurantId,

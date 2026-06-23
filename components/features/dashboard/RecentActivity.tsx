@@ -40,14 +40,14 @@ interface RecentActivityProps {
 
 export default function RecentActivity({ activities }: RecentActivityProps) {
   return (
-    <div className="card bg-base-100 shadow-lg card-hover animate-slide-up" style={{ animationDelay: '100ms' }}>
+    <div className="card bg-base-100 card-hover animate-slide-up" style={{ animationDelay: '100ms' }}>
       <div className="card-body">
         <h2 className="card-title text-xl font-display mb-4">Recent Activity</h2>
         <div className="space-y-3">
           {activities.map((activity, index) => (
             <div 
               key={activity.id} 
-              className="flex items-start gap-3 p-3 bg-base-200 rounded-lg hover:bg-base-300 transition-colors duration-200 animate-fade-in"
+              className="flex items-start gap-3 p-3 bg-base-200 rounded-etuna-input hover:bg-base-300 transition-colors duration-200 animate-fade-in"
               style={{ animationDelay: `${(index + 1) * 50}ms` }}
             >
               <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0"></div>

@@ -10,7 +10,7 @@ export type LoginCredentials = {
 
 const DEFAULT_STAFF: LoginCredentials = {
   email: 'manager@hoteletuna.com',
-  password: 'Test1234!',
+  password: process.env.ADMIN_PASSWORD ?? process.env.PASSWORD ?? 'Test1234!',
 };
 
 function normalizeOtp(value: string): string {
@@ -124,12 +124,15 @@ export async function completeVerifyEmailUi(
  * Sign in with staff credentials (hub / property shell).
  */
 export async function loginAsStaff(page: Page, creds: LoginCredentials = DEFAULT_STAFF): Promise<void> {
+  loadEnvFiles();
   await dismissCookies(page);
+  await page.context().clearCookies();
   await page.goto('/login', { waitUntil: 'domcontentloaded' });
+  await page.locator('form[method="post"]').waitFor({ state: 'visible', timeout: 60_000 });
   await page.getByLabel(/email/i).fill(creds.email);
   await page.getByLabel(/password/i).fill(creds.password);
   await page.getByRole('button', { name: /sign in/i }).click();
-  await page.waitForURL((url) => !url.pathname.endsWith('/login'), { timeout: 60_000 });
+  await page.waitForURL((url) => !url.pathname.endsWith('/login'), { timeout: 120_000, waitUntil: 'commit' });
 }
 
 /**

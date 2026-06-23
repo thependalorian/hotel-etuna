@@ -35,7 +35,7 @@ export default function AIPage() {
       />
 
       {/* AI Chat Interface */}
-      <div className="card bg-base-100 shadow-lg">
+      <div className="card bg-base-100">
         <div className="card-body p-0">
           <SofiaConciergeChat />
         </div>
@@ -43,7 +43,7 @@ export default function AIPage() {
 
       {/* Info Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="card bg-base-200 shadow-sm">
+        <div className="card bg-base-200">
           <div className="card-body p-4">
             <h3 className="font-semibold mb-2">24/7 Availability</h3>
             <p className="text-sm text-base-content/70">
@@ -51,7 +51,7 @@ export default function AIPage() {
             </p>
           </div>
         </div>
-        <div className="card bg-base-200 shadow-sm">
+        <div className="card bg-base-200">
           <div className="card-body p-4">
             <h3 className="font-semibold mb-2">Smart Responses</h3>
             <p className="text-sm text-base-content/70">
@@ -59,7 +59,7 @@ export default function AIPage() {
             </p>
           </div>
         </div>
-        <div className="card bg-base-200 shadow-sm">
+        <div className="card bg-base-200">
           <div className="card-body p-4">
             <h3 className="font-semibold mb-2">Memory Enabled</h3>
             <p className="text-sm text-base-content/70">

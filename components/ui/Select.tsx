@@ -72,10 +72,10 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "flex h-11 w-full items-center justify-between rounded-xl border border-nude-200 bg-surface-input px-4 py-3 font-sans text-base text-nude-900 transition-all duration-200",
+      "flex h-11 w-full items-center justify-between rounded-etuna-input border border-nude-200 bg-surface-input px-4 py-3 font-sans text-base text-ink-900 transition-all duration-200",
       "placeholder:text-nude-400",
       "hover:border-nude-300",
-      "focus:border-nude-500 focus:outline-none focus:ring-2 focus:ring-nude-500 focus:ring-offset-2",
+      "focus:border-nude-500 focus:outline-none focus:ring-2 focus:ring-ci-primary focus:ring-offset-2",
       "disabled:cursor-not-allowed disabled:opacity-50",
       "[&>span]:line-clamp-1",
       className
@@ -132,7 +132,7 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-2xl border border-nude-200 bg-surface-elevated shadow-nude-medium animate-fade-in",
+        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-etuna-card border border-nude-200 bg-surface-elevated shadow-etuna-elevated animate-fade-in",
         position === "popper" &&
           "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
         className
@@ -162,7 +162,7 @@ const SelectLabel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Label
     ref={ref}
-    className={cn("py-1.5 pl-8 pr-2 text-sm font-semibold text-nude-800", className)}
+    className={cn("py-1.5 pl-8 pr-2 text-sm font-semibold text-ink-800", className)}
     {...props}
   />
 ));
@@ -175,7 +175,7 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-pointer select-none items-center rounded-lg py-2 pl-8 pr-2 text-sm outline-none transition-colors duration-200",
+      "relative flex w-full cursor-pointer select-none items-center rounded-etuna-button py-2 pl-8 pr-2 text-sm outline-none transition-colors duration-200",
       "hover:bg-nude-50 focus:bg-nude-50",
       "data-[state=checked]:bg-nude-100",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
@@ -185,7 +185,7 @@ const SelectItem = React.forwardRef<
   >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
-        <Check className="h-4 w-4 text-nude-700" />
+        <Check className="h-4 w-4 text-ink-700" />
       </SelectPrimitive.ItemIndicator>
     </span>
 

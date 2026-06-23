@@ -6,41 +6,31 @@
 /**
  * Hub Open Banking payment initiation
  *
- * Purpose: Staff/guest-facing payment start aligned with BoN NamQR v5.0 (primary) and
+ * Purpose: Staff/guest-facing payment start aligned with
  *   Namibian Open Banking PIS v1.0 (when OAuth consent + step-up 2FA present).
  * Location: app/api/payments/open-banking/initiate/route.ts
  *
  * Regulatory refs (mba-agent):
- * - namibia_qr_code_standards.md v5.0 — NRTC dynamic QR
  * - namibia_open_banking_standards.md §9.2.5 — Make Payment (PIS)
  * - determination_of_the_operational_and_cybersecurity_standards.md — 2FA per initiation
  *
  * POST body:
- *   paymentRail: 'namqr' | 'pis'
- *   bookingId?, amount, purpose?
+ *   paymentRail: 'pis'
+ *   bookingId?, amount
  *   // PIS only:
  *   accessToken, payerAccountId, payeeIdentifier, payeeName, payeeAccountType,
  *   paymentStream, authMethod, authValue
  *
- * Response (namqr): { data: { rail, qrReference, qrPayload, qrImageUrl, expiresAt } }
  * Response (pis):  { data: { rail, paymentId, paymentReference, status, estimatedSettlement } }
  */
 
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { withApiAuth, errorResponse, successResponse } from '@/lib/utils/api-helpers';
-import { HospitalityNamQrPaymentService } from '@/lib/services/payment/HospitalityNamQrPaymentService';
 import { PaymentInitiationService } from '@/lib/services/openbanking/PaymentInitiationService';
 import { recordAuditTrail } from '@/lib/compliance/record-audit';
 import { securityLogger } from '@/lib/utils/security-logger';
 import { entityId } from '@/lib/validation/entity-ids';
-
-const namqrBodySchema = z.object({
-  paymentRail: z.literal('namqr'),
-  bookingId: entityId().optional(),
-  amount: z.number().positive(),
-  purpose: z.string().max(50).optional(),
-});
 
 const pisBodySchema = z.object({
   paymentRail: z.literal('pis'),
@@ -57,7 +47,7 @@ const pisBodySchema = z.object({
   description: z.string().max(500).optional(),
 });
 
-const bodySchema = z.discriminatedUnion('paymentRail', [namqrBodySchema, pisBodySchema]);
+const bodySchema = pisBodySchema;
 
 export const dynamic = 'force-dynamic';
 
@@ -79,44 +69,6 @@ export async function POST(request: NextRequest) {
       const parsed = bodySchema.safeParse(body);
       if (!parsed.success) {
         return errorResponse('Validation failed', 400, 'VALIDATION_ERROR', parsed.error.flatten());
-      }
-
-      if (parsed.data.paymentRail === 'namqr') {
-        try {
-          const result = await HospitalityNamQrPaymentService.generateDeskQr({
-            tenantId: user.tenantId,
-            bookingId: parsed.data.bookingId,
-            amount: parsed.data.amount,
-            purpose: parsed.data.purpose ?? 'open_banking_namqr',
-          });
-
-          await recordAuditTrail({
-            tenantId: user.tenantId,
-            userId: user.id,
-            action: 'payments.open_banking.namqr_initiated',
-            resourceType: 'namqr_code',
-            resourceId: result.qrReference,
-            newValues: {
-              amount: parsed.data.amount,
-              bookingId: parsed.data.bookingId,
-              stream: 'NRTC',
-            },
-          });
-
-          return successResponse({
-            rail: 'namqr',
-            qrReference: result.qrReference,
-            qrPayload: result.qrPayload,
-            qrImageUrl: result.qrImageUrl,
-            expiresAt: result.expiresAt?.toISOString(),
-            settlement: result.settlement,
-            regulatoryReference:
-              'mba-agent/regulatory/namibia/namibia_qr_code_standards.md v5.0',
-          });
-        } catch (e) {
-          securityLogger.error('[open-banking/initiate] namqr', e);
-          return errorResponse('NamQR generation failed', 500, 'NAMQR_FAILED');
-        }
       }
 
       // PIS rail — PSD-12 / NPIF-CTL-2FA-01: 2FA validated inside PaymentInitiationService
@@ -169,13 +121,6 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   return successResponse({
     rails: {
-      namqr: {
-        primary: true,
-        standard: 'BoN NamQR Code Standards v5.0',
-        doc: 'mba-agent/regulatory/namibia/namibia_qr_code_standards.md',
-        endpoint: 'POST /api/payments/open-banking/initiate',
-        paymentRail: 'namqr',
-      },
       pis: {
         standard: 'Namibian Open Banking Standards v1.0 — Make Payment',
         doc: 'mba-agent/regulatory/namibia/namibia_open_banking_standards.md',

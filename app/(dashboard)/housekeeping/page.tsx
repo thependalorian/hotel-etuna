@@ -119,14 +119,14 @@ export default function HousekeepingBoard() {
   const priorityColors: Record<TaskPriority, string> = {
     urgent: 'bg-semantic-error text-white',
     high: 'bg-semantic-warning text-white',
-    normal: 'bg-nude-300 text-nude-800',
-    low: 'bg-nude-100 text-nude-600',
+    normal: 'bg-nude-300 text-ink-800',
+    low: 'bg-nude-100 text-ink-600',
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <span className="loading loading-spinner loading-lg text-khaki-600"></span>
+        <span className="loading loading-spinner loading-lg text-ci-primary"></span>
       </div>
     );
   }
@@ -134,8 +134,8 @@ export default function HousekeepingBoard() {
   return (
     <div className="min-h-screen bg-nude-50 p-4 md:p-6">
       <div className="mb-6">
-        <h1 className="font-display text-3xl font-bold text-nude-900 mb-2">Housekeeping Board</h1>
-        <p className="text-nude-600">Manage room cleaning tasks at Hotel Etuna</p>
+        <h1 className="font-display text-3xl font-bold text-ink-900 mb-2">Housekeeping Board</h1>
+        <p className="text-ink-600">Manage room cleaning tasks at Hotel Etuna</p>
       </div>
 
       <div className="mb-6 flex flex-wrap gap-2">
@@ -143,8 +143,8 @@ export default function HousekeepingBoard() {
           onClick={() => setFilterPriority('all')}
           className={`px-4 py-2 rounded-full text-sm font-medium min-h-[44px] transition-colors ${
             filterPriority === 'all'
-              ? 'bg-khaki-600 text-white'
-              : 'bg-white border border-nude-200 text-nude-700 hover:bg-nude-100'
+              ? 'bg-ci-primary text-ci-cream'
+              : 'bg-white border border-nude-200 text-ink-700 hover:bg-nude-100'
           }`}
         >
           All
@@ -155,8 +155,8 @@ export default function HousekeepingBoard() {
             onClick={() => setFilterPriority(priority)}
             className={`px-4 py-2 rounded-full text-sm font-medium min-h-[44px] transition-colors ${
               filterPriority === priority
-                ? 'bg-khaki-600 text-white'
-                : 'bg-white border border-nude-200 text-nude-700 hover:bg-nude-100'
+                ? 'bg-ci-primary text-ci-cream'
+                : 'bg-white border border-nude-200 text-ink-700 hover:bg-nude-100'
             }`}
           >
             {priority.charAt(0).toUpperCase() + priority.slice(1)}
@@ -165,7 +165,7 @@ export default function HousekeepingBoard() {
       </div>
 
       {error && (
-        <div className="bg-semantic-error-light border border-semantic-error text-semantic-error-dark rounded-lg p-4 mb-4">
+        <div className="bg-semantic-error-light border border-semantic-error text-semantic-error-dark rounded-etuna-input p-4 mb-4">
           <p className="font-medium">{error}</p>
         </div>
       )}
@@ -186,41 +186,41 @@ export default function HousekeepingBoard() {
                 </div>
                 <div className="bg-white rounded-b-lg p-4 min-h-[200px] space-y-3 border-x border-b border-nude-200">
                   {columnTasks.length === 0 ? (
-                    <p className="text-nude-500 text-center py-8">No tasks</p>
+                    <p className="text-ink-500 text-center py-8">No tasks</p>
                   ) : (
                     columnTasks.map(({ task, room, booking, assignedStaff }) => (
-                      <div key={task.id} className="bg-nude-50 rounded-lg p-4 border border-nude-200 hover:shadow-sm transition-shadow">
-                        <h3 className="font-semibold text-nude-900 text-base mb-1">
+                      <div key={task.id} className="bg-nude-50 rounded-etuna-input p-4 border border-nude-200 transition-shadow">
+                        <h3 className="font-semibold text-ink-900 text-base mb-1">
                           Room {room.roomNumber}
                           <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${priorityColors[task.priority]}`}>
                             {task.priority}
                           </span>
                         </h3>
-                        <p className="text-sm text-nude-600 mb-1">{room.roomType}</p>
+                        <p className="text-sm text-ink-600 mb-1">{room.roomType}</p>
                         {booking && (
-                          <p className="text-xs text-nude-500 mb-1">Booking: {booking.bookingReference}</p>
+                          <p className="text-xs text-ink-500 mb-1">Booking: {booking.bookingReference}</p>
                         )}
                         {assignedStaff && (
-                          <p className="text-xs text-nude-500 mb-1">
+                          <p className="text-xs text-ink-500 mb-1">
                             Assigned: {assignedStaff.firstName} {assignedStaff.lastName}
                           </p>
                         )}
                         {task.notes && (
-                          <p className="text-xs text-nude-600 mt-2 italic">{task.notes}</p>
+                          <p className="text-xs text-ink-600 mt-2 italic">{task.notes}</p>
                         )}
                         <div className="flex gap-2 mt-3">
                           {task.status === 'dirty' && !task.assignedTo && (
-                            <button onClick={() => claimTask(task.id)} className="px-4 py-2 rounded-full bg-khaki-600 text-white font-medium text-sm hover:bg-khaki-700 transition-colors min-h-[44px]">
+                            <button onClick={() => claimTask(task.id)} className="px-4 py-2 rounded-full bg-ci-primary text-ci-cream font-medium text-sm hover:bg-ci-primary/90 transition-colors min-h-[44px]">
                               Claim
                             </button>
                           )}
                           {task.status === 'dirty' && task.assignedTo && (
-                            <button onClick={() => updateTaskStatus(task.id, 'cleaning')} className="px-4 py-2 rounded-full bg-khaki-600 text-white font-medium text-sm hover:bg-khaki-700 transition-colors min-h-[44px]">
+                            <button onClick={() => updateTaskStatus(task.id, 'cleaning')} className="px-4 py-2 rounded-full bg-ci-primary text-ci-cream font-medium text-sm hover:bg-ci-primary/90 transition-colors min-h-[44px]">
                               Start Cleaning
                             </button>
                           )}
                           {task.status === 'cleaning' && (
-                            <button onClick={() => updateTaskStatus(task.id, 'inspecting')} className="px-4 py-2 rounded-full bg-khaki-600 text-white font-medium text-sm hover:bg-khaki-700 transition-colors min-h-[44px]">
+                            <button onClick={() => updateTaskStatus(task.id, 'inspecting')} className="px-4 py-2 rounded-full bg-ci-primary text-ci-cream font-medium text-sm hover:bg-ci-primary/90 transition-colors min-h-[44px]">
                               Ready for Inspection
                             </button>
                           )}
@@ -252,7 +252,7 @@ export default function HousekeepingBoard() {
       <div className="fixed bottom-4 right-4 md:static md:mt-6 md:text-right">
         <button
           onClick={fetchTasks}
-          className="w-14 h-14 md:w-auto md:px-6 md:py-3 rounded-full bg-khaki-600 text-white shadow-lg hover:bg-khaki-700 transition-colors flex items-center justify-center md:gap-2 min-h-[44px]"
+          className="w-14 h-14 md:w-auto md:px-6 md:py-3 rounded-full bg-ci-primary text-ci-cream shadow-lg hover:bg-ci-primary/90 transition-colors flex items-center justify-center md:gap-2 min-h-[44px]"
           title="Refresh tasks"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

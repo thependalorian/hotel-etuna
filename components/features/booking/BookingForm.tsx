@@ -74,7 +74,7 @@ export function BookingForm() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {error && (
-            <div className="flex items-start gap-3 p-4 bg-semantic-error-light text-semantic-error-dark rounded-lg border border-semantic-error/20 animate-slide-down">
+            <div className="flex items-start gap-3 p-4 bg-semantic-error-light text-semantic-error-dark rounded-etuna-input border border-semantic-error/20 animate-slide-down">
               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -82,7 +82,7 @@ export function BookingForm() {
             </div>
           )}
           {roomId && (
-            <div className="flex items-start gap-3 p-4 bg-semantic-info-light text-semantic-info-dark rounded-lg border border-semantic-info/20 animate-slide-down">
+            <div className="flex items-start gap-3 p-4 bg-semantic-info-light text-semantic-info-dark rounded-etuna-input border border-semantic-info/20 animate-slide-down">
               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -92,14 +92,14 @@ export function BookingForm() {
           
           {/* Form Sections with clear labels */}
           <div className="space-y-4">
-            <h3 className="font-display text-lg font-semibold text-nude-900">Booking Details</h3>
+            <h3 className="font-display text-lg font-semibold text-ink-900">Booking Details</h3>
             
             <FormField
               control={form.control}
               name="checkInDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-nude-700 font-semibold">Check-in Date</FormLabel>
+                  <FormLabel className="text-ink-700 font-semibold">Check-in Date</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
@@ -113,7 +113,7 @@ export function BookingForm() {
               name="checkOutDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-nude-700 font-semibold">Check-out Date</FormLabel>
+                  <FormLabel className="text-ink-700 font-semibold">Check-out Date</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
@@ -127,7 +127,7 @@ export function BookingForm() {
               name="numGuests"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-nude-700 font-semibold">Number of Guests</FormLabel>
+                  <FormLabel className="text-ink-700 font-semibold">Number of Guests</FormLabel>
                   <FormControl>
                     <Input type="number" min="1" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10))} />
                   </FormControl>
@@ -143,7 +143,7 @@ export function BookingForm() {
               variant="primary"
               size="lg"
               disabled={form.formState.isSubmitting}
-              className="w-full sm:w-auto min-h-[56px] px-8 font-semibold shadow-nude-medium hover:shadow-nude-strong transition-all duration-200"
+              className="w-full sm:w-auto min-h-[56px] px-8 font-semibold shadow-nude-medium transition-all duration-200"
             >
               {form.formState.isSubmitting ? (
                 <>

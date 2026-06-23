@@ -151,7 +151,7 @@ export default function GuestLoyaltyPage() {
       case 'gold':
         return 'text-yellow-600';
       case 'silver':
-        return 'text-gray-500';
+        return 'text-ink-500';
       case 'bronze':
       default:
         return 'text-orange-700';

@@ -60,7 +60,7 @@ export function FraudTrendChart({ tenantId, periodType }: FraudTrendChartProps) 
   const maxValue = Math.max(...trendData.map((d) => d.totalTransactions));
 
   return (
-    <div className="card bg-base-100 shadow-xl">
+    <div className="card bg-base-100">
       <div className="card-body">
         <h3 className="card-title text-lg">Fraud Trends</h3>
         

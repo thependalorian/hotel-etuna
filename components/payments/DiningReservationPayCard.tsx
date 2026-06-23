@@ -108,7 +108,7 @@ export function DiningReservationPayCard({
   return (
     <div className="space-y-2">
       {redirecting && (
-        <p className="text-sm text-terracotta-800 sm:text-base">
+        <p className="text-sm text-ink-600 sm:text-base">
           Redirecting to Adumo secure card payment…
         </p>
       )}

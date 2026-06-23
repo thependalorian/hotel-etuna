@@ -1,18 +1,17 @@
 /**
- * Single folio settlement path for off-platform rails (NamQR, EFT, e-wallet, bank deposit).
+ * Single folio settlement path for off-platform rails (EFT, e-wallet, bank deposit).
  * Location: lib/services/payment/settleOffPlatformFolio.ts
  */
 
 import { FolioService } from '@/lib/services/folio/FolioService';
 import type { ManualPaymentRail } from '@/lib/services/payment/ManualPaymentService';
 
-export type OffPlatformFolioMethod = 'namqr' | 'eft' | 'ewallet' | 'bank_deposit';
+export type OffPlatformFolioMethod = 'eft' | 'ewallet' | 'bank_deposit';
 
 const RAIL_TO_FOLIO_METHOD: Record<
   Exclude<ManualPaymentRail, 'cash'>,
   OffPlatformFolioMethod
 > = {
-  namqr: 'namqr',
   eft: 'eft',
   ewallet: 'ewallet',
   bank_deposit: 'bank_deposit',

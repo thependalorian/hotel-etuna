@@ -33,16 +33,16 @@ Hotel Etuna is evolving from a production PMS/CRM into a **single‑property int
 |--------|------------|----------------|
 | **Agentic CRM** | A relationship system that **initiates** actions, not just records them — uses guest memory, preferences, and real‑time signals to send offers, schedule services, and escalate needs without human clicks. | Guests feel remembered; staff are freed from manual follow‑ups. |
 | **Intelligent OS** | The engine orchestrating all operations (rooms, F&B, housekeeping, maintenance, revenue, payments, compliance) with predictive algorithms, real‑time alerts, and automated workflows. | Removes friction, eliminates silos, turns data into revenue. |
-| **Beautiful UX** | Calm, intuitive, emotionally‑aligned design (nude/terracotta/khaki, Playfair, pill buttons, micro‑interactions) — see §9. | Drives adoption, cuts training time, creates brand love. |
+| **Beautiful UX** | Calm, intuitive, emotionally‑aligned design (nude surfaces + CI palette, `ink` text ramp, Playfair, pill buttons, micro‑interactions) — see §9. | Drives adoption, cuts training time, creates brand love. |
 
 The strategic goal: move every guest touchpoint from **transactional → relationship‑building**, and every staff workflow from **reactive → proactive**. This vision **builds on** the shipped foundation (§3, §12) — it does not replace the as‑built spec; existing architectural guardrails (Neon + Drizzle, NextAuth/Stack dual‑auth, Adumo Virtual + cash, hub‑and‑spoke RLS, Sofia hub‑exclusivity, `security:preflight`) remain binding (§6, §11; PLANNING § Architecture Decisions).
 
 **Five goals (detail in §13 roadmap + `TASK.md` § Vision):**
 
-1. **Guest Command Centre** — A `/guest` hub that feels like a personal concierge across pre‑arrival (magic‑link welcome, document vault, room selection, digital check‑in + digital key), in‑stay (service/maintenance requests, room‑service, upgrade/downgrade, messaging, folio widget), and post‑stay (auto‑checkout, loyalty rewards, feedback, re‑engagement). Plus **agentic actions** with no guest input (birthday surprise, repeat‑guest recognition, weather nudges, silent loyalty upgrades).
-2. **Staff Intelligence Layer** — Real‑time command‑centre dashboard, colour‑coded smart alerts, voice commands, predictive housekeeping/maintenance routing, revenue intelligence, low‑stock auto‑reorder, mobile‑first PWA with push, cross‑department visibility.
+1. **Guest Command Centre** — A `/guest` hub that feels like a personal concierge across pre‑arrival (magic‑link welcome, document vault, room selection, digital check‑in), in‑stay (service/maintenance requests, room‑service, upgrade/downgrade, messaging, folio widget), and post‑stay (auto‑checkout, loyalty rewards, feedback, re‑engagement). Plus **agentic actions** with no guest input (birthday surprise, repeat‑guest recognition, weather nudges, silent loyalty upgrades).
+2. **Staff Intelligence Layer** — Real‑time command‑centre dashboard, colour‑coded smart alerts, voice commands, predictive housekeeping/maintenance routing, revenue intelligence, low‑stock reorder recommendations (staff‑approved), mobile‑first PWA with push, cross‑department visibility.
 3. **Sofia as a true co‑pilot** — Proactive nudges, sentiment detection + human handover, multi‑channel context (web/WhatsApp/email/voice), language auto‑detection, layered memory (session/long‑term/episodic), and autonomous revenue actions (upgrade offers, late‑night dining, complaint remediation). Remains **hub‑exclusive**; partners get no AI.
-4. **Intelligent Operations (the OS)** — Dynamic pricing + occupancy/ADR/RevPAR forecasting, read‑only OTA rate sync, smart inventory (F&B, linen, minibar), predictive maintenance from complaint data, and compliance automation (POPIA anonymisation, PCI boundary, immutable audit).
+4. **Intelligent Operations (the OS)** — Occupancy/ADR/RevPAR forecasting that produces **rate recommendations** (never auto‑applied — admin or front desk must approve before any rate changes), smart inventory (F&B, linen, minibar) with **approval‑gated reorder recommendations**, predictive maintenance from complaint data, and compliance automation (POPIA anonymisation, PCI boundary, immutable audit). No OTA/channel‑manager sync — Namibia has no Booking.com/Expedia two‑way integration in scope.
 5. **Beautiful & delightful UX** — Locked visual identity (§9), zero‑wait skeletons, micro‑transitions, offline‑first queue, keyboard shortcuts, WCAG 2.1 AA, and warm, locally‑flavoured copy.
 
 **Roadmap:** ~16 weeks across 5 phases (§13 Phases 8–12), each delivering business value independently. Targets in §8 (Vision metrics).
@@ -182,7 +182,7 @@ Marketing personas in **§2.1** describe *who books and why*. The table below ma
 | **Staff & Dashboard** | Role‑based access for Hotel Etuna staff (owner, manager, front‑desk, housekeeping, kitchen). Staff CRUD at `/staff`, edit at `/staff/[id]/edit`, schedules at `/staff/[id]/schedule`. **Payroll (Namibia):** integrated PAYE + SSC at `/payroll` (founder/admin only); exports align with NamRA refs in `TAX_AND_NAMRA_COMPLIANCE.md` §6.1. Audit logging for all sensitive actions. |
 | **Deposits & commission** | Booking `deposit_percent` (default 30%) drives checkout partial amount; partner commission report at `/reports/commission`. |
 | **Open banking** | NamQR v5.0 primary rail; PIS via BON endpoints (`/api/bon/v1/banking/payments`) with PSD‑12 step‑up 2FA — see `mba-agent/regulatory/namibia/namibia_open_banking_standards.md`. |
-| **Communications** | Sofia AI voice/web chat, WhatsApp (Meta Cloud API + OpenWA on Railway), `/communications` hub for front desk/support, support tickets. Email automation (booking confirmations, check‑in reminders, post‑stay thank you). **Hub tenant only** — partners do not have Sofia AI or email automation. OpenWA uses unofficial WhatsApp Web; Meta remains the production-grade provider. |
+| **Communications** | Sofia AI voice/web chat, WhatsApp (Meta Cloud API), `/communications` hub for front desk/support, support tickets. Email automation (booking confirmations, check‑in reminders, post‑stay thank you). **Hub tenant only** — partners do not have Sofia AI or email automation. Meta Cloud API is the sole production WhatsApp provider (the unofficial OpenWA/WhatsApp-Web sidecar was removed). |
 | **Support** | Platform support tickets for hotel staff and partners. Integrated issue tracker for bug reports, feature requests. Hub admin can view all support tickets. |
 | **Compliance & Risk** | Consumer rights / cyber incident lifecycles; **KYC/KYB for Hotel Etuna and all partners**. Court‑admissible audit themes. All regulatory requirements (PSD‑12, PSD‑4, ETA 2019) apply platform‑wide. |
 | **AI (Sofia)** | **Hub‑exclusive AI concierge** with knowledge base for Hotel Etuna only. RAG over Hotel Etuna property documents, guest preferences, CRM memory. **Knowledge base contains 4 documents** (hotel facts, room descriptions, restaurant menu, local area info), **~27 semantic chunks**, **Qdrant Cloud Inference** (`intfloat/multilingual-e5-small`, **384d**), collection **`buffr_rag`**. Human escalation for low confidence or policy keywords. **Partners do not have access to Sofia AI or any AI features.** Sofia enforces gated content: will not disclose prices or availability to unauthenticated users, instead prompts sign‑up. **Ingestion:** `npm run rag:seed` — semantic chunking (~800 chars, 100-char overlap), Qdrant Inference upsert, tenant-scoped `buffr_rag`. **Conversations** persist in Neon (`ai_conversations` / `ai_messages`, tenant-scoped history). **Long-term guest memory:** Neon `crm_guest_memory_facts` + `crm_graph_edges` (auto-written after each turn via `SofiaGuestFactExtractor`); optional Mem0 mirror if `MEM0_API_KEY` set — **not** Ava-style `long_term_memory` in Qdrant. **Restaurant flow state:** `ai_conversations.context` JSONB + `dining_reservations`. |
@@ -824,7 +824,7 @@ Full matrix + gap register: **`docs/compliance/NAMIBIA_REGULATORY_FRAMEWORK.md` 
 | **UI Framework** | React | 18 | Server + Client Components |
 | **Language** | TypeScript | Strict mode | Zero compilation errors enforced |
 | **Styling** | Tailwind CSS | 3.x | Custom Hotel Etuna theme (`hoteletuna`) |
-| **Component Library** | DaisyUI | Latest | Pre-themed with nude/khaki/terracotta palette |
+| **Component Library** | DaisyUI | Latest | Pre-themed with nude + CI (`ci.*`) palette |
 | **Backend** | Next.js API Routes | — | Serverless functions on Vercel |
 | **Database** | Neon | Serverless Postgres | Connection pooling for serverless |
 | **ORM** | Drizzle ORM | Latest | Type-safe queries, migrations in `database/drizzle/` |
@@ -1962,9 +1962,8 @@ Complete route inventory: `app/api/**/route.ts` (**136** handlers; verify: `find
 | `/api/sofia/voice/webhook` | POST | Webhook | `sofia_voice_sessions` | External provider |
 | `/api/ai/concierge` | POST, GET | Session | `ai_conversations`, `ai_messages`, `bookings`, `guests` | `ai/page` → `SofiaConciergeChat` |
 | `/api/webhooks/whatsapp` | GET, POST | Webhook | `tenant_whatsapp_settings`, `guests`, `ai_*` | Meta Cloud API |
-| `/api/webhooks/openwa` | POST | Webhook | `tenant_whatsapp_settings`, `guests`, `ai_*` | OpenWA (Railway sidecar) |
 | `/api/communications/threads` | GET | Hub staff | `ai_conversations`, `ai_messages` | `/communications` hub |
-| `/api/communications/threads/[sessionId]` | GET, POST, PATCH | Hub staff | `ai_*`, outbound Meta/OpenWA | Thread detail + staff reply |
+| `/api/communications/threads/[sessionId]` | GET, POST, PATCH | Hub staff | `ai_*`, outbound Meta Cloud API | Thread detail + staff reply |
 
 #### Payments
 
@@ -2232,7 +2231,7 @@ UI: `GuestStaysList`, `GuestLoyaltySummary`, `GuestFolioPanel` (past-stay banner
 
 | Surface | Theme |
 |---------|-------|
-| **Hotel Etuna Public Website** | Khaki‑rustic‑savannah palette: `khaki‑600` (#b8955a) primary CTA, `terracotta‑800` (#8b4a2e) headings, `sage‑green` (#9bae8a) nature accents. Playfair Display for headlines, Inter for body. |
+| **Hotel Etuna Public Website** | Official CI palette: Rustic Red `#790C19` primary CTA (`ci-primary`), chocolate `#4B3428` headings (`ci-secondary-chocolate`), body ink via the CI-chocolate-anchored `ink` ramp (`text-ink-900`/`text-ink-700`; chocolate & terracotta `#6D3722` are AA-safe brand text accents), sage `#9BAE8A` nature accents. Playfair Display for headlines, Inter for body. The unused `khaki-*` / `terracotta-*` legacy ramps were removed in DS v1.1.0; `rustic` (`border-rustic`) and `luxury-*` remain. |
 | **Hub Admin Dashboard** | Same Hotel Etuna branding. "HE" badge in sidebar. No workspace switcher. All "Buffr Host" references replaced. |
 | **Partner Portal** | Neutral, light palette. Partner property name in header. No Sofia/CRM navigation links. |
 | **Partner Public Listings** | Hotel Etuna website wrapper with partner‑specific content. Partner logo and images. Contact form (not Sofia chat widget). |
@@ -2368,35 +2367,78 @@ Measurable outcomes for the §1.1 vision. These extend (do not replace) the oper
 
 ## 9. Design Direction (Brand)
 
-### 9.1 Color Palette
+**Canonical CI reference:** `docs/brand/Hotel-Etuna-CI-Guide-Extract.pdf` (Hotel Etuna Designs corporate identity guide). Token implementation: `tailwind.config.ts` (`ci.*` palette) + `lib/copy/brand.ts`.
+
+**Copy taglines (distinct):**
+- **Logo script (English):** *"Your house away from home"* — on logo lockups and email footers (`brand.logoTagline` / `brand.tagline`).
+- **Public hero headline:** *"Hotel Etuna"* (`brand.taglineTitleCase`).
+- **Oshiwambo etymology:** *"He takes care of us"* — about page and story copy only (`brand.oshiwamboMeaning`).
+
+### 9.1 Color Palette (CI tiers)
+
+**Primary** — logo lockup only; Rustic Red is dominant; these are the only two colors in the full‑colour logo.
 
 | Token | Hex | Usage |
 |-------|-----|-------|
-| `nude‑50` | `#fef7f0` | Page backgrounds |
-| `nude‑100` | `#fceee0` | Card backgrounds |
-| `nude‑200` | `#f8dcc0` | Borders, dividers |
-| `nude‑300` | `#f2c49f` | Inactive states |
-| `nude‑400` | `#e8a87a` | Secondary hover |
-| `nude‑500` | `#d18b5c` | Base nude |
-| `khaki‑600` | `#b8955a` | **Primary CTA** |
-| `khaki‑700` | `#9a7d43` | CTA hover |
-| `terracotta‑800` | `#8b4a2e` | Heading text |
-| `terracotta‑900` | `#6d3722` | Deep text |
-| `khaki‑sand` | `#c4a97d` | Badges/soft backgrounds |
-| `sage‑green` | `#9bae8a` | Nature / secondary accents |
+| `ci.primary` / Rustic Red | `#790C19` | Logo mark, **primary CTA**, favicon, theme-color |
+| `ci.cream` | `#F3E8D7` | Logo cream, `primary-content`, warm surfaces |
+
+**Secondary** — blend with primary; do not use in isolation from primary colours.
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `ci.secondary.tan` | `#DABC92` | Sub-headings, soft fills |
+| `ci.secondary.taupe` | `#A58B72` | Tables, pull quotes *(CI-corrected from #B58B72)* |
+| `ci.secondary.chocolate` | `#4B3428` | Deep secondary text |
+| `ci.secondary.gold` | `#D4AF37` | VIP / celebration moments |
+| `ci.secondary.crimson` | `#BA082C` | Emphasis accents |
+
+**Accent** — charts, icons, supplementary collateral; prefer with primary + secondary.
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `ci.accent.ochre` | `#9A7D43` | Data viz, icons |
+| `ci.accent.gold` | `#C6A46A` | Highlights |
+| `ci.accent.offWhite` | `#FAF6F0` | Canvas alternative |
+| `ci.accent.forest` | `#5E6651` | Nature depth |
+| `ci.accent.sage` | `#9BAE8A` | Nature accent |
+| `ci.accent.terracotta` | `#6D3722` | Headings / neutral |
+| `ci.accent.rose` | `#C89B95` | Soft decorative |
+
+**Digital UI extensions** (warm hospitality surfaces — not in CI logo):
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `nude‑50` | `#fef7f0` | Page backgrounds (cards white) |
+| `nude‑100`–`nude‑900` | see `tailwind.config.ts` | Borders, ink ramp |
+| `nude‑500`–`nude‑600` | see `tailwind.config.ts` | Secondary warmth (badges, not primary CTA) |
+
+### 9.1.1 Logo variants
+
+| Variant | Asset (`public/brand/`) | Allowed contexts |
+|---------|------------------------|------------------|
+| Primary | `hotel-etuna-logo-primary.png` | Website header, brochures, ads, social |
+| Horizontal (+ tagline) | `hotel-etuna-logo-horizontal.png` | Letterhead, email signature, signage |
+| Horizontal (compact) | `hotel-etuna-logo-horizontal-compact.png` | Nav, tight horizontal slots |
+| Wordmark | `hotel-etuna-wordmark.png` | Co-branding, sponsorship, tight spaces |
+| Monogram | `hotel-etuna-mark.png` | Favicon, app icon, sidebar, watermarks |
+| Stacked (+ tagline) | `hotel-etuna-logo-stacked.png` | Certificates, awards, reception walls |
+| Stacked (compact) | `hotel-etuna-logo-stacked-compact.png` | Premium signage without tagline |
+
+Component: `HotelEtunaLogo` with `variant` prop — see `components/brand/HotelEtunaLogo.tsx`.
 
 ### 9.2 Typography
 
-- **Body:** Inter (system‑ui stack), 16px base
-- **Display:** Playfair Display (headlines, room names, hero text)
+- **Display:** Playfair Display — headlines, signage, marketing (Regular → Black)
+- **Body:** Inter — UI, booking, menus (Light, Regular, Medium), 16px base
+- **Signature:** Dancing Script — logo tagline render, welcome, promotions (Regular, Bold)
 - **Mono:** JetBrains Mono (invoices, analytics, code)
-- **Signature:** Dancing Script (limited personal touches)
 
 ### 9.3 Component Direction
 
-- **Primary button:** `bg‑khaki‑600 hover:bg‑khaki‑700 text‑white`
-- **Focus ring:** `ring‑2 ring‑khaki‑600 ring‑offset‑2`
-- **Cards:** `shadow‑nude‑soft`, hover lifts with `shadow‑khaki‑medium`
+- **Primary button:** `btn-primary` / `bg-ci-primary hover:bg-ci-primary/90 text-primary-content`
+- **Focus ring:** `ring‑2 ring‑ci-primary ring‑offset‑2`
+- **Cards:** flat — border + surface colour; browse/ops cards carry **no** shadow (hover → `border-nude-300`). `shadow‑etuna‑elevated` only on modals / sticky panels (DS §7).
 - **Touch targets:** ≥44px on mobile
 - **Hub sidebar:** Hotel Etuna "HE" badge + name
 - **Partner dashboard:** Neutral palette, no Sofia/CRM navigation
@@ -2406,30 +2448,29 @@ Measurable outcomes for the §1.1 vision. These extend (do not replace) the oper
 - Warm, personal, knowledgeable — like a friend who grew up in northern Namibia
 - Inclusive: "we" and "you", never the royal "Hotel Etuna allows"
 - Oshiwambo sprinklings: "Moro" (Hello), "Wa lalapo?" (How are you?), "Nangalei po" (Goodbye)
-- Tagline: *"He Takes Care of Us"*
+- Marketing hero headline: *"Hotel Etuna"*; Oshiwambo meaning of Etuna explained on About (`brand.oshiwamboMeaning`)
 
 ### 9.5 Brand & design system (locked decisions)
 
-**Token canon:** all hex/token names live in **`tailwind.config.ts`** (Design System
-v1.0.0); brand copy in `lib/copy/{brand,public}.ts`. Keep §9.1–9.7 aligned with these.
+**Token canon:** CI hex in **`tailwind.config.ts`** (`ci.*`); text via the `ink` ramp; digital surface extensions (`nude-*`); `rustic` + `luxury-*` retained. The unused `khaki-*` / `terracotta-*` legacy ramps were removed in DS v1.1.0. Brand copy in `lib/copy/{brand,public}.ts`. Prefer `ci-*` / `ink-*` utilities in new UI. Keep §9.1–9.7 aligned with `docs/brand/Hotel-Etuna-CI-Guide-Extract.pdf` and `docs/brand/DESIGN_SYSTEM.md`.
 
 **Locked creative direction:**
-- **Wordmark-first identity** — typographic "Hotel Etuna" mark; no parallel palette for
-  print/signage/uniforms (derive Pantone/CMYK proofs from the hex anchors below).
-- **Nude foundation** is the structural spine (`nude-50 #fef7f0` → `nude-900 #5d3322`),
-  body ink via `ink` (tied to nude for WCAG AA). Surfaces: `nude-50` canvas, white cards.
-- **Accents:** **khaki** carries action (`khaki-600 #b8955a` = primary CTA / DaisyUI
-  `primary`, `khaki-700` hover); **terracotta** carries authority (`terracotta-900 #6d3722`
-  headings / DaisyUI `neutral`); **sage `#9bae8a`** = nature accent; **luxury** ramp
-  (charlotte/champagne/rose/bronze/gold `#d4af37`) for VIP moments; **rustic** = sparing
-  red/alert scale.
-- **DaisyUI theme `hoteletuna`** maps primary/secondary→khaki, accent→khaki-sand,
-  neutral→terracotta-900, base-100/200/300→nude surfaces.
-- **Typography:** Playfair Display (display/headlines), Inter 16px (body UI), JetBrains
-  Mono (invoice/analytics), Dancing Script (rare signature accent).
-- **Interaction:** buttons pill-shaped (`rounded-full` inherited from `.btn`), focus
-  `ring-2 ring-khaki-600`, ≥44px touch targets; partner dashboards stay neutral (no
-  Sofia/CRM chrome) so the hub brand stays distinct.
+- **Official CI palette** — Rustic Red `#790C19` dominant (logo + primary CTA); cream `#F3E8D7` for logo cream and `primary-content`.
+- **Nude foundation** remains the digital UI spine (`nude-50` canvas, white cards); body ink via `ink` ramp for WCAG AA.
+- **Secondary CI colours** for sub-headings, tables, badges — not isolated from primary.
+- **Accent CI colours** for charts, icons, nature (`sage #9bae8a`), headings (`terracotta #6d3722`).
+- **DaisyUI theme `hoteletuna`:** `primary`→`#790C19`, `primary-content`→`#F3E8D7`, `neutral`→`#4B3428`, `accent`→`#9A7D43`, bases→cream/off-white.
+- **Typography:** Playfair Display (display), Inter (body), Dancing Script (signature/tagline), JetBrains Mono (ops).
+- **Interaction:** pill buttons (`rounded-full`), focus `ring-ci-primary`, ≥44px touch targets; partner dashboards stay neutral.
+
+**Airy / photography-first layout (Etuna browse pattern, 2026-06):**
+- **Canvas:** `bg-surface-background` (`ci.accent.offWhite` / `#FAF6F0`); cards and headers white (`surface.elevated` / `surface.header`).
+- **Typography roles:** `text-caption`, `text-body`, `text-heading-sm`, `text-heading`, `text-display` in `tailwind.config.ts`; body ink via the `ink` ramp (`text-ink-900` body/headings, `text-ink-700` secondary) — **not** `text-nude-*` (now scoped to surfaces/borders) and **not** DaisyUI `text-primary` (that is Rustic Red CTA).
+- **Shadows:** `shadow-etuna-elevated` only on modals and sticky booking panels; browse/listing cards **no shadow** (`.etuna-listing-card`, `Card variant="listing"`).
+- **Radii:** `rounded-etuna-card` (20px) for listing tiles; `rounded-etuna-input` (14px) for inputs; legacy `rounded-2xl` may remain on older shells until migrated.
+- **Filter chips exception:** category taxonomy uses `.etuna-filter-pill` (`rounded-etuna-button` / 8px) — **not** primary CTAs (those stay pill/`rounded-full`).
+- **Component index** (`components/features/marketing/`): `EtunaListingCard`, `EtunaFeaturedBadge`, `EtunaSectionHeader`, `EtunaFilterPill`, `EtunaIconButton`, `EtunaCarouselRow` (no marketplace search shell — Etuna is property OS, not a destination marketplace).
+- **CSS utilities** (`globals.css`): `.etuna-listing-card`, `.etuna-section-header`, `.etuna-filter-pill`, `.etuna-icon-btn`, `.etuna-carousel-row`, `.etuna-panel` (flat ops cards), `.dashboard-card` (flattened border-only).
 
 **Strategy basis (summary):** positioning is a *Playing to Win* cascade — win in northern
 Namibia's mid-premium, desk-led + digital-capture segment by binding word-of-mouth into
@@ -2494,7 +2535,7 @@ chains. (Originated from MBA "Project 9" systems analysis of Etuna Guesthouse.) 
 | Reference PNG | `public/brand/hotel-etuna-mark-reference.png` |
 | PWA icons | `public/icons/icon.svg`, `public/icons/icon-maskable.svg` |
 
-**Usage:** Mark in **terracotta-900** on **nude-50**; pair with Playfair wordmark “Hotel Etuna”; optional tagline *He takes care of us* (`nude-700`). `HotelEtunaLogo` `onDark` for footers. No “& Tours” in lockup.
+**Usage:** Mark in **Rustic Red** (`ci.primary`) on cream; pair with Playfair wordmark “Hotel Etuna”; script tagline *Your house away from home* on lockups. `HotelEtunaLogo` `onDark` for footers. No “& Tours” in lockup.
 
 **Surfaces:** auth pages, `NavigationHeader`, `Sidebar`, `PublicFooter`, `app/guest/layout`.
 
@@ -2521,7 +2562,7 @@ All sections are **database‑driven** (React Server Component with Drizzle ORM 
 
 | # | Section | Data Source | Gated Content |
 |---|---------|-------------|---------------|
-| 1 | **Hero:** "He Takes Care of Us" — background image, CTA buttons | `properties` (hub) | None (public) |
+| 1 | **Hero:** "Hotel Etuna" — background image, CTA buttons | `properties` (hub) | None (public) |
 | 2 | **Etuna Story:** Brand narrative, stats (5 rooms, pool, restaurant) | Static text + `rooms` count | None (public) |
 | 3 | **Rooms:** 5 room type cards with names, images, amenities | `rooms` table | ✅ **Prices hidden** — "Sign in to view prices" CTA |
 | 4 | **Dining:** Etuna Restaurant overview, teaser dishes (names; prices may be gated on home) | `restaurants` + `cms_menu_items` | ✅ Teaser gated; **full menu with prices** on `/dining` |
@@ -2694,7 +2735,7 @@ Evidence: codebase inspection + `npx tsc --noEmit` (pass) + `npm run test:db` / 
 | **RAG ingestion to Qdrant** | P0 | `npm run rag:seed` — Qdrant Inference 384d (`RAG_USE_QDRANT_INFERENCE=true`) |
 | **Production smoke** | P1 | Manual §0 on https://hoteletuna.com after each deploy |
 | **npm audit (transitive)** | P1 | **0 critical** at `npm audit --audit-level=critical` (overrides in `package.json` for `fast-xml-parser`, `protobufjs`); **17** total advisories — run `npm audit fix` for non-breaking updates before release |
-| **UI enhancements** | P2 | Extract `RoomCard`/`ReviewCard`; skeleton loaders; `globals.css` khaki focus rings |
+| **UI enhancements** | P2 | Extract `RoomCard`/`ReviewCard`; skeleton loaders; `globals.css` `ci-primary` focus rings |
 
 ---
 
@@ -2746,10 +2787,10 @@ Forward‑looking; ~16 weeks total, parallel tracks possible. Each phase ships i
 
 | Phase | Focus | Duration | Key deliverables |
 |-------|-------|----------|------------------|
-| **8** | Guest command centre (core) | 4 weeks | Online check‑in, digital key, service/maintenance requests, upgrade/downgrade, messaging, folio widget |
+| **8** | Guest command centre (core) | 4 weeks | Online check‑in, service/maintenance requests, upgrade/downgrade, messaging, folio widget |
 | **9** | Staff intelligence layer | 4 weeks | Real‑time alerts, voice commands, predictive task automation, mobile PWA + push |
 | **10** | Sofia co‑pilot (proactive) | 3 weeks | Proactive nudges, sentiment + handover, multi‑channel context, layered memory, auto‑upsell |
-| **11** | Intelligent OS (analytics & automation) | 3 weeks | Dynamic pricing, forecasting, predictive maintenance, auto‑reorder, compliance automation |
+| **11** | Intelligent OS (analytics & automation) | 3 weeks | Forecasting + **approval‑gated rate recommendations**, predictive maintenance, **approval‑gated reorder recommendations**, compliance automation |
 | **12** | UX polish & performance | 2 weeks | Design‑system audit, skeleton loaders everywhere, offline queue, WCAG 2.1 AA fixes |
 
 **Guardrails (do not break):** Neon + Drizzle only (no raw SQL injection); NextAuth primary + Stack optional, platform admin via `@buffr.ai`; Adumo Virtual + NamQR + cash (no Stripe/RealPay for guests); hub‑and‑spoke RLS with Sofia hub‑exclusive; ISR for public pages, API p95 <300ms; CSRF + rate limits + immutable audit; Vitest/Playwright + `security:preflight` CI gate.

@@ -9,16 +9,16 @@ import { restaurantHoursLabels } from '@/lib/dining/restaurant-hours';
 export const publicCopy = {
   home: {
     meta: {
-      title: `${brand.name} - ${brand.taglineTitleCase}`,
+      title: brand.name,
       description: `Welcome to ${brand.name} in Ongwediva, Namibia. ${brand.meaning}`,
     },
     hero: {
       title: brand.taglineTitleCase,
-      subtitle: `Welcome to ${brand.name} — your home in the heart of Ongwediva`,
+      subtitle: `Welcome to ${brand.name} — ${brand.logoTagline.toLowerCase()}`,
     },
     story: {
       heading: 'More than a hotel — a Namibian welcome',
-      body: `"Etuna" means "${brand.tagline}" in Oshiwambo. Five room categories, a refreshing pool, and Etuna Restaurant — ${brand.proofPoints.tradeFair}.`,
+      body: `"Etuna" means "${brand.oshiwamboMeaning}" in Oshiwambo. Five room categories, a refreshing pool, and Etuna Restaurant — ${brand.proofPoints.tradeFair}.`,
     },
     booking: {
       heading: 'Book your stay',
@@ -49,7 +49,7 @@ export const publicCopy = {
   },
   trustIndicators: [
     brand.proofPoints.tradeFair,
-    'NFC payments on property',
+    'Secure card payments',
     '24-hour security',
   ],
   /** Gated pricing — sentence case per PRD §9 */

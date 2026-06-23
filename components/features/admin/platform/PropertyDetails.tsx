@@ -26,21 +26,21 @@ export default function PropertyDetails({ property, tenantName, roomCount }: Pro
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="stat bg-base-100 rounded-lg shadow">
+        <div className="stat bg-base-100 rounded-etuna-input shadow">
           <div className="stat-title">Rooms</div>
           <div className="stat-value text-primary">{roomCount}</div>
         </div>
-        <div className="stat bg-base-100 rounded-lg shadow">
+        <div className="stat bg-base-100 rounded-etuna-input shadow">
           <div className="stat-title">Type</div>
           <div className="stat-value text-lg">{property.type ?? '—'}</div>
         </div>
-        <div className="stat bg-base-100 rounded-lg shadow">
+        <div className="stat bg-base-100 rounded-etuna-input shadow">
           <div className="stat-title">Status</div>
           <div className="stat-value text-lg">{property.status ?? '—'}</div>
         </div>
       </div>
 
-      <div className="card bg-base-100 shadow-lg">
+      <div className="card bg-base-100">
         <div className="card-body">
           <h2 className="card-title text-xl mb-4">
             <Home className="w-6 h-6" />

@@ -35,7 +35,7 @@ export function GuestStaysSections({
   const [redeemModalOpen, setRedeemModalOpen] = useState(false);
 
   if (loading) {
-    return <div className="skeleton h-40 w-full rounded-xl" aria-hidden />;
+    return <div className="skeleton h-40 w-full rounded-etuna-card" aria-hidden />;
   }
 
   if (error) {
@@ -65,8 +65,8 @@ export function GuestStaysSections({
   if (empty) {
     return (
       <Card variant="elevated" className="p-8 text-center">
-        <h2 className="font-display text-xl font-bold text-nude-900 mb-2">No active stays</h2>
-        <p className="text-nude-600 mb-4">
+        <h2 className="font-display text-xl font-bold text-ink-900 mb-2">No active stays</h2>
+        <p className="text-ink-600 mb-4">
           We could not find a current reservation for your account. Stays appear here from check-in
           through check-out; unpaid confirmed bookings appear under payment due.
         </p>
@@ -96,16 +96,16 @@ export function GuestStaysSections({
 
       {paymentDue.length > 0 && (
         <section>
-          <h2 className="font-display text-xl font-bold text-terracotta-900 mb-4">Payment due</h2>
+          <h2 className="font-display text-xl font-bold text-ci-secondary-chocolate mb-4">Payment due</h2>
           <ul className="space-y-4">
             {paymentDue.map((booking) => (
               <li key={booking.bookingId}>
                 <Card variant="elevated" className="p-6 space-y-4">
                   <div>
-                    <h3 className="font-display text-lg font-bold text-nude-900">
+                    <h3 className="font-display text-lg font-bold text-ink-900">
                       {booking.propertyName}
                     </h3>
-                    <p className="text-sm text-nude-600">
+                    <p className="text-sm text-ink-600">
                       Ref {booking.bookingReference} · {booking.checkInDate} →{' '}
                       {booking.checkOutDate}
                     </p>
@@ -118,7 +118,7 @@ export function GuestStaysSections({
                   />
                   <Link
                     href={`/guest/stays/${booking.bookingId}`}
-                    className="text-sm text-terracotta-700 hover:underline"
+                    className="text-sm text-ci-accent-terracotta hover:underline"
                   >
                     View booking details
                   </Link>
@@ -131,25 +131,25 @@ export function GuestStaysSections({
 
       {activeStays.length > 0 && (
         <section>
-          <h2 className="font-display text-xl font-bold text-terracotta-900 mb-4">Active stays</h2>
+          <h2 className="font-display text-xl font-bold text-ci-secondary-chocolate mb-4">Active stays</h2>
           <ul className="space-y-4">
             {activeStays.map((stay) => (
               <li key={stay.bookingId}>
                 <Card variant="interactive" className="p-6">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                      <h3 className="font-display text-lg font-bold text-nude-900">
+                      <h3 className="font-display text-lg font-bold text-ink-900">
                         {stay.propertyName}
                       </h3>
-                      <p className="text-sm text-nude-600">
+                      <p className="text-sm text-ink-600">
                         Ref {stay.bookingReference} ·{' '}
                         <span className="capitalize">{stay.status.replace('_', ' ')}</span>
                         {stay.roomNumbers.length > 0 && ` · Room ${stay.roomNumbers.join(', ')}`}
                       </p>
-                      <p className="text-sm text-nude-600 mt-1">
+                      <p className="text-sm text-ink-600 mt-1">
                         {stay.checkInDate} → {stay.checkOutDate}
                       </p>
-                      <p className="text-sm font-semibold text-nude-900 mt-2">
+                      <p className="text-sm font-semibold text-ink-900 mt-2">
                         Folio balance: {stay.currency} {stay.balanceDue.toFixed(2)}
                       </p>
                     </div>
@@ -166,10 +166,10 @@ export function GuestStaysSections({
 
       {pastStays.length > 0 && (
         <section>
-          <h2 className="font-display text-xl font-bold text-terracotta-900 mb-4">
+          <h2 className="font-display text-xl font-bold text-ci-secondary-chocolate mb-4">
             {guestCopy.hub.pastStaysTitle}
           </h2>
-          <p className="text-sm text-nude-600 mb-4">
+          <p className="text-sm text-ink-600 mb-4">
             Expand each stay to view your past folio and download receipts.
           </p>
           <div className="space-y-2">

@@ -97,7 +97,7 @@ export default async function PropertyDetailPage({ params }: PropertyDetailPageP
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {cmsMediaRows.map((media) => (
-                    <div key={media.id} className="relative aspect-video rounded-lg overflow-hidden bg-base-200">
+                    <div key={media.id} className="relative aspect-video rounded-etuna-input overflow-hidden bg-base-200">
                       <img
                         src={media.filePath ?? ''}
                         alt={media.altText ?? media.fileName ?? 'Property image'}
@@ -119,7 +119,7 @@ export default async function PropertyDetailPage({ params }: PropertyDetailPageP
               <CardContent>
                 <div className="space-y-3">
                   {cmsContentRows.map((content) => (
-                    <div key={content.id} className="p-4 bg-base-200 rounded-lg">
+                    <div key={content.id} className="p-4 bg-base-200 rounded-etuna-input">
                       <div className="flex justify-between items-start">
                         <div>
                           <h4 className="font-semibold">{content.title}</h4>

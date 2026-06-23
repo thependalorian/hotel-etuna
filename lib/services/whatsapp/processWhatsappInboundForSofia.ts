@@ -1,5 +1,5 @@
 /**
- * Shared inbound WhatsApp → Sofia pipeline (Meta + OpenWA).
+ * Shared inbound WhatsApp → Sofia pipeline (Meta Cloud API).
  * Location: lib/services/whatsapp/processWhatsappInboundForSofia.ts
  */
 

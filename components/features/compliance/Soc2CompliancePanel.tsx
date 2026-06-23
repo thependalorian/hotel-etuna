@@ -51,7 +51,7 @@ export function Soc2CompliancePanel() {
   return (
     <div className="space-y-6">
       <Card className="p-4 flex flex-wrap items-center gap-3 justify-between">
-        <p className="text-sm text-nude-600">
+        <p className="text-sm text-ink-600">
           Export includes control report plus audit log sample, user access list, and incidents for
           the observation period.
         </p>

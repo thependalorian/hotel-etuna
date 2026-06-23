@@ -190,20 +190,20 @@ export default function AnalyticsPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="etuna-page-title mb-2">Analytics</h1>
-          <p className="text-nude-600">
+          <p className="text-ink-600">
             Hotel Etuna performance metrics
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-nude-200 text-nude-800 font-medium hover:bg-nude-50 transition-colors min-h-[44px]"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-nude-200 text-ink-800 font-medium hover:bg-nude-50 transition-colors min-h-[44px]"
             onClick={() => exportReport('csv')}
           >
             <Download className="w-4 h-4" />
             Export CSV
           </button>
           <button
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-khaki-600 text-white font-bold hover:bg-khaki-700 transition-colors min-h-[44px]"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-ci-primary text-ci-cream font-bold hover:bg-ci-primary/90 transition-colors min-h-[44px]"
             onClick={() => exportReport('pdf')}
           >
             <Download className="w-4 h-4" />

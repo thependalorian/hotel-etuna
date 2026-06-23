@@ -63,7 +63,7 @@ export default function PartnerSettingsPage() {
       <h2 className="text-2xl font-semibold text-base-content">Settings</h2>
 
       {/* Profile */}
-      <div className="rounded-xl border border-base-300 bg-base-100 p-5 space-y-4">
+      <div className="rounded-etuna-card border border-base-300 bg-base-100 p-5 space-y-4">
         <h3 className="font-semibold text-base-content flex items-center gap-2">
           <User className="w-4 h-4" /> Profile
         </h3>
@@ -92,7 +92,7 @@ export default function PartnerSettingsPage() {
       </div>
 
       {/* Notifications */}
-      <div className="rounded-xl border border-base-300 bg-base-100 p-5 space-y-4">
+      <div className="rounded-etuna-card border border-base-300 bg-base-100 p-5 space-y-4">
         <h3 className="font-semibold text-base-content flex items-center gap-2">
           <Bell className="w-4 h-4" /> Notifications
         </h3>
@@ -119,7 +119,7 @@ export default function PartnerSettingsPage() {
       </div>
 
       {/* Password */}
-      <div className="rounded-xl border border-base-300 bg-base-100 p-5">
+      <div className="rounded-etuna-card border border-base-300 bg-base-100 p-5">
         <h3 className="font-semibold text-base-content flex items-center gap-2 mb-3">
           <Lock className="w-4 h-4" /> Password
         </h3>

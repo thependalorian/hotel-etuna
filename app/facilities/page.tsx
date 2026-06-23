@@ -49,7 +49,7 @@ export default function FacilitiesPage() {
 
         <section className="py-12 sm:py-16" aria-label="Bookable facilities">
           <div className="container mx-auto px-4 sm:px-6">
-            <p className="mx-auto mb-8 max-w-2xl text-center text-base text-terracotta-800 sm:text-lg">
+            <p className="mx-auto mb-8 max-w-2xl text-center text-base text-ink-700 sm:text-lg">
               Looking for a place to stay? Browse our{' '}
               <Link href="/rooms" className="link link-primary font-medium">
                 five room categories
@@ -61,15 +61,15 @@ export default function FacilitiesPage() {
               {facilities.map(({ href, title, description, icon: Icon }) => (
                 <article
                   key={href}
-                  className="flex flex-col rounded-2xl border border-nude-200 bg-white p-6 shadow-card sm:p-8"
+                  className="flex flex-col rounded-etuna-card border border-nude-200 bg-white p-6 sm:p-8"
                 >
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-sage/20">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-ci-accent-sage/20">
                     <Icon className="h-6 w-6 text-sage" aria-hidden />
                   </div>
-                  <h2 className="font-display text-xl font-bold text-terracotta-900 sm:text-2xl">
+                  <h2 className="font-display text-xl font-bold text-ci-secondary-chocolate sm:text-2xl">
                     {title}
                   </h2>
-                  <p className="mt-2 flex-1 text-sm text-terracotta-800 sm:text-base">{description}</p>
+                  <p className="mt-2 flex-1 text-sm text-ink-600 sm:text-base">{description}</p>
                   <Button asChild size="md" className="mt-6 min-h-11 w-full sm:w-auto">
                     <Link href={href}>View &amp; book</Link>
                   </Button>

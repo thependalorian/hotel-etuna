@@ -76,15 +76,15 @@ export default function PlatformIntelligenceDigest() {
   }
 
   return (
-    <div className="rounded-lg border border-nude-200 bg-surface-elevated shadow-nude-soft">
+    <div className="rounded-etuna-card border border-nude-200 bg-surface-elevated">
       <div className="p-6 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className="font-display text-2xl font-bold text-nude-900 flex items-center gap-2">
+            <h2 className="font-display text-2xl font-bold text-ink-900 flex items-center gap-2">
               <Mail className="w-6 h-6" aria-hidden />
               Intelligence digest
             </h2>
-            <p className="text-sm text-nude-600 mt-1">
+            <p className="text-sm text-ink-600 mt-1">
               Founder cadence previews — same payload as cron email to{' '}
               <code className="text-xs bg-nude-100 px-1 rounded">FOUNDER_DIGEST_EMAIL</code>.
             </p>
@@ -141,13 +141,13 @@ export default function PlatformIntelligenceDigest() {
           </div>
         ) : digest ? (
           <div className="space-y-4">
-            <p className="text-xs text-nude-600">
+            <p className="text-xs text-ink-600">
               {digest.windowLabel} · generated {new Date(digest.generatedAt).toLocaleString()}
             </p>
             {digest.sections.map((section) => (
-              <div key={section.title} className="p-4 bg-nude-50 rounded-lg border border-nude-200">
-                <h3 className="font-semibold text-nude-900 mb-2">{section.title}</h3>
-                <ul className="list-disc list-inside text-sm text-nude-800 space-y-1">
+              <div key={section.title} className="p-4 bg-nude-50 rounded-etuna-input border border-nude-200">
+                <h3 className="font-semibold text-ink-900 mb-2">{section.title}</h3>
+                <ul className="list-disc list-inside text-sm text-ink-800 space-y-1">
                   {section.bullets.map((b) => (
                     <li key={b}>{b}</li>
                   ))}

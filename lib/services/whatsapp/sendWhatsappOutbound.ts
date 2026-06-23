@@ -1,14 +1,11 @@
 /**
- * Outbound WhatsApp send — resolves Meta vs OpenWA per tenant and dispatches.
+ * Outbound WhatsApp send — dispatches via the Meta Cloud API per tenant.
  * Location: lib/services/whatsapp/sendWhatsappOutbound.ts
  */
 
-import { sendOpenWaTextMessage } from '@/lib/integrations/whatsapp/openwa-client';
 import { sendWhatsAppTextMessage } from '@/lib/integrations/whatsapp/whatsapp-graph-api';
 import {
   getActiveWhatsappProviderForTenant,
-  resolveOpenWaApiBaseUrl,
-  resolveOpenWaApiKey,
   type WhatsappProvider,
 } from '@/lib/services/whatsapp/tenantWhatsappLookup';
 
@@ -33,36 +30,6 @@ export async function sendWhatsappOutbound(
 
   if (!routing) {
     return { ok: false, error: 'No active WhatsApp provider configured for tenant' };
-  }
-
-  if (routing.provider === 'openwa') {
-    const apiBaseUrl = resolveOpenWaApiBaseUrl(routing);
-    const apiKey = resolveOpenWaApiKey();
-    const sessionId = routing.openwaSessionId;
-
-    if (!apiBaseUrl || !apiKey || !sessionId) {
-      return { ok: false, provider: 'openwa', error: 'OpenWA not configured' };
-    }
-
-    const result = await sendOpenWaTextMessage({
-      to: params.toPhone,
-      text: params.text,
-      sessionId,
-      apiBaseUrl,
-      apiKey,
-    });
-
-    if (!result.ok) {
-      return {
-        ok: false,
-        provider: 'openwa',
-        status: result.status,
-        body: result.body,
-        error: 'OpenWA send failed',
-      };
-    }
-
-    return { ok: true, provider: 'openwa' };
   }
 
   const phoneNumberId = routing.phoneNumberId;

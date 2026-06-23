@@ -188,7 +188,7 @@ export default function PlatformSettings({ userRole }: PlatformSettingsProps) {
         </div>
 
         {/* Settings Content */}
-        <div className="flex-1 bg-base-100 rounded-lg shadow p-6">
+        <div className="flex-1 bg-base-100 rounded-etuna-input shadow p-6">
           {/* General Settings */}
           {activeTab === 'general' && (
             <div className="space-y-6">
@@ -489,7 +489,7 @@ export default function PlatformSettings({ userRole }: PlatformSettingsProps) {
       </div>
 
       {/* System Actions */}
-      <div className="bg-base-100 rounded-lg shadow p-6">
+      <div className="bg-base-100 rounded-etuna-input shadow p-6">
         <h3 className="font-bold text-lg mb-4">System Actions</h3>
         <div className="flex flex-wrap gap-4">
           <button className="btn btn-outline">

@@ -14,15 +14,16 @@
  * Design System:
  * - Background: surface-elevated (white)
  * - Border: nude-200
- * - Shadow: nude-soft/medium (warm, subtle)
- * - Border radius: 2xl (24px) for friendly, modern feel
+ * - Elevation: flat by default (no shadow); etuna-elevated on floating UI only (DS §7)
+ * - Border radius: etuna-card (20px) per DS §6 radius vocabulary
  * - Typography: Playfair Display for titles, Inter for descriptions
  * 
  * Variants:
- * - default: nude-soft shadow (content cards)
- * - elevated: nude-medium shadow (emphasized cards, modals)
- * - luxury: gradient background with luxury-soft shadow (VIP features)
- * - interactive: hover lift effect + shadow transition (clickable cards)
+ * - flat (default): no shadow — border + surface colour (browse/ops cards)
+ * - listing: flat, borderless, overflow-hidden (marketing tiles)
+ * - elevated: shadow-etuna-elevated (floating UI only)
+ * - luxury: gradient + luxury-soft shadow (VIP / marketing hero only)
+ * - interactive: hover border + active scale (clickable cards)
  * 
  * Padding:
  * - none: p-0 (custom padding needed)
@@ -70,14 +71,18 @@ import { cn } from "@/lib/utils/cn";
 import { cva, type VariantProps } from "class-variance-authority";
 
 const cardVariants = cva(
-  "border border-nude-200 bg-surface-elevated rounded-2xl transition-all duration-200",
+  "border border-nude-200 bg-surface-elevated rounded-etuna-card transition-all duration-200",
   {
     variants: {
       variant: {
-        default: "shadow-nude-soft",
-        elevated: "shadow-nude-medium",
-        luxury: "bg-gradient-to-br from-luxury-champagne to-white border-luxury-charlotte shadow-luxury-soft",
-        interactive: "cursor-pointer hover:shadow-nude-medium hover:translate-y-[-2px] active:scale-[0.99]",
+        default: "shadow-none",
+        flat: "shadow-none",
+        listing: "overflow-hidden rounded-etuna-card border-0 shadow-none",
+        elevated: "shadow-etuna-elevated",
+        luxury:
+          "bg-gradient-to-br from-luxury-champagne to-white border-luxury-charlotte shadow-luxury-soft",
+        interactive:
+          "cursor-pointer hover:border-nude-300 active:scale-[0.99]",
       },
       padding: {
         none: "p-0",
@@ -88,7 +93,7 @@ const cardVariants = cva(
       },
     },
     defaultVariants: {
-      variant: "default",
+      variant: "flat",
       padding: "md",
     },
   }
@@ -127,7 +132,7 @@ const CardTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn("font-display text-lg md:text-xl font-semibold leading-tight tracking-tight text-nude-900", className)}
+    className={cn("font-display text-lg md:text-xl font-semibold leading-tight tracking-tight text-ink-900", className)}
     {...props}
   />
 ));
@@ -139,7 +144,7 @@ const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-sm text-nude-600 leading-relaxed", className)}
+    className={cn("text-sm text-ink-600 leading-relaxed", className)}
     {...props}
   />
 ));

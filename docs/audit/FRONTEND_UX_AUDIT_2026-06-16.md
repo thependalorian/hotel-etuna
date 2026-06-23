@@ -201,7 +201,7 @@ Hotel Etuna has a **mature component structure** (domain folders, `components/ui
 | **Heuristic** | #6 Recognition |
 | **Severity** | Medium |
 | **Issue** | All links styled identically — no `aria-current="page"`. |
-| **Recommendation** | `usePathname()` + active styles (`bg-khaki-600/10`). |
+| **Recommendation** | `usePathname()` + active styles (`bg-ci-primary/10`). |
 | **Effort** | S |
 
 #### UX-GUEST-04 — Medium: Folio payment rails not progressively disclosed

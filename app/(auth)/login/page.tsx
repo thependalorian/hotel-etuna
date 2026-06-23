@@ -40,7 +40,7 @@ const LoginPage = async ({
             <CardTitle>{authCopy.login.title}</CardTitle>
             <CardDescription>{authCopy.login.description}</CardDescription>
             {sessionMessage ? (
-              <div className="mt-3 rounded-md border border-nude-200 bg-nude-100 p-3 text-sm text-terracotta-900">
+              <div className="mt-3 rounded-etuna-button border border-nude-200 bg-nude-100 p-3 text-sm text-ci-secondary-chocolate">
                 {sessionMessage}
               </div>
             ) : null}
@@ -50,19 +50,19 @@ const LoginPage = async ({
           </CardContent>
         </Card>
 
-        <div className="mt-6 text-center text-sm text-nude-600">
+        <div className="mt-6 text-center text-sm text-ink-600">
           <p>
             {authCopy.login.noAccount}{' '}
             <Link
               href={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : '/register'}
-              className="font-semibold text-nude-700 hover:underline"
+              className="font-semibold text-ink-700 hover:underline"
             >
               {authCopy.login.createAccount}
             </Link>
           </p>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-nude-600">
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-ink-600">
           <div className="flex items-center gap-2 justify-center sm:justify-start">
             <ShieldCheck className="w-4 h-4" />
             <span>{authCopy.login.trust[0].label}</span>

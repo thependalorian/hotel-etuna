@@ -56,7 +56,7 @@ export function AuditChainVerifyCard() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="font-semibold text-lg">Audit hash chain</h3>
-          <p className="text-sm text-nude-600 max-w-xl">
+          <p className="text-sm text-ink-600 max-w-xl">
             SHA-256 chained integrity check on <code className="text-xs">audit_trail</code>.
             Legacy rows without hashes are skipped; new records extend the chain per tenant.
           </p>

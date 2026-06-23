@@ -12,6 +12,7 @@ import ServiceWorkerRegistration from "@/components/providers/ServiceWorkerRegis
 import { Toaster } from "@/components/ui";
 import { CookieConsentBanner } from "@/components/features/compliance/CookieConsentBanner";
 import { Suspense } from "react";
+import { brand } from "@/lib/copy/brand";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const playfairDisplay = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair-display" });
@@ -21,10 +22,10 @@ const dancingScript = Dancing_Script({ subsets: ["latin"], variable: "--font-dan
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   title: {
-    default: "Hotel Etuna – He Takes Care of Us",
+    default: brand.name,
     template: "%s | Hotel Etuna",
   },
-  description: "Welcome to Hotel Etuna in Ongwediva, Namibia. Experience authentic Namibian hospitality with 5 room types, on-site restaurant, and pool. Your home away from home near the Ongwediva Trade Fair.",
+  description: `Welcome to Hotel Etuna in Ongwediva, Namibia. Experience authentic Namibian hospitality with 5 room types, on-site restaurant, and pool. ${brand.logoTagline} near the Ongwediva Trade Fair.`,
   keywords: [
     "Hotel Etuna",
     "Ongwediva hotel",
@@ -45,20 +46,20 @@ export const metadata: Metadata = {
     locale: "en_NA",
     url: "https://hoteletuna.com",
     siteName: "Hotel Etuna",
-    title: "Hotel Etuna – He Takes Care of Us",
+    title: brand.name,
     description: "Experience authentic Namibian hospitality in Ongwediva. 5 room types, on-site restaurant, and pool.",
     images: [
       {
         url: "/images/hotel-etuna-og.jpg",
         width: 1200,
         height: 630,
-        alt: "Hotel Etuna - Your Home in Ongwediva, Namibia",
+        alt: `Hotel Etuna — ${brand.logoTagline}`,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Hotel Etuna – He Takes Care of Us",
+    title: brand.name,
     description: "Experience authentic Namibian hospitality in Ongwediva.",
     images: ["/images/hotel-etuna-og.jpg"],
   },
@@ -91,7 +92,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  themeColor: '#7b161e',
+  themeColor: brand.colors.rusticRed,
 };
 
 export default function RootLayout({
@@ -102,7 +103,7 @@ export default function RootLayout({
   return (
     <html lang="en-NA" data-theme="hoteletuna">
       <body
-        className={`${inter.variable} ${playfairDisplay.variable} ${jetbrainsMono.variable} ${dancingScript.variable} min-h-screen bg-surface-background text-surface-foreground font-sans antialiased`}
+        className={`${inter.variable} ${playfairDisplay.variable} ${jetbrainsMono.variable} ${dancingScript.variable} min-h-screen bg-surface-background text-ink-900 font-sans antialiased`}
       >
         <a href="#main-content" className="buffr-skip-link">
           Skip to main content

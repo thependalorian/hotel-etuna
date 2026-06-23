@@ -38,7 +38,7 @@ interface PropertySelectorProps {
 
 export default function PropertySelector({ properties, selectedPropertyId, onPropertyChange }: PropertySelectorProps) {
   return (
-    <div className="card bg-base-100 shadow-lg">
+    <div className="card bg-base-100">
       <div className="card-body">
         <label htmlFor="propertySelect" className="label">
           <span className="label-text font-medium">Select Restaurant Property:</span>

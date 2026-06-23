@@ -52,7 +52,7 @@ export default async function NightAuditPage({
           <NightAuditPanel propertyId={propertyId} />
         ) : (
           <Card variant="elevated" className="text-center py-12">
-            <p className="text-nude-600">
+            <p className="text-ink-600">
               {session?.user?.tenantId
                 ? 'No hub property found. Set DEFAULT_PROPERTY_ID or pass ?propertyId=.'
                 : 'Please log in to run night audit.'}

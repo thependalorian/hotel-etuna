@@ -86,13 +86,13 @@ export function JournalEntryTable({
 
   if (loading) {
     return (
-      <Card className="p-8 text-center text-nude-600">Loading journal lines…</Card>
+      <Card className="p-8 text-center text-ink-600">Loading journal lines…</Card>
     );
   }
 
   if (lines.length === 0) {
     return (
-      <Card className="p-8 text-center text-nude-600">
+      <Card className="p-8 text-center text-ink-600">
         No journal lines for this period.
       </Card>
     );
@@ -102,8 +102,8 @@ export function JournalEntryTable({
     <Card className="p-4 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-nude-900">Journal entries</h2>
-          <p className="text-sm text-nude-600">
+          <h2 className="text-lg font-semibold text-ink-900">Journal entries</h2>
+          <p className="text-sm text-ink-600">
             {lines.length} lines{periodLabel ? ` · ${periodLabel}` : ''}
           </p>
         </div>
@@ -140,7 +140,7 @@ export function JournalEntryTable({
                 <td className="max-w-xs truncate" title={line.memo}>
                   {line.memo}
                 </td>
-                <td className="text-xs text-nude-600">{line.sourceType}</td>
+                <td className="text-xs text-ink-600">{line.sourceType}</td>
               </tr>
             ))}
           </tbody>

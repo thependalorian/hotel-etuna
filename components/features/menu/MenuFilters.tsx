@@ -47,7 +47,7 @@ export default function MenuFilters({
   onCategoryChange
 }: MenuFiltersProps) {
   return (
-    <div className="card bg-base-100 shadow-lg card-hover">
+    <div className="card bg-base-100 card-hover">
       <div className="card-body">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">

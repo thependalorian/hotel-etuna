@@ -36,6 +36,7 @@ import { getHubRoomTypeCatalog, getStaticRoomTypeCatalogFallback } from '@/lib/d
 import NavigationHeader from '@/components/sections/landing/NavigationHeader';
 import { LandingBookingWidget } from '@/components/sections/landing/LandingBookingWidget';
 import { LandingContentDegradedBanner } from '@/components/sections/landing/LandingContentDegradedBanner';
+import { EtunaListingCard, EtunaSectionHeader } from '@/components/features/marketing';
 import { Button } from '@/components/ui/Button';
 import { slugify } from '@/lib/utils/slugify';
 import Footer from '@/components/shared/Footer';
@@ -44,6 +45,7 @@ import { publicCopy } from '@/lib/copy/public';
 import { restaurantHoursLabels } from '@/lib/dining/restaurant-hours';
 import { formatMenuPrice } from '@/lib/dining/menu-display';
 import { securityLogger } from '@/lib/utils/security-logger.client';
+import { ETUNA_HERO_IMAGE, ETUNA_PROPERTY_IMAGES } from '@/lib/rooms/property-images';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,7 +62,7 @@ type OpeningHours = {
   dinner?: string | { open?: string; close?: string };
 };
 
-const fallbackImage = '/images/hospitality/hero_hotel_lobby.jpeg';
+const fallbackImage = ETUNA_HERO_IMAGE;
 
 function asStringArray(value: unknown): string[] {
   if (Array.isArray(value)) {
@@ -271,9 +273,9 @@ export default async function LandingPage() {
       <main id="main-content">
         {contentDegraded ? <LandingContentDegradedBanner /> : null}
         <section className="relative h-[600px] md:h-[700px] flex items-center justify-center overflow-hidden">
-          <div className="absolute inset-0 bg-linear-to-b from-terracotta-900/60 via-terracotta-900/40 to-nude-900/60 z-10" />
+          <div className="absolute inset-0 bg-linear-to-b from-ci-secondary-chocolate/60 via-ci-secondary-chocolate/40 to-nude-900/60 z-10" />
           <Image
-            src="/images/hospitality/hero_hotel_lobby.jpeg"
+            src={ETUNA_HERO_IMAGE}
             alt="Hotel Etuna lobby — Ongwediva, Namibia"
             fill
             priority
@@ -305,65 +307,55 @@ export default async function LandingPage() {
         <section id="story" className="py-20 bg-nude-50">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto text-center">
-              <h2 className="font-display text-4xl md:text-5xl font-bold text-terracotta-900 mb-6">{publicCopy.home.story.heading}</h2>
-              <p className="text-lg text-terracotta-800 mb-8 leading-relaxed">
+              <h2 className="font-display text-4xl md:text-5xl font-bold text-ci-secondary-chocolate mb-6">{publicCopy.home.story.heading}</h2>
+              <p className="text-lg text-ink-700 mb-8 leading-relaxed">
                 {publicCopy.home.story.body}
               </p>
             </div>
           </div>
         </section>
 
-        <section id="rooms" className="py-20 bg-white">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="font-display text-4xl md:text-5xl font-bold text-terracotta-900 mb-4">
-                Our Rooms ({roomCatalog.length} categories)
-              </h2>
-              <p className="text-lg text-terracotta-800 max-w-2xl mx-auto">
-                Walk through each room type in a photo tour — sign in to view rates and book.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <section id="rooms" className="bg-white py-12 md:py-section-gap">
+          <div className="etuna-container-marketing">
+            <EtunaSectionHeader title={`Our rooms (${roomCatalog.length} categories)`} href="/rooms" />
+            <p className="mb-8 max-w-2xl text-body text-ink-600">
+              Walk through each room type in a photo tour — sign in to view rates and book.
+            </p>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {roomCatalog.map((room) => {
                 const rate = rateMap.get(room.id);
                 const fallbackAmount = room.baseRate ? Number(room.baseRate) : null;
                 const amount = rate?.amount ?? (Number.isNaN(fallbackAmount) ? null : fallbackAmount);
                 const currency = rate?.currency ?? room.currency ?? hubProperty?.currency ?? 'NAD';
-                const roomAmenities = asStringArray(room.amenities).slice(0, 5);
+                const roomAmenities = asStringArray(room.amenities).slice(0, 3);
                 const roomImage = firstImage(room.images, fallbackImage);
+                const meta = `${room.unitCount} unit${room.unitCount === 1 ? '' : 's'} · up to ${room.maxOccupancy ?? 2} guests`;
                 return (
-                  <Link
+                  <EtunaListingCard
                     key={room.slug}
                     href={`/rooms/${room.slug}#tour`}
-                    className="group bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1"
+                    imageSrc={roomImage}
+                    imageAlt={room.roomType}
+                    title={room.roomType}
+                    meta={meta}
+                    price={
+                      isAuthenticated
+                        ? formatNightlyRate(amount, currency)
+                        : publicCopy.gated.viewPrices
+                    }
+                    featuredLabel={room.slug === 'premiere-room' ? 'Flagship stay' : null}
+                    className="w-full"
+                    imageSizes="(max-width: 768px) 100vw, 33vw"
                   >
-                    <div className="aspect-4/3 relative bg-nude-200">
-                      <Image src={roomImage} alt={room.roomType} fill className="object-cover" />
-                    </div>
-                    <div className="p-6">
-                      <h3 className="font-display text-2xl font-bold text-terracotta-900 mb-2">{room.roomType}</h3>
-                      {isAuthenticated ? (
-                        <p className="text-khaki-600 font-semibold mb-1">{formatNightlyRate(amount, currency)}</p>
-                      ) : (
-                        <p className="text-khaki-600 font-semibold mb-1">{publicCopy.gated.viewPrices}</p>
-                      )}
-                      <p className="text-sm text-terracotta-800 mb-4">
-                        {room.unitCount} unit{room.unitCount === 1 ? '' : 's'} · up to {room.maxOccupancy ?? 2} guests
-                      </p>
-                      <ul className="space-y-2 mb-4">
-                        {roomAmenities.map((amenity) => (
-                          <li key={amenity} className="flex items-center gap-2 text-sm text-terracotta-800">
-                            <Check className="w-4 h-4 text-sage" />
-                            {amenity}
-                          </li>
-                        ))}
-                      </ul>
-                      <div className="text-khaki-600 font-semibold group-hover:text-khaki-700 flex items-center gap-2">
-                        {publicCopy.ctas.takeTheTour}
-                        <span className="group-hover:translate-x-1 transition-transform">→</span>
-                      </div>
-                    </div>
-                  </Link>
+                    <ul className="mt-1 space-y-1">
+                      {roomAmenities.map((amenity) => (
+                        <li key={amenity} className="flex items-center gap-2 text-caption text-ink-600">
+                          <Check className="h-3 w-3 text-sage" aria-hidden />
+                          {amenity}
+                        </li>
+                      ))}
+                    </ul>
+                  </EtunaListingCard>
                 );
               })}
             </div>
@@ -374,15 +366,15 @@ export default async function LandingPage() {
           <div className="container mx-auto px-4">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <h2 className="font-display text-4xl md:text-5xl font-bold text-terracotta-900 mb-6">{restaurant?.name ?? 'Etuna Restaurant'}</h2>
-                <p className="text-lg text-terracotta-800 mb-6 leading-relaxed">
+                <h2 className="font-display text-4xl md:text-5xl font-bold text-ci-secondary-chocolate mb-6">{restaurant?.name ?? 'Etuna Restaurant'}</h2>
+                <p className="text-lg text-ink-700 mb-6 leading-relaxed">
                   {restaurant?.description ?? 'Our on-site restaurant serves authentic Namibian cuisine alongside international favorites.'}
                 </p>
                 <ul className="space-y-3 mb-8">
-                  <li className="flex items-center gap-3 text-terracotta-800"><div className="w-2 h-2 rounded-full bg-sage" />Breakfast: {formatOpeningSlot(openingHours.breakfast, restaurantHoursLabels.breakfast)}</li>
-                  <li className="flex items-center gap-3 text-terracotta-800"><div className="w-2 h-2 rounded-full bg-sage" />Lunch, dinner & bar: {formatOpeningSlot(openingHours.service ?? openingHours.bar ?? openingHours.dinner, restaurantHoursLabels.lunchDinner)}</li>
+                  <li className="flex items-center gap-3 text-ink-700"><div className="w-2 h-2 rounded-full bg-ci-accent-sage" />Breakfast: {formatOpeningSlot(openingHours.breakfast, restaurantHoursLabels.breakfast)}</li>
+                  <li className="flex items-center gap-3 text-ink-700"><div className="w-2 h-2 rounded-full bg-ci-accent-sage" />Lunch, dinner & bar: {formatOpeningSlot(openingHours.service ?? openingHours.bar ?? openingHours.dinner, restaurantHoursLabels.lunchDinner)}</li>
                   {categoryRows.slice(0, 3).map((category) => (
-                    <li key={category.id} className="text-terracotta-800">
+                    <li key={category.id} className="text-ink-700">
                       <div className="font-semibold">{category.name}</div>
                       <div className="text-sm">
                         {(menuByCategory.get(category.id) ?? []).slice(0, 2).map((item) => {
@@ -400,9 +392,9 @@ export default async function LandingPage() {
                   </Link>
                 </Button>
               </div>
-              <div className="relative h-[400px] rounded-2xl overflow-hidden shadow-card">
+              <div className="relative h-[400px] overflow-hidden rounded-etuna-card">
                 <Image
-                  src={firstImage(restaurant?.images, '/images/hospitality/restaurant_dining.jpeg')}
+                  src={firstImage(restaurant?.images, ETUNA_PROPERTY_IMAGES.outdoorDining)}
                   alt={restaurant?.name ?? 'Etuna Restaurant'}
                   fill
                   className="object-cover"
@@ -416,15 +408,15 @@ export default async function LandingPage() {
         <section className="py-20 bg-nude-50">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
-              <div className="inline-flex items-center gap-2 bg-sage/20 text-sage px-4 py-2 rounded-full mb-4">
+              <div className="inline-flex items-center gap-2 bg-ci-accent-sage/20 text-sage px-4 py-2 rounded-full mb-4">
                 <Star className="w-5 h-5 fill-sage" />
                 <span className="font-bold text-lg">{publicReviews.length ? `${ratingAvg.toFixed(1)}/5` : 'No ratings yet'}</span>
                 <span className="text-sm">{publicReviews.length} approved review(s)</span>
               </div>
-              <h2 className="font-display text-4xl md:text-5xl font-bold text-terracotta-900 mb-4">Guest Love</h2>
+              <h2 className="font-display text-4xl md:text-5xl font-bold text-ci-secondary-chocolate mb-4">Guest Love</h2>
             </div>
             {publicReviews.length === 0 ? (
-              <div className="bg-white rounded-2xl p-8 shadow-card text-center text-terracotta-800">
+              <div className="rounded-etuna-card border border-nude-200 bg-white p-8 text-center text-ink-600">
                 No reviews yet. Be the first to share your experience!
               </div>
             ) : (
@@ -433,20 +425,20 @@ export default async function LandingPage() {
                   const name = review.guestFirstName?.trim() || 'Anonymous';
                   const location = [review.guestCity, review.guestCountry].filter(Boolean).join(', ') || 'Namibia';
                   return (
-                    <div key={review.id} className="bg-white rounded-2xl p-6 shadow-card">
+                    <div key={review.id} className="rounded-etuna-card border border-nude-200 bg-white p-6">
                       <div className="flex gap-1 mb-4">
                         {Array.from({ length: review.rating ?? 0 }).map((_, index) => (
-                          <Star key={`${review.id}-${index}`} className="w-5 h-5 fill-khaki-600 text-khaki-600" />
+                          <Star key={`${review.id}-${index}`} className="w-5 h-5 fill-ci-accent-ochre text-ci-primary" />
                         ))}
                       </div>
-                      <p className="text-terracotta-800 mb-4 italic border-l-4 border-rustic pl-3">
+                      <p className="text-ink-700 mb-4 italic border-l-4 border-rustic pl-3">
                         "{review.reviewText ?? 'Guest left a rating without a text comment.'}"
                       </p>
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-khaki-600 rounded-full flex items-center justify-center text-white font-bold">{name[0]}</div>
+                        <div className="w-10 h-10 bg-ci-primary rounded-full flex items-center justify-center text-ci-cream font-bold">{name[0]}</div>
                         <div>
-                          <div className="font-semibold text-terracotta-900">{name}</div>
-                          <div className="text-sm text-terracotta-800">{location}</div>
+                          <div className="font-semibold text-ci-secondary-chocolate">{name}</div>
+                          <div className="text-sm text-ink-600">{location}</div>
                         </div>
                       </div>
                     </div>
@@ -459,7 +451,7 @@ export default async function LandingPage() {
 
         <section id="booking" className="py-20 bg-white">
           <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto bg-linear-to-br from-khaki-600 to-terracotta-800 rounded-3xl p-8 md:p-12 text-white">
+            <div className="max-w-4xl mx-auto bg-linear-to-br from-ci-primary to-ci-secondary-chocolate rounded-etuna-pill p-8 md:p-12 text-ci-cream">
               <h2 className="font-display text-4xl md:text-5xl font-bold mb-6 text-center">Book Your Stay</h2>
               <p className="text-center text-white/90 mb-8 text-lg">Experience authentic Namibian hospitality at Hotel Etuna</p>
               <LandingBookingWidget propertyId={propertyId} />
@@ -467,41 +459,34 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        <section id="partners" className="py-20 bg-nude-50">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="font-display text-4xl md:text-5xl font-bold text-terracotta-900 mb-4">
-                {publicCopy.home.partners.heading}
-              </h2>
-              <p className="text-lg text-terracotta-800 max-w-2xl mx-auto">{publicCopy.home.partners.subtitle}</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <section id="partners" className="bg-nude-50 py-12 md:py-section-gap">
+          <div className="etuna-container-marketing">
+            <EtunaSectionHeader title={publicCopy.home.partners.heading} href="/partners" />
+            <p className="mb-8 max-w-2xl text-body text-ink-600">{publicCopy.home.partners.subtitle}</p>
+            <div className="grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-2 mx-auto">
               {partners.length === 0 ? (
-                <div className="md:col-span-2 rounded-2xl border border-base-300 bg-white p-8 text-center text-terracotta-800 shadow-card">
+                <div className="md:col-span-2 rounded-etuna-card border border-nude-200 bg-white p-8 text-center text-ink-600">
                   {contentDegraded
                     ? 'Partner listings are temporarily unavailable. Please try again shortly.'
                     : 'No partner properties to show right now.'}
                 </div>
               ) : (
               partners.map((partner) => (
-                <Link key={partner.propertyId} href={`/partners/${partner.propertySlug}`} className="group bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300">
-                  <div className="aspect-video relative bg-nude-200">
-                    <Image
-                      src={firstImage(partner.images, fallbackImage)}
-                      alt={partner.propertyName ?? 'Partner property'}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <div className="p-6">
-                    <h3 className="font-display text-2xl font-bold text-terracotta-900 mb-2">{partner.propertyName}</h3>
-                    <p className="text-terracotta-800 mb-3">{partner.description ?? `${partner.tenantName} partner accommodation.`}</p>
-                    <div className="flex items-center gap-2 text-sm text-khaki-600 font-semibold">
-                      <MapPin className="w-4 h-4" />
-                      {[partner.city, partner.country].filter(Boolean).join(', ') || 'Namibia'}
-                    </div>
-                  </div>
-                </Link>
+                <EtunaListingCard
+                  key={partner.propertyId}
+                  href={`/partners/${partner.propertySlug}`}
+                  imageSrc={firstImage(partner.images, fallbackImage)}
+                  imageAlt={partner.propertyName ?? 'Partner property'}
+                  title={partner.propertyName ?? 'Partner property'}
+                  meta={partner.description ?? `${partner.tenantName} partner accommodation.`}
+                  className="w-full"
+                  imageSizes="(max-width: 768px) 100vw, 50vw"
+                >
+                  <p className="flex items-center gap-2 text-caption font-semibold text-ci-accent-ochre">
+                    <MapPin className="h-4 w-4" aria-hidden />
+                    {[partner.city, partner.country].filter(Boolean).join(', ') || 'Namibia'}
+                  </p>
+                </EtunaListingCard>
               ))
               )}
             </div>

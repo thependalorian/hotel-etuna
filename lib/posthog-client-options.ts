@@ -40,7 +40,7 @@ export function buildPostHogClientOptions(): Partial<PostHogConfig> {
     autocapture: {
       dom_event_allowlist: ['click', 'submit', 'change'],
       element_allowlist: ['button', 'a', 'form', 'input', 'select'],
-      css_selector_allowlist: ['[data-ph-capture]', '.btn', '.dashboard-card', '[role="button"]'],
+      css_selector_allowlist: ['[data-ph-capture]', '.btn', '.dashboard-card', '.etuna-listing-card', '.etuna-icon-btn', '[role="button"]'],
     },
     respect_dnt: true,
     opt_out_capturing_by_default: false,

@@ -17,12 +17,14 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        primary: "bg-terracotta-100 text-terracotta-800",
-        secondary: "bg-nude-200 text-nude-800",
+        primary: "bg-ci-cream text-ci-accent-terracotta",
+        secondary: "bg-ci-secondary-tan/40 text-ci-secondary-chocolate",
+        featured:
+          "rounded-etuna-badge bg-white px-2.5 py-1.5 text-caption font-semibold text-ink-900 shadow-etuna-control",
         success: "bg-green-100 text-green-800",
         warning: "bg-amber-100 text-amber-800",
         destructive: "bg-red-100 text-red-800",
-        outline: "border border-nude-300 text-nude-700",
+        outline: "border border-nude-300 text-ink-700",
       },
       size: {
         sm: "px-2 py-0.5 text-xs",

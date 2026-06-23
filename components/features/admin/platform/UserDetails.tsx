@@ -25,7 +25,7 @@ interface UserDetailsProps {
 
 export default function UserDetails({ user, tenantName }: UserDetailsProps) {
   return (
-    <div className="card bg-base-100 shadow-lg">
+    <div className="card bg-base-100">
       <div className="card-body">
         <h2 className="card-title text-xl mb-4">
           <UserCircle className="w-6 h-6" />

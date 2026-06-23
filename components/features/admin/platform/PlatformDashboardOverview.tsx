@@ -33,7 +33,6 @@ interface ComplianceSnapshot {
   pendingConsumerRights: number;
   openCyberIncidents: number;
   auditEvents24h: number;
-  activeNamqrCodes: number;
   openBankingApiErrors24h: number;
   failedTransactions24h: number;
 }
@@ -75,21 +74,21 @@ export default function PlatformDashboardOverview({
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Tenants Card */}
-        <div className="rounded-lg border border-nude-200 bg-surface-elevated shadow-nude-soft hover:shadow-nude-medium transition-all duration-200 overflow-hidden">
+        <div className="rounded-etuna-card border border-nude-200 bg-surface-elevated overflow-hidden transition-all duration-200">
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex-1">
-                <p className="text-sm font-semibold text-nude-600 mb-2">Total Tenants</p>
-                <p className="font-display text-4xl font-bold text-nude-900">{stats.totalTenants}</p>
+                <p className="text-sm font-semibold text-ink-600 mb-2">Total Tenants</p>
+                <p className="font-display text-4xl font-bold text-ink-900">{stats.totalTenants}</p>
               </div>
               <div className="w-16 h-16 rounded-full bg-nude-100 flex items-center justify-center">
-                <Building2 className="w-8 h-8 text-nude-600" />
+                <Building2 className="w-8 h-8 text-ink-600" />
               </div>
             </div>
             <div className="flex justify-end">
               <Link 
                 href="/admin/platform/tenants"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-nude-600 text-white rounded-lg font-semibold text-sm hover:bg-nude-700 transition-colors duration-200 min-h-[44px]"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-nude-600 text-white rounded-etuna-input font-semibold text-sm hover:bg-nude-700 transition-colors duration-200 min-h-[44px]"
               >
                 Manage Tenants
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -101,21 +100,21 @@ export default function PlatformDashboardOverview({
         </div>
 
         {/* Users Card */}
-        <div className="rounded-lg border border-nude-200 bg-surface-elevated shadow-nude-soft hover:shadow-nude-medium transition-all duration-200 overflow-hidden">
+        <div className="rounded-etuna-card border border-nude-200 bg-surface-elevated overflow-hidden transition-all duration-200">
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex-1">
-                <p className="text-sm font-semibold text-nude-600 mb-2">Total Users</p>
-                <p className="font-display text-4xl font-bold text-nude-900">{stats.totalUsers}</p>
+                <p className="text-sm font-semibold text-ink-600 mb-2">Total Users</p>
+                <p className="font-display text-4xl font-bold text-ink-900">{stats.totalUsers}</p>
               </div>
               <div className="w-16 h-16 rounded-full bg-nude-100 flex items-center justify-center">
-                <Users className="w-8 h-8 text-nude-600" />
+                <Users className="w-8 h-8 text-ink-600" />
               </div>
             </div>
             <div className="flex justify-end">
               <Link 
                 href="/admin/platform/users"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-nude-600 text-white rounded-lg font-semibold text-sm hover:bg-nude-700 transition-colors duration-200 min-h-[44px]"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-nude-600 text-white rounded-etuna-input font-semibold text-sm hover:bg-nude-700 transition-colors duration-200 min-h-[44px]"
               >
                 Manage Users
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,21 +126,21 @@ export default function PlatformDashboardOverview({
         </div>
 
         {/* Properties Card */}
-        <div className="rounded-lg border border-nude-200 bg-surface-elevated shadow-nude-soft hover:shadow-nude-medium transition-all duration-200 overflow-hidden">
+        <div className="rounded-etuna-card border border-nude-200 bg-surface-elevated overflow-hidden transition-all duration-200">
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex-1">
-                <p className="text-sm font-semibold text-nude-600 mb-2">Total Properties</p>
-                <p className="font-display text-4xl font-bold text-nude-900">{stats.totalProperties}</p>
+                <p className="text-sm font-semibold text-ink-600 mb-2">Total Properties</p>
+                <p className="font-display text-4xl font-bold text-ink-900">{stats.totalProperties}</p>
               </div>
               <div className="w-16 h-16 rounded-full bg-nude-100 flex items-center justify-center">
-                <Home className="w-8 h-8 text-nude-600" />
+                <Home className="w-8 h-8 text-ink-600" />
               </div>
             </div>
             <div className="flex justify-end">
               <Link 
                 href="/admin/platform/properties"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-nude-600 text-white rounded-lg font-semibold text-sm hover:bg-nude-700 transition-colors duration-200 min-h-[44px]"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-nude-600 text-white rounded-etuna-input font-semibold text-sm hover:bg-nude-700 transition-colors duration-200 min-h-[44px]"
               >
                 Manage Properties
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -156,54 +155,50 @@ export default function PlatformDashboardOverview({
       <PlatformIntelligenceDigest />
 
       {/* Compliance & reporting */}
-      <div className="rounded-lg border border-nude-200 bg-surface-elevated shadow-nude-soft">
+      <div className="rounded-etuna-card border border-nude-200 bg-surface-elevated">
         <div className="p-6">
-          <h2 className="font-display text-2xl font-bold text-nude-900 mb-2 flex items-center gap-3">
+          <h2 className="font-display text-2xl font-bold text-ink-900 mb-2 flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-semantic-info-light flex items-center justify-center">
               <Shield className="w-5 h-5 text-semantic-info-dark" />
             </div>
             Compliance Snapshot
           </h2>
-          <p className="text-sm text-nude-600 mb-6 leading-relaxed">
-            Indicators tied to <code className="px-1.5 py-0.5 bg-nude-100 text-nude-800 rounded text-xs font-mono">audit_trail</code>, support tickets, consumer rights,
+          <p className="text-sm text-ink-600 mb-6 leading-relaxed">
+            Indicators tied to <code className="px-1.5 py-0.5 bg-nude-100 text-ink-800 rounded text-xs font-mono">audit_trail</code>, support tickets, consumer rights,
             and cybersecurity incident tables. Use Audit Logs for detail; confirm obligations with your counsel.
           </p>
-          <p className="text-xs font-bold text-nude-700 uppercase tracking-wider mb-3">
+          <p className="text-xs font-bold text-ink-700 uppercase tracking-wider mb-3">
             Consumer Protection &amp; Records
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-4 bg-nude-50 rounded-lg border border-nude-200">
-              <div className="text-xs font-semibold text-nude-600 mb-2">Open Support</div>
-              <div className="font-display text-3xl font-bold text-nude-900">{stats.compliance.openSupportTickets}</div>
+            <div className="p-4 bg-nude-50 rounded-etuna-input border border-nude-200">
+              <div className="text-xs font-semibold text-ink-600 mb-2">Open Support</div>
+              <div className="font-display text-3xl font-bold text-ink-900">{stats.compliance.openSupportTickets}</div>
             </div>
-            <div className="p-4 bg-nude-50 rounded-lg border border-nude-200">
-              <div className="text-xs font-semibold text-nude-600 mb-2">Pending Consumer Rights</div>
-              <div className="font-display text-3xl font-bold text-nude-900">{stats.compliance.pendingConsumerRights}</div>
+            <div className="p-4 bg-nude-50 rounded-etuna-input border border-nude-200">
+              <div className="text-xs font-semibold text-ink-600 mb-2">Pending Consumer Rights</div>
+              <div className="font-display text-3xl font-bold text-ink-900">{stats.compliance.pendingConsumerRights}</div>
             </div>
-            <div className="p-4 bg-nude-50 rounded-lg border border-nude-200">
-              <div className="text-xs font-semibold text-nude-600 mb-2">Open Cyber Incidents</div>
-              <div className="font-display text-3xl font-bold text-nude-900">{stats.compliance.openCyberIncidents}</div>
+            <div className="p-4 bg-nude-50 rounded-etuna-input border border-nude-200">
+              <div className="text-xs font-semibold text-ink-600 mb-2">Open Cyber Incidents</div>
+              <div className="font-display text-3xl font-bold text-ink-900">{stats.compliance.openCyberIncidents}</div>
             </div>
-            <div className="p-4 bg-nude-50 rounded-lg border border-nude-200">
-              <div className="text-xs font-semibold text-nude-600 mb-2">Audit Events (24h)</div>
-              <div className="font-display text-3xl font-bold text-nude-900">{stats.compliance.auditEvents24h}</div>
+            <div className="p-4 bg-nude-50 rounded-etuna-input border border-nude-200">
+              <div className="text-xs font-semibold text-ink-600 mb-2">Audit Events (24h)</div>
+              <div className="font-display text-3xl font-bold text-ink-900">{stats.compliance.auditEvents24h}</div>
             </div>
           </div>
           <p className="text-xs font-medium text-base-content/60 uppercase tracking-wide mt-6 mb-2">
-            NamQR · Open banking · Fraud / payment signals
+            Open banking · Fraud / payment signals
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="stat bg-base-200 rounded-lg">
-              <div className="stat-title text-xs">Active NamQR codes</div>
-              <div className="stat-value text-2xl">{stats.compliance.activeNamqrCodes}</div>
-            </div>
-            <div className="stat bg-base-200 rounded-lg">
+            <div className="stat bg-base-200 rounded-etuna-input">
               <div className="stat-title text-xs">OB API errors (24h)</div>
               <div className={`stat-value text-2xl ${stats.compliance.openBankingApiErrors24h > 0 ? 'text-warning' : ''}`}>
                 {stats.compliance.openBankingApiErrors24h}
               </div>
             </div>
-            <div className="stat bg-base-200 rounded-lg">
+            <div className="stat bg-base-200 rounded-etuna-input">
               <div className="stat-title text-xs">Failed txs (24h)</div>
               <div className={`stat-value text-2xl ${stats.compliance.failedTransactions24h > 0 ? 'text-error' : ''}`}>
                 {stats.compliance.failedTransactions24h}
@@ -230,7 +225,7 @@ export default function PlatformDashboardOverview({
             </Button>
           </div>
           {paymentRails && (
-            <div className="mt-4 p-3 rounded-lg bg-base-200 text-sm">
+            <div className="mt-4 p-3 rounded-etuna-input bg-base-200 text-sm">
               <p className="font-medium mb-1">
                 Namibia payment rails ({paymentRails.defaultCurrency}) — card:{' '}
                 {paymentRails.cardRail.replace(/_/g, ' ')}
@@ -281,34 +276,34 @@ export default function PlatformDashboardOverview({
       </div>
 
       {/* Quick Actions */}
-      <div className="rounded-lg border border-nude-200 bg-surface-elevated shadow-nude-soft">
+      <div className="rounded-etuna-card border border-nude-200 bg-surface-elevated">
         <div className="p-6">
-          <h2 className="font-display text-2xl font-bold text-nude-900 mb-6">Quick Actions</h2>
+          <h2 className="font-display text-2xl font-bold text-ink-900 mb-6">Quick Actions</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link 
               href="/admin/platform/tenants"
-              className="flex items-center justify-center gap-3 px-4 py-3 bg-white border-2 border-nude-200 text-nude-700 rounded-lg font-semibold text-sm hover:border-nude-400 hover:bg-nude-50 transition-all duration-200 min-h-[56px]"
+              className="flex items-center justify-center gap-3 px-4 py-3 bg-white border-2 border-nude-200 text-ink-700 rounded-etuna-input font-semibold text-sm hover:border-nude-400 hover:bg-nude-50 transition-all duration-200 min-h-[56px]"
             >
               <Building2 className="w-5 h-5" />
               View Tenants
             </Link>
             <Link 
               href="/admin/platform/users"
-              className="flex items-center justify-center gap-3 px-4 py-3 bg-white border-2 border-nude-200 text-nude-700 rounded-lg font-semibold text-sm hover:border-nude-400 hover:bg-nude-50 transition-all duration-200 min-h-[56px]"
+              className="flex items-center justify-center gap-3 px-4 py-3 bg-white border-2 border-nude-200 text-ink-700 rounded-etuna-input font-semibold text-sm hover:border-nude-400 hover:bg-nude-50 transition-all duration-200 min-h-[56px]"
             >
               <Users className="w-5 h-5" />
               View Users
             </Link>
             <Link 
               href="/admin/platform/analytics"
-              className="flex items-center justify-center gap-3 px-4 py-3 bg-white border-2 border-nude-200 text-nude-700 rounded-lg font-semibold text-sm hover:border-nude-400 hover:bg-nude-50 transition-all duration-200 min-h-[56px]"
+              className="flex items-center justify-center gap-3 px-4 py-3 bg-white border-2 border-nude-200 text-ink-700 rounded-etuna-input font-semibold text-sm hover:border-nude-400 hover:bg-nude-50 transition-all duration-200 min-h-[56px]"
             >
               <TrendingUp className="w-5 h-5" />
               View Analytics
             </Link>
             <Link 
               href="/admin/platform/audit"
-              className="flex items-center justify-center gap-3 px-4 py-3 bg-white border-2 border-nude-200 text-nude-700 rounded-lg font-semibold text-sm hover:border-nude-400 hover:bg-nude-50 transition-all duration-200 min-h-[56px]"
+              className="flex items-center justify-center gap-3 px-4 py-3 bg-white border-2 border-nude-200 text-ink-700 rounded-etuna-input font-semibold text-sm hover:border-nude-400 hover:bg-nude-50 transition-all duration-200 min-h-[56px]"
             >
               <Activity className="w-5 h-5" />
               Audit Logs
@@ -318,34 +313,34 @@ export default function PlatformDashboardOverview({
       </div>
 
       {/* System Health */}
-      <div className="rounded-lg border border-nude-200 bg-surface-elevated shadow-nude-soft">
+      <div className="rounded-etuna-card border border-nude-200 bg-surface-elevated">
         <div className="p-6">
-          <h2 className="font-display text-2xl font-bold text-nude-900 mb-6">System Health</h2>
+          <h2 className="font-display text-2xl font-bold text-ink-900 mb-6">System Health</h2>
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-4 bg-semantic-success-light rounded-lg border border-semantic-success/20">
+            <div className="flex items-center justify-between p-4 bg-semantic-success-light rounded-etuna-input border border-semantic-success/20">
               <div className="flex items-center gap-3">
                 <CheckCircle className="w-6 h-6 text-semantic-success" />
-                <span className="font-semibold text-nude-900">Database</span>
+                <span className="font-semibold text-ink-900">Database</span>
               </div>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-semantic-success text-white">
                 <span className="w-2 h-2 rounded-full bg-white animate-pulse-soft" />
                 Healthy
               </span>
             </div>
-            <div className="flex items-center justify-between p-4 bg-semantic-success-light rounded-lg border border-semantic-success/20">
+            <div className="flex items-center justify-between p-4 bg-semantic-success-light rounded-etuna-input border border-semantic-success/20">
               <div className="flex items-center gap-3">
                 <CheckCircle className="w-6 h-6 text-semantic-success" />
-                <span className="font-semibold text-nude-900">Authentication</span>
+                <span className="font-semibold text-ink-900">Authentication</span>
               </div>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-semantic-success text-white">
                 <span className="w-2 h-2 rounded-full bg-white animate-pulse-soft" />
                 Healthy
               </span>
             </div>
-            <div className="flex items-center justify-between p-4 bg-semantic-success-light rounded-lg border border-semantic-success/20">
+            <div className="flex items-center justify-between p-4 bg-semantic-success-light rounded-etuna-input border border-semantic-success/20">
               <div className="flex items-center gap-3">
                 <CheckCircle className="w-6 h-6 text-semantic-success" />
-                <span className="font-semibold text-nude-900">API Services</span>
+                <span className="font-semibold text-ink-900">API Services</span>
               </div>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-semantic-success text-white">
                 <span className="w-2 h-2 rounded-full bg-white animate-pulse-soft" />
@@ -358,7 +353,7 @@ export default function PlatformDashboardOverview({
 
       {/* Super Admin Notice */}
       {isSuperAdmin && (
-        <div className="flex items-start gap-3 p-4 bg-semantic-info-light text-semantic-info-dark rounded-lg border border-semantic-info/20">
+        <div className="flex items-start gap-3 p-4 bg-semantic-info-light text-semantic-info-dark rounded-etuna-input border border-semantic-info/20">
           <Shield className="w-5 h-5 flex-shrink-0 mt-0.5" />
           <div>
             <p className="font-semibold mb-1">Super Admin Access</p>

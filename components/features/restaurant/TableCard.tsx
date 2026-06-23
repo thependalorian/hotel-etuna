@@ -12,8 +12,7 @@
  * 
  * Design System:
  * - Uses semantic tokens: text-base-content, bg-base-100
- * - Card shadows: shadow-lg with hover:shadow-xl
- * - Button sizes: min-h-[36px] for small buttons
+ * - Card shadows: shadow-lg with  * - Button sizes: min-h-[36px] for small buttons
  * 
  * Accessibility:
  * - Semantic HTML structure
@@ -28,9 +27,6 @@
  */
 
 import Image from 'next/image';
-import { QRCodeService } from '@/lib/services/restaurant/QRCodeService';
-
-const qrCodeService = new QRCodeService();
 
 interface RestaurantTable {
   id: string;
@@ -40,6 +36,7 @@ interface RestaurantTable {
   location?: string;
   qr_code: string;
   qr_code_url: string;
+  qr_code_image_url?: string;
 }
 
 interface TableCardProps {
@@ -50,18 +47,24 @@ interface TableCardProps {
 export default function TableCard({ table, index }: TableCardProps) {
   return (
     <div 
-      className="card bg-base-100 shadow-lg card-hover animate-slide-up"
+      className="card bg-base-100 card-hover animate-slide-up"
       style={{ animationDelay: `${index * 100}ms` }}
     >
       <figure className="px-10 pt-10">
-        <Image 
-          src={qrCodeService.generateQRCodeImageUrl(table.qr_code)} 
-          alt={`QR Code for Table ${table.table_number}`} 
-          width={200} 
-          height={200} 
-          className="rounded-xl" 
-          unoptimized
-        />
+        {table.qr_code_image_url ? (
+          <Image
+            src={table.qr_code_image_url}
+            alt={`QR code for Table ${table.table_number} — opens the guest menu`}
+            width={200}
+            height={200}
+            className="rounded-etuna-card"
+            unoptimized
+          />
+        ) : (
+          <div className="flex h-[200px] w-[200px] items-center justify-center rounded-etuna-card border border-nude-200 text-sm text-ink-500">
+            QR pending
+          </div>
+        )}
       </figure>
       <div className="card-body items-center text-center">
         <h4 className="card-title text-lg font-display">
@@ -75,14 +78,14 @@ export default function TableCard({ table, index }: TableCardProps) {
           )}
         </div>
         <div className="card-actions gap-2">
-          <a 
-            href={qrCodeService.generateQRCodeUrl(table.qr_code)} 
-            target="_blank" 
-            rel="noopener noreferrer" 
+          <a
+            href={table.qr_code_url}
+            target="_blank"
+            rel="noopener noreferrer"
             className="btn btn-sm btn-info gentle-lift min-h-[36px]"
-            aria-label={`View QR code for table ${table.table_number}`}
+            aria-label={`Open the guest menu for table ${table.table_number}`}
           >
-            View QR
+            Preview menu
           </a>
           <button 
             className="btn btn-sm btn-ghost gentle-lift min-h-[36px]"

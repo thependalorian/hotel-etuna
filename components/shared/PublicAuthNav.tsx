@@ -31,7 +31,7 @@ export function PublicAuthNav({
   const isHeader = variant === 'header';
   const linkClass = isHeader
     ? 'text-sm font-medium text-base-content hover:text-primary transition-colors min-h-[44px] flex items-center'
-    : 'text-nude-100 hover:text-khaki-sand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-khaki-sand focus-visible:ring-offset-2 focus-visible:ring-offset-terracotta-900 rounded-sm transition-colors';
+    : 'text-nude-100 hover:text-ci-secondary-tan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ci-secondary-tan focus-visible:ring-offset-2 focus-visible:ring-offset-ci-secondary-chocolate rounded-sm transition-colors';
 
   const signOutClass = isHeader
     ? linkClass

@@ -92,19 +92,19 @@ export default function PropertyManagement({ properties: initialProperties, user
     <div className="space-y-6">
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="stat bg-base-100 rounded-lg shadow">
+        <div className="stat bg-base-100 rounded-etuna-input shadow">
           <div className="stat-title">Total Properties</div>
           <div className="stat-value text-primary">{propertyCounts.total}</div>
         </div>
-        <div className="stat bg-base-100 rounded-lg shadow">
+        <div className="stat bg-base-100 rounded-etuna-input shadow">
           <div className="stat-title">Active</div>
           <div className="stat-value text-success">{propertyCounts.active}</div>
         </div>
-        <div className="stat bg-base-100 rounded-lg shadow">
+        <div className="stat bg-base-100 rounded-etuna-input shadow">
           <div className="stat-title">Featured</div>
           <div className="stat-value text-warning">{propertyCounts.featured}</div>
         </div>
-        <div className="stat bg-base-100 rounded-lg shadow">
+        <div className="stat bg-base-100 rounded-etuna-input shadow">
           <div className="stat-title">Avg. Price</div>
           <div className="stat-value text-info">
             ${properties.length > 0 
@@ -172,14 +172,14 @@ export default function PropertyManagement({ properties: initialProperties, user
 
       {/* Properties Grid/List */}
       {filteredProperties.length === 0 ? (
-        <div className="p-8 text-center text-base-content/50 bg-base-100 rounded-lg shadow">
+        <div className="p-8 text-center text-base-content/50 bg-base-100 rounded-etuna-input shadow">
           <Home className="w-12 h-12 mx-auto mb-4 opacity-50" />
           <p>No properties found</p>
         </div>
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProperties.map((property) => (
-            <div key={property.id} className="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow">
+            <div key={property.id} className="card bg-base-100 transition-shadow">
               <figure className="relative h-48 bg-base-200">
                 <div className="absolute top-2 right-2 z-10">
                   {property.is_featured && (
@@ -247,7 +247,7 @@ export default function PropertyManagement({ properties: initialProperties, user
           ))}
         </div>
       ) : (
-        <div className="overflow-x-auto bg-base-100 rounded-lg shadow">
+        <div className="overflow-x-auto bg-base-100 rounded-etuna-input shadow">
           <table className="table">
             <thead>
               <tr>

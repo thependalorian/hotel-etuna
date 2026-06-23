@@ -12,8 +12,7 @@
  * 
  * Design System:
  * - Uses semantic tokens: text-base-content, bg-base-100
- * - Card shadows: shadow-lg with hover:shadow-xl
- * 
+ * - Card shadows: shadow-lg with  * 
  * Accessibility:
  * - Semantic HTML structure
  * 
@@ -90,7 +89,7 @@ export default function DashboardStatsCards({ stats }: DashboardStatsCardsProps)
         return (
           <div 
             key={stat.title} 
-            className="card border border-base-200 bg-base-100 shadow-lg card-hover card-interactive animate-slide-up group"
+            className="card border border-base-200 bg-base-100 card-hover card-interactive animate-slide-up group"
             style={{ animationDelay: `${index * 100}ms` }}
           >
             <div className="card-body p-6">
@@ -103,7 +102,7 @@ export default function DashboardStatsCards({ stats }: DashboardStatsCardsProps)
                     {stat.value}
                   </p>
                   <div className="flex items-center gap-2 text-sm">
-                    <div className={`flex items-center gap-1 px-2 py-1 rounded-md ${isPositive ? 'bg-success/10' : 'bg-error/10'}`}>
+                    <div className={`flex items-center gap-1 px-2 py-1 rounded-etuna-button ${isPositive ? 'bg-success/10' : 'bg-error/10'}`}>
                       <TrendingUp className={`w-4 h-4 ${isPositive ? 'text-success' : 'text-error rotate-180'}`} />
                       <span className={`font-semibold ${isPositive ? 'text-success' : 'text-error'}`}>
                         {changeValue}
@@ -112,7 +111,7 @@ export default function DashboardStatsCards({ stats }: DashboardStatsCardsProps)
                     <span className="text-xs text-ink-500">vs last month</span>
                   </div>
                 </div>
-                <div className={`w-16 h-16 rounded-2xl ${stat.bgColor} flex items-center justify-center flex-shrink-0 shadow-md group-hover:scale-110 transition-transform duration-300`}>
+                <div className={`w-16 h-16 rounded-etuna-card ${stat.bgColor} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300`}>
                   <Icon className={`w-8 h-8 ${stat.color}`} />
                 </div>
               </div>

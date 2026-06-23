@@ -124,8 +124,8 @@ export default function EditMenuItemPage() {
       </Link>
 
       <div>
-        <h1 className="font-display text-3xl font-bold text-terracotta-900">Edit menu item</h1>
-        <p className="mt-1 text-sm text-terracotta-700">
+        <h1 className="font-display text-3xl font-bold text-ci-secondary-chocolate">Edit menu item</h1>
+        <p className="mt-1 text-sm text-ink-600">
           Updates appear on /dining. Guests sign in to place orders.
         </p>
       </div>

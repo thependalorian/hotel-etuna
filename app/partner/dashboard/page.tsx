@@ -50,17 +50,17 @@ export default async function PartnerDashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="stat bg-base-200 rounded-xl">
+        <div className="stat bg-base-200 rounded-etuna-card">
           <div className="stat-title">Upcoming arrivals</div>
           <div className="stat-value text-primary">{arrivalsCount}</div>
           <div className="stat-desc">from today onwards</div>
         </div>
-        <div className="stat bg-base-200 rounded-xl">
+        <div className="stat bg-base-200 rounded-etuna-card">
           <div className="stat-title">Rooms</div>
           <div className="stat-value">{roomCount}</div>
           <div className="stat-desc">in your property</div>
         </div>
-        <div className="stat bg-base-200 rounded-xl">
+        <div className="stat bg-base-200 rounded-etuna-card">
           <div className="stat-title">Commission</div>
           <div className="stat-value text-success">10%</div>
           <div className="stat-desc">on all bookings</div>

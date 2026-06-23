@@ -14,9 +14,9 @@
  * 
  * Design System:
  * - Height: 44px (h-11) - Follows Fitt's Law
- * - Rounded: xl (12px)
+ * - Rounded: etuna-input (14px) per DS §6 radius vocabulary
  * - Border: nude-200 (default), semantic-error (error state)
- * - Focus ring: 2px with offset
+ * - Focus ring: 2px ci-primary with offset (DS §9.3)
  * - Transitions: 200ms duration
  * 
  * Accessibility:
@@ -78,7 +78,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="mb-2 block text-sm font-semibold text-nude-800"
+            className="mb-2 block text-sm font-semibold text-ink-800"
           >
             {label}
             {props.required && (
@@ -92,10 +92,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           id={inputId}
           type={type}
           className={cn(
-            "flex h-11 w-full rounded-xl border border-nude-200 bg-surface-input px-4 py-3.5 font-sans text-base text-nude-900 transition-all duration-200",
-            "placeholder:text-nude-400",
+            "flex h-11 w-full rounded-etuna-input border border-nude-200 bg-surface-input px-4 py-3.5 font-sans text-base text-ink-900 transition-all duration-200",
+            "placeholder:text-ink-400",
             "hover:border-nude-300",
-            "focus:border-nude-500 focus:outline-none focus:ring-2 focus:ring-nude-500 focus:ring-offset-2",
+            "focus:border-ci-primary focus:outline-none focus:ring-2 focus:ring-ci-primary focus:ring-offset-2",
             "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-nude-50",
             "file:border-0 file:bg-transparent file:text-sm file:font-medium",
             hasError && "border-semantic-error focus:border-semantic-error focus:ring-semantic-error",
@@ -108,7 +108,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           {...props}
         />
         {helperText && !error ? (
-          <p id={helperTextId} className="mt-1.5 text-sm text-nude-600">
+          <p id={helperTextId} className="mt-1.5 text-sm text-ink-600">
             {helperText}
           </p>
         ) : null}

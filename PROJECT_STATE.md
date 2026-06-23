@@ -13,7 +13,7 @@
 | `npm run verify:production` | ✅ green (~6 min) | `tsc` + `test:ci` + `next build` |
 | Vitest (unit + integration) | ✅ **107** files, **808** passed, **2** skipped | `tests/sofia/sofia-chat.test.ts` history delegate fixed |
 | Compliance smoke | ✅ **6/6** | `vitest.smoke.config.ts` |
-| DB migrations | ✅ **54/54** checks through **`0064`** | `npm run test:db:migrations` |
+| DB migrations | ✅ applied through **`0067`** (Intelligent OS recommendations) | `npm run db:migrate:all` |
 | `npm run validate:audit-wave6` | ✅ **9 pass**, 1 warn, 0 fail | Only warn: `enable:pgaudit` (Neon `42501` expected) |
 | `npm run verify:pgaudit` | ✅ **compensating** | IMP-01 closed via app `audit_trail` + security preflight |
 | `npm run security:preflight` | ✅ **12/12**, 100% | `compliance/evidence/security/preflight-2026-06-11.json` |
@@ -61,9 +61,9 @@
 
 | Claim | Truth (command-backed) | Notes |
 |-------|------------------------|-------|
-| Migration SQL files | **56** journal entries `0000`–`0064` (no `0058`, `0059`) | `database/drizzle/meta/_journal.json` |
+| Migration SQL files | journal entries `0000`–`0067` (intentional gaps `0058`, `0059`) | `database/drizzle/meta/_journal.json` |
 | Drizzle journal head | **`0064_generated_documents`** (idx 55) | `database/drizzle/meta/_journal.json` |
-| `npm run test:db:migrations` | Through **`0064`** | `scripts/db/verify-neon-migrations.ts` |
+| `npm run test:db:migrations` | Through **`0067`** | `scripts/db/verify-neon-migrations.ts` |
 | `pgTable` exports | **113** | `lib/db/schema.ts` |
 | PRD §4.2 “81 tables” / §11.2 “34” | **Stale** — use **113** Drizzle tables | PRD §12 footnote |
 | RLS policies (live Neon) | **121** rows in `pg_policies` | Docs “62” was migration-era |
@@ -111,7 +111,7 @@
 | Document vault API + UI | ✅ `GuestDocumentVaultCard` |
 | Integration tests | ✅ `guest-magic-link`, `guest-document-vault` |
 
-**Deferred (TASK):** room floor-plan, digital key, e-sign, upgrade/downgrade, Sofia proactive nudges, auto-attach docs to future stays.
+**Deferred (TASK):** in-app e-signature check-in (ETA 2019), guest-facing upgrade/downgrade, Sofia proactive nudges, auto-attach docs to future stays. (No floor plan — room selection is a simple available-rooms list.)
 
 ---
 
@@ -144,6 +144,6 @@
 
 ## Open production gaps (human / ops)
 
-Compliance sign-offs (#1–7), live Adumo production creds (portal), Adumo hosted-page branding, BCP tabletop (15 Jun 2026), guest self-scan NamQR (#10), LangChain major bump when Sofia graph migration scheduled — see `docs/project/TASK.md`.
+Compliance sign-offs (#1–7), live Adumo production creds (portal), Adumo hosted-page branding, BCP tabletop (15 Jun 2026), LangChain major bump when Sofia graph migration scheduled — see `docs/project/TASK.md`.
 
 **Closed on 2026-06-11:** IMP-01 pgAudit → compensating controls (`npm run verify:pgaudit` exit 0).

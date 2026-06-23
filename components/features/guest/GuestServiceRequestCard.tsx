@@ -106,8 +106,8 @@ export function GuestServiceRequestCard({ bookingId, canRequest }: GuestServiceR
   return (
     <Card variant="elevated" className="p-6 space-y-4">
       <div>
-        <h3 className="font-display text-lg font-semibold text-nude-900">Concierge requests</h3>
-        <p className="text-sm text-nude-600">
+        <h3 className="font-display text-lg font-semibold text-ink-900">Concierge requests</h3>
+        <p className="text-sm text-ink-600">
           Ask for service or report an issue — our team is notified right away.
         </p>
       </div>
@@ -139,8 +139,8 @@ export function GuestServiceRequestCard({ bookingId, canRequest }: GuestServiceR
                 onClick={() => setCategory((cur) => (cur === c.value ? '' : c.value))}
                 className={`rounded-full border px-4 py-1.5 text-sm transition ${
                   category === c.value
-                    ? 'border-khaki-500 bg-khaki-100 text-nude-900'
-                    : 'border-nude-200 bg-white text-nude-700 hover:border-khaki-300'
+                    ? 'border-ci-accent-ochre bg-ci-cream text-ink-900'
+                    : 'border-nude-200 bg-white text-ink-700 hover:border-ci-secondary-tan'
                 }`}
                 aria-pressed={category === c.value}
               >
@@ -179,14 +179,14 @@ export function GuestServiceRequestCard({ bookingId, canRequest }: GuestServiceR
           </Button>
         </div>
       ) : (
-        <p className="text-sm text-nude-600">
+        <p className="text-sm text-ink-600">
           Concierge requests are available once you are checked in.
         </p>
       )}
 
       {requests.length > 0 && (
         <div className="pt-2">
-          <h4 className="text-sm font-semibold text-terracotta-900 mb-2">Your requests</h4>
+          <h4 className="text-sm font-semibold text-ci-secondary-chocolate mb-2">Your requests</h4>
           <ul className="space-y-2">
             {requests.map((r) => {
               const label =
@@ -199,13 +199,13 @@ export function GuestServiceRequestCard({ bookingId, canRequest }: GuestServiceR
               return (
                 <li
                   key={r.id}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-nude-200 p-3"
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-etuna-input border border-nude-200 p-3"
                 >
                   <div>
-                    <p className="font-medium text-nude-900">{label}</p>
-                    {r.description && <p className="text-xs text-nude-600">{r.description}</p>}
+                    <p className="font-medium text-ink-900">{label}</p>
+                    {r.description && <p className="text-xs text-ink-600">{r.description}</p>}
                     {r.createdAt && (
-                      <p className="text-xs text-nude-500">
+                      <p className="text-xs text-ink-500">
                         {new Date(r.createdAt).toLocaleString()}
                       </p>
                     )}

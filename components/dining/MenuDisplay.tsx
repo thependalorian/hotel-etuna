@@ -7,7 +7,8 @@
 'use client';
 
 import { useState } from 'react';
-import type { PublicMenuPayload, PublicMenuItem } from '@/lib/dining/menu-display';
+import Image from 'next/image';
+import type { PublicMenuPayload } from '@/lib/dining/menu-display';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 
@@ -56,38 +57,51 @@ export function MenuDisplay({ menu }: MenuDisplayProps) {
       <div className="space-y-12">
         {displayCategories.map((category) => (
           <div key={category.id}>
-            <h3 className="text-2xl font-bold text-terracotta-900 mb-6">{category.name}</h3>
+            <h3 className="text-2xl font-bold text-ci-secondary-chocolate mb-6">{category.name}</h3>
             {category.description && (
-              <p className="text-terracotta-700 mb-6">{category.description}</p>
+              <p className="text-ink-700 mb-6">{category.description}</p>
             )}
             <div className="grid gap-6 md:grid-cols-2">
               {category.items.map((item) => (
-                <Card key={item.id} className="p-6 hover:shadow-lg transition-shadow">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold text-lg text-terracotta-900">{item.name}</h4>
-                        {menu.featuredMenuItemIds.includes(item.id) && (
-                          <Badge variant="primary" size="sm">
-                            Popular
-                          </Badge>
+                <Card key={item.id} variant="listing" className="overflow-hidden border border-nude-200">
+                  <div className="etuna-card-media aspect-video">
+                    <Image
+                      src={item.imageUrl || category.imageSrc}
+                      alt={item.name}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="p-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold text-lg text-ci-secondary-chocolate">{item.name}</h4>
+                          {menu.featuredMenuItemIds.includes(item.id) && (
+                            <Badge variant="primary" size="sm">
+                              Popular
+                            </Badge>
+                          )}
+                        </div>
+                        {item.description && (
+                          <p className="mt-1 text-sm text-ink-600">{item.description}</p>
                         )}
                       </div>
-                      {item.description && (
-                        <p className="text-sm text-terracotta-700 mb-2">{item.description}</p>
-                      )}
-                    </div>
-                    <div className="ml-4 text-right">
-                      <div className="font-bold text-lg text-terracotta-900">
+                      <div className="text-right font-bold text-lg text-ci-secondary-chocolate">
                         N${item.price.toFixed(2)}
                       </div>
                     </div>
+                    {(item.dietaryTags ?? []).length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-1">
+                        {(item.dietaryTags ?? []).map((tag) => (
+                          <Badge key={tag} variant="success" size="sm" className="capitalize">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  {(item.dietaryTags ?? []).map((tag) => (
-                    <Badge key={tag} variant="success" size="sm" className="mr-1 capitalize">
-                      {tag}
-                    </Badge>
-                  ))}
                 </Card>
               ))}
             </div>

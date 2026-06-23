@@ -12,15 +12,15 @@ type HotelEtunaTeamEmailsProps = {
 
 export default function HotelEtunaTeamEmails({
   className = 'space-y-4',
-  linkClassName = 'hover:text-khaki-600 transition-colors',
+  linkClassName = 'hover:text-ci-primary transition-colors',
 }: HotelEtunaTeamEmailsProps) {
   return (
     <ul className={className}>
       {HOTEL_ETUNA_TEAM_EMAILS.map((entry) => (
         <li key={entry.email}>
-          <p className="font-semibold text-terracotta-900">{entry.role}</p>
-          <p className="text-sm text-terracotta-800 mb-1">{entry.description}</p>
-          <a href={`mailto:${entry.email}`} className={`text-terracotta-800 ${linkClassName}`}>
+          <p className="font-semibold text-ci-secondary-chocolate">{entry.role}</p>
+          <p className="text-sm text-ink-600 mb-1">{entry.description}</p>
+          <a href={`mailto:${entry.email}`} className={`text-ci-accent-terracotta ${linkClassName}`}>
             {entry.email}
           </a>
         </li>

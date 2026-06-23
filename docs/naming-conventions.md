@@ -359,9 +359,9 @@ lib/services/fraud/
 ├── FraudDetectionService.ts   ← class      → PascalCase  ✅
 └── tenant-fraud-rules.ts      ← functions  → kebab-case  ✅   (same folder, different casing — by design)
 
-lib/services/qr/
-├── NamQrService.ts            ← class      → PascalCase  ✅
-└── namqr-core.ts              ← functions  → kebab-case  ✅
+lib/services/booking/
+├── BookingService.ts          ← class      → PascalCase  ✅
+└── stay-pricing.ts            ← functions  → kebab-case  ✅
 ```
 
 > ⚠️ **Do not rename a kebab-case helper inside `lib/services/` to PascalCase to "match its neighbours."**
@@ -388,24 +388,7 @@ camelCase instead of kebab-case. See the migration table below.
 | `applyDiningAdumoDeposit.ts` | `apply-dining-adumo-deposit.ts` |
 | `completeAdumoVirtualPayment.ts` | `complete-adumo-virtual-payment.ts` |
 
-### 5.3 NamQR Naming (Deduplication Required)
-There are currently **three** representations of "NamQR" in service file names:
-
-| File | Problem |
-|------|---------|
-| `NAMQRService.ts` | ALL_CAPS acronym |
-| `NamQRService.ts` | Mixed acronym capitalisation |
-| `HospitalityNamQrPaymentService.ts` | Inconsistent again |
-| `namqr-core.ts` | All-lowercase (utility — acceptable) |
-
-**Standard:** Use `NamQr` (treating "NamQR" as a two-part word: "Nam" + "Qr").
-
-| Current | Correct |
-|---------|---------|
-| `NAMQRService.ts` | `NamQrService.ts` |
-| `HospitalityNamQrPaymentService.ts` | `NamQrPaymentService.ts` ← remove `Hospitality` prefix (redundant in hotel context) |
-
-### 5.4 Feature Folders (Components)
+### 5.3 Feature Folders (Components)
 **Pattern:** singular domain noun.
 
 **Existing inconsistency** in `components/features/`:

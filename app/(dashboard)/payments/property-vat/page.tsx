@@ -20,8 +20,8 @@ export default function PropertyVatPage() {
     <div className="max-w-5xl mx-auto p-6">
       <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
         <div>
-          <h1 className="font-display text-3xl font-bold text-nude-900 mb-2">Property VAT report</h1>
-          <p className="text-nude-600">
+          <h1 className="font-display text-3xl font-bold text-ink-900 mb-2">Property VAT report</h1>
+          <p className="text-ink-600">
             {brand.name} files its own VAT returns on guest hospitality. Platform fees are invoiced
             separately.
           </p>

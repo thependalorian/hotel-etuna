@@ -9,7 +9,7 @@ import type { GuestCrmInsights } from '@/components/features/crm/guestCrmPanelTy
 
 export default function GuestCrmMarketingSnapshot({ insights }: { insights: GuestCrmInsights }) {
   return (
-    <div className="rounded-lg bg-base-200/60 p-4 space-y-2">
+    <div className="rounded-etuna-input bg-base-200/60 p-4 space-y-2">
       <p className="text-sm font-semibold text-base-content/80">Marketing snapshot</p>
       <div className="flex flex-wrap gap-2">
         <span className="badge badge-primary badge-lg">Segment: {insights.segment}</span>

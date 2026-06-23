@@ -20,18 +20,18 @@ type PublicFooterProps = {
 const footerHeadingClass = 'font-display text-nude-50 font-semibold text-base mb-4 tracking-tight';
 
 const footerLinkClass =
-  'text-nude-100 hover:text-khaki-sand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-khaki-sand focus-visible:ring-offset-2 focus-visible:ring-offset-terracotta-900 rounded-sm transition-colors';
+  'text-nude-100 hover:text-ci-secondary-tan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ci-secondary-tan focus-visible:ring-offset-2 focus-visible:ring-offset-ci-secondary-chocolate rounded-sm transition-colors';
 
 export default function PublicFooter({ className = '' }: PublicFooterProps) {
   return (
-    <footer className={`bg-terracotta-900 text-nude-50 py-12 ${className}`}>
+    <footer className={`bg-ci-secondary-chocolate text-nude-50 py-12 ${className}`}>
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
           <div>
             <div className="mb-4">
-              <HotelEtunaLogo size="md" href="/" onDark />
+              <HotelEtunaLogo size="md" variant="compact" href="/" onDark />
             </div>
-            <p className="text-nude-100 text-sm">{brand.taglineTitleCase}.</p>
+            <p className="text-nude-100 font-signature text-lg">{brand.logoTagline}</p>
           </div>
 
           <div>
@@ -50,15 +50,15 @@ export default function PublicFooter({ className = '' }: PublicFooterProps) {
             <h4 className={footerHeadingClass}>Contact</h4>
             <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-khaki-sand" aria-hidden />
+                <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-ci-secondary-tan" aria-hidden />
                 <span className="text-nude-100">{brand.address}</span>
               </li>
               <li className="flex items-center gap-2">
-                <Phone className="w-4 h-4 shrink-0 text-khaki-sand" aria-hidden />
+                <Phone className="w-4 h-4 shrink-0 text-ci-secondary-tan" aria-hidden />
                 <span className="text-nude-100">{brand.phones}</span>
               </li>
               <li className="flex items-center gap-2">
-                <Mail className="w-4 h-4 shrink-0 text-khaki-sand" aria-hidden />
+                <Mail className="w-4 h-4 shrink-0 text-ci-secondary-tan" aria-hidden />
                 <a href={`mailto:${brand.emailFrontDesk}`} className={footerLinkClass}>
                   {brand.emailFrontDesk}
                 </a>
@@ -101,7 +101,7 @@ export default function PublicFooter({ className = '' }: PublicFooterProps) {
           </div>
         </div>
         <div className="border-t border-nude-200/30 pt-8 text-sm text-nude-200">
-          © 2026 {brand.name}. {brand.taglineTitleCase}.
+          © {new Date().getFullYear()} {brand.name}. {brand.logoTagline}.
         </div>
       </div>
     </footer>

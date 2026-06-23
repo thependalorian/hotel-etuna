@@ -79,26 +79,26 @@ export default async function RoomDetailPage({ params }: Props) {
               <RoomPhotoTour roomName={room.roomType} stops={display.tourStops} />
 
               <div>
-                <div className="mb-4 flex flex-wrap items-center gap-4 text-sm text-terracotta-800">
+                <div className="mb-4 flex flex-wrap items-center gap-4 text-sm text-ink-600">
                   <span className="inline-flex items-center gap-2">
-                    <Users className="h-4 w-4 text-khaki-600" aria-hidden />
+                    <Users className="h-4 w-4 text-ci-primary" aria-hidden />
                     Up to {display.displayOccupancy} guests
                   </span>
-                  <span className="badge badge-sm border-0 bg-khaki-600/10 text-khaki-800">
+                  <span className="badge badge-sm border-0 bg-ci-primary/10 text-ci-secondary-chocolate">
                     {display.tourStops.length} photo stops
                   </span>
                 </div>
 
                 <div className="mb-6 border-l-4 border-rustic pl-4">
-                  <p className="leading-relaxed text-terracotta-800">{display.summary}</p>
+                  <p className="leading-relaxed text-ink-700">{display.summary}</p>
                 </div>
 
-                <h2 className="mb-4 font-display text-2xl font-bold text-terracotta-900">
+                <h2 className="mb-4 font-display text-2xl font-bold text-ci-secondary-chocolate">
                   Highlights & amenities
                 </h2>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {amenityList.map((amenity) => (
-                    <div key={amenity} className="flex items-center gap-2 text-terracotta-800">
+                    <div key={amenity} className="flex items-center gap-2 text-ink-700">
                       <Check className="h-4 w-4 shrink-0 text-sage" aria-hidden />
                       {amenity}
                     </div>
@@ -106,14 +106,14 @@ export default async function RoomDetailPage({ params }: Props) {
                 </div>
               </div>
 
-              <div id="booking" className="scroll-mt-24 rounded-2xl bg-white p-6 shadow-card">
-                <h2 className="mb-4 font-display text-2xl font-bold text-terracotta-900">
+              <div id="booking" className="scroll-mt-24 rounded-etuna-card border border-nude-200 bg-white p-6 shadow-etuna-elevated">
+                <h2 className="mb-4 font-display text-2xl font-bold text-ci-secondary-chocolate">
                   Check availability
                 </h2>
                 {isAuthenticated ? (
                   <LandingBookingWidget propertyId={property.id} />
                 ) : (
-                  <p className="text-sm text-terracotta-800">
+                  <p className="text-sm text-ink-600">
                     <Link href={`/login?redirect=/rooms/${slug}`} className="link link-primary">
                       Sign in
                     </Link>{' '}

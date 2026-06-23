@@ -78,7 +78,7 @@ const variantStyles: Record<StatusVariant, { bg: string; text: string; dot: stri
   },
   neutral: {
     bg: 'bg-nude-100',
-    text: 'text-nude-800',
+    text: 'text-ink-800',
     dot: 'bg-nude-400',
   },
 };

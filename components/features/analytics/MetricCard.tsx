@@ -12,8 +12,7 @@
  * 
  * Design System:
  * - Uses semantic tokens: text-base-content, bg-base-100
- * - Card shadows: shadow-lg with hover:shadow-xl
- * 
+ * - Card shadows: shadow-lg with  * 
  * Accessibility:
  * - Semantic HTML structure
  * 
@@ -43,7 +42,7 @@ interface MetricCardProps {
 export default function MetricCard({ title, value, desc, icon: Icon, color, bg, index }: MetricCardProps) {
   return (
     <div 
-      className="card bg-base-100 shadow-lg card-hover animate-slide-up"
+      className="card bg-base-100 card-hover animate-slide-up"
       style={{ animationDelay: `${index * 100}ms` }}
     >
       <div className="card-body">
@@ -55,7 +54,7 @@ export default function MetricCard({ title, value, desc, icon: Icon, color, bg, 
               <p className="text-xs text-base-content/50">{desc}</p>
             )}
           </div>
-          <div className={`w-14 h-14 rounded-xl ${bg} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+          <div className={`w-14 h-14 rounded-etuna-card ${bg} flex items-center justify-center flex-shrink-0`}>
             <Icon className={`w-7 h-7 ${color}`} />
           </div>
         </div>

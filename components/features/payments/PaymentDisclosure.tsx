@@ -34,24 +34,24 @@ export function PaymentDisclosure({
   const contact = complaintsEmail ?? contactFormRecipient('billing dispute');
 
   return (
-    <div className={`rounded-2xl border border-nude-200 bg-base-100 p-4 text-sm ${className ?? ''}`}>
+    <div className={`rounded-etuna-card border border-nude-200 bg-base-100 p-4 text-sm ${className ?? ''}`}>
       <dl className="space-y-1">
         <div className="flex items-center justify-between">
-          <dt className="text-nude-600">Amount</dt>
-          <dd className="font-medium text-nude-900">{money(amount, currency)}</dd>
+          <dt className="text-ink-600">Amount</dt>
+          <dd className="font-medium text-ink-900">{money(amount, currency)}</dd>
         </div>
         {fee > 0 && (
           <div className="flex items-center justify-between">
-            <dt className="text-nude-600">Convenience fee</dt>
-            <dd className="font-medium text-nude-900">{money(fee, currency)}</dd>
+            <dt className="text-ink-600">Convenience fee</dt>
+            <dd className="font-medium text-ink-900">{money(fee, currency)}</dd>
           </div>
         )}
         <div className="flex items-center justify-between border-t border-nude-200 pt-1">
-          <dt className="font-semibold text-nude-900">Total</dt>
-          <dd className="font-bold text-nude-900">{money(total, currency)}</dd>
+          <dt className="font-semibold text-ink-900">Total</dt>
+          <dd className="font-bold text-ink-900">{money(total, currency)}</dd>
         </div>
       </dl>
-      <p className="mt-3 text-xs text-nude-500">
+      <p className="mt-3 text-xs text-ink-500">
         Dispute or query a charge?{' '}
         <a href={`mailto:${contact}`} className="link link-primary">
           {contact}

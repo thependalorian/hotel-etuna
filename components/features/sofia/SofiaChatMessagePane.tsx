@@ -40,10 +40,10 @@ export function SofiaChatMessagePane({
           >
             <div
               className={cn(
-                'max-w-[80%] p-4 rounded-2xl transition-all duration-200',
+                'max-w-[80%] p-4 rounded-etuna-card transition-all duration-200',
                 msg.role === 'user'
                   ? 'bg-nude-600 text-white shadow-nude-soft rounded-br-sm'
-                  : 'bg-white text-nude-900 rounded-bl-sm border border-luxury-charlotte/30 shadow-luxury-soft animate-ai-pulse'
+                  : 'bg-white text-ink-900 rounded-bl-sm border border-luxury-charlotte/30 animate-ai-pulse'
               )}
             >
               {msg.role === 'assistant' && (
@@ -72,7 +72,7 @@ export function SofiaChatMessagePane({
           >
             <div
               className={cn(
-                'max-w-[80%] rounded-lg p-3',
+                'max-w-[80%] rounded-etuna-input p-3',
                 message.role === 'user' ? 'bg-primary text-white' : 'bg-base-200 text-base-content'
               )}
             >
@@ -154,7 +154,7 @@ export function SofiaChatMessagePane({
           )}
           <div
             className={cn(
-              'max-w-[80%] rounded-lg px-4 py-2',
+              'max-w-[80%] rounded-etuna-input px-4 py-2',
               message.role === 'user' ? 'bg-primary text-primary-content' : 'bg-base-200 text-base-content'
             )}
           >

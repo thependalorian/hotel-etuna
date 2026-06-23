@@ -198,7 +198,7 @@ export default function RestaurantTablesPage() {
 
   if (!session) {
     return (
-      <div className="card bg-warning/10 border border-warning shadow-lg">
+      <div className="card bg-warning/10 border border-warning">
         <div className="card-body">
           <p className="text-warning font-medium">Please log in to manage your tables.</p>
         </div>
@@ -274,7 +274,7 @@ export default function RestaurantTablesPage() {
           )}
         </div>
       ) : (
-        <div className="card bg-base-100 shadow-lg">
+        <div className="card bg-base-100">
           <div className="card-body text-center py-12">
             <p className="text-base-content/70">Select a property to manage its tables.</p>
           </div>

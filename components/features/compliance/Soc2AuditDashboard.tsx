@@ -62,7 +62,7 @@ export function Soc2AuditDashboard() {
   return (
     <div className="space-y-6">
       <Card className="p-6">
-        <p className="text-sm text-nude-600 mb-4">
+        <p className="text-sm text-ink-600 mb-4">
           Automated readiness against <strong>Security, Availability, Confidentiality</strong>{' '}
           (NayaOne SOC 2 Type II baseline). This is not a CPA attestation — use for gap analysis
           before Type I / Type II engagement.
@@ -77,25 +77,25 @@ export function Soc2AuditDashboard() {
         <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card className="p-4 text-center">
-              <p className="text-3xl font-bold text-nude-900">{report.overallScorePercent}%</p>
-              <p className="text-xs text-nude-600">Readiness score</p>
+              <p className="text-3xl font-bold text-ink-900">{report.overallScorePercent}%</p>
+              <p className="text-xs text-ink-600">Readiness score</p>
             </Card>
             {report.agents.map((a) => (
               <Card key={a.agentName} className="p-4 text-center">
                 <p className="text-xl font-semibold">{a.scorePercent}%</p>
-                <p className="text-xs text-nude-600">{a.agentName}</p>
+                <p className="text-xs text-ink-600">{a.agentName}</p>
               </Card>
             ))}
           </div>
 
           {gaps.length > 0 && (
             <Card className="p-6">
-              <h2 className="font-semibold text-nude-900 mb-3">Priority gaps ({gaps.length})</h2>
+              <h2 className="font-semibold text-ink-900 mb-3">Priority gaps ({gaps.length})</h2>
               <ul className="space-y-2 text-sm">
                 {gaps.map((c) => (
                   <li key={c.controlId} className="border-l-4 border-error pl-3">
                     <strong>{c.controlId}</strong> — {c.title}
-                    {c.gaps[0] && <span className="block text-nude-600">{c.gaps[0]}</span>}
+                    {c.gaps[0] && <span className="block text-ink-600">{c.gaps[0]}</span>}
                   </li>
                 ))}
               </ul>
@@ -122,7 +122,7 @@ export function Soc2AuditDashboard() {
                         {c.status}
                       </span>
                     </td>
-                    <td className="text-xs text-nude-600 max-w-md">
+                    <td className="text-xs text-ink-600 max-w-md">
                       {c.evidence.slice(0, 2).join(' · ')}
                     </td>
                   </tr>

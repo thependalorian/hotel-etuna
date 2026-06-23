@@ -153,7 +153,7 @@ export function CommunicationsThreadView({ sessionId }: CommunicationsThreadView
         </div>
       </div>
 
-      <div className="card bg-base-100 shadow-md">
+      <div className="card bg-base-100">
         <div className="card-body gap-3 max-h-[28rem] overflow-y-auto">
           {thread.messages.map((m) => {
             const isGuest = m.senderType === 'USER';

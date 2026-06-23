@@ -71,7 +71,9 @@ export class EmailService {
       10
     );
     const smtpSecureRaw = process.env.EMAIL_SMTP_SECURE ?? process.env.SMTP_SECURE;
-    const smtpSecure = smtpSecureRaw ? smtpSecureRaw === 'true' : smtpPort === 465;
+    // Reason: port 465 is implicit TLS and MUST use secure:true — a stray EMAIL_SMTP_SECURE=false
+    // would otherwise break the handshake. 587/25 are STARTTLS (secure:false) and honour the flag.
+    const smtpSecure = smtpPort === 465 ? true : smtpSecureRaw === 'true';
 
     if (!smtpUser || !smtpPass || smtpUser === 'your_mailtrap_username' || smtpPass === 'your_mailtrap_password') {
       throw new Error(

@@ -24,7 +24,7 @@ import type { NextRequest } from 'next/server';
 import { checkRateLimit, shouldRateLimit } from '@/lib/utils/rate-limit';
 import { normalizePathnameForRateLimit } from '@/lib/utils/api-url';
 import { extractSubdomain, validateTenant } from '@/lib/utils/tenant-validation';
-import { logUnauthorizedAccess, logRateLimitExceeded } from '@/lib/utils/security-logger';
+import { logUnauthorizedAccess, logRateLimitExceeded } from '@/lib/utils/security-logger.server';
 import { devLog, devError } from '@/lib/utils/dev-log';
 import { serverLogger } from '@/lib/utils/server-logger';
 import { stackServerApp } from '@/stack';

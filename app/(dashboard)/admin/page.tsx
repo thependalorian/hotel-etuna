@@ -50,7 +50,7 @@ export default async function AdminPage() {
       {/* Admin Content */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* System Settings Card */}
-        <div className="card bg-base-100 shadow-lg card-hover">
+        <div className="card bg-base-100 card-hover">
           <div className="card-body">
             <h2 className="card-title text-xl font-display">System Settings</h2>
             <p className="text-base-content/70">Configure system-wide settings and preferences</p>
@@ -63,7 +63,7 @@ export default async function AdminPage() {
         </div>
 
         {/* User Management Card */}
-        <div className="card bg-base-100 shadow-lg card-hover">
+        <div className="card bg-base-100 card-hover">
           <div className="card-body">
             <h2 className="card-title text-xl font-display">User Management</h2>
             <p className="text-base-content/70">Manage users, roles, and permissions</p>
@@ -76,7 +76,7 @@ export default async function AdminPage() {
         </div>
 
         {/* Tenant Management Card */}
-        <div className="card bg-base-100 shadow-lg card-hover">
+        <div className="card bg-base-100 card-hover">
           <div className="card-body">
             <h2 className="card-title text-xl font-display">Partner tenants</h2>
             <p className="text-base-content/70">Referral partners (JayLa, Aquarius) — hub is Hotel Etuna only</p>
@@ -89,7 +89,7 @@ export default async function AdminPage() {
         </div>
 
         {/* System Health Card */}
-        <div className="card bg-base-100 shadow-lg card-hover">
+        <div className="card bg-base-100 card-hover">
           <div className="card-body">
             <h2 className="card-title text-xl font-display">System Health</h2>
             <p className="text-base-content/70">Monitor system performance and health</p>
@@ -102,7 +102,7 @@ export default async function AdminPage() {
         </div>
 
         {/* Analytics Card */}
-        <div className="card bg-base-100 shadow-lg card-hover">
+        <div className="card bg-base-100 card-hover">
           <div className="card-body">
             <h2 className="card-title text-xl font-display">System Analytics</h2>
             <p className="text-base-content/70">View system-wide analytics and metrics</p>
@@ -115,7 +115,7 @@ export default async function AdminPage() {
         </div>
 
         {/* Audit Logs Card */}
-        <div className="card bg-base-100 shadow-lg card-hover">
+        <div className="card bg-base-100 card-hover">
           <div className="card-body">
             <h2 className="card-title text-xl font-display">Audit Logs</h2>
             <p className="text-base-content/70">View system audit trails and logs</p>

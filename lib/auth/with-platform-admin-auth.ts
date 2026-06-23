@@ -13,7 +13,8 @@ import {
   type PlatformAdminUser,
 } from '@/lib/auth/platform-admin';
 import { enforcePlatformAdminRateLimit } from '@/lib/compliance/with-admin-rate-limit';
-import { logUnauthorizedAccess, securityLogger } from '@/lib/utils/security-logger';
+import { logUnauthorizedAccess } from '@/lib/utils/security-logger.server';
+import { securityLogger } from '@/lib/utils/security-logger';
 
 export type { PlatformAdminUser };
 

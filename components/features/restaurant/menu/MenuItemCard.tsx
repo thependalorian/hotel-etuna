@@ -12,8 +12,7 @@
  * 
  * Design System:
  * - Uses semantic tokens: text-base-content, bg-base-200
- * - Card shadows: shadow-md with hover:shadow-lg
- * - Button sizes: min-h-[44px]
+ * - Card shadows: shadow-md with  * - Button sizes: min-h-[44px]
  * 
  * Accessibility:
  * - Semantic HTML structure
@@ -51,7 +50,7 @@ interface MenuItemCardProps {
 export default function MenuItemCard({ item, itemIndex, menuItemImages }: MenuItemCardProps) {
   return (
     <div 
-      className="card card-compact bg-base-200 shadow-md hover:shadow-lg transition-shadow duration-200 animate-fade-in"
+      className="card card-compact bg-base-200 transition-shadow duration-200 animate-fade-in"
       style={{ animationDelay: `${itemIndex * 50}ms` }}
     >
       <figure>

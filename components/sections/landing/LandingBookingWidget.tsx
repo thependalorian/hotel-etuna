@@ -15,7 +15,7 @@
  * - Card with nude-100 background
  * - Shadow: luxury-medium
  * - Rounded: 3xl
- * - Calls-to-action with khaki-600
+ * - Calls-to-action with CI Rustic Red (ci-primary)
  * 
  * User Flow:
  * 1. User enters dates and guest count
@@ -176,7 +176,7 @@ export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl p-6 md:p-8">
+    <div className="bg-white rounded-etuna-card p-6 md:p-8">
       <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Input
           label="Check-in Date"
@@ -200,8 +200,8 @@ export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
           required
         />
         <div>
-          <label className="block text-sm font-semibold text-terracotta-900 mb-2">Guests</label>
-          <select value={guests} onChange={(e) => setGuests(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-nude-300 text-terracotta-900 focus:ring-2 focus:ring-khaki-600 focus:border-transparent">
+          <label className="block text-sm font-semibold text-ci-secondary-chocolate mb-2">Guests</label>
+          <select value={guests} onChange={(e) => setGuests(e.target.value)} className="w-full px-4 py-3 rounded-etuna-input border border-nude-300 text-ci-secondary-chocolate focus:ring-2 focus:ring-ci-primary focus:border-transparent">
             <option value="1">1 Guest</option>
             <option value="2">2 Guests</option>
             <option value="3">3 Guests</option>
@@ -209,8 +209,8 @@ export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-semibold text-terracotta-900 mb-2">Room Type</label>
-          <select value={roomType} onChange={(e) => setRoomType(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-nude-300 text-terracotta-900 focus:ring-2 focus:ring-khaki-600 focus:border-transparent">
+          <label className="block text-sm font-semibold text-ci-secondary-chocolate mb-2">Room Type</label>
+          <select value={roomType} onChange={(e) => setRoomType(e.target.value)} className="w-full px-4 py-3 rounded-etuna-input border border-nude-300 text-ci-secondary-chocolate focus:ring-2 focus:ring-ci-primary focus:border-transparent">
             <option value="">Any Room Type</option>
             <option value="standard-a">Standard Room (Type A)</option>
             <option value="standard-b">Standard Room (Type B)</option>
@@ -220,7 +220,7 @@ export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
           </select>
         </div>
         <div className="md:col-span-2">
-          <Button type="submit" size="xl" className="w-full bg-khaki-600 hover:bg-khaki-700" disabled={isLoading}>
+          <Button type="submit" size="xl" className="w-full" disabled={isLoading}>
             <Calendar className="w-5 h-5" />
             {isLoading ? 'Checking Availability...' : 'Check Availability'}
           </Button>
@@ -234,7 +234,7 @@ export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
       ) : null}
       {!error && filteredResults.length > 0 ? (
         <div className="mt-6 space-y-3">
-          <h3 className="font-semibold text-terracotta-900">Available Rooms</h3>
+          <h3 className="font-semibold text-ci-secondary-chocolate">Available Rooms</h3>
           {bookingError ? (
             <div className="alert alert-error text-sm" role="alert">
               <span>{bookingError}</span>
@@ -243,7 +243,7 @@ export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
           {filteredResults.map((room) => (
             <div
               key={room.id}
-              className="flex flex-col gap-3 rounded-lg border border-nude-200 p-3 text-sm text-terracotta-800 sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-3 rounded-etuna-input border border-nude-200 p-3 text-sm text-ink-600 sm:flex-row sm:items-center sm:justify-between"
             >
               <span>
                 {room.roomType} ({room.roomNumber}) · Max {room.maxOccupancy} guests
@@ -273,8 +273,8 @@ export function LandingBookingWidget({ propertyId }: { propertyId: string }) {
             </div>
           ))}
           {!isAuthenticated ? (
-            <div className="rounded-lg border border-khaki-600/30 bg-khaki-50 p-4 text-center">
-              <p className="mb-3 text-sm text-terracotta-900">
+            <div className="rounded-etuna-input border border-ci-primary/30 bg-ci-cream p-4 text-center">
+              <p className="mb-3 text-sm text-ci-secondary-chocolate">
                 {publicCopy.gated.roomsFoundSignIn}
               </p>
               <Button asChild size="sm" className="min-h-[44px]">

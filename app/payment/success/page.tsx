@@ -19,7 +19,7 @@ export default function PaymentSuccessPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-[50vh] flex items-center justify-center text-nude-600">
+        <div className="min-h-[50vh] flex items-center justify-center text-ink-600">
           Verifying payment…
         </div>
       }

@@ -44,7 +44,7 @@ function ErrorDisplay({
 
   if (variant === 'full') {
     return (
-      <div className={cn('card bg-error/10 border border-error shadow-lg', className)}>
+      <div className={cn('card bg-error/10 border border-error', className)}>
         <div className="card-body text-center py-16">
           <div className="w-20 h-20 rounded-full bg-error/20 flex items-center justify-center mx-auto mb-6">
             <AlertCircle className="w-10 h-10 text-error" />
@@ -64,7 +64,7 @@ function ErrorDisplay({
 
   // Default variant
   return (
-    <div className={cn('card bg-error/10 border border-error shadow-lg', className)}>
+    <div className={cn('card bg-error/10 border border-error', className)}>
       <div className="card-body text-center py-12">
         <div className="w-16 h-16 rounded-full bg-error/20 flex items-center justify-center mx-auto mb-4">
           <AlertCircle className="w-8 h-8 text-error" />

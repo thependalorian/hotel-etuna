@@ -183,7 +183,7 @@ export default function GuestProfilePage() {
 
   if (!session) {
     return (
-      <div className="card bg-warning/10 border border-warning shadow-lg">
+      <div className="card bg-warning/10 border border-warning">
         <div className="card-body">
           <p className="text-warning font-medium">Please log in to view guest profiles.</p>
         </div>
@@ -193,7 +193,7 @@ export default function GuestProfilePage() {
 
   if (!guest) {
     return (
-      <div className="card bg-base-100 shadow-lg">
+      <div className="card bg-base-100">
         <div className="card-body text-center py-16">
           <div className="w-20 h-20 rounded-full bg-base-200 flex items-center justify-center mx-auto mb-6">
             <svg className="w-10 h-10 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -219,7 +219,7 @@ export default function GuestProfilePage() {
       {error && <MessageAlert message={error} type="error" onDismiss={() => setError('')} />}
       {success && <MessageAlert message={success} type="success" onDismiss={() => setSuccess('')} />}
 
-      <div className="card bg-base-100 shadow-lg card-hover">
+      <div className="card bg-base-100 card-hover">
         <div className="card-body">
           <form onSubmit={handleSave} className="space-y-6">
             <GuestPersonalInfoForm formData={formData} onChange={handleChange} />

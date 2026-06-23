@@ -13,6 +13,7 @@ import { Heart, Users, Award, Leaf } from 'lucide-react';
 import PublicHero from '@/components/shared/PublicHero';
 import Footer from '@/components/shared/Footer';
 import NavigationHeader from '@/components/sections/landing/NavigationHeader';
+import { ETUNA_PROPERTY_IMAGES } from '@/lib/rooms/property-images';
 
 export const metadata: Metadata = {
   title: 'About Us',
@@ -26,8 +27,8 @@ export default function AboutPage() {
 
       <main>
         <PublicHero
-          title="He Takes Care of Us"
-          subtitle="The story behind Hotel Etuna."
+          title="Hotel Etuna"
+          subtitle="The story behind our name."
           breadcrumbLabel="About"
         />
 
@@ -35,19 +36,19 @@ export default function AboutPage() {
         <section className="py-16 bg-white">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto text-center">
-              <div className="inline-block bg-khaki-sand text-khaki-700 px-6 py-2 rounded-full text-sm font-semibold mb-6">
+              <div className="inline-block bg-ci-secondary-tan text-ci-accent-ochre px-6 py-2 rounded-full text-sm font-semibold mb-6">
                 OUR NAME
               </div>
-              <h2 className="font-display text-4xl md:text-5xl font-bold text-terracotta-900 mb-8">
+              <h2 className="font-display text-4xl md:text-5xl font-bold text-ci-secondary-chocolate mb-8">
                 What Does "Etuna" Mean?
               </h2>
-              <p className="text-xl text-terracotta-800 leading-relaxed mb-8">
-                In Oshiwambo, <span className="font-semibold text-khaki-600">"Etuna"</span> translates to{' '}
+              <p className="text-xl text-ink-700 leading-relaxed mb-8">
+                In Oshiwambo, <span className="font-semibold text-ci-primary">"Etuna"</span> translates to{' '}
                 <span className="font-semibold">"He takes care of us."</span> This profound phrase embodies 
                 our core philosophy: genuine care, authentic hospitality, and a commitment to making every 
                 guest feel valued and protected.
               </p>
-              <p className="text-lg text-terracotta-800 leading-relaxed">
+              <p className="text-lg text-ink-700 leading-relaxed">
                 Just as a shepherd watches over his flock, we watch over our guests. This isn't just a hotel—it's 
                 a sanctuary where Namibian warmth meets modern comfort, where every detail is considered, and where 
                 you're not just a visitor, but part of our family.
@@ -61,13 +62,13 @@ export default function AboutPage() {
           <div className="container mx-auto px-4">
             <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <div className="inline-block bg-khaki-sand text-khaki-700 px-6 py-2 rounded-full text-sm font-semibold mb-6">
+                <div className="inline-block bg-ci-secondary-tan text-ci-accent-ochre px-6 py-2 rounded-full text-sm font-semibold mb-6">
                   OUR STORY
                 </div>
-                <h2 className="font-display text-4xl font-bold text-terracotta-900 mb-6">
+                <h2 className="font-display text-4xl font-bold text-ci-secondary-chocolate mb-6">
                   A Vision Born from Community
                 </h2>
-                <div className="space-y-4 text-terracotta-800 leading-relaxed">
+                <div className="space-y-4 text-ink-700 leading-relaxed">
                   <p>
                     Hotel Etuna was founded with a simple yet powerful vision: to create a hospitality experience 
                     that truly reflects the spirit of Northern Namibia. Located in Ongwediva, we recognized the need 
@@ -84,9 +85,9 @@ export default function AboutPage() {
                   </p>
                 </div>
               </div>
-              <div className="aspect-4/3 relative rounded-2xl overflow-hidden shadow-card">
+              <div className="aspect-4/3 relative rounded-etuna-card overflow-hidden ">
                 <Image
-                  src="/images/hospitality/hero_hotel_lobby.jpeg"
+                  src={ETUNA_PROPERTY_IMAGES.receptionDesk}
                   alt="Hotel Etuna Story"
                   fill
                   className="object-cover"
@@ -101,10 +102,10 @@ export default function AboutPage() {
           <div className="container mx-auto px-4">
             <div className="max-w-5xl mx-auto">
               <div className="text-center mb-12">
-                <div className="inline-block bg-khaki-sand text-khaki-700 px-6 py-2 rounded-full text-sm font-semibold mb-6">
+                <div className="inline-block bg-ci-secondary-tan text-ci-accent-ochre px-6 py-2 rounded-full text-sm font-semibold mb-6">
                   OUR VALUES
                 </div>
-                <h2 className="font-display text-4xl font-bold text-terracotta-900">
+                <h2 className="font-display text-4xl font-bold text-ci-secondary-chocolate">
                   What We Stand For
                 </h2>
               </div>
@@ -133,14 +134,14 @@ export default function AboutPage() {
                   },
                 ].map((value) => (
                   <div key={value.title} className="flex gap-4">
-                    <div className="w-14 h-14 bg-sage/20 rounded-full flex items-center justify-center shrink-0">
+                    <div className="w-14 h-14 bg-ci-accent-sage/20 rounded-full flex items-center justify-center shrink-0">
                       <value.icon className="w-7 h-7 text-sage" />
                     </div>
                     <div>
-                      <h3 className="font-display text-xl font-bold text-terracotta-900 mb-2">
+                      <h3 className="font-display text-xl font-bold text-ci-secondary-chocolate mb-2">
                         {value.title}
                       </h3>
-                      <p className="text-terracotta-800 leading-relaxed">
+                      <p className="text-ink-700 leading-relaxed">
                         {value.description}
                       </p>
                     </div>
@@ -155,7 +156,7 @@ export default function AboutPage() {
         <section className="py-16 bg-nude-50">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto text-center">
-              <h2 className="font-display text-4xl font-bold text-terracotta-900 mb-12">
+              <h2 className="font-display text-4xl font-bold text-ci-secondary-chocolate mb-12">
                 Why Choose Hotel Etuna?
               </h2>
               
@@ -177,14 +178,14 @@ export default function AboutPage() {
                     desc: 'Always here when you need us',
                   },
                 ].map((item) => (
-                  <div key={item.label} className="bg-white rounded-xl p-6">
-                    <div className="text-5xl font-display font-bold text-khaki-600 mb-2">
+                  <div key={item.label} className="bg-white rounded-etuna-card p-6">
+                    <div className="text-5xl font-display font-bold text-ci-primary mb-2">
                       {item.stat}
                     </div>
-                    <div className="font-semibold text-terracotta-900 mb-1">
+                    <div className="font-semibold text-ci-secondary-chocolate mb-1">
                       {item.label}
                     </div>
-                    <div className="text-sm text-terracotta-800">
+                    <div className="text-sm text-ink-600">
                       {item.desc}
                     </div>
                   </div>
@@ -199,13 +200,13 @@ export default function AboutPage() {
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
               <div className="text-center mb-12">
-                <div className="inline-block bg-khaki-sand text-khaki-700 px-6 py-2 rounded-full text-sm font-semibold mb-6">
+                <div className="inline-block bg-ci-secondary-tan text-ci-accent-ochre px-6 py-2 rounded-full text-sm font-semibold mb-6">
                   OUR LOCATION
                 </div>
-                <h2 className="font-display text-4xl font-bold text-terracotta-900 mb-4">
+                <h2 className="font-display text-4xl font-bold text-ci-secondary-chocolate mb-4">
                   Perfectly Positioned in Ongwediva
                 </h2>
-                <p className="text-lg text-terracotta-800">
+                <p className="text-lg text-ink-700">
                   Strategically located near the Ongwediva Trade Fair and major business districts, 
                   Hotel Etuna offers easy access to everything Northern Namibia has to offer.
                 </p>
@@ -218,11 +219,11 @@ export default function AboutPage() {
                   { distance: '25 min', location: 'Oshakati' },
                   { distance: '1 hour', location: 'Windhoek (by road)' },
                 ].map((item) => (
-                  <div key={item.location} className="flex items-center gap-4 bg-nude-50 rounded-xl p-4">
-                    <div className="font-display text-2xl font-bold text-khaki-600 min-w-20">
+                  <div key={item.location} className="flex items-center gap-4 bg-nude-50 rounded-etuna-card p-4">
+                    <div className="font-display text-2xl font-bold text-ci-primary min-w-20">
                       {item.distance}
                     </div>
-                    <div className="text-terracotta-900 font-medium">
+                    <div className="text-ci-secondary-chocolate font-medium">
                       {item.location}
                     </div>
                   </div>
@@ -233,7 +234,7 @@ export default function AboutPage() {
         </section>
 
         {/* CTA */}
-        <section className="py-16 bg-linear-to-br from-terracotta-800 to-terracotta-900 text-white">
+        <section className="py-16 bg-linear-to-br from-ci-accent-terracotta to-ci-secondary-chocolate text-white">
           <div className="container mx-auto px-4 text-center">
             <h2 className="font-display text-4xl font-bold mb-4">
               Experience the Etuna Difference
@@ -242,7 +243,7 @@ export default function AboutPage() {
               Let us take care of you during your stay in Ongwediva
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="xl" className="bg-white text-terracotta-900 hover:bg-nude-100">
+              <Button asChild size="xl" className="bg-white text-ci-secondary-chocolate hover:bg-nude-100">
                 <Link href="/#booking">Book Your Stay</Link>
               </Button>
               <Button asChild size="xl" variant="outline" className="border-white text-white hover:bg-white/20">

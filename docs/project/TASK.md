@@ -119,9 +119,8 @@ curl -sI https://www.hoteletuna.com | head -5
 ### Phase 8 — Guest command centre (core) · 4 weeks · `app/guest/*`
 - [x] Magic‑link welcome email + passwordless guest hub entry (pre‑arrival) — **2026-06-10** (`0062`, `GuestHubMagicLinkService`, `/guest/welcome`, Sofia SMTP)
 - [x] Document vault — encrypted (AES‑256) ID/visa upload — **2026-06-10** (`0063`, `GuestDocumentVaultCard`; auto‑attach to future stays deferred)
-- [ ] Room selection on check‑in date (floor plan, pick exact room number)
-- [ ] Digital check‑in: registration, e‑sign terms, deposit pay (Adumo Virtual), issue digital key
-- [ ] Digital key (QR/NFC) via pluggable lock adapter (`lib/integrations/`); expires at checkout
+- [ ] Room selection on check‑in date (pick exact room number from the available-rooms list — **no floor plan**)
+- [ ] Digital check‑in: registration, **in-app e‑signature of terms** (legally valid under the **Electronic Transactions Act 4 of 2019** — no external e‑sign vendor required), deposit pay (Adumo Virtual)
 - [x] In‑stay service request (towels, turndown, iron) → routed to housekeeping task — **existing** (`0054`, `GuestServiceRequestCard`)
 - [x] Maintenance report (photo + description) → creates staff ticket — **existing** (maintenance request type → housekeeping task)
 - [ ] Upgrade/downgrade with pro‑rated charge/refund
@@ -131,13 +130,13 @@ curl -sI https://www.hoteletuna.com | head -5
 - [ ] Agentic actions: birthday surprise, repeat‑guest recognition, weather nudge, silent loyalty upgrade
 
 ### Phase 9 — Staff intelligence layer · 4 weeks · `app/(dashboard)/*`
-- [ ] Real‑time command‑centre dashboard (occupancy/arrivals/departures/orders/revenue, auto‑refresh via poll/SSE)
-- [ ] Colour‑coded smart alerts (🔴 urgent / 🟡 attention / 🟢 info) with prioritisation
+- [x] Real‑time command‑centre dashboard (occupancy/arrivals/departures/orders/revenue, auto‑refresh via poll) — ✅ `CommandCentreService` + `/api/dashboard/command-centre` + `/command-centre` (45s poll), Sidebar → Operations
+- [x] Colour‑coded smart alerts (🔴 urgent / 🟡 attention / 🟢 info) with prioritisation — ✅ `command-centre-alerts.ts` (pure, tested) rendered in the command centre
 - [ ] Voice commands (Sofia tool calls): "mark room clean", "show today's arrivals"
 - [ ] Predictive housekeeping assignment from checkout times + historical clean duration
 - [ ] Maintenance auto‑routing to the right technician (plumbing/electrical/HVAC)
 - [ ] Revenue intelligence: ADR vs market rate suggestion, one‑click manager approve
-- [ ] Low‑stock auto‑reorder suggestion on `InventoryService`
+- [x] Low‑stock **reorder recommendation** on `InventoryService` (suggested → admin/front‑desk approves; never auto‑ordered) — ✅ `ReorderRecommendationService` + `/api/intelligence/reorder-recommendations` + `/intelligence` queue (migration 0067)
 - [ ] Mobile‑first PWA + push notifications (existing service worker); offline action queue
 
 ### Phase 10 — Sofia co‑pilot (proactive) · 3 weeks · hub‑exclusive
@@ -150,15 +149,14 @@ curl -sI https://www.hoteletuna.com | head -5
 - [ ] Autonomous revenue actions: upgrade offer, late‑night dining, complaint remediation voucher (manager approval optional)
 
 ### Phase 11 — Intelligent OS (analytics & automation) · 3 weeks · `lib/services/*`, `lib/cron/`
-- [ ] Dynamic pricing (base + occupancy/lead‑time/competitor/event rules), manager approve
-- [ ] Forecasting: occupancy, ADR, RevPAR for next 30/90 days
-- [ ] Read‑only OTA rate sync (Booking.com/Expedia view; manual upload — no two‑way)
-- [ ] Smart inventory: F&B auto‑order, linen/amenity replacement prediction, minibar auto‑bill
-- [ ] Predictive maintenance from complaint history (flag repeat issues for inspection)
-- [ ] Compliance automation: POPIA anonymisation jobs, PCI boundary check, immutable audit coverage
+- [x] Rate **recommendation** engine → writes suggestions to a review queue; **admin or front desk must approve before any rate change. Never auto‑applied.** — ✅ `RateRecommendationService` (approve applies `rooms.base_rate` + audit) + `/api/intelligence/rate-recommendations` + `/intelligence` queue + nightly `cron/recommendations` (migration 0067)
+- [x] Forecasting: occupancy, ADR, RevPAR for next 30/90 days — ✅ `ForecastingService` (in‑house, on‑the‑books; TS heuristic — FPP3 R models can't run in our stack), AI rationale via Sofia with deterministic fallback
+- [x] Smart inventory: F&B reorder (→ approval-gated `ReorderRecommendationService`, migration 0067). ↳ remaining: linen/amenity replacement prediction, minibar auto‑bill
+- [x] Predictive maintenance from complaint history (flag repeat issues for inspection) — ✅ `MaintenanceInsightsService` + `/api/intelligence/maintenance-insights` + `/intelligence` "Maintenance to inspect" panel (watch/inspect severity from repeat `guest_service_requests`)
+- [x] Compliance automation: POPIA anonymisation jobs, PCI boundary check, immutable audit coverage — ✅ existing `RetentionEnforcementService` + `SofiaChatRetentionService` + `cron/retention-enforcement`; PCI boundary via `security:preflight`; immutable audit via `audit_trail` hash-chain (0047)
 
 ### Phase 12 — UX polish & performance · 2 weeks
-- [ ] Design‑system audit vs PLANNING § Frontend design system (palette, pill buttons, cards)
+- [x] Design‑system audit vs PLANNING § Frontend design system (palette, pill buttons, cards) — airy `etuna-*` pass 2026-06-18
 - [ ] Skeleton loaders on all async surfaces; micro‑transitions on modals/toasts
 - [ ] Offline‑first: service‑worker cache, offline banner, IndexedDB action queue
 - [ ] Keyboard shortcuts for staff dashboard (G bookings, H housekeeping, P payments)

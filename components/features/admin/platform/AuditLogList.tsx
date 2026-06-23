@@ -122,7 +122,7 @@ export default function AuditLogList() {
 
   return (
     <div className="space-y-6">
-      <div className="card bg-base-100 shadow-lg">
+      <div className="card bg-base-100">
         <div className="card-body">
           <div className="flex flex-col gap-4">
             <div className="flex flex-col md:flex-row gap-4 flex-wrap">
@@ -180,7 +180,7 @@ export default function AuditLogList() {
         </div>
       </div>
 
-      <div className="card bg-base-100 shadow-lg">
+      <div className="card bg-base-100">
         <div className="card-body">
           {loading ? (
             <div className="flex justify-center py-12">
@@ -282,7 +282,7 @@ export default function AuditLogList() {
               {detail.action} · {detail.resourceType}{' '}
               {detail.resourceId ? `(#${String(detail.resourceId).slice(0, 8)}…)` : ''}
             </p>
-            <pre className="bg-base-200 rounded-lg p-3 text-xs overflow-x-auto max-h-64">
+            <pre className="bg-base-200 rounded-etuna-input p-3 text-xs overflow-x-auto max-h-64">
               {JSON.stringify(
                 { oldValues: detail.oldValues, newValues: detail.newValues },
                 null,

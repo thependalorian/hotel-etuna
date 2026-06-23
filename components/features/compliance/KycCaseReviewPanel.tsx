@@ -151,7 +151,7 @@ export function KycCaseReviewPanel({ caseId }: { caseId: string }) {
   return (
     <div className="space-y-6">
       {error && (
-        <div className="flex items-start gap-3 p-4 bg-semantic-error-light text-semantic-error-dark rounded-lg border border-semantic-error/20" role="alert">
+        <div className="flex items-start gap-3 p-4 bg-semantic-error-light text-semantic-error-dark rounded-etuna-input border border-semantic-error/20" role="alert">
           <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
@@ -160,21 +160,21 @@ export function KycCaseReviewPanel({ caseId }: { caseId: string }) {
       )}
 
       {/* Case Header */}
-      <div className="flex flex-wrap gap-3 items-center justify-between p-4 bg-nude-50 rounded-lg border border-nude-200">
+      <div className="flex flex-wrap gap-3 items-center justify-between p-4 bg-nude-50 rounded-etuna-input border border-nude-200">
         <div className="flex flex-wrap gap-3 items-center">
           <StatusBadge status={kase.status} showDot />
-          <span className="text-sm font-semibold text-nude-700">
+          <span className="text-sm font-semibold text-ink-700">
             {kase.subjectParty} · {kase.kycTier}
           </span>
           {kase.workflowStage && (
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-nude-200 text-nude-800 border border-nude-300">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-nude-200 text-ink-800 border border-nude-300">
               {kase.workflowStage}
             </span>
           )}
         </div>
         <Link 
           href="/compliance/kyc" 
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-nude-700 hover:bg-nude-100 rounded-lg transition-colors duration-200 min-h-[44px]"
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-nude-100 rounded-etuna-input transition-colors duration-200 min-h-[44px]"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -185,26 +185,26 @@ export function KycCaseReviewPanel({ caseId }: { caseId: string }) {
 
       {/* Profile and Workflow Panels */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-lg border border-nude-200 bg-surface-elevated shadow-nude-soft">
+        <div className="rounded-etuna-input border border-nude-200 bg-surface-elevated">
           <div className="p-6">
-            <h2 className="font-display text-xl font-semibold text-nude-900 mb-4">Subject Profile</h2>
-            <pre className="bg-nude-50 rounded-lg p-4 text-xs font-mono overflow-x-auto max-h-64 border border-nude-200 text-nude-800 scrollbar-thin">
+            <h2 className="font-display text-xl font-semibold text-ink-900 mb-4">Subject Profile</h2>
+            <pre className="bg-nude-50 rounded-etuna-input p-4 text-xs font-mono overflow-x-auto max-h-64 border border-nude-200 text-ink-800 scrollbar-thin">
               {JSON.stringify(kase.profile, null, 2)}
             </pre>
           </div>
         </div>
 
-        <div className="rounded-lg border border-nude-200 bg-surface-elevated shadow-nude-soft">
+        <div className="rounded-etuna-input border border-nude-200 bg-surface-elevated">
           <div className="p-6">
-            <h2 className="font-display text-xl font-semibold text-nude-900 mb-4">Last Workflow Snapshot</h2>
-            <pre className="bg-nude-50 rounded-lg p-4 text-xs font-mono overflow-x-auto max-h-64 border border-nude-200 text-nude-800 scrollbar-thin">
+            <h2 className="font-display text-xl font-semibold text-ink-900 mb-4">Last Workflow Snapshot</h2>
+            <pre className="bg-nude-50 rounded-etuna-input p-4 text-xs font-mono overflow-x-auto max-h-64 border border-nude-200 text-ink-800 scrollbar-thin">
               {JSON.stringify(kase.workflowSnapshot, null, 2) || '—'}
             </pre>
           </div>
         </div>
       </div>
 
-      <div className="card bg-base-100 border border-base-200 shadow-sm">
+      <div className="card bg-base-100 border border-base-200">
         <div className="card-body gap-4">
           <h2 className="card-title text-lg">Documents</h2>
           <ul className="space-y-2">
@@ -214,7 +214,7 @@ export function KycCaseReviewPanel({ caseId }: { caseId: string }) {
             {documents.map((d) => (
               <li
                 key={d.id}
-                className="flex flex-wrap items-center gap-2 justify-between border border-base-200 rounded-lg p-3"
+                className="flex flex-wrap items-center gap-2 justify-between border border-base-200 rounded-etuna-input p-3"
               >
                 <span className="font-mono text-sm">{d.documentType}</span>
                 <a
@@ -258,18 +258,18 @@ export function KycCaseReviewPanel({ caseId }: { caseId: string }) {
       </div>
 
       {/* Workflow & Decisions */}
-      <div className="rounded-lg border border-nude-200 bg-surface-elevated shadow-nude-soft">
+      <div className="rounded-etuna-input border border-nude-200 bg-surface-elevated">
         <div className="p-6 space-y-6">
           <div>
-            <h2 className="font-display text-xl font-semibold text-nude-900 mb-2">Workflow & Decisions</h2>
-            <p className="text-sm text-nude-600 leading-relaxed">
+            <h2 className="font-display text-xl font-semibold text-ink-900 mb-2">Workflow & Decisions</h2>
+            <p className="text-sm text-ink-600 leading-relaxed">
               Run validation runs the LangGraph state machine (required fields + document types).
               Manual approve/reject records the reviewer and updates linked staff when applicable.
             </p>
           </div>
 
           {isTerminalStatus && (
-            <div className="flex items-start gap-3 p-4 bg-semantic-info-light text-semantic-info-dark rounded-lg border border-semantic-info/20">
+            <div className="flex items-start gap-3 p-4 bg-semantic-info-light text-semantic-info-dark rounded-etuna-input border border-semantic-info/20">
               <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
@@ -282,7 +282,7 @@ export function KycCaseReviewPanel({ caseId }: { caseId: string }) {
 
           <button
             type="button"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-nude-600 text-white rounded-lg font-semibold hover:bg-nude-700 shadow-nude-soft hover:shadow-nude-medium transition-all duration-200 min-h-[52px] w-full md:w-auto"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-nude-600 text-white rounded-etuna-input font-semibold hover:bg-nude-700 shadow-nude-soft transition-all duration-200 min-h-[52px] w-full md:w-auto"
             disabled={busy || isTerminalStatus}
             onClick={runWorkflow}
           >
@@ -293,10 +293,10 @@ export function KycCaseReviewPanel({ caseId }: { caseId: string }) {
           </button>
 
           <div className="border-t border-nude-200 pt-6">
-            <h3 className="font-display text-lg font-semibold text-nude-900 mb-4">Reviewer Decision</h3>
+            <h3 className="font-display text-lg font-semibold text-ink-900 mb-4">Reviewer Decision</h3>
             <textarea
               ref={notesRef}
-              className="w-full min-h-[120px] p-4 border border-nude-300 rounded-lg focus:border-nude-500 focus:ring-2 focus:ring-nude-500/20 transition-all duration-200 text-nude-900 placeholder:text-nude-400"
+              className="w-full min-h-[120px] p-4 border border-nude-300 rounded-etuna-input focus:border-nude-500 focus:ring-2 focus:ring-ci-primary/20 transition-all duration-200 text-ink-900 placeholder:text-nude-400"
               placeholder="Add your review notes here (optional, stored on the case)"
               defaultValue={kase.reviewerNotes || ''}
             />
@@ -305,7 +305,7 @@ export function KycCaseReviewPanel({ caseId }: { caseId: string }) {
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-semantic-success text-white rounded-lg font-semibold hover:bg-semantic-success-dark transition-all duration-200 min-h-[52px]"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-semantic-success text-white rounded-etuna-input font-semibold hover:bg-semantic-success-dark transition-all duration-200 min-h-[52px]"
               disabled={busy || isTerminalStatus}
               onClick={() => submitDecision('approve')}
             >
@@ -316,7 +316,7 @@ export function KycCaseReviewPanel({ caseId }: { caseId: string }) {
             </button>
             <button
               type="button"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-semantic-error text-white rounded-lg font-semibold hover:bg-semantic-error-dark transition-all duration-200 min-h-[52px]"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-semantic-error text-white rounded-etuna-input font-semibold hover:bg-semantic-error-dark transition-all duration-200 min-h-[52px]"
               disabled={busy || isTerminalStatus}
               onClick={() => submitDecision('reject')}
             >
@@ -327,7 +327,7 @@ export function KycCaseReviewPanel({ caseId }: { caseId: string }) {
             </button>
             <button
               type="button"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-semantic-warning text-white rounded-lg font-semibold hover:bg-semantic-warning-dark transition-all duration-200 min-h-[52px]"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-semantic-warning text-white rounded-etuna-input font-semibold hover:bg-semantic-warning-dark transition-all duration-200 min-h-[52px]"
               disabled={busy || isTerminalStatus}
               onClick={() => submitDecision('needs_info')}
             >

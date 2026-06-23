@@ -25,12 +25,12 @@ export default function GuestProfilePage() {
 
       <GuestProfileForm />
 
-      <section className="rounded-2xl border border-nude-200 bg-nude-50 p-6">
+      <section className="rounded-etuna-card border border-nude-200 bg-nude-50 p-6">
         <div className="flex items-start gap-3">
-          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-khaki-600" aria-hidden />
+          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-ci-primary" aria-hidden />
           <div>
-            <h2 className="font-display text-lg font-bold text-terracotta-900">Data &amp; privacy</h2>
-            <p className="mt-1 text-sm text-nude-600">
+            <h2 className="font-display text-lg font-bold text-ci-secondary-chocolate">Data &amp; privacy</h2>
+            <p className="mt-1 text-sm text-ink-600">
               Request a copy of your data, ask us to correct it, or request erasure under the
               Namibia Data Protection framework.
             </p>

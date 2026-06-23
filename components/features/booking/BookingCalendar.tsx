@@ -168,25 +168,25 @@ export default function BookingCalendar({
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <div className={cn('rounded-lg border border-nude-200 bg-surface-elevated shadow-nude-medium min-w-0', className)}>
+    <div className={cn('rounded-etuna-input border border-nude-200 bg-surface-elevated min-w-0', className)}>
       <div className="p-6">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6 min-w-0">
-          <h3 className="text-xl font-bold font-display text-nude-900 flex items-center gap-2">
-            <CalendarIcon className="w-5 h-5 text-nude-600" />
+          <h3 className="text-xl font-bold font-display text-ink-900 flex items-center gap-2">
+            <CalendarIcon className="w-5 h-5 text-ink-600" />
             {monthName}
           </h3>
           <div className="flex items-center gap-2">
             <button
               onClick={() => navigateMonth('prev')}
-              className="inline-flex items-center justify-center w-10 h-10 rounded-lg text-nude-700 hover:bg-nude-100 transition-colors duration-200 min-h-[44px]"
+              className="inline-flex items-center justify-center w-10 h-10 rounded-etuna-input text-ink-700 hover:bg-nude-100 transition-colors duration-200 min-h-[44px]"
               aria-label="Previous month"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               onClick={() => navigateMonth('next')}
-              className="inline-flex items-center justify-center w-10 h-10 rounded-lg text-nude-700 hover:bg-nude-100 transition-colors duration-200 min-h-[44px]"
+              className="inline-flex items-center justify-center w-10 h-10 rounded-etuna-input text-ink-700 hover:bg-nude-100 transition-colors duration-200 min-h-[44px]"
               aria-label="Next month"
             >
               <ChevronRight className="w-5 h-5" />
@@ -200,7 +200,7 @@ export default function BookingCalendar({
             <thead>
               <tr>
                 {weekDays.map((day) => (
-                  <th key={day} className="text-center p-3 text-sm font-semibold text-nude-700">
+                  <th key={day} className="text-center p-3 text-sm font-semibold text-ink-700">
                     {day}
                   </th>
                 ))}
@@ -254,7 +254,7 @@ export default function BookingCalendar({
           </table>
         </div>
 
-        <p className="text-sm text-nude-600 mt-4">
+        <p className="text-sm text-ink-600 mt-4">
           Guest room occupancy uses {GUEST_ROOM_DENOMINATOR} keys; conference and campsite events count in the day total but not in the occupancy bar.
         </p>
 
@@ -262,19 +262,19 @@ export default function BookingCalendar({
         <div className="flex flex-wrap items-center gap-6 mt-6 pt-4 border-t border-nude-200 text-sm">
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 border-2 border-nude-400 rounded bg-white" />
-            <span className="text-nude-700">Today</span>
+            <span className="text-ink-700">Today</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 bg-nude-500 rounded" />
-            <span className="text-nude-700">Selected</span>
+            <span className="text-ink-700">Selected</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 bg-semantic-warning-light rounded border border-semantic-warning/30" />
-            <span className="text-nude-700">Booked</span>
+            <span className="text-ink-700">Booked</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 bg-semantic-error-light rounded border border-semantic-error/30" />
-            <span className="text-nude-700">Blacked Out</span>
+            <span className="text-ink-700">Blacked Out</span>
           </div>
         </div>
       </div>

@@ -167,7 +167,7 @@ export default function CrmDashboardPage() {
           title="CRM Dashboard"
           description="Manage guest relationships and reviews"
           actions={
-            <Link href="/crm/knowledge" className="btn btn-outline btn-primary min-h-[44px] shadow-nude-soft hover:shadow-nude-medium">
+            <Link href="/crm/knowledge" className="btn btn-outline btn-primary min-h-[44px] shadow-nude-soft ">
               Knowledge (RAG)
             </Link>
           }
@@ -175,7 +175,7 @@ export default function CrmDashboardPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card variant="elevated" className="animate-slide-up">
-            <h3 className="font-display text-xl font-semibold mb-4 text-nude-900">Guests</h3>
+            <h3 className="font-display text-xl font-semibold mb-4 text-ink-900">Guests</h3>
             {guests.length === 0 ? (
               <EmptyState
                 title="No Guests Found"

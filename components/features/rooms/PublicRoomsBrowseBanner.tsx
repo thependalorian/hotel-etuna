@@ -23,14 +23,14 @@ export default function PublicRoomsBrowseBanner({
     <div className="container mx-auto px-4 pt-8">
       <div
         role="status"
-        className="alert border-khaki-200/80 bg-khaki-50/90 text-terracotta-900 shadow-sm"
+        className="alert border-ci-secondary-tan/80 bg-ci-cream/90 text-ci-secondary-chocolate shadow-sm"
       >
-        <Info className="h-5 w-5 shrink-0 text-khaki-700" aria-hidden />
+        <Info className="h-5 w-5 shrink-0 text-ci-accent-ochre" aria-hidden />
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <span className="text-sm">{publicCopy.gated.roomsBrowseOnly}</span>
           <Link
             href={`/login?redirect=${encodeURIComponent(redirectPath)}`}
-            className="btn btn-sm btn-primary min-h-10 shrink-0 border-0 bg-khaki-600 text-white hover:bg-khaki-700"
+            className="btn btn-sm btn-primary min-h-10 shrink-0 border-0"
           >
             {publicCopy.gated.viewPricesAndBook}
           </Link>

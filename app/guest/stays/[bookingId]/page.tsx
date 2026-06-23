@@ -43,8 +43,8 @@ export default async function GuestStayDetailPage({ params }: PageProps) {
   if (!access) {
     return (
       <div className="text-center py-12">
-        <h1 className="font-display text-2xl font-bold text-nude-900 mb-2">Stay not found</h1>
-        <p className="text-nude-600 mb-6">
+        <h1 className="font-display text-2xl font-bold text-ink-900 mb-2">Stay not found</h1>
+        <p className="text-ink-600 mb-6">
           This booking is not linked to your account or is no longer active.
         </p>
         <Button asChild>
@@ -68,7 +68,7 @@ export default async function GuestStayDetailPage({ params }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <Link href="/guest" className="text-sm text-terracotta-700 hover:underline mb-4 inline-block">
+      <Link href="/guest" className="text-sm text-ci-accent-terracotta hover:underline mb-4 inline-block">
         ← All stays
       </Link>
       <GuestFolioPanel

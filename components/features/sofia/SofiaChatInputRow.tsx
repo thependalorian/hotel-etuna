@@ -56,7 +56,7 @@ export function SofiaChatInputRow({
           disabled={loading || !value.trim()}
           variant="luxury"
           size="lg"
-          className="min-h-[52px] px-8 shadow-luxury-soft hover:shadow-luxury-medium"
+          className="min-h-[52px] px-8 shadow-luxury-soft "
         >
           {loading ? (
             <LoadingSpinner size="sm" />

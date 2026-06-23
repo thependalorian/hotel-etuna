@@ -126,13 +126,13 @@ export default function GuestDsarPage() {
           </div>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="card bg-base-100 shadow-sm border border-base-200">
+        <form onSubmit={handleSubmit} className="card bg-base-100 border border-base-200">
           <div className="card-body space-y-6">
             <div className="form-control">
               <label className="label"><span className="label-text font-medium">Request type</span></label>
               <div className="grid grid-cols-1 gap-2">
                 {REQUEST_TYPES.map((t) => (
-                  <label key={t.value} className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${requestType === t.value ? 'border-primary bg-primary/5' : 'border-base-300 hover:border-base-400'}`}>
+                  <label key={t.value} className={`flex items-start gap-3 p-3 rounded-etuna-input border cursor-pointer transition-colors ${requestType === t.value ? 'border-primary bg-primary/5' : 'border-base-300 hover:border-base-400'}`}>
                     <input
                       type="radio"
                       name="requestType"

@@ -22,8 +22,8 @@ const SUBJECTS = [
   { value: 'Feedback', label: 'Feedback' },
 ];
 
-const inputClass = 'w-full px-4 py-3 rounded-lg border border-nude-300 focus:ring-2 focus:ring-khaki-600 focus:border-transparent bg-white text-terracotta-900';
-const labelClass = 'block text-sm font-semibold text-terracotta-900 mb-2';
+const inputClass = 'w-full px-4 py-3 rounded-etuna-input border border-nude-300 focus:ring-2 focus:ring-ci-primary focus:border-transparent bg-white text-ci-secondary-chocolate';
+const labelClass = 'block text-sm font-semibold text-ci-secondary-chocolate mb-2';
 
 export function ContactForm() {
   const [form, setForm] = useState({
@@ -64,12 +64,12 @@ export function ContactForm() {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
         <CheckCircle className="w-16 h-16 text-green-600" />
-        <h3 className="font-display text-2xl font-bold text-terracotta-900">Message sent!</h3>
-        <p className="text-terracotta-800 max-w-sm">
+        <h3 className="font-display text-2xl font-bold text-ci-secondary-chocolate">Message sent!</h3>
+        <p className="text-ink-700 max-w-sm">
           Thank you for reaching out. We typically respond within 24 hours.
         </p>
         <button onClick={() => { setSuccess(false); setForm({ firstName:'',lastName:'',email:'',phone:'',subject:'',message:'' }); }}
-          className="text-sm text-khaki-600 hover:underline mt-2">
+          className="text-sm text-ci-primary hover:underline mt-2">
           Send another message
         </button>
       </div>
@@ -78,7 +78,7 @@ export function ContactForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
-      <h2 className="font-display text-3xl font-bold text-terracotta-900 mb-6">Send Us a Message</h2>
+      <h2 className="font-display text-3xl font-bold text-ci-secondary-chocolate mb-6">Send Us a Message</h2>
 
       <div className="grid md:grid-cols-2 gap-6">
         <div>
@@ -116,7 +116,7 @@ export function ContactForm() {
         <label className={labelClass}>Message *</label>
         <textarea name="message" required rows={6} value={form.message} onChange={handle}
           className={`${inputClass} resize-none`} placeholder="Tell us how we can help..." />
-        <p className="text-xs text-nude-500 mt-1 text-right">{form.message.length}/2000</p>
+        <p className="text-xs text-ink-500 mt-1 text-right">{form.message.length}/2000</p>
       </div>
 
       {error && (
@@ -130,7 +130,7 @@ export function ContactForm() {
         {submitting ? 'Sending…' : 'Send Message'}
       </Button>
 
-      <p className="text-sm text-terracotta-800 text-center">We typically respond within 24 hours</p>
+      <p className="text-sm text-ink-600 text-center">We typically respond within 24 hours</p>
     </form>
   );
 }

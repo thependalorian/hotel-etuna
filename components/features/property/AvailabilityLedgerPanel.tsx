@@ -139,7 +139,7 @@ export function AvailabilityLedgerPanel() {
   if (!activePropertyId) {
     return (
       <Card className="p-6">
-        <p className="text-nude-600">Select a property to manage availability restrictions.</p>
+        <p className="text-ink-600">Select a property to manage availability restrictions.</p>
       </Card>
     );
   }
@@ -148,8 +148,8 @@ export function AvailabilityLedgerPanel() {
     <Card className="p-6 space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-nude-900">Availability ledger</h2>
-          <p className="text-sm text-nude-600 mt-1">
+          <h2 className="text-xl font-semibold text-ink-900">Availability ledger</h2>
+          <p className="text-sm text-ink-600 mt-1">
             Stop-sell applies property-wide for{' '}
             <span className="font-medium">{activeProperty?.name}</span>. Bookings still reduce
             sellable inventory; ledger flags block new sales.
@@ -219,7 +219,7 @@ export function AvailabilityLedgerPanel() {
                       onChange={(e) => void toggleStopSell(date, e.target.checked)}
                     />
                   </td>
-                  <td className="text-sm text-nude-600">
+                  <td className="text-sm text-ink-600">
                     {rowCount > 0 ? `${rowCount} room bucket(s)` : '—'}
                   </td>
                 </tr>
@@ -230,7 +230,7 @@ export function AvailabilityLedgerPanel() {
       </div>
 
       {dates.length === 0 && (
-        <p className="text-sm text-nude-600">Choose a valid date range to edit stop-sell.</p>
+        <p className="text-sm text-ink-600">Choose a valid date range to edit stop-sell.</p>
       )}
     </Card>
   );

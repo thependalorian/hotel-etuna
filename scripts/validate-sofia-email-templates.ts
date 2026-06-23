@@ -31,7 +31,7 @@ function checkAddress(html: string, label: string) {
 }
 
 const sampleDigest =
-  'Hotel Etuna digest\nOperations today\n• 2 arrivals\n• 1 NamQR pending\nPlatform health\n• 0 open tickets';
+  'Hotel Etuna digest\nOperations today\n• 2 arrivals\n• 1 departure\nPlatform health\n• 0 open tickets';
 
 const templateCases: Array<{
   name: SofiaEmailTemplateName;
@@ -161,7 +161,7 @@ for (const { name, input, build } of templateCases) {
   assert(tpl.text.length > 50, `${name}: text too short`);
   assert(tpl.html.includes('Hotel Etuna'), `${name}: missing brand`);
   assert(
-    tpl.html.includes(brand.tagline) || tpl.html.includes('He takes care'),
+    tpl.html.includes(brand.tagline) || tpl.html.includes(brand.logoTagline),
     `${name}: missing tagline`,
   );
   assert(tpl.html.includes('frontdesk@hoteletuna.com'), `${name}: missing signature contact`);
@@ -189,7 +189,7 @@ assert(
   'pre_arrival_magic: missing financial documents link',
 );
 assert(
-  preArrivalMagic.html.includes(brand.tagline) || preArrivalMagic.html.includes('He takes care'),
+  preArrivalMagic.html.includes(brand.tagline) || preArrivalMagic.html.includes(brand.logoTagline),
   'pre_arrival_magic: missing tagline',
 );
 
@@ -208,12 +208,6 @@ assert(
 assert(
   fs.readFileSync('app/api/bookings/[id]/payment/route.ts', 'utf8').includes('schedulePaymentReceiptEmail'),
   'trigger: cash receipt',
-);
-assert(
-  fs.readFileSync('lib/services/payment/HospitalityNamQrPaymentService.ts', 'utf8').includes(
-    'schedulePaymentReceiptEmail',
-  ),
-  'trigger: NamQR desk confirm receipt',
 );
 
 if (failures.length) {

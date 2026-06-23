@@ -1,13 +1,45 @@
 /**
  * Hotel Etuna — Tailwind configuration
- * Design System: v1.0.0 (January 2026). All color hex lives here; use theme utilities in UI.
+ * Design System: v1.1.0 (June 2026). All color hex lives here; use theme utilities in UI.
+ *
+ * Source of truth for colour = docs/brand/Hotel-Etuna-CI-Guide-Extract.pdf (CI palette).
+ * v1.1.0 changes:
+ *   - taupe corrected to CI value #A58B72 (was #B58B72)
+ *   - `ink` text ramp re-anchored to CI chocolate, WCAG-AA verified (was nude-aliased; nude-700 failed AA on cream)
+ *   - surface.scrim added for text-over-photography
+ *   - elevation discipline codified: flat browse/ops cards, etuna-elevated/control on floating UI only
+ * Full reference: docs/brand/DESIGN_SYSTEM.md
  */
 
 import type { Config } from "tailwindcss";
 import daisyui from "daisyui";
 import tailwindPlugin from "tailwindcss/plugin";
 
-/** Nude Foundation — exact palette from Design System v1.0.0 */
+/** Official CI palette — docs/brand/Hotel-Etuna-CI-Guide-Extract.pdf */
+const ci = {
+  primary: "#790C19",
+  cream: "#F3E8D7",
+  secondary: {
+    tan: "#DABC92",
+    taupe: "#A58B72", // CI-corrected: guide page 3 swatch is #A58B72 (was mis-transcribed #B58B72)
+    chocolate: "#4B3428",
+    gold: "#D4AF37",
+    crimson: "#BA082C",
+    // Note: CI page-3 prints a 6th swatch mislabeled "#4B3428" that renders red — a guide typo
+    // (chocolate is already swatch 3). Resolved to these 5 secondary tokens; crimson covers the red accent.
+  },
+  accent: {
+    ochre: "#9A7D43",
+    gold: "#C6A46A",
+    offWhite: "#FAF6F0",
+    forest: "#5E6651",
+    sage: "#9BAE8A",
+    terracotta: "#6D3722",
+    rose: "#C89B95",
+  },
+} as const;
+
+/** Nude Foundation — digital UI extension (warm surfaces) */
 const nude = {
   50: "#fef7f0",
   100: "#fceee0",
@@ -22,33 +54,15 @@ const nude = {
 } as const;
 
 const luxury = {
-  charlotte: "#d4a574",
-  champagne: "#f7e7ce",
-  rose: "#e8b4a0",
-  bronze: "#cd853f",
-  gold: "#d4af37",
-} as const;
-
-/** Hotel Etuna brand accents */
-const khaki = {
-  50: "#faf6f0",
-  100: "#f3ebdc",
-  200: "#e8dcc4",
-  300: "#d9c9a8",
-  400: "#c9b38c",
-  sand: "#c4a97d",
-  600: "#b8955a",
-  700: "#9a7d43",
-} as const;
-
-const terracotta = {
-  700: "#a85a38",
-  800: "#8b4a2e",
-  900: "#6d3722",
+  charlotte: ci.accent.gold,
+  champagne: ci.cream,
+  rose: ci.accent.rose,
+  bronze: ci.accent.ochre,
+  gold: ci.secondary.gold,
 } as const;
 
 const sage = {
-  DEFAULT: "#9bae8a",
+  DEFAULT: ci.accent.sage,
 } as const;
 
 const rustic = {
@@ -80,17 +94,22 @@ const semantic = {
   "info-dark": "#0369a1",
 } as const;
 
-/** Surfaces — Design System §2 */
+/** Surfaces — CI off-white / cream hierarchy */
 const surface = {
-  background: nude[50],
-  canvas: nude[50],
-  foreground: nude[800],
-  muted: nude[200],
+  background: ci.accent.offWhite,
+  canvas: ci.accent.offWhite,
+  foreground: ci.secondary.chocolate,
+  muted: ci.cream,
   elevated: "#ffffff",
   card: "#ffffff",
+  header: "#ffffff",
   input: "#ffffff",
   hover: nude[100],
-  sidebar: nude[100],
+  sidebar: "#ffffff",
+  placeholder: nude[200],
+  skeleton: nude[300],
+  /** Scrim for text overlaid on photography — espresso-tinted, never pure black (Airbnb gem, CI-warmed) */
+  scrim: "rgba(42, 29, 21, 0.55)",
 } as const;
 
 const config = {
@@ -121,30 +140,43 @@ const config = {
         },
       },
       colors: {
+        ci,
         nude,
         luxury,
-        khaki,
-        terracotta,
         sage,
         rustic,
         semantic,
         surface,
         /** Legacy aliases → map to DS tokens for gradual migration */
-        /** Body / ink text ramp — maps to nude scale for WCAG AA on warm surfaces */
+        /**
+         * Body / ink text ramp — CI-chocolate-anchored warm neutrals (single source of truth
+         * for text color). Resolves the prior §9 contradiction (nude-alias vs text-nude-900 vs
+         * terracotta). WCAG contrast verified against the three light surfaces (offwhite/cream/white):
+         *   900 #4B3428 (CI chocolate) 9.5:1 cream  — body, headings
+         *   800 #5A4133                7.7:1 cream  — strong text
+         *   700 #6E5343                5.8:1 cream  — secondary text (AA normal, all surfaces)
+         *   600 #785B49                5.1:1 cream  — muted text     (AA normal, all surfaces)
+         *   500 #927862                3.4:1 cream  — tertiary / large / UI only (AA large)
+         *   400/300                                 — decorative / dividers, not text
+         * (Legacy nude-700 #9d5a3a was only 4.38:1 on cream — failed AA for normal text.)
+         * `nude-*` now scopes to surfaces/borders; prefer `text-ink-*` for all type.
+         */
         ink: {
-          950: nude[900],
-          900: nude[900],
-          800: nude[800],
-          700: nude[700],
-          600: nude[600],
-          500: nude[600],
-          400: nude[500],
-          300: nude[400],
+          950: "#2A1D15",
+          900: "#4B3428",
+          800: "#5A4133",
+          700: "#6E5343",
+          600: "#785B49",
+          500: "#927862",
+          400: "#B6A493",
+          300: "#D2C6BA",
         },
         /** shadcn-style ring offset token */
         background: surface.background,
         foreground: surface.foreground,
         brand: {
+          primary: ci.primary,
+          deep: ci.secondary.chocolate,
           50: nude[50],
           100: nude[100],
           200: nude[200],
@@ -157,10 +189,10 @@ const config = {
           900: nude[900],
         },
         cta: {
-          primary: khaki[600],
-          secondary: khaki[700],
+          primary: ci.primary,
+          secondary: ci.secondary.chocolate,
           vip: nude[500],
-          luxury: "#d4af37",
+          luxury: ci.secondary.gold,
         },
       },
       fontFamily: {
@@ -177,6 +209,11 @@ const config = {
         signature: ["var(--font-dancing-script)", "Dancing Script", "cursive"],
       },
       fontSize: {
+        caption: ["0.6875rem", { lineHeight: "1.29", letterSpacing: "0.04em" }],
+        body: ["0.875rem", { lineHeight: "1.43", letterSpacing: "-0.008em" }],
+        "heading-sm": ["1.25rem", { lineHeight: "1.25", letterSpacing: "-0.011em" }],
+        heading: ["1.375rem", { lineHeight: "1.23", letterSpacing: "-0.014em" }],
+        display: ["1.75rem", { lineHeight: "1.18", letterSpacing: "-0.035em" }],
         xs: ["0.75rem", { lineHeight: "1.5", letterSpacing: "0.025em" }],
         sm: ["0.875rem", { lineHeight: "1.5", letterSpacing: "0.01em" }],
         base: ["1rem", { lineHeight: "1.5", letterSpacing: "0" }],
@@ -189,6 +226,7 @@ const config = {
         "6xl": ["3.75rem", { lineHeight: "1.1", letterSpacing: "-0.025em" }],
       },
       maxWidth: {
+        "etuna-page": "110rem",
         "prose-sm": "45ch",
         "prose-lg": "75ch",
         "container-xs": "20rem",
@@ -201,6 +239,8 @@ const config = {
       spacing: {
         "touch-mobile": "44px",
         "touch-desktop": "32px",
+        "section-gap": "3rem",
+        "card-pad": "0.75rem",
       },
       borderRadius: {
         DEFAULT: "0.75rem",
@@ -211,6 +251,11 @@ const config = {
         xl: "20px",
         "2xl": "24px",
         "3xl": "32px",
+        "etuna-badge": "4px",
+        "etuna-button": "8px",
+        "etuna-input": "14px",
+        "etuna-card": "20px",
+        "etuna-pill": "32px",
       },
       boxShadow: {
         xs: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
@@ -227,9 +272,23 @@ const config = {
         "luxury-soft": "0 2px 12px rgba(212, 175, 55, 0.1)",
         "luxury-medium": "0 4px 20px rgba(212, 175, 55, 0.15)",
         "luxury-strong": "0 8px 32px rgba(212, 175, 55, 0.2)",
-        /** Card / CTA elevation aliases */
+        /**
+         * Warm card/CTA elevation — LEGACY / marketing-hero use only.
+         * Locked browse + ops direction: listing tiles and dashboard cards carry NO shadow
+         * (border + surface colour do the work). Reserve these warm shadows for marketing hero
+         * moments; do not reintroduce them on `.etuna-listing-card` / `.dashboard-card`.
+         */
         card: "0 4px 16px rgba(212, 175, 140, 0.2)",
         "card-hover": "0 8px 24px rgba(212, 175, 140, 0.25)",
+        /**
+         * Airy UI elevation — the ONLY shadows allowed on floating surfaces
+         * (modals, popovers, dropdowns, sticky search/booking panels). Adapted from the
+         * Airbnb three-/two-value stack. Flat browse + ops cards never use these.
+         */
+        "etuna-elevated":
+          "0 0 0 1px rgba(0,0,0,0.02), 0 2px 6px 0 rgba(0,0,0,0.04), 0 4px 8px 0 rgba(0,0,0,0.1)",
+        "etuna-control":
+          "0 0 0 1px rgba(0,0,0,0.02), 0 2px 4px 0 rgba(0,0,0,0.16)",
       },
       transitionDuration: {
         fast: "150ms",
@@ -309,16 +368,16 @@ const config = {
     themes: [
       {
         hoteletuna: {
-          primary: khaki[600],
-          "primary-content": nude[50],
-          secondary: khaki[700],
-          "secondary-content": nude[50],
-          accent: khaki.sand,
-          "accent-content": nude[900],
-          neutral: terracotta[900],
-          "neutral-content": nude[100],
-          "base-100": surface.background,
-          "base-200": nude[100],
+          primary: ci.primary,
+          "primary-content": ci.cream,
+          secondary: ci.secondary.chocolate,
+          "secondary-content": ci.cream,
+          accent: ci.accent.ochre,
+          "accent-content": ci.cream,
+          neutral: ci.secondary.chocolate,
+          "neutral-content": ci.cream,
+          "base-100": ci.accent.offWhite,
+          "base-200": ci.cream,
           "base-300": nude[200],
           "base-content": nude[900],
           info: semantic["info-light"],

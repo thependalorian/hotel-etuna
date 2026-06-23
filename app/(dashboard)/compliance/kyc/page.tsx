@@ -64,7 +64,7 @@ export default async function ComplianceKycPage() {
         </div>
       </div>
 
-      <div className="card bg-base-100 shadow-sm border border-base-200">
+      <div className="card bg-base-100 border border-base-200">
         <div className="card-body p-0">
           <div className="overflow-x-auto">
             <table className="table">

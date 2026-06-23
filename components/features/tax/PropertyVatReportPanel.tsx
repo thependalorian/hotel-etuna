@@ -81,18 +81,18 @@ function VatTotalsBlock({
 }) {
   const gross = section.taxableGross ?? section.grossTotal ?? 0;
   return (
-    <div className="rounded-lg border border-nude-200 p-4 bg-nude-50/50">
-      <h3 className="text-sm font-semibold text-nude-800 mb-2">{title}</h3>
-      <p className="text-xs text-nude-500 mb-3">{section.lineCount} line(s)</p>
+    <div className="rounded-etuna-input border border-nude-200 p-4 bg-nude-50/50">
+      <h3 className="text-sm font-semibold text-ink-800 mb-2">{title}</h3>
+      <p className="text-xs text-ink-500 mb-3">{section.lineCount} line(s)</p>
       <dl className="space-y-1 text-sm">
         <div className="flex justify-between gap-4">
-          <dt className="text-nude-600">{grossLabel}</dt>
+          <dt className="text-ink-600">{grossLabel}</dt>
           <dd className="font-mono">
             {currency} {gross.toFixed(2)}
           </dd>
         </div>
         <div className="flex justify-between gap-4">
-          <dt className="text-nude-600">Output VAT @ 15%</dt>
+          <dt className="text-ink-600">Output VAT @ 15%</dt>
           <dd className="font-mono">
             {currency} {section.vatAmount.toFixed(2)}
           </dd>
@@ -148,7 +148,7 @@ export function PropertyVatReportPanel() {
   return (
     <div className="space-y-6">
       <Card className="p-6 space-y-4">
-        <p className="text-sm text-nude-600">
+        <p className="text-sm text-ink-600">
           This report is for <strong>{brand.name}</strong> NamRA VAT on guest room, restaurant, and
           folio supplies. It does <strong>not</strong> include platform subscription or card
           processing fees — those appear on{' '}
@@ -163,7 +163,7 @@ export function PropertyVatReportPanel() {
         </p>
         <div className="flex flex-wrap gap-4 items-end">
           <label className="form-control w-full max-w-xs">
-            <span className="label-text text-nude-700">From</span>
+            <span className="label-text text-ink-700">From</span>
             <input
               type="date"
               className="input input-bordered w-full"
@@ -172,7 +172,7 @@ export function PropertyVatReportPanel() {
             />
           </label>
           <label className="form-control w-full max-w-xs">
-            <span className="label-text text-nude-700">To</span>
+            <span className="label-text text-ink-700">To</span>
             <input
               type="date"
               className="input input-bordered w-full"
@@ -194,7 +194,7 @@ export function PropertyVatReportPanel() {
       )}
 
       {loading && !report && (
-        <Card className="p-8 text-center text-nude-600">Loading property VAT report…</Card>
+        <Card className="p-8 text-center text-ink-600">Loading property VAT report…</Card>
       )}
 
       {report && !loading && (
@@ -210,8 +210,8 @@ export function PropertyVatReportPanel() {
 
           <Card className="p-6 space-y-6">
             <div>
-              <h2 className="text-lg font-semibold text-nude-900 mb-1">{report.profile.legalName}</h2>
-              <div className="text-sm text-nude-600 space-y-0.5">
+              <h2 className="text-lg font-semibold text-ink-900 mb-1">{report.profile.legalName}</h2>
+              <div className="text-sm text-ink-600 space-y-0.5">
                 {report.profile.registrationNumber && (
                   <p>BIPA / CC: {report.profile.registrationNumber}</p>
                 )}
@@ -222,7 +222,7 @@ export function PropertyVatReportPanel() {
                   <p>VAT: {report.profile.vatRegistrationNumber}</p>
                 )}
               </div>
-              <p className="text-xs text-nude-500 mt-2">
+              <p className="text-xs text-ink-500 mt-2">
                 Pricing:{' '}
                 {report.profile.pricesVatInclusive ? 'VAT-inclusive (B2C)' : 'VAT-exclusive'}
               </p>
@@ -243,31 +243,31 @@ export function PropertyVatReportPanel() {
               />
             </div>
 
-            <div className="rounded-lg border-2 border-terracotta-200 bg-terracotta-50/40 p-4">
-              <h3 className="text-sm font-semibold text-terracotta-900 mb-2">
+            <div className="rounded-etuna-input border-2 border-ci-accent-rose bg-ci-cream/40 p-4">
+              <h3 className="text-sm font-semibold text-ci-secondary-chocolate mb-2">
                 Combined period estimate (review with accountant)
               </h3>
               <dl className="space-y-1 text-sm max-w-md">
                 <div className="flex justify-between gap-4">
-                  <dt className="text-nude-700">Combined gross</dt>
+                  <dt className="text-ink-700">Combined gross</dt>
                   <dd className="font-mono font-medium">
                     {report.currency} {report.combinedTaxableGross.toFixed(2)}
                   </dd>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <dt className="text-nude-700">Combined output VAT</dt>
+                  <dt className="text-ink-700">Combined output VAT</dt>
                   <dd className="font-mono font-medium">
                     {report.currency} {report.combinedVat.vatAmount.toFixed(2)}
                   </dd>
                 </div>
-                <div className="flex justify-between gap-4 font-semibold border-t border-terracotta-200 pt-2">
+                <div className="flex justify-between gap-4 font-semibold border-t border-ci-accent-rose pt-2">
                   <dt>Combined incl. VAT</dt>
                   <dd className="font-mono">
                     {report.currency} {report.combinedVat.totalInclVat.toFixed(2)}
                   </dd>
                 </div>
               </dl>
-              <p className="text-xs text-nude-600 mt-3">
+              <p className="text-xs text-ink-600 mt-3">
                 Folio settlements and payment transactions may overlap the same stay — do not
                 double-count both sections on your NamRA return without reconciliation.
               </p>
@@ -344,7 +344,7 @@ export function PropertyVatReportPanel() {
               </div>
             )}
 
-            <p className="text-xs text-nude-500 border-t border-nude-100 pt-4">{report.disclaimer}</p>
+            <p className="text-xs text-ink-500 border-t border-nude-100 pt-4">{report.disclaimer}</p>
           </Card>
         </>
       )}

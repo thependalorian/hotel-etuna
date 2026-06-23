@@ -46,7 +46,7 @@ function WelcomeContent() {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <span className="loading loading-spinner loading-lg text-primary" aria-hidden="true" />
-        <p className="text-nude-700">Opening your guest hub…</p>
+        <p className="text-ink-700">Opening your guest hub…</p>
       </div>
     );
   }
@@ -54,8 +54,8 @@ function WelcomeContent() {
   if (error) {
     return (
       <div className="max-w-md mx-auto py-16 text-center space-y-4">
-        <h1 className="font-display text-2xl font-bold text-nude-900">Welcome link problem</h1>
-        <p className="text-nude-600">{error}</p>
+        <h1 className="font-display text-2xl font-bold text-ink-900">Welcome link problem</h1>
+        <p className="text-ink-600">{error}</p>
         <Button asChild>
           <Link href="/login">Sign in instead</Link>
         </Button>

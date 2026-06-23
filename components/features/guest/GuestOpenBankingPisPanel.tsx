@@ -60,7 +60,7 @@ export function GuestOpenBankingPisPanel({
       }
       const url = json.data?.authorizationUrl ?? json.authorizationUrl;
       if (!url || typeof url !== 'string') {
-        throw new Error('Bank redirect URL missing. Use NamQR or card instead.');
+        throw new Error('Bank redirect URL missing. Use card instead.');
       }
       window.location.assign(url);
     } catch (e) {
@@ -124,22 +124,22 @@ export function GuestOpenBankingPisPanel({
   if (balanceDue <= 0) return null;
 
   return (
-    <div className="rounded-xl border border-nude-200 bg-nude-50/80 p-4 mt-4">
+    <div className="rounded-etuna-card border border-nude-200 bg-nude-50/80 p-4 mt-4">
       <button
         type="button"
-        className="flex w-full items-center justify-between text-left font-semibold text-nude-900"
+        className="flex w-full items-center justify-between text-left font-semibold text-ink-900"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
       >
         <span>Pay via bank (Open Banking)</span>
-        <span className="text-sm font-normal text-nude-600">{open ? 'Hide' : 'Show'}</span>
+        <span className="text-sm font-normal text-ink-600">{open ? 'Hide' : 'Show'}</span>
       </button>
       {open && (
         <div className="mt-4 space-y-3">
           {sandboxUi ? (
             <>
               <div className="badge badge-warning badge-soft">Developer sandbox</div>
-              <p className="text-sm text-nude-600">
+              <p className="text-sm text-ink-600">
                 Sandbox only — paste consent token and OTP from your test bank. Guests in production
                 will use a bank-app redirect instead.
               </p>
@@ -206,7 +206,7 @@ export function GuestOpenBankingPisPanel({
             </>
           ) : (
             <div className="space-y-3" role="status">
-              <p className="text-sm text-nude-700">
+              <p className="text-sm text-ink-700">
                 Pay from your Namibian banking app — you will approve the amount and one-time code in
                 the bank, not on this page.
               </p>
@@ -239,8 +239,8 @@ export function GuestOpenBankingPisPanel({
               >
                 {busy ? 'Opening your bank…' : 'Continue to your bank'}
               </Button>
-              <p className="text-xs text-nude-500">
-                Prefer not to leave this page? Use NamQR or card in the tabs above.
+              <p className="text-xs text-ink-500">
+                Prefer not to leave this page? Use card in the tabs above.
               </p>
             </div>
           )}

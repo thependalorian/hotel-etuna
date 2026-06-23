@@ -60,12 +60,12 @@ const PropertyForm = ({ property }: PropertyFormProps) => {
 
   const inputClass = (invalid?: boolean) =>
     cn(
-      'w-full min-h-[44px] rounded-xl border bg-white/95 px-3.5 py-2.5 text-sm text-nude-900 shadow-xs transition-all duration-200',
-      'placeholder:text-nude-500 focus:border-khaki-600 focus:outline-none focus:ring-2 focus:ring-khaki-600/20',
+      'w-full min-h-[44px] rounded-etuna-card border bg-white/95 px-3.5 py-2.5 text-sm text-ink-900 shadow-xs transition-all duration-200',
+      'placeholder:text-ink-500 focus:border-ci-primary focus:outline-none focus:ring-2 focus:ring-ci-primary/20',
       invalid ? 'border-semantic-error focus:ring-semantic-error/25' : 'border-nude-200'
     );
 
-  const labelClass = 'mb-1.5 block text-sm font-semibold text-nude-800';
+  const labelClass = 'mb-1.5 block text-sm font-semibold text-ink-800';
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -102,12 +102,12 @@ const PropertyForm = ({ property }: PropertyFormProps) => {
         />
       )}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-        <div className="rounded-lg border border-nude-200 bg-surface-elevated shadow-nude-soft p-6 md:p-8">
-          <h3 className="font-display text-2xl font-bold text-nude-900 mb-2">
+        <div className="rounded-etuna-input border border-nude-200 bg-surface-elevated p-6 md:p-8">
+          <h3 className="font-display text-2xl font-bold text-ink-900 mb-2">
             {property ? 'Edit Property Details' : 'Configure Hotel Etuna'}
           </h3>
           {!property && (
-            <p className="mt-2 max-w-2xl text-sm text-nude-600 leading-relaxed">
+            <p className="mt-2 max-w-2xl text-sm text-ink-600 leading-relaxed">
               Set up your property details so your team can manage rooms, bookings, and services.
             </p>
           )}
@@ -152,7 +152,7 @@ const PropertyForm = ({ property }: PropertyFormProps) => {
 
             <div>
               <label className={labelClass} htmlFor="property-rooms">
-                Room count <span className="font-normal text-nude-500">(35 for Hotel Etuna)</span>
+                Room count <span className="font-normal text-ink-500">(35 for Hotel Etuna)</span>
               </label>
               <input
                 id="property-rooms"
@@ -188,7 +188,7 @@ const PropertyForm = ({ property }: PropertyFormProps) => {
 
             <div className="md:col-span-2">
               <label className={labelClass} htmlFor="property-description">
-                Description <span className="font-normal text-nude-500">(optional)</span>
+                Description <span className="font-normal text-ink-500">(optional)</span>
               </label>
               <textarea
                 id="property-description"
@@ -207,7 +207,7 @@ const PropertyForm = ({ property }: PropertyFormProps) => {
         <div className="flex flex-col-reverse gap-4 border-t border-nude-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
           <button
             type="submit"
-            className="inline-flex items-center gap-2 px-8 py-3 bg-khaki-600 text-white rounded-full font-bold hover:bg-khaki-700 shadow-nude-soft transition-all duration-200 min-h-[52px] w-full sm:w-auto"
+            className="inline-flex items-center gap-2 px-8 py-3 bg-ci-primary text-ci-cream rounded-full font-bold hover:bg-ci-primary/90 shadow-nude-soft transition-all duration-200 min-h-[52px] w-full sm:w-auto"
             disabled={isSubmitting}
           >
             {isSubmitting ? (

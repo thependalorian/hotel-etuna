@@ -172,7 +172,7 @@ export function RegisterForm() {
           variant="primary"
           size="lg"
           disabled={form.formState.isSubmitting}
-          className="w-full min-h-14 text-lg font-semibold shadow-nude-primary hover:shadow-nude-strong"
+          className="w-full min-h-14 text-lg font-semibold shadow-nude-primary "
         >
           {form.formState.isSubmitting ? (
             <>

@@ -15,7 +15,7 @@ export default function RoomsIncludedStrip() {
     <section className="py-12 bg-nude-50" aria-label="Included in every room">
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-4xl">
-          <h2 className="mb-6 text-center font-display text-2xl font-bold text-terracotta-900">
+          <h2 className="mb-6 text-center font-display text-2xl font-bold text-ci-secondary-chocolate">
             Every room includes
           </h2>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
@@ -23,10 +23,10 @@ export default function RoomsIncludedStrip() {
               const Icon = ICONS[index] ?? Sparkles;
               return (
                 <div key={item.label} className="flex flex-col items-center text-center">
-                  <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-sage/20">
+                  <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-ci-accent-sage/20">
                     <Icon className="h-6 w-6 text-sage" aria-hidden />
                   </div>
-                  <span className="text-sm font-medium text-terracotta-800">{item.label}</span>
+                  <span className="text-sm font-medium text-ci-accent-terracotta">{item.label}</span>
                 </div>
               );
             })}

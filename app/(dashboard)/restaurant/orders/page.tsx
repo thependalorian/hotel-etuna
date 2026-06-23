@@ -235,7 +235,7 @@ export default function RestaurantOrdersPage() {
 
         {restaurantId ? (
           <div className="space-y-4">
-            <h3 className="font-display text-xl font-semibold text-nude-900">Recent Orders</h3>
+            <h3 className="font-display text-xl font-semibold text-ink-900">Recent Orders</h3>
             {orders.length === 0 ? (
               <EmptyState
                 title="No orders found"
@@ -252,7 +252,7 @@ export default function RestaurantOrdersPage() {
           </div>
         ) : (
           <Card variant="elevated" className="text-center py-12">
-            <p className="text-nude-600">Select a property to manage its orders.</p>
+            <p className="text-ink-600">Select a property to manage its orders.</p>
           </Card>
         )}
       </div>

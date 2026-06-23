@@ -39,7 +39,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     <div className={cn('flex flex-col items-center justify-center gap-3', className)}>
       <Loader2
         className={cn(
-          'animate-spin text-nude-600',
+          'animate-spin text-ink-600',
           sizeClasses[size]
         )}
         role="status"
@@ -47,7 +47,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         aria-live="polite"
       />
       {text && (
-        <p className="text-sm font-medium text-nude-600 animate-fade-in">
+        <p className="text-sm font-medium text-ink-600 animate-fade-in">
           {text}
         </p>
       )}

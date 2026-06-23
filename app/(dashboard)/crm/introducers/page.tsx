@@ -130,7 +130,7 @@ export default function IntroducersListPage() {
           title="Introducer Partners"
           description="Manage referral partners and commission tracking"
           actions={
-            <Button asChild className="shadow-nude-soft hover:shadow-nude-medium">
+            <Button asChild>
               <Link href="/crm/introducers/new">Add Introducer</Link>
             </Button>
           }

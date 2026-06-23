@@ -69,7 +69,7 @@ export default async function PartnerRoomsPage() {
       </div>
 
       {roomList.length === 0 ? (
-        <div className="rounded-xl border border-base-300 bg-base-200 p-8 text-center text-base-content/60">
+        <div className="rounded-etuna-card border border-base-300 bg-base-200 p-8 text-center text-base-content/60">
           No rooms found. Contact{' '}
           <a href="mailto:admin@hoteletuna.com" className="link link-primary">admin@hoteletuna.com</a>.
         </div>

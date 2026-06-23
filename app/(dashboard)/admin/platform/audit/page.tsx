@@ -38,7 +38,7 @@ export default async function PlatformAuditPage() {
             <kbd className="kbd kbd-sm">~/Downloads/{REGULATORY_PACK_FOLDER}</kbd> — e.g. ETA 2019, BoN
             PSD-1 / PSD-3 / PSD-12, NamQR standards, Namibia Open Banking, NPS fraud report.
           </p>
-          <details className="collapse collapse-arrow bg-base-200 rounded-lg">
+          <details className="collapse collapse-arrow bg-base-200 rounded-etuna-input">
             <summary className="collapse-title text-sm font-medium min-h-0 py-2">
               Material index (engineering hints)
             </summary>

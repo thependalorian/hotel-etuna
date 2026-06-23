@@ -28,41 +28,41 @@ export function BookingPricingDetails({ details, currency = 'NAD' }: BookingPric
 
   return (
     <div className="mb-6">
-      <h3 className="font-display text-lg font-semibold mb-3 text-nude-900">Pricing details</h3>
+      <h3 className="font-display text-lg font-semibold mb-3 text-ink-900">Pricing details</h3>
       {hasReadable ? (
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm mb-4">
           {depositPercent != null ? (
-            <div className="rounded-lg border border-nude-200 bg-nude-50 p-3">
-              <dt className="text-nude-600">Deposit</dt>
-              <dd className="font-semibold text-nude-900">{String(depositPercent)}%</dd>
+            <div className="rounded-etuna-input border border-nude-200 bg-nude-50 p-3">
+              <dt className="text-ink-600">Deposit</dt>
+              <dd className="font-semibold text-ink-900">{String(depositPercent)}%</dd>
             </div>
           ) : null}
           {depositAmount != null ? (
-            <div className="rounded-lg border border-nude-200 bg-nude-50 p-3">
-              <dt className="text-nude-600">Deposit amount</dt>
-              <dd className="font-semibold text-nude-900">
+            <div className="rounded-etuna-input border border-nude-200 bg-nude-50 p-3">
+              <dt className="text-ink-600">Deposit amount</dt>
+              <dd className="font-semibold text-ink-900">
                 {currency} {Number(depositAmount).toFixed(2)}
               </dd>
             </div>
           ) : null}
           {nightlyRate != null ? (
-            <div className="rounded-lg border border-nude-200 bg-nude-50 p-3">
-              <dt className="text-nude-600">Nightly rate</dt>
-              <dd className="font-semibold text-nude-900">
+            <div className="rounded-etuna-input border border-nude-200 bg-nude-50 p-3">
+              <dt className="text-ink-600">Nightly rate</dt>
+              <dd className="font-semibold text-ink-900">
                 {currency} {Number(nightlyRate).toFixed(2)}
               </dd>
             </div>
           ) : null}
           {sessionDate != null ? (
-            <div className="rounded-lg border border-nude-200 bg-nude-50 p-3">
-              <dt className="text-nude-600">Session date</dt>
-              <dd className="font-semibold text-nude-900">{String(sessionDate)}</dd>
+            <div className="rounded-etuna-input border border-nude-200 bg-nude-50 p-3">
+              <dt className="text-ink-600">Session date</dt>
+              <dd className="font-semibold text-ink-900">{String(sessionDate)}</dd>
             </div>
           ) : null}
         </dl>
       ) : null}
-      <details className="collapse collapse-arrow rounded-lg border border-nude-200 bg-nude-50">
-        <summary className="collapse-title min-h-0 py-3 text-sm font-medium text-nude-800">
+      <details className="collapse collapse-arrow rounded-etuna-input border border-nude-200 bg-nude-50">
+        <summary className="collapse-title min-h-0 py-3 text-sm font-medium text-ink-800">
           Technical details
         </summary>
         <div className="collapse-content">

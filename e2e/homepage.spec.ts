@@ -22,7 +22,7 @@ test.describe('Homepage', () => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page).toHaveTitle(/Hotel Etuna/i);
 
-    await expect(page.getByRole('heading', { level: 1, name: /he takes care of us/i })).toBeVisible({
+    await expect(page.getByRole('heading', { level: 1, name: /hotel etuna/i })).toBeVisible({
       timeout: 10_000,
     });
   });

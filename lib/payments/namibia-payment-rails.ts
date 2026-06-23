@@ -1,20 +1,19 @@
 /**
  * Namibia payment rails — product policy and field conventions
  *
- * Purpose: Single source of truth for Namibia payment rails (Adumo Virtual, NamQR, cash, EFT).
+ * Purpose: Single source of truth for Namibia payment rails (Adumo Virtual, cash, EFT, open banking).
  * Location: lib/payments/namibia-payment-rails.ts
  *
  * Store on rows:
  * - `payment_methods.type` ∈ PaymentMethodType
  * - `payment_methods.provider` — bank code, wallet brand, “manual”, etc.
- * - `transactions.payment_gateway` — low-cardinality processor id (e.g. namqr, bank_eft, pos_acquirer)
- * - `transactions.metadata` — JSON e.g. { rail: 'eft', reference: '...', namqrRef: '...' }
+ * - `transactions.payment_gateway` — low-cardinality processor id (e.g. bank_eft, pos_acquirer)
+ * - `transactions.metadata` — JSON e.g. { rail: 'eft', reference: '...' }
  *
  */
 
 /** Values for `payment_methods.type` (varchar); keep lowercase stable */
 export const PaymentMethodType = {
-  NAMQR: 'namqr',
   EFT: 'eft',
   CARD: 'card',
   EWALLET: 'ewallet',
@@ -27,7 +26,6 @@ export type PaymentMethodTypeValue = (typeof PaymentMethodType)[keyof typeof Pay
 
 /** Suggested `transactions.payment_gateway` labels */
 export const PaymentGatewayLabel = {
-  NAMQR: 'namqr',
   BANK_EFT: 'bank_eft',
   CARD_ACQUIRER: 'card_acquirer',
   ADUMO_VIRTUAL: 'adumo_virtual',
@@ -49,13 +47,6 @@ export interface NamibiaPaymentRailInfo {
  * Rails the product is designed to accept (implementation per tenant/acquirer may vary).
  */
 export const NAMIBIA_PAYMENT_RAILS: NamibiaPaymentRailInfo[] = [
-  {
-    key: 'namqr',
-    label: 'NamQR (NPS QR)',
-    methodType: PaymentMethodType.NAMQR,
-    typicalGateway: PaymentGatewayLabel.NAMQR,
-    notes: 'In-app NamQR generation / scan flows; align with Namibia QR Code Standards PDF in compliance pack.',
-  },
   {
     key: 'eft',
     label: 'EFT / bank transfer',

@@ -2,7 +2,7 @@
 
 **Canonical product doc:** [`PRD.md`](./PRD.md) · **Architecture:** [`PLANNING.md`](./PLANNING.md) · **Tracker:** [`TASK.md`](./TASK.md)
 
-**Last updated:** 2026-06-11
+**Last updated:** 2026-06-22
 
 ---
 
@@ -22,7 +22,8 @@ Hotel Etuna is the **operating system for one flagship property** in Ongwediva, 
 
 | File | Purpose |
 |------|---------|
-| `lib/copy/brand.ts` | Legal name, trade name, tone |
+| `docs/brand/Hotel-Etuna-CI-Guide-Extract.pdf` | Official corporate identity (colors, typography, logo variants) |
+| `lib/copy/brand.ts` | Legal name, trade name, tone, CI colors, logo asset paths |
 | `lib/copy/public.ts` | Marketing strings |
 | `lib/copy/contact-emails.ts` | `frontdesk@hoteletuna.com`, etc. |
 | `lib/config/platform-console.ts` | Platform admin labels |

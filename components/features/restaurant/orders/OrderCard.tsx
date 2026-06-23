@@ -14,8 +14,7 @@
  * 
  * Design System:
  * - Uses semantic tokens: text-base-content, bg-base-100
- * - Card shadows: shadow-lg with hover:shadow-xl
- * - Button sizes: min-h-[44px]
+ * - Card shadows: shadow-lg with  * - Button sizes: min-h-[44px]
  * 
  * Accessibility:
  * - Semantic HTML structure
@@ -86,7 +85,7 @@ export default function OrderCard({ order, index }: OrderCardProps) {
 
   return (
     <div 
-      className="rounded-lg border-l-4 bg-surface-elevated shadow-nude-soft hover:shadow-nude-medium transition-all duration-200 animate-slide-up overflow-hidden"
+      className="rounded-etuna-input border-l-4 bg-surface-elevated transition-all duration-200 animate-slide-up overflow-hidden"
       style={{ 
         animationDelay: `${index * 50}ms`,
         borderLeftColor: `var(--color-${timeColor})`,
@@ -97,14 +96,14 @@ export default function OrderCard({ order, index }: OrderCardProps) {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
-              <h4 className="font-display text-lg font-bold text-nude-900">Order #{order.order_number}</h4>
+              <h4 className="font-display text-lg font-bold text-ink-900">Order #{order.order_number}</h4>
               {timeElapsed > 30 && (
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-semantic-error text-white">
                   HIGH PRIORITY
                 </span>
               )}
             </div>
-            <p className="text-sm text-nude-600 font-medium">
+            <p className="text-sm text-ink-600 font-medium">
               {order.order_type} • {order.table_number || order.room_number || 'No table/room'}
             </p>
           </div>
@@ -112,7 +111,7 @@ export default function OrderCard({ order, index }: OrderCardProps) {
           <div className="flex items-center gap-3">
             <StatusBadge status={status} showDot />
             <div className="text-right">
-              <p className="font-display text-2xl font-bold text-nude-900">N${total.toFixed(2)}</p>
+              <p className="font-display text-2xl font-bold text-ink-900">N${total.toFixed(2)}</p>
               <div className={`text-xs font-semibold ${timeElapsed > 30 ? 'text-semantic-error' : timeElapsed > 15 ? 'text-semantic-warning' : 'text-semantic-success'}`}>
                 {timeElapsed}min elapsed
               </div>
@@ -121,24 +120,24 @@ export default function OrderCard({ order, index }: OrderCardProps) {
         </div>
         
         {/* Order Items */}
-        <div className="p-4 bg-nude-50 rounded-lg mb-4 border border-nude-200">
-          <p className="text-sm font-semibold text-nude-800 mb-3">Order Items</p>
+        <div className="p-4 bg-nude-50 rounded-etuna-input mb-4 border border-nude-200">
+          <p className="text-sm font-semibold text-ink-800 mb-3">Order Items</p>
           <div className="space-y-2">
             {(order.items || []).map((item, itemIndex) => (
               <div key={itemIndex} className="flex justify-between items-center text-sm py-1">
-                <span className="text-nude-900 font-medium">
-                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-nude-200 text-nude-800 text-xs font-bold mr-2">
+                <span className="text-ink-900 font-medium">
+                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-nude-200 text-ink-800 text-xs font-bold mr-2">
                     {item.quantity}
                   </span>
                   {item.item_name}
                 </span>
-                <span className="font-semibold text-nude-900">
+                <span className="font-semibold text-ink-900">
                   N${Number(item.total_price || 0).toFixed(2)}
                 </span>
               </div>
             ))}
             {(!order.items || order.items.length === 0) && (
-              <p className="text-sm text-nude-500 italic">No items attached.</p>
+              <p className="text-sm text-ink-500 italic">No items attached.</p>
             )}
           </div>
         </div>

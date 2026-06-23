@@ -75,12 +75,12 @@ function EmptyState({
       <div className="mb-4">{renderEmptyIcon(icon)}</div>
 
       {/* Title */}
-      <h3 className="font-display text-xl font-semibold text-nude-800 mb-2">
+      <h3 className="font-display text-xl font-semibold text-ink-800 mb-2">
         {title}
       </h3>
 
       {/* Description */}
-      <p className="text-nude-600 text-base max-w-md mb-6">
+      <p className="text-ink-600 text-base max-w-md mb-6">
         {description}
       </p>
 

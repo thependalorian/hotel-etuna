@@ -136,7 +136,7 @@ export default function PublicMenuPage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {category.items.map(item => (
-                  <div key={item.id} className="card bg-base-100 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+                  <div key={item.id} className="card bg-base-100 transition-all duration-300 hover:-translate-y-1 overflow-hidden">
                     {item.image_url && (
                       <figure className="relative h-48 w-full overflow-hidden bg-base-200">
                         <Image 
