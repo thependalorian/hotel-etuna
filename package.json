@@ -77,8 +77,8 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
-    "@langchain/core": "^0.3.40",
-    "@langchain/langgraph": "^0.2.74",
+    "@langchain/core": "^1.2.1",
+    "@langchain/langgraph": "^1.4.7",
     "@neondatabase/serverless": "^1.0.2",
     "@posthog/react": "^1.9.0",
     "@qdrant/js-client-rest": "^1.18.0",
