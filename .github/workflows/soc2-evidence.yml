@@ -47,7 +47,7 @@ jobs:
           HUB_TENANT_ID: ${{ secrets.HUB_TENANT_ID }}
         run: npx tsx scripts/soc2/collect-evidence.ts
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: soc2-evidence
